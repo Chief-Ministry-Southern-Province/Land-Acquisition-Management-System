@@ -8,11 +8,8 @@ import {
   UserCog,
   History,
 } from 'lucide-react';
-import { useState } from 'react';
 
 export default function SideBar() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/user-management', icon: UserCog, label: 'User Management' },
@@ -22,11 +19,7 @@ export default function SideBar() {
   ];
 
   return (
-    <aside
-      className={`bg-card border-border flex flex-col border-r transition-all duration-300 ${
-        sidebarOpen ? 'w-64' : 'w-0'
-      } overflow-hidden`}
-    >
+    <>
       {/* Logo */}
       <div className="border-border bg-primary flex h-16 items-center justify-between border-b px-6">
         <div className="flex items-center gap-3">
@@ -85,6 +78,6 @@ export default function SideBar() {
           <span>Logout</span>
         </button>
       </div>
-    </aside>
+    </>
   );
 }

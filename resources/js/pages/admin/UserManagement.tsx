@@ -85,7 +85,7 @@ export default function UserManagement() {
     },
   ];
 
-  const actions = (row: any) => (
+  const actions = () => (
     <div className="flex items-center justify-end gap-2">
       <button
         className="hover:bg-muted rounded p-1.5 transition-colors"

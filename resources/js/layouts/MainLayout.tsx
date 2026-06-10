@@ -12,7 +12,13 @@ export default function MainLayout({ children }: Props) {
 
   return (
     <div className="bg-background flex h-screen overflow-hidden">
-      <SideBar />
+      <aside
+        className={`bg-card border-border flex flex-col border-r transition-all duration-300 ${
+          sidebarOpen ? 'w-64' : 'w-0'
+        } overflow-hidden`}
+      >
+        <SideBar />
+      </aside>
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
