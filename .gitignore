@@ -1,28 +1,38 @@
+# Laravel / PHP
 /.phpunit.cache
+/.phpunit.result.cache
+/vendor
 /bootstrap/ssr
+/storage/*.key
+/storage/pail
+/database/database.sqlite
+/database/database.sqlite-*
+
+# Frontend build output
 /node_modules
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+
+# Generated Inertia / Wayfinder assets
 /resources/js/actions
 /resources/js/routes
 /resources/js/wayfinder
-/storage/*.key
-/storage/pail
-/vendor
+
+# Environment and local tooling
 .env
 .env.backup
 .env.production
-.phpactor.json
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-/auth.json
 /.fleet
 /.idea
 /.nova
 /.vscode
 /.zed
+/.phpactor.json
+/auth.json
+Homestead.json
+Homestead.yaml
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
