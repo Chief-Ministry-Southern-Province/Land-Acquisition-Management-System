@@ -1,8 +1,10 @@
+import { router } from '@inertiajs/react';
 import { LogIn } from 'lucide-react';
 
 function LoginScreen() {
   const handleLogin = () => {
     console.log('Login attempted');
+    router.visit('/dashboard'); //IMPLEMENT
   };
 
   return (

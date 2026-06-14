@@ -7,11 +7,13 @@ import {
   User,
   UserCog,
   History,
+  Map,
 } from 'lucide-react';
 
 export default function SideBar() {
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/land-parcels', icon: Map, label: 'Land Parcels' },
     { path: '/user-management', icon: UserCog, label: 'User Management' },
     { path: '/audit-log', icon: History, label: 'Audit Log' },
     { path: '/notifications', icon: Bell, label: 'Notifications' },
