@@ -5,6 +5,7 @@ import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
 
 export default function LandParcelDetails() {
+  // IMPLEMENT: Get parcel ID from route params and fetch parcel details from API
   const parcel = {
     id: 'PCL-8934',
     surveyNo: '123/4A',

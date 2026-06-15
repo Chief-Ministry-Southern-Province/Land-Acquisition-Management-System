@@ -13,3 +13,16 @@ Route::inertia('/audit-log', 'AuditLog')->name('audit-log');
 Route::inertia('/land-parcels', 'land_parcels/LandParcelList')->name('land-parcels');
 Route::inertia('/land-parcels/create', 'land_parcels/AddLandParcel')->name('add-land-parcel');
 Route::inertia('/land-parcels/{id}', 'land_parcels/LandParcelDetails')->name('land-parcel-details');
+
+// Land Owners routes
+Route::inertia('/land-owners', 'land_owners/LandOwnerList')->name('land-owners');
+Route::inertia('/land-owners/{id}', 'land_owners/LandOwnerDetails')->name('land-owner-details');
+
+// Documents routes
+Route::inertia('/documents', 'DocumentList')->name('documents');
+
+//GIS/Maps routes
+Route::inertia('/gis-maps', 'GisMapList')->name('gis-maps');
+
+//Reports routes
+Route::inertia('/reports', 'Reports')->name('reports');

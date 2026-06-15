@@ -8,12 +8,20 @@ import {
   UserCog,
   History,
   Map,
+  Users,
+  FolderOpen,
+  MapPin,
+  BarChart3,
 } from 'lucide-react';
 
 export default function SideBar() {
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/land-parcels', icon: Map, label: 'Land Parcels' },
+    { path: '/land-owners', icon: Users, label: 'Property Owners' },
+    { path: '/documents', icon: FolderOpen, label: 'Documents' },
+    { path: '/gis-maps', icon: MapPin, label: 'GIS / Maps' },
+    { path: '/reports', icon: BarChart3, label: 'Reports' },
     { path: '/user-management', icon: UserCog, label: 'User Management' },
     { path: '/audit-log', icon: History, label: 'Audit Log' },
     { path: '/notifications', icon: Bell, label: 'Notifications' },
