@@ -21,8 +21,16 @@ Route::inertia('/land-owners/{id}', 'land_owners/LandOwnerDetails')->name('land-
 // Documents routes
 Route::inertia('/documents', 'DocumentList')->name('documents');
 
-//GIS/Maps routes
+// GIS/Maps routes
 Route::inertia('/gis-maps', 'GisMapList')->name('gis-maps');
 
-//Reports routes
+// Reports routes
 Route::inertia('/reports', 'Reports')->name('reports');
+
+// Workflow routes
+Route::inertia('/acquisition-workflow', 'AcquisitionWorkflow')->name('acquisition-workflow');
+Route::inertia('/approval-workflow', 'ApprovalWorkflow')->name('approval-workflow');
+
+// Projects routes
+Route::inertia('/projects', 'projects/ProjectList')->name('projects');
+Route::inertia('/projects/{id}', 'projects/ProjectDetails')->name('project-details');
