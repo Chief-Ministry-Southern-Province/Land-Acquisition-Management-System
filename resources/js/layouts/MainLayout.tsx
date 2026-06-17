@@ -1,7 +1,9 @@
-import { Bell, Menu, X } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
+import { Bell, Menu, Settings, X } from 'lucide-react';
 import { useState } from 'react';
 
 import SideBar from '@/components/SideBar';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type Props = {
   children: React.ReactNode;
@@ -9,6 +11,7 @@ type Props = {
 
 export default function MainLayout({ children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { locale } = useTranslation();
 
   return (
     <div className="bg-background flex h-screen overflow-hidden">
@@ -64,9 +67,11 @@ export default function MainLayout({ children }: Props) {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Language Switch */}
+
             {/* Notifications */}
             <button
-              // onClick={() => navigate('/notifications')}
+              onClick={() => router.visit('/notifications')}
               className="hover:bg-muted relative rounded-lg p-2 transition-colors"
             >
               <Bell className="h-5 w-5" />
@@ -75,11 +80,33 @@ export default function MainLayout({ children }: Props) {
 
             {/* User Menu */}
             <button
-              // onClick={() => navigate('/settings')}
+              onClick={() => router.visit('/settings')}
               className="hover:bg-muted rounded-lg p-2 transition-colors"
             >
-              {/* <Settings className="h-5 w-5" /> */}
+              <Settings className="h-5 w-5" />
             </button>
+            <div className="flex gap-2">
+              <Link
+                href="/lang/en"
+                className={`rounded px-3 py-1 text-sm transition-colors ${
+                  locale === 'en'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted hover:bg-muted/80 text-foreground'
+                }`}
+              >
+                EN
+              </Link>
+              <Link
+                href="/lang/si"
+                className={`rounded px-3 py-1 text-sm transition-colors ${
+                  locale === 'si'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted hover:bg-muted/80 text-foreground'
+                }`}
+              >
+                සිං
+              </Link>
+            </div>
           </div>
         </header>
 

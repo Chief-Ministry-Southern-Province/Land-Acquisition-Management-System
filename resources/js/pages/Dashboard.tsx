@@ -26,31 +26,33 @@ import {
 import { DataTable } from '@/components/ui/DataTable';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const stats = [
     {
-      title: 'Total Projects',
+      title: t('total_projects'),
       value: '48',
       icon: FolderKanban,
       color: 'primary' as const,
     },
     {
-      title: 'Active Projects',
+      title: t('active_projects'),
       value: '24',
       icon: Activity,
       color: 'info' as const,
       trend: { value: '+12.5%', isPositive: true },
     },
     {
-      title: 'Completed Projects',
+      title: t('completed_projects'),
       value: '18',
       icon: CheckCircle,
       color: 'success' as const,
     },
     {
-      title: 'Pending Approvals',
+      title: t('pending_approvals'),
       value: '15',
       icon: Clock,
       color: 'warning' as const,
@@ -237,9 +239,9 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1>Dashboard</h1>
+        <h1>{t('dashboard')}</h1>
         <p className="text-muted-foreground mt-1">
-          Overview of land acquisition activities
+          {t('dashboaard_sub_title')}
         </p>
       </div>
 

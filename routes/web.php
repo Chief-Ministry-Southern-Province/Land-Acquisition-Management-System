@@ -2,6 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 
+Route::get('/lang/{locale}', function ($locale) {
+    if (in_array($locale, ['en', 'si'])) {
+        session()->put('locale', $locale);
+    }
+
+    return redirect()->back();
+})->name('lang.switch');
+
 Route::inertia('/', 'LoginScreen')->name('home');
 Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
 Route::inertia('/settings', 'Settings')->name('settings');
