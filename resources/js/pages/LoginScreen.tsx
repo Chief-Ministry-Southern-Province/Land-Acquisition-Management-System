@@ -1,12 +1,21 @@
+import { router } from '@inertiajs/react';
 import { LogIn } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function LoginScreen() {
+  const { t } = useTranslation();
+
   const handleLogin = () => {
     console.log('Login attempted');
+    router.visit('/dashboard'); //IMPLEMENT
   };
 
   return (
-    <div className="from-primary to-primary/80 bg-linear-to-br flex min-h-screen items-center justify-center">
+    <div className="from-primary to-primary/80 bg-linear-to-br flex min-h-screen items-center justify-center relative">
+      <div className="absolute top-4 right-4 flex gap-2">
+        <a href="/lang/en" className="bg-white/20 hover:bg-white/30 rounded px-3 py-1 text-sm text-white transition-colors">EN</a>
+        <a href="/lang/si" className="bg-white/20 hover:bg-white/30 rounded px-3 py-1 text-sm text-white transition-colors">සිං</a>
+      </div>
       <div className="w-full max-w-md">
         <div className="bg-card rounded-lg p-8 shadow-xl">
           {/* Logo and Title */}
@@ -15,35 +24,35 @@ function LoginScreen() {
               <span className="text-3xl text-white">LA</span>
             </div>
             <h1 className="mb-2 text-2xl">
-              Land Acquisition Management System
+              {t('Land_Acquisition_Management_System')}
             </h1>
             <p className="text-muted-foreground text-sm">
-              Government of Sri Lanka
+              {t('government_of_sri_lanka')}
             </p>
           </div>
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm">Username</label>
+              <label className="mb-2 block text-sm">{t('username')}</label>
               <input
                 type="text"
                 // value={username}
                 // onChange={(e) => setUsername(e.target.value)} //IMPLEMENT
                 className="bg-input-background border-border focus:ring-primary w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2"
-                placeholder="Enter your username"
+                placeholder={t('username')}
                 required
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm">Password</label>
+              <label className="mb-2 block text-sm">{t('password')}</label>
               <input
                 type="password"
                 // value={password}
                 // onChange={(e) => setPassword(e.target.value)} //IMPLEMENT
                 className="bg-input-background border-border focus:ring-primary w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2"
-                placeholder="Enter your password"
+                placeholder={t('password')}
                 required
               />
             </div>
@@ -58,11 +67,11 @@ function LoginScreen() {
                   // } //IMPLEMENT
                   className="text-primary border-border focus:ring-primary h-4 w-4 rounded"
                 />
-                <span className="text-sm">Remember me</span>
+                <span className="text-sm">{t('remember_me')}</span>
               </label>
 
               <a href="#" className="text-primary text-sm hover:underline">
-                Forgot password?
+                {t('forgot_password')}
               </a>
             </div>
 
@@ -71,16 +80,15 @@ function LoginScreen() {
               className="bg-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-white transition-colors"
             >
               <LogIn className="h-5 w-5" />
-              <span>Sign In</span>
+              <span>{t('sign_in')}</span>
             </button>
           </form>
 
           {/* Security Notice */}
           <div className="bg-muted/50 mt-6 rounded-lg p-4">
             <p className="text-muted-foreground text-center text-xs">
-              <strong>Security Notice:</strong> This is a government system.
-              Unauthorized access is prohibited and may be subject to legal
-              action.
+              <strong>{t('security_notice')}</strong>{' '}
+              {t('security_notice_text')}
             </p>
           </div>
         </div>

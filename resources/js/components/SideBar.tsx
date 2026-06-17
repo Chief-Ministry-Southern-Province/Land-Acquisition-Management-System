@@ -7,11 +7,27 @@ import {
   User,
   UserCog,
   History,
+  Map,
+  Users,
+  FolderOpen,
+  MapPin,
+  BarChart3,
+  GitBranch,
+  CheckSquare,
+  FolderKanban,
 } from 'lucide-react';
 
 export default function SideBar() {
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/projects', icon: FolderKanban, label: 'Projects' },
+    { path: '/land-parcels', icon: Map, label: 'Land Parcels' },
+    { path: '/land-owners', icon: Users, label: 'Property Owners' },
+    { path: '/acquisition-workflow', icon: GitBranch, label: 'Workflow' },
+    { path: '/documents', icon: FolderOpen, label: 'Documents' },
+    { path: '/gis-maps', icon: MapPin, label: 'GIS / Maps' },
+    { path: '/approval-workflow', icon: CheckSquare, label: 'Approvals' },
+    { path: '/reports', icon: BarChart3, label: 'Reports' },
     { path: '/user-management', icon: UserCog, label: 'User Management' },
     { path: '/audit-log', icon: History, label: 'Audit Log' },
     { path: '/notifications', icon: Bell, label: 'Notifications' },

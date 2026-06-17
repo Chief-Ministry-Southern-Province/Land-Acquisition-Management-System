@@ -9,3 +9,7 @@
     'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+:lang(si) {
+    font-family: 'Noto Sans Sinhala', 'Noto Sans', sans-serif;
+}
