@@ -1,4 +1,4 @@
-import { router, Link } from '@inertiajs/react';
+import { router, Link, usePage } from '@inertiajs/react';
 import {
   Bell,
   LayoutDashboard,
@@ -15,14 +15,21 @@ import {
   GitBranch,
   CheckSquare,
   FolderKanban,
+  DollarSign,
 } from 'lucide-react';
+import { useState } from 'react';
 
 export default function SideBar() {
+  const { url } = usePage();
+
+  const [userRole] = useState('System Administrator');
+
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/projects', icon: FolderKanban, label: 'Projects' },
     { path: '/land-parcels', icon: Map, label: 'Land Parcels' },
     { path: '/land-owners', icon: Users, label: 'Property Owners' },
+    { path: '/compensation', icon: DollarSign, label: 'Compensation' },
     { path: '/acquisition-workflow', icon: GitBranch, label: 'Workflow' },
     { path: '/documents', icon: FolderOpen, label: 'Documents' },
     { path: '/gis-maps', icon: MapPin, label: 'GIS / Maps' },
@@ -52,8 +59,8 @@ export default function SideBar() {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive =
-              location.pathname === item.path ||
-              (item.path !== '/' && location.pathname.startsWith(item.path));
+              url === item.path ||
+              (item.path !== '/' && url.startsWith(item.path));
 
             return (
               <Link
@@ -82,7 +89,7 @@ export default function SideBar() {
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm">Admin User</p>
             <p className="text-muted-foreground truncate text-xs">
-              {/* {userRole} */} //IMPLEMENT Administrator
+              {userRole} {/*IMPLEMENT Administrator*/}
             </p>
           </div>
         </div>

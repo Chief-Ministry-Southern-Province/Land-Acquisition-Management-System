@@ -41,4 +41,10 @@ Route::inertia('/approval-workflow', 'ApprovalWorkflow')->name('approval-workflo
 
 // Projects routes
 Route::inertia('/projects', 'projects/ProjectList')->name('projects');
+Route::inertia('/projects/new', 'projects/AddProject')->name('add-project');
 Route::inertia('/projects/{id}', 'projects/ProjectDetails')->name('project-details');
+
+// Compensation routes
+Route::inertia('/compensation', 'compensation/CompensationDashboard')->name('compensation-dashboard');
+Route::inertia('/compensation/all', 'compensation/ViewAllPayments')->name('compensation-payments');
+Route::inertia('/compensation/calculate', 'compensation/CalculateCompensation')->name('compensation-calculate');
