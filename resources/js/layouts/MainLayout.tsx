@@ -1,5 +1,5 @@
-import { Link, router } from '@inertiajs/react';
-import { Bell, Menu, Settings, X } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { Bell, ChevronRight, Menu, Settings, X } from 'lucide-react';
 import { useState } from 'react';
 
 import SideBar from '@/components/SideBar';
@@ -12,6 +12,46 @@ type Props = {
 export default function MainLayout({ children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { locale } = useTranslation();
+  const { url } = usePage();
+
+  const getBreadcrumbs = () => {
+    // remove query parameters if any
+    const pathname = url.split('?')[0];
+    const paths = pathname.split('/').filter(Boolean);
+    const breadcrumbs = [{ label: 'Home', path: '/dashboard' }];
+
+    // Optional mapping for nicer labels, otherwise fallback to capitalized path
+    const labelMapping: Record<string, string> = {
+      dashboard: 'Dashboard',
+      projects: 'Projects',
+      'land-parcels': 'Land Parcels',
+      'land-owners': 'Property Owners',
+      'acquisition-workflow': 'Workflow',
+      documents: 'Documents',
+      'gis-maps': 'GIS / Maps',
+      'approval-workflow': 'Approvals',
+      reports: 'Reports',
+      'user-management': 'User Management',
+      'audit-log': 'Audit Log',
+      notifications: 'Notifications',
+      settings: 'Settings',
+    };
+
+    let currentPath = '';
+    paths.forEach((path) => {
+      currentPath += `/${path}`;
+      breadcrumbs.push({
+        label:
+          labelMapping[path] ||
+          path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, ' '),
+        path: currentPath,
+      });
+    });
+
+    return breadcrumbs;
+  };
+
+  const breadcrumbs = getBreadcrumbs();
 
   return (
     <div className="bg-background flex h-screen overflow-hidden">
@@ -40,30 +80,25 @@ export default function MainLayout({ children }: Props) {
             </button>
 
             {/* Breadcrumbs */}
-            {/* <nav className="flex items-center gap-2 text-sm">
-                            {breadcrumbs.map((crumb, index) => (
-                                <div
-                                    key={crumb.path}
-                                    className="flex items-center gap-2"
-                                >
-                                    {index > 0 && (
-                                        <ChevronRight className="text-muted-foreground h-4 w-4" />
-                                    )}
-                                    {index === breadcrumbs.length - 1 ? (
-                                        <span className="text-foreground">
-                                            {crumb.label}
-                                        </span>
-                                    ) : (
-                                        <Link
-                                            to={crumb.path}
-                                            className="text-muted-foreground hover:text-foreground transition-colors"
-                                        >
-                                            {crumb.label}
-                                        </Link>
-                                    )}
-                                </div>
-                            ))}
-                        </nav> */}
+            <nav className="flex items-center gap-2 text-sm">
+              {breadcrumbs.map((crumb, index) => (
+                <div key={crumb.path} className="flex items-center gap-2">
+                  {index > 0 && (
+                    <ChevronRight className="text-muted-foreground h-4 w-4" />
+                  )}
+                  {index === breadcrumbs.length - 1 ? (
+                    <span className="text-foreground">{crumb.label}</span>
+                  ) : (
+                    <Link
+                      href={crumb.path}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {crumb.label}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </nav>
           </div>
 
           <div className="flex items-center gap-4">

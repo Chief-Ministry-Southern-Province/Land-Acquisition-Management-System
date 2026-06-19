@@ -58,25 +58,25 @@ export default function Dashboard() {
       color: 'warning' as const,
     },
     {
-      title: 'Pending Payments',
+      title: t('pending_payments'),
       value: '₨ 45.2M',
       icon: DollarSign,
       color: 'accent' as const,
     },
     {
-      title: 'Court Cases',
+      title: t('court_cases'),
       value: '7',
       icon: Scale,
       color: 'primary' as const,
     },
     {
-      title: 'Land Parcels',
+      title: t('land_parcels'),
       value: '1,247',
       icon: Map,
       color: 'secondary' as const,
     },
     {
-      title: 'Affected Owners',
+      title: t('affected_owners'),
       value: '3,856',
       icon: Users,
       color: 'info' as const,
@@ -92,18 +92,18 @@ export default function Dashboard() {
   ];
 
   const compensationData = [
-    { month: 'Jan', amount: 24.5 },
-    { month: 'Feb', amount: 32.1 },
-    { month: 'Mar', amount: 28.7 },
-    { month: 'Apr', amount: 45.2 },
-    { month: 'May', amount: 38.9 },
-    { month: 'Jun', amount: 52.3 },
+    { month: t('jan'), amount: 24.5 },
+    { month: t('feb'), amount: 32.1 },
+    { month: t('mar'), amount: 28.7 },
+    { month: t('apr'), amount: 45.2 },
+    { month: t('may'), amount: 38.9 },
+    { month: t('jun'), amount: 52.3 },
   ];
 
   const statusDistributionData = [
-    { name: 'Active', value: 24, color: '#0288d1' },
-    { name: 'Completed', value: 18, color: '#2E7D32' },
-    { name: 'Pending', value: 6, color: '#FF9800' },
+    { name: t('active'), value: 24, color: '#0288d1' },
+    { name: t('completed'), value: 18, color: '#2E7D32' },
+    { name: t('pending'), value: 6, color: '#FF9800' },
   ];
 
   const recentActivities = [
@@ -256,7 +256,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Acquisition Progress Chart */}
         <div className="bg-card border-border rounded-lg border p-6">
-          <h3 className="mb-4">Acquisition Progress by Project</h3>
+          <h3 className="mb-4">{t('bar_graph_title')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={projectProgressData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -271,7 +271,7 @@ export default function Dashboard() {
 
         {/* Project Status Distribution */}
         <div className="bg-card border-border rounded-lg border p-6">
-          <h3 className="mb-4">Project Status Distribution</h3>
+          <h3 className="mb-4">{t('pie_chart_title')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -295,7 +295,7 @@ export default function Dashboard() {
 
         {/* Monthly Compensation Payments */}
         <div className="bg-card border-border rounded-lg border p-6 lg:col-span-2">
-          <h3 className="mb-4">Monthly Compensation Payments (₨ Millions)</h3>
+          <h3 className="mb-4">{t('line_chart_title')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={compensationData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -319,7 +319,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent Activities */}
         <div>
-          <h3 className="mb-4">Recent Activities</h3>
+          <h3 className="mb-4">{t('recent_activities')}</h3>
           <DataTable
             columns={activityColumns}
             data={recentActivities}
@@ -332,7 +332,7 @@ export default function Dashboard() {
 
         {/* Pending Tasks */}
         <div>
-          <h3 className="mb-4">Pending Tasks</h3>
+          <h3 className="mb-4">{t('pending_tasks')}</h3>
           <DataTable
             columns={taskColumns}
             data={pendingTasks}
@@ -346,7 +346,7 @@ export default function Dashboard() {
 
       {/* Upcoming Deadlines */}
       <div>
-        <h3 className="mb-4">Upcoming Deadlines</h3>
+        <h3 className="mb-4">{t('upcoming_deadlines')}</h3>
         <DataTable
           columns={deadlineColumns}
           data={upcomingDeadlines}

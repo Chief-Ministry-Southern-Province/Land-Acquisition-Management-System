@@ -1,4 +1,4 @@
-import { router, Link } from '@inertiajs/react';
+import { router, Link, usePage } from '@inertiajs/react';
 import {
   Bell,
   LayoutDashboard,
@@ -15,23 +15,36 @@ import {
   GitBranch,
   CheckSquare,
   FolderKanban,
+  DollarSign,
 } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function SideBar() {
+  const { url } = usePage();
+  const { t } = useTranslation();
+
+  const [userRole] = useState('System Administrator');
+
   const menuItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/projects', icon: FolderKanban, label: 'Projects' },
-    { path: '/land-parcels', icon: Map, label: 'Land Parcels' },
-    { path: '/land-owners', icon: Users, label: 'Property Owners' },
-    { path: '/acquisition-workflow', icon: GitBranch, label: 'Workflow' },
-    { path: '/documents', icon: FolderOpen, label: 'Documents' },
-    { path: '/gis-maps', icon: MapPin, label: 'GIS / Maps' },
-    { path: '/approval-workflow', icon: CheckSquare, label: 'Approvals' },
-    { path: '/reports', icon: BarChart3, label: 'Reports' },
-    { path: '/user-management', icon: UserCog, label: 'User Management' },
-    { path: '/audit-log', icon: History, label: 'Audit Log' },
-    { path: '/notifications', icon: Bell, label: 'Notifications' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
+    { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+    { path: '/projects', icon: FolderKanban, label: t('projects') },
+    { path: '/land-parcels', icon: Map, label: t('land_parcels') },
+    { path: '/land-owners', icon: Users, label: t('land_owners') },
+    { path: '/compensation', icon: DollarSign, label: t('compensation') },
+    {
+      path: '/acquisition-workflow',
+      icon: GitBranch,
+      label: t('acquisition_workflow'),
+    },
+    { path: '/documents', icon: FolderOpen, label: t('documents') },
+    { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
+    { path: '/approval-workflow', icon: CheckSquare, label: t('approvals') },
+    { path: '/reports', icon: BarChart3, label: t('reports') },
+    { path: '/user-management', icon: UserCog, label: t('user_management') },
+    { path: '/audit-log', icon: History, label: t('audit_log') },
+    { path: '/notifications', icon: Bell, label: t('notifications') },
+    { path: '/settings', icon: Settings, label: t('settings') },
   ];
 
   return (
@@ -52,8 +65,8 @@ export default function SideBar() {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive =
-              location.pathname === item.path ||
-              (item.path !== '/' && location.pathname.startsWith(item.path));
+              url === item.path ||
+              (item.path !== '/' && url.startsWith(item.path));
 
             return (
               <Link
@@ -82,7 +95,7 @@ export default function SideBar() {
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm">Admin User</p>
             <p className="text-muted-foreground truncate text-xs">
-              {/* {userRole} */} //IMPLEMENT Administrator
+              {userRole} {/*IMPLEMENT Administrator*/}
             </p>
           </div>
         </div>
@@ -91,7 +104,7 @@ export default function SideBar() {
           className="text-destructive hover:bg-destructive/10 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
         >
           <LogOut className="h-4 w-4" />
-          <span>Logout</span>
+          <span>{t('logout')}</span>
         </button>
       </div>
     </>

@@ -211,7 +211,7 @@ export default function AddLandParcel() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.visit('/parcels')}
+            onClick={() => router.visit('/land-parcels')}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
             title="Back to Land Parcels"
           >
