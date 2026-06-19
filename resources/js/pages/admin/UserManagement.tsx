@@ -119,7 +119,10 @@ export default function UserManagement() {
             <Shield className="h-5 w-5" />
             <span>Manage Roles</span>
           </button>
-          <button className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors">
+          <button
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
+            onClick={() => router.visit('/user-management/add')}
+          >
             <Plus className="h-5 w-5" />
             <span>Add User</span>
           </button>
