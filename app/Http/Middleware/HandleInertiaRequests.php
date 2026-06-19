@@ -29,11 +29,19 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $locale = session('locale', config('app.locale', 'en'));
+        app()->setLocale($locale);
+
+        $translationFile = lang_path("{$locale}/messages.php");
+        $translations = file_exists($translationFile) ? require $translationFile : [];
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
             ],
+            'locale' => $locale,
+            'translations' => $translations,
         ];
     }
 }
