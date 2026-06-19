@@ -28,6 +28,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import type { ReactNode } from 'react';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -360,4 +361,4 @@ export default function Dashboard() {
   );
 }
 
-Dashboard.layout = (page: React.ReactNode) => <MainLayout>{page}</MainLayout>;
+Dashboard.layout = (page: ReactNode) => <MainLayout>{page}</MainLayout>;

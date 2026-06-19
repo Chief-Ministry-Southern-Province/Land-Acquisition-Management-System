@@ -100,7 +100,7 @@ export default function SideBar() {
           </div>
         </div>
         <button
-          onClick={() => router.visit('/login')}
+          onClick={() => router.post('/logout')}
           className="text-destructive hover:bg-destructive/10 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
         >
           <LogOut className="h-4 w-4" />
