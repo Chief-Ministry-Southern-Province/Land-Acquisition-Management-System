@@ -98,6 +98,10 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('admin/UserManagement');
     })->name('user-management.index');
 
+    Route::get('/user-management/add', function () {
+        return Inertia::render('admin/AddUserForm');
+    })->name('user-management/add');
+
     // Audit Log
     Route::get('/audit-log', function () {
         return Inertia::render('AuditLog');
