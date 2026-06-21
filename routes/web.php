@@ -15,6 +15,7 @@ Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
 Route::inertia('/settings', 'Settings')->name('settings');
 Route::inertia('/notifications', 'Notifications')->name('notifications');
 Route::inertia('/user-management', 'admin/UserManagement')->name('user-management');
+Route::inertia('/user-management/add', 'admin/AddUserForm')->name('user-management.add');
 Route::inertia('/audit-log', 'AuditLog')->name('audit-log');
 
 // Land Parcels routes
