@@ -3,12 +3,15 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\EmployeeController;
 
-Route::get('/', function () {
-    return auth()->check()
-        ? redirect()->route('dashboard')
-        : redirect()->route('login');
-});
+// Route::get('/', function () {
+//     return auth()->check()
+//         ? redirect()->route('dashboard')
+//         : redirect()->route('login');
+// });
+
+Route::resource('employees', EmployeeController::class);
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
