@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Documents;
 use Illuminate\Http\Request;
 
 class DocumentsController extends Controller
@@ -11,7 +12,10 @@ class DocumentsController extends Controller
      */
     public function index()
     {
-        //
+        return response()->json([
+            'message' => 'Documents fetched successfully',
+            'documents' => Documents::all(),
+        ], 200);
     }
 
     /**
@@ -19,7 +23,23 @@ class DocumentsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'name' => 'required|string|max:255',
+            'type' => 'required|string|max:255',
+            'category' => 'required|string|max:255',
+            'size' => 'required|string|max:255',
+            'upload_date' => 'required|date',
+            'document_type' => 'required|string|max:255',
+            'link' => 'required|string|max:255',
+        ]);
+
+        $document = Documents::create($validated);
+
+        return response()->json([
+            'message' => 'Document created successfully',
+            'document' => $document,
+        ], 201);
     }
 
     /**
@@ -27,7 +47,18 @@ class DocumentsController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $document = Documents::find($id);
+
+        if ($document) {
+            return response()->json([
+                'message' => 'Document fetched successfully',
+                'document' => $document,
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'Document not found',
+            ], 404);
+        }
     }
 
     /**
@@ -35,7 +66,31 @@ class DocumentsController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'name' => 'required|string|max:255',
+            'type' => 'required|string|max:255',
+            'category' => 'required|string|max:255',
+            'size' => 'required|string|max:255',
+            'upload_date' => 'required|date',
+            'document_type' => 'required|string|max:255',
+            'link' => 'required|string|max:255',
+        ]);
+
+        $document = Documents::find($id);
+
+        if (!$document) {
+            return response()->json([
+                'message' => 'Document not found',
+            ], 404);
+        }
+
+        $document->update($validated);
+
+        return response()->json([
+            'message' => 'Document updated successfully',
+            'document' => $document,
+        ], 200);
     }
 
     /**
@@ -43,6 +98,18 @@ class DocumentsController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $document = Documents::find($id);
+
+        if (!$document) {
+            return response()->json([
+                'message' => 'Document not found',
+            ], 404);
+        }
+
+        $document->delete();
+
+        return response()->json([
+            'message' => 'Document deleted successfully',
+        ], 204);
     }
 }

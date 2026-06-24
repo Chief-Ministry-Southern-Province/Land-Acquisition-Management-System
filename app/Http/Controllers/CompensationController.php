@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Compensation;
 use Illuminate\Http\Request;
 
 class CompensationController extends Controller
@@ -11,7 +12,10 @@ class CompensationController extends Controller
      */
     public function index()
     {
-        //
+        return response()->json([
+            'message' => 'Compensations fetched successfully',
+            'compensations' => Compensation::all(),
+        ], 200);
     }
 
     /**
@@ -19,7 +23,22 @@ class CompensationController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'owner_id' => 'required|exists:property_owners,id',
+            'land_parcel_id' => 'required|exists:land_parcels,id',
+            'compensation_id' => 'required|string|max:255',
+            'amount' => 'required|numeric',
+            'approved_date' => 'required|date',
+            'payment_date' => 'required|date',
+            'status' => 'required|string|max:255',
+        ]);
+
+        $compensation = Compensation::create($validated);
+
+        return response()->json([
+            'message' => 'Compensation created successfully',
+            'compensation' => $compensation,
+        ], 201);
     }
 
     /**
@@ -27,7 +46,18 @@ class CompensationController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $compensation = Compensation::find($id);
+
+        if ($compensation) {
+            return response()->json([
+                'message' => 'Compensation fetched successfully',
+                'compensation' => $compensation,
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'Compensation not found',
+            ], 404);
+        }
     }
 
     /**
@@ -35,7 +65,30 @@ class CompensationController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validated = $request->validate([
+            'owner_id' => 'required|exists:property_owners,id',
+            'land_parcel_id' => 'required|exists:land_parcels,id',
+            'compensation_id' => 'required|string|max:255',
+            'amount' => 'required|numeric',
+            'approved_date' => 'required|date',
+            'payment_date' => 'required|date',
+            'status' => 'required|string|max:255',
+        ]);
+
+        $compensation = Compensation::find($id);
+
+        if (!$compensation) {
+            return response()->json([
+                'message' => 'Compensation not found',
+            ], 404);
+        }
+
+        $compensation->update($validated);
+
+        return response()->json([
+            'message' => 'Compensation updated successfully',
+            'compensation' => $compensation,
+        ], 200);
     }
 
     /**
@@ -43,6 +96,18 @@ class CompensationController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $compensation = Compensation::find($id);
+
+        if (!$compensation) {
+            return response()->json([
+                'message' => 'Compensation not found',
+            ], 404);
+        }
+
+        $compensation->delete();
+
+        return response()->json([
+            'message' => 'Compensation deleted successfully',
+        ], 204);
     }
 }
