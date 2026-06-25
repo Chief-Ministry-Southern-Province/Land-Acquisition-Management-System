@@ -42,7 +42,7 @@ class AuditLogsController extends Controller
      */
     public function show(string $id)
     {
-        $auditLog = AuditLogs::find($id);
+        $auditLog = AuditLogs::find($id, ['*']);
 
         if ($auditLog) {
             return response()->json([
@@ -67,7 +67,7 @@ class AuditLogsController extends Controller
             'detail' => 'required|string|max:255',
         ]);
 
-        $auditLog = AuditLogs::find($id);
+        $auditLog = AuditLogs::find($id, ['*']);
 
         if (!$auditLog) {
             return response()->json([
@@ -88,7 +88,7 @@ class AuditLogsController extends Controller
      */
     public function destroy(string $id)
     {
-        $auditLog = AuditLogs::find($id);
+        $auditLog = AuditLogs::find($id, ['*']);
 
         if (!$auditLog) {
             return response()->json([

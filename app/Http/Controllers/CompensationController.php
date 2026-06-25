@@ -46,7 +46,7 @@ class CompensationController extends Controller
      */
     public function show(string $id)
     {
-        $compensation = Compensation::find($id);
+        $compensation = Compensation::find($id, ['*']);
 
         if ($compensation) {
             return response()->json([
@@ -75,7 +75,7 @@ class CompensationController extends Controller
             'status' => 'required|string|max:255',
         ]);
 
-        $compensation = Compensation::find($id);
+        $compensation = Compensation::find($id, ['*']);
 
         if (!$compensation) {
             return response()->json([
@@ -96,7 +96,7 @@ class CompensationController extends Controller
      */
     public function destroy(string $id)
     {
-        $compensation = Compensation::find($id);
+        $compensation = Compensation::find($id, ['*']);
 
         if (!$compensation) {
             return response()->json([

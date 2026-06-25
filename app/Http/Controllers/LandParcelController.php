@@ -49,7 +49,7 @@ class LandParcelController extends Controller
      */
     public function show(string $id)
     {
-        $landParcel = LandParcel::find($id);
+        $landParcel = LandParcel::find($id, ['*']);
 
         if ($landParcel) {
             return response()->json([
@@ -81,7 +81,7 @@ class LandParcelController extends Controller
             'status' => 'required|string|in:available,pending,acquired,in-progress',
         ]);
 
-        $landParcel = LandParcel::find($id);
+        $landParcel = LandParcel::find($id, ['*']);
 
         if (!$landParcel) {
             return response()->json([
@@ -102,7 +102,7 @@ class LandParcelController extends Controller
      */
     public function destroy(string $id)
     {
-        $landParcel = LandParcel::find($id);
+        $landParcel = LandParcel::find($id, ['*']);
 
         if (!$landParcel) {
             return response()->json([

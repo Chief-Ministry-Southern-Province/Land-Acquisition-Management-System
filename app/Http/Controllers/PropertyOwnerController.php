@@ -44,7 +44,7 @@ class PropertyOwnerController extends Controller
      */
     public function show(string $id)
     {
-        $propertyOwner = PropertyOwner::find($id);
+        $propertyOwner = PropertyOwner::find($id, ['*']);
 
         if ($propertyOwner) {
             return response()->json([
@@ -71,7 +71,7 @@ class PropertyOwnerController extends Controller
             'contact' => 'required|string|max:255',
         ]);
 
-        $propertyOwner = PropertyOwner::find($id);
+        $propertyOwner = PropertyOwner::find($id, ['*']);
 
         if (!$propertyOwner) {
             return response()->json([
@@ -92,7 +92,7 @@ class PropertyOwnerController extends Controller
      */
     public function destroy(string $id)
     {
-        $propertyOwner = PropertyOwner::find($id);
+        $propertyOwner = PropertyOwner::find($id, ['*']);
 
         if (!$propertyOwner) {
             return response()->json([

@@ -47,7 +47,7 @@ class DocumentsController extends Controller
      */
     public function show(string $id)
     {
-        $document = Documents::find($id);
+        $document = Documents::find($id, ['*']);
 
         if ($document) {
             return response()->json([
@@ -77,7 +77,7 @@ class DocumentsController extends Controller
             'link' => 'required|string|max:255',
         ]);
 
-        $document = Documents::find($id);
+        $document = Documents::find($id, ['*']);
 
         if (!$document) {
             return response()->json([
@@ -98,7 +98,7 @@ class DocumentsController extends Controller
      */
     public function destroy(string $id)
     {
-        $document = Documents::find($id);
+        $document = Documents::find($id, ['*']);
 
         if (!$document) {
             return response()->json([

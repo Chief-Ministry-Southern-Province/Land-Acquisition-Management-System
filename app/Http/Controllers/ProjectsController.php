@@ -56,7 +56,7 @@ class ProjectsController extends Controller
      */
     public function show(string $id)
     {
-        $project = Projects::find($id);
+        $project = Projects::find($id, ['*']);
 
         if ($project) {
             return response()->json([
@@ -95,7 +95,7 @@ class ProjectsController extends Controller
             'remarks' => 'nullable|string',
         ]);
 
-        $project = Projects::find($id);
+        $project = Projects::find($id, ['*']);
 
         if (!$project) {
             return response()->json([
@@ -116,7 +116,7 @@ class ProjectsController extends Controller
      */
     public function destroy(string $id)
     {
-        $project = Projects::find($id);
+        $project = Projects::find($id, ['*']);
 
         if (!$project) {
             return response()->json([
