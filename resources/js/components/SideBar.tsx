@@ -33,7 +33,7 @@ export default function SideBar() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
       },
     });
     localStorage.removeItem('auth_token');
@@ -86,10 +86,11 @@ export default function SideBar() {
               <Link
                 key={item.path}
                 href={item.path}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${isActive
-                  ? 'bg-primary text-white'
-                  : 'text-foreground hover:bg-muted'
-                  }`}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
+                  isActive
+                    ? 'bg-primary text-white'
+                    : 'text-foreground hover:bg-muted'
+                }`}
               >
                 <Icon className="h-5 w-5" />
                 <span className="text-sm">{item.label}</span>

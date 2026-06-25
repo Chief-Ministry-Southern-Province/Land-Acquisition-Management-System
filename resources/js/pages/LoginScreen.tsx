@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
 import { LogIn, Loader2 } from 'lucide-react';
-import { useState  } from 'react';
-import type {FormEvent} from 'react';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 
 function LoginScreen() {
@@ -23,7 +23,7 @@ function LoginScreen() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify({ email, password }),
       });
@@ -48,17 +48,29 @@ function LoginScreen() {
       // Redirect to dashboard
       router.visit('/dashboard');
     } catch {
-      setError('A network error occurred. Please check your connection and try again.');
+      setError(
+        'A network error occurred. Please check your connection and try again.',
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="from-primary to-primary/80 bg-linear-to-br flex min-h-screen items-center justify-center relative">
-      <div className="absolute top-4 right-4 flex gap-2">
-        <a href="/lang/en" className="bg-white/20 hover:bg-white/30 rounded px-3 py-1 text-sm text-white transition-colors">EN</a>
-        <a href="/lang/si" className="bg-white/20 hover:bg-white/30 rounded px-3 py-1 text-sm text-white transition-colors">සිං</a>
+    <div className="from-primary to-primary/80 bg-linear-to-br relative flex min-h-screen items-center justify-center">
+      <div className="absolute right-4 top-4 flex gap-2">
+        <a
+          href="/lang/en"
+          className="rounded bg-white/20 px-3 py-1 text-sm text-white transition-colors hover:bg-white/30"
+        >
+          EN
+        </a>
+        <a
+          href="/lang/si"
+          className="rounded bg-white/20 px-3 py-1 text-sm text-white transition-colors hover:bg-white/30"
+        >
+          සිං
+        </a>
       </div>
       <div className="w-full max-w-md">
         <div className="bg-card rounded-lg p-8 shadow-xl">
@@ -130,14 +142,16 @@ function LoginScreen() {
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="bg-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <LogIn className="h-5 w-5" />
               )}
-              <span>{isLoading ? t('signing_in') || 'Signing in...' : t('sign_in')}</span>
+              <span>
+                {isLoading ? t('signing_in') || 'Signing in...' : t('sign_in')}
+              </span>
             </button>
           </form>
 
