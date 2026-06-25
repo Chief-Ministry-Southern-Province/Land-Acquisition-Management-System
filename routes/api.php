@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ProjectsController;
@@ -16,6 +17,19 @@ Route::get('/test', function () {
     ]);
 });
 
+// ─── Auth Routes (Public) ────────────────────────────────────────────
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
+
+// ─── Auth Routes (Protected) ────────────────────────────────────────
+Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'user']);
+});
+
+// ─── Resource Routes ────────────────────────────────────────────────
 Route::apiResource('departments', DepartmentController::class);
 Route::apiResource('roles', RoleController::class);
 Route::apiResource('projects', ProjectsController::class);

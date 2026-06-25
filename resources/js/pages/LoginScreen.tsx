@@ -1,13 +1,57 @@
 import { router } from '@inertiajs/react';
-import { LogIn } from 'lucide-react';
+import { LogIn, Loader2 } from 'lucide-react';
+import { useState  } from 'react';
+import type {FormEvent} from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 
 function LoginScreen() {
   const { t } = useTranslation();
 
-  const handleLogin = () => {
-    console.log('Login attempted');
-    router.visit('/dashboard'); //IMPLEMENT
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle validation errors from Laravel
+        if (data.errors) {
+          const firstError = Object.values(data.errors).flat()[0];
+          setError(firstError as string);
+        } else {
+          setError(data.message || 'Login failed. Please try again.');
+        }
+
+        return;
+      }
+
+      // Store the token for future API requests
+      localStorage.setItem('auth_token', data.token);
+
+      // Redirect to dashboard
+      router.visit('/dashboard');
+    } catch {
+      setError('A network error occurred. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -31,17 +75,25 @@ function LoginScreen() {
             </p>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-400">
+              {error}
+            </div>
+          )}
+
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm">{t('username')}</label>
+              <label className="mb-2 block text-sm">{t('email_address')}</label>
               <input
                 type="text"
-                // value={username}
-                // onChange={(e) => setUsername(e.target.value)} //IMPLEMENT
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-input-background border-border focus:ring-primary w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2"
-                placeholder={t('username')}
+                placeholder={t('email_address')}
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -49,11 +101,12 @@ function LoginScreen() {
               <label className="mb-2 block text-sm">{t('password')}</label>
               <input
                 type="password"
-                // value={password}
-                // onChange={(e) => setPassword(e.target.value)} //IMPLEMENT
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="bg-input-background border-border focus:ring-primary w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2"
                 placeholder={t('password')}
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -61,11 +114,10 @@ function LoginScreen() {
               <label className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
-                  // checked={rememberMe}
-                  // onChange={(e) =>
-                  //     setRememberMe(e.target.checked)
-                  // } //IMPLEMENT
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="text-primary border-border focus:ring-primary h-4 w-4 rounded"
+                  disabled={isLoading}
                 />
                 <span className="text-sm">{t('remember_me')}</span>
               </label>
@@ -77,10 +129,15 @@ function LoginScreen() {
 
             <button
               type="submit"
-              className="bg-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-white transition-colors"
+              disabled={isLoading}
+              className="bg-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <LogIn className="h-5 w-5" />
-              <span>{t('sign_in')}</span>
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <LogIn className="h-5 w-5" />
+              )}
+              <span>{isLoading ? t('signing_in') || 'Signing in...' : t('sign_in')}</span>
             </button>
           </form>
 
