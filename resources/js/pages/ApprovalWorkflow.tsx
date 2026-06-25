@@ -195,4 +195,6 @@ export default function ApprovalWorkflow() {
   );
 }
 
-ApprovalWorkflow.layout = (page: React.ReactNode) => <MainLayout>{page}</MainLayout>;
+ApprovalWorkflow.layout = (page: React.ReactNode) => (
+  <MainLayout>{page}</MainLayout>
+);

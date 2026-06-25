@@ -17,6 +17,7 @@ import {
   FolderKanban,
   DollarSign,
 } from 'lucide-react';
+import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -25,6 +26,19 @@ export default function SideBar() {
   const { t } = useTranslation();
 
   const [userRole] = useState('System Administrator');
+
+  const handleLogout = async (e: FormEvent) => {
+    e.preventDefault();
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+      },
+    });
+    localStorage.removeItem('auth_token');
+    router.visit('/login');
+  };
 
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
@@ -100,7 +114,7 @@ export default function SideBar() {
           </div>
         </div>
         <button
-          onClick={() => router.visit('/login')}
+          onClick={handleLogout}
           className="text-destructive hover:bg-destructive/10 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
         >
           <LogOut className="h-4 w-4" />

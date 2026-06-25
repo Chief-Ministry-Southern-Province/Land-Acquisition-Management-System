@@ -1,5 +1,13 @@
 import { router } from '@inertiajs/react';
-import { ArrowLeft, FileText, Layers, MapPin, Save, User, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  FileText,
+  Layers,
+  MapPin,
+  Save,
+  User,
+  X,
+} from 'lucide-react';
 import { useState } from 'react';
 import MainLayout from '@/layouts/MainLayout';
 

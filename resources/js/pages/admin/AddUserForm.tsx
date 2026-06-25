@@ -296,9 +296,7 @@ export default function AddUserForm({
                 onChange={handleChange('email')}
                 disabled={isSubmitting}
               />
-              {errors.email && (
-                <span className={errCls}>{errors.email}</span>
-              )}
+              {errors.email && <span className={errCls}>{errors.email}</span>}
             </Field>
 
             {/* Role */}
@@ -317,9 +315,7 @@ export default function AddUserForm({
                   </option>
                 ))}
               </select>
-              {errors.role && (
-                <span className={errCls}>{errors.role}</span>
-              )}
+              {errors.role && <span className={errCls}>{errors.role}</span>}
             </Field>
 
             {/* Department */}
@@ -406,7 +402,7 @@ export default function AddUserForm({
                       onChange={() =>
                         setValues((prev) => ({ ...prev, status: 'Active' }))
                       }
-                      className="text-primary h-4 w-4 focus:ring-primary"
+                      className="text-primary focus:ring-primary h-4 w-4"
                       disabled={isSubmitting}
                     />
                     <span className="bg-success/10 text-success inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
@@ -422,7 +418,7 @@ export default function AddUserForm({
                       onChange={() =>
                         setValues((prev) => ({ ...prev, status: 'Inactive' }))
                       }
-                      className="text-primary h-4 w-4 focus:ring-primary"
+                      className="text-primary focus:ring-primary h-4 w-4"
                       disabled={isSubmitting}
                     />
                     <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
