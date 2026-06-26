@@ -26,6 +26,10 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureFrontendRequestsAreStateful::class,
         ]);
 
+        $middleware->preventRequestForgery(except: [
+            'api/auth/*',
+        ]);
+
         $middleware->alias([
             'check.role' => CheckRole::class,
         ]);
