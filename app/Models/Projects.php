@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Model;
     'project_manager',
     'contact',
     'email',
-    'remarks'
+    'remarks',
 ])]
 class Projects extends Model
 {

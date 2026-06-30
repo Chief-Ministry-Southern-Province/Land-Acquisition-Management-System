@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('name');
-            $table->string('type'); //.pdf, .xls
+            $table->string('type'); // .pdf, .xls
             $table->string('category');
             $table->string('size');
             $table->date('upload_date');
-            $table->string('document_type'); //project, parcel,     
+            $table->string('document_type'); // project, parcel,
             $table->string('link');
             $table->timestamps();
         });

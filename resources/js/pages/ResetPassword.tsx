@@ -1,5 +1,12 @@
 import { router, usePage } from '@inertiajs/react';
-import { KeyRound, Loader2, ArrowLeft, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import {
+  KeyRound,
+  Loader2,
+  ArrowLeft,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -28,9 +35,7 @@ function ResetPassword() {
     setError(null);
 
     if (password !== passwordConfirmation) {
-      setError(
-        t('passwords_do_not_match', 'Passwords do not match.'),
-      );
+      setError(t('passwords_do_not_match', 'Passwords do not match.'));
 
       return;
     }

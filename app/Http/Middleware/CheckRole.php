@@ -14,20 +14,20 @@ class CheckRole
      * Check if the authenticated user has one of the allowed roles.
      * Usage: middleware('check.role:Admin,SuperAdmin')
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      * @param  string  ...$roles  Allowed role names
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         $user = $request->user();
 
-        if (!$user || !$user->role) {
+        if (! $user || ! $user->role) {
             return response()->json([
                 'message' => 'Unauthorized. User role not found.',
             ], 403);
         }
 
-        if (!in_array($user->role->role_name, $roles)) {
+        if (! in_array($user->role->role_name, $roles)) {
             return response()->json([
                 'message' => 'Forbidden. You do not have the required role to access this resource.',
             ], 403);

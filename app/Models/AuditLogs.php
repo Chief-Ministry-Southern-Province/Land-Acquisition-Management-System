@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable([
     'user_id',
     'action',
-    'detail'
+    'detail',
 ])]
 class AuditLogs extends Model
 {

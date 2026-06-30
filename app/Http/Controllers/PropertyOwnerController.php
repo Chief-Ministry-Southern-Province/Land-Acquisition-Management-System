@@ -73,7 +73,7 @@ class PropertyOwnerController extends Controller
 
         $propertyOwner = PropertyOwner::find($id, ['*']);
 
-        if (!$propertyOwner) {
+        if (! $propertyOwner) {
             return response()->json([
                 'message' => 'Property owner not found',
             ], 404);
@@ -94,7 +94,7 @@ class PropertyOwnerController extends Controller
     {
         $propertyOwner = PropertyOwner::find($id, ['*']);
 
-        if (!$propertyOwner) {
+        if (! $propertyOwner) {
             return response()->json([
                 'message' => 'Property owner not found',
             ], 404);

@@ -1,25 +1,22 @@
 <?php
 
-use App\Models\User;
 use App\Models\Departments;
-use App\Models\Roles;
-use App\Models\Projects;
 use App\Models\LandParcel;
+use App\Models\Projects;
 use App\Models\PropertyOwner;
-use App\Models\Compensation;
-use App\Models\Documents;
-use App\Models\AuditLogs;
+use App\Models\Roles;
+use App\Models\User;
 
+use function Pest\Laravel\deleteJson;
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
 use function Pest\Laravel\putJson;
-use function Pest\Laravel\deleteJson;
 
 beforeEach(function () {
     $this->department = Departments::create(['department_name' => 'IT Department']);
     $this->role = Roles::create(['role_name' => 'Manager', 'description' => 'Manager Role']);
 
-    $user = new User();
+    $user = new User;
     $user->name = 'Manager User';
     $user->email = 'manager@test.com';
     $user->password = bcrypt('password');
@@ -235,7 +232,7 @@ test('compensation crud operations', function () {
     $compData['amount'] = 600000.00;
     $response = putJson("/api/compensation/{$compId}", $compData);
     $response->assertStatus(200);
-    expect((float)$response->json('compensation.amount'))->toEqual(600000.00);
+    expect((float) $response->json('compensation.amount'))->toEqual(600000.00);
 
     // Delete
     $response = deleteJson("/api/compensation/{$compId}");

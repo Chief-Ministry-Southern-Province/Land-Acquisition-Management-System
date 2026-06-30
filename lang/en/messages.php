@@ -21,7 +21,7 @@ return [
     // Footer
     'all_rights_reserved' => 'All Rights Reserved',
     'follow_us' => 'Follow Us',
-//-----------------------------------------------------------
+    // -----------------------------------------------------------
     // Login Page
     'Land_Acquisition_Management_System' => 'Land Acquisition Management System',
     'government_of_sri_lanka' => 'Government of Sri Lanka',
@@ -69,7 +69,7 @@ return [
     'active' => 'Active',
     'completed' => 'Completed',
     'pending' => 'Pending',
-    
+
     'jan' => 'Jan',
     'feb' => 'Feb',
     'mar' => 'Mar',

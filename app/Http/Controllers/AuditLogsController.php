@@ -69,7 +69,7 @@ class AuditLogsController extends Controller
 
         $auditLog = AuditLogs::find($id, ['*']);
 
-        if (!$auditLog) {
+        if (! $auditLog) {
             return response()->json([
                 'message' => 'Audit log not found',
             ], 404);
@@ -90,7 +90,7 @@ class AuditLogsController extends Controller
     {
         $auditLog = AuditLogs::find($id, ['*']);
 
-        if (!$auditLog) {
+        if (! $auditLog) {
             return response()->json([
                 'message' => 'Audit log not found',
             ], 404);

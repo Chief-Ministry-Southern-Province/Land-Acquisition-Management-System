@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Departments;
+use App\Models\Roles;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,14 +17,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $department = \App\Models\Departments::firstOrCreate([
-            'department_name' => 'Administration'
+        $department = Departments::firstOrCreate([
+            'department_name' => 'Administration',
         ]);
 
-        $role = \App\Models\Roles::firstOrCreate([
-            'role_name' => 'Admin'
+        $role = Roles::firstOrCreate([
+            'role_name' => 'Admin',
         ], [
-            'description' => 'Administrator'
+            'description' => 'Administrator',
         ]);
 
         User::factory()->create([

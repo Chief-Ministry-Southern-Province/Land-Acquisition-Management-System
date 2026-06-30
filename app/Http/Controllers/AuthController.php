@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -51,7 +52,7 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (! Auth::attempt($request->only('email', 'password'))) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
@@ -78,7 +79,7 @@ class AuthController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        /** @var \Laravel\Sanctum\PersonalAccessToken $token */
+        /** @var PersonalAccessToken $token */
         $token = $user->currentAccessToken();
         $token->delete();
 

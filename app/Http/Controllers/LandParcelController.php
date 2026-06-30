@@ -69,7 +69,7 @@ class LandParcelController extends Controller
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
-            'parcel_id' => 'required|string|max:255|unique:land_parcels,parcel_id,' . $id,
+            'parcel_id' => 'required|string|max:255|unique:land_parcels,parcel_id,'.$id,
             'project_id' => 'nullable|exists:projects,id',
             'lot_no' => 'required|string|max:255',
             'district' => 'required|string|max:255',
@@ -83,7 +83,7 @@ class LandParcelController extends Controller
 
         $landParcel = LandParcel::find($id, ['*']);
 
-        if (!$landParcel) {
+        if (! $landParcel) {
             return response()->json([
                 'message' => 'Land parcel not found',
             ], 404);
@@ -104,7 +104,7 @@ class LandParcelController extends Controller
     {
         $landParcel = LandParcel::find($id, ['*']);
 
-        if (!$landParcel) {
+        if (! $landParcel) {
             return response()->json([
                 'message' => 'Land parcel not found',
             ], 404);

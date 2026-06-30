@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
     'extent_acers',
     'extent_perches',
     'remarks',
-    'status'
+    'status',
 ])]
 class LandParcel extends Model
 {

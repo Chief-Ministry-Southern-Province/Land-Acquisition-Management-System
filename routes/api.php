@@ -1,15 +1,15 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\ProjectsController;
-use App\Http\Controllers\LandParcelController;
-use App\Http\Controllers\PropertyOwnerController;
-use App\Http\Controllers\CompensationController;
-use App\Http\Controllers\DocumentsController;
 use App\Http\Controllers\AuditLogsController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CompensationController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DocumentsController;
+use App\Http\Controllers\LandParcelController;
+use App\Http\Controllers\ProjectsController;
+use App\Http\Controllers\PropertyOwnerController;
+use App\Http\Controllers\RoleController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/test', function () {
     return response()->json([
