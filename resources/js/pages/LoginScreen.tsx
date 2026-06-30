@@ -134,9 +134,13 @@ function LoginScreen() {
                 <span className="text-sm">{t('remember_me')}</span>
               </label>
 
-              <a href="#" className="text-primary text-sm hover:underline">
+              <button
+                type="button"
+                onClick={() => router.visit('/forgot-password')}
+                className="text-primary text-sm hover:underline"
+              >
                 {t('forgot_password')}
-              </a>
+              </button>
             </div>
 
             <button

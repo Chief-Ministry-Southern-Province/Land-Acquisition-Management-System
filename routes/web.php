@@ -12,6 +12,13 @@ Route::get('/lang/{locale}', function ($locale) {
 
 Route::redirect('/login', '/', 308);
 Route::inertia('/', 'LoginScreen')->name('home');
+Route::inertia('/forgot-password', 'ForgotPassword')->name('forgot-password');
+Route::get('/reset-password/{token}', function (string $token) {
+    return inertia('ResetPassword', [
+        'token' => $token,
+        'email' => request()->query('email', ''),
+    ]);
+})->name('password.reset');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::inertia('/dashboard', 'Dashboard')->name('dashboard');

@@ -26,11 +26,17 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureFrontendRequestsAreStateful::class,
         ]);
 
+        $middleware->preventRequestForgery(except: [
+            'api/auth/*',
+        ]);
+
         $middleware->alias([
             'check.role' => CheckRole::class,
         ]);
 
         $middleware->redirectGuestsTo('/');
+
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
