@@ -20,7 +20,7 @@ Route::get('/reset-password/{token}', function (string $token) {
     ]);
 })->name('password.reset');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth')->group(function () {
     Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
     Route::inertia('/settings', 'Settings')->name('settings');
     Route::inertia('/notifications', 'Notifications')->name('notifications');
