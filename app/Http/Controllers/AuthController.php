@@ -103,6 +103,18 @@ class AuthController extends Controller
         ], 200);
     }
 
+    /*
+    * Get all users 
+    */
+    public function getAllUsers(): JsonResponse
+    {
+        $users = User::with(['role', 'department'])->get();
+        return response()->json([
+            'message' => 'Users fetched successfully',
+            'users' => $users,
+        ], 200);
+    }
+
     /**
      * Send a password reset link to the given email.
      */

@@ -1,75 +1,78 @@
 import { router } from '@inertiajs/react';
 import { Edit, Plus, Shield, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
 
+interface UserData {
+  id: number;
+  name: string;
+  email: string;
+  role?: {
+    id: number;
+    role_name: string;
+  };
+  department?: {
+    id: number;
+    department_name: string;
+  };
+}
+
 export default function UserManagement() {
-  const users = [
-    {
-      id: 'USR-001',
-      name: 'Admin User',
-      username: 'admin',
-      role: 'System Administrator',
-      department: 'IT',
-      email: 'admin@lams.gov.lk',
-      status: 'active',
-    },
-    {
-      id: 'USR-002',
-      name: 'K.P. Silva',
-      username: 'kpsilva',
-      role: 'Land Officer',
-      department: 'Land Administration',
-      email: 'kpsilva@lams.gov.lk',
-      status: 'active',
-    },
-    {
-      id: 'USR-003',
-      name: 'P.K. Bandara',
-      username: 'pkbandara',
-      role: 'Survey Officer',
-      department: 'Survey',
-      email: 'pkbandara@lams.gov.lk',
-      status: 'active',
-    },
-    {
-      id: 'USR-004',
-      name: 'K.P. Jayasuriya',
-      username: 'kpjayasuriya',
-      role: 'Valuation Officer',
-      department: 'Valuation',
-      email: 'kpjayasuriya@lams.gov.lk',
-      status: 'active',
-    },
-    {
-      id: 'USR-005',
-      name: 'S.A. Fernando',
-      username: 'safernando',
-      role: 'Legal Officer',
-      department: 'Legal',
-      email: 'safernando@lams.gov.lk',
-      status: 'active',
-    },
-    {
-      id: 'USR-006',
-      name: 'R.D. Silva',
-      username: 'rdsilva',
-      role: 'Finance Officer',
-      department: 'Finance',
-      email: 'rdsilva@lams.gov.lk',
-      status: 'active',
-    },
-    {
-      id: 'USR-007',
-      name: 'M.A. Perera',
-      username: 'maperera',
-      role: 'Data Entry Operator',
-      department: 'Administration',
-      email: 'maperera@lams.gov.lk',
-      status: 'inactive',
-    },
-  ];
+  const [users, setUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const headers: Record<string, string> = {
+          Accept: 'application/json',
+        };
+
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch('/api/auth/users', { headers });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+
+        const data = await response.json();
+
+        if (active) {
+          const rawUsers: UserData[] = data.users || [];
+          const mapped = rawUsers.map((u) => ({
+            id: `USR-${String(u.id).padStart(3, '0')}`,
+            name: u.name,
+            username: u.email.split('@')[0],
+            role: u.role?.role_name || 'N/A',
+            department: u.department?.department_name || 'N/A',
+            email: u.email,
+            status: 'active',
+          }));
+          setUsers(mapped);
+          setIsLoading(false);
+        }
+      } catch (err: any) {
+        if (active) {
+          setError(err.message || 'An error occurred while loading users.');
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchUsers();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const columns = [
     { key: 'id', label: 'User ID', sortable: true },
@@ -129,7 +132,19 @@ export default function UserManagement() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={users} actions={actions} />
+      {error && (
+        <div className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border p-4 text-sm">
+          {error}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="text-muted-foreground flex h-40 items-center justify-center">
+          <span>Loading users database...</span>
+        </div>
+      ) : (
+        <DataTable columns={columns} data={users} actions={actions} />
+      )}
     </div>
   );
 }
