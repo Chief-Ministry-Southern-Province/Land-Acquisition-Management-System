@@ -23,14 +23,58 @@ function LoginScreen() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ email: username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.errors) {
+          const firstError = Object.values(data.errors).flat()[0];
+          setError(firstError as string);
+        } else {
+          setError(
+            data.message ||
+              t(
+                'login_failed',
+                'Sign in failed. Please check your credentials.',
+              ),
+          );
+        }
+
+        setIsLoading(false);
+
+        return;
+      }
+
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
+
       router.visit('/dashboard');
-    }, 850);
+    } catch {
+      setError(
+        t(
+          'network_error',
+          'A network error occurred. Please check your connection and try again.',
+        ),
+      );
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -157,6 +201,15 @@ function LoginScreen() {
               </p>
             </div>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50/50 p-4 dark:border-red-900/30 dark:bg-red-950/20">
+              <p className="text-sm font-medium text-red-600 dark:text-red-400">
+                {error}
+              </p>
+            </div>
+          )}
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-5">
