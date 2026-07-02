@@ -18,8 +18,8 @@ test('can fetch roles', function () {
     $response->assertJsonStructure([
         'message',
         'roles' => [
-            '*' => ['id', 'role_name', 'description']
-        ]
+            '*' => ['id', 'role_name', 'description'],
+        ],
     ]);
 });
 
@@ -29,8 +29,8 @@ test('can fetch departments', function () {
     $response->assertJsonStructure([
         'message',
         'departments' => [
-            '*' => ['id', 'department_name']
-        ]
+            '*' => ['id', 'department_name'],
+        ],
     ]);
 });
 
@@ -49,12 +49,12 @@ test('can register a new user', function () {
     $response->assertJsonStructure([
         'message',
         'user' => ['id', 'name', 'email', 'department_id', 'role_id'],
-        'token'
+        'token',
     ]);
 
     $this->assertDatabaseHas('users', [
         'email' => 'newuser@example.com',
-        'name' => 'New Test User'
+        'name' => 'New Test User',
     ]);
 });
 
@@ -96,8 +96,8 @@ test('can fetch users list if authenticated', function () {
                 'department_id',
                 'role_id',
                 'role' => ['id', 'role_name'],
-                'department' => ['id', 'department_name']
-            ]
-        ]
+                'department' => ['id', 'department_name'],
+            ],
+        ],
     ]);
 });

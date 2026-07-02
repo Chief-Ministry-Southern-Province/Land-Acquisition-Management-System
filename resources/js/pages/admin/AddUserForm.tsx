@@ -186,7 +186,10 @@ export default function AddUserForm({
         email: userToEdit.email,
         password: '',
         confirmPassword: '',
-        status: userToEdit.status === 'active' || userToEdit.status === 'Active' ? 'Active' : 'Inactive',
+        status:
+          userToEdit.status === 'active' || userToEdit.status === 'Active'
+            ? 'Active'
+            : 'Inactive',
       };
     }
 
@@ -430,7 +433,13 @@ export default function AddUserForm({
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {isSubmitting ? (isEditMode ? 'Saving...' : 'Adding...') : (isEditMode ? 'Save Changes' : 'Add User')}
+            {isSubmitting
+              ? isEditMode
+                ? 'Saving...'
+                : 'Adding...'
+              : isEditMode
+                ? 'Save Changes'
+                : 'Add User'}
           </button>
         </div>
       </div>
@@ -458,7 +467,11 @@ export default function AddUserForm({
           <SectionHeader
             icon={UserPlus}
             title="User Information"
-            subtitle={isEditMode ? 'Basic details for the user' : 'Basic details and credentials for the new user'}
+            subtitle={
+              isEditMode
+                ? 'Basic details for the user'
+                : 'Basic details and credentials for the new user'
+            }
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

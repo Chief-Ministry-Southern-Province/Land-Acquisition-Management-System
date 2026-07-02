@@ -1,4 +1,14 @@
-import { Building2, CheckCircle, Edit2, Plus, Save, Search, Trash2, Users, X } from 'lucide-react';
+import {
+  Building2,
+  CheckCircle,
+  Edit2,
+  Plus,
+  Save,
+  Search,
+  Trash2,
+  Users,
+  X,
+} from 'lucide-react';
 import { useState } from 'react';
 import MainLayout from '@/layouts/MainLayout';
 
@@ -255,7 +265,7 @@ export default function DepartmentManagement() {
       };
       setDepartments((prev) => [...prev, newDep]);
     }
-    
+
     setShowModal(false);
   };
 

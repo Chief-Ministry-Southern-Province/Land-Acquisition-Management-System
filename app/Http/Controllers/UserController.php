@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
     /*
-    * Get all users 
+    * Get all users
     */
     public function getAllUsers(): JsonResponse
     {
         $users = User::with(['role', 'department'])->get();
+
         return response()->json([
             'message' => 'Users fetched successfully',
             'users' => $users,
@@ -21,7 +22,7 @@ class UserController extends Controller
     }
 
     /*
-    * Delete users 
+    * Delete users
     */
     public function deleteUser(string $id)
     {
@@ -35,6 +36,7 @@ class UserController extends Controller
         }
 
         $user->delete($id);
+
         return response()->json([
             'message' => 'User deleted successfully',
         ], 204);
@@ -56,7 +58,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|max:255|unique:users,email,' . $id,
+            'email' => 'required|string|max:255|unique:users,email,'.$id,
             'role_id' => 'required|integer',
             'department_id' => 'required|integer',
         ]);

@@ -104,11 +104,12 @@ class AuthController extends Controller
     }
 
     /*
-    * Get all users 
+    * Get all users
     */
     public function getAllUsers(): JsonResponse
     {
         $users = User::with(['role', 'department'])->get();
+
         return response()->json([
             'message' => 'Users fetched successfully',
             'users' => $users,
