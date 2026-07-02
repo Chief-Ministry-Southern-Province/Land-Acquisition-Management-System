@@ -32,6 +32,15 @@ export interface AddUserFormProps {
   onCancel?: () => void;
   /** Whether a submit is currently in progress (disables the form) */
   isSubmitting?: boolean;
+  /** User data to edit if in edit mode */
+  userToEdit?: {
+    id: number;
+    name: string;
+    email: string;
+    role_id: number;
+    department_id: number;
+    status: string;
+  };
 }
 
 type FormErrors = Partial<Record<keyof AddUserFormValues, string>>;
@@ -47,7 +56,7 @@ const EMPTY_VALUES: AddUserFormValues = {
   status: 'Active',
 };
 
-function validate(values: AddUserFormValues): FormErrors {
+function validate(values: AddUserFormValues, isEditMode = false): FormErrors {
   const errors: FormErrors = {};
 
   if (!values.userName.trim()) {
@@ -75,14 +84,16 @@ function validate(values: AddUserFormValues): FormErrors {
     errors.email = 'Enter a valid email address.';
   }
 
-  if (!values.password) {
-    errors.password = 'Password is required.';
-  } else if (values.password.length < 8) {
-    errors.password = 'Password must be at least 8 characters.';
-  }
+  if (!isEditMode) {
+    if (!values.password) {
+      errors.password = 'Password is required.';
+    } else if (values.password.length < 8) {
+      errors.password = 'Password must be at least 8 characters.';
+    }
 
-  if (values.confirmPassword !== values.password) {
-    errors.confirmPassword = 'Passwords do not match.';
+    if (values.confirmPassword !== values.password) {
+      errors.confirmPassword = 'Passwords do not match.';
+    }
   }
 
   return errors;
@@ -151,6 +162,7 @@ export default function AddUserForm({
   onSubmit,
   onCancel,
   isSubmitting: isSubmittingProp,
+  userToEdit,
 }: AddUserFormProps) {
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
@@ -162,7 +174,24 @@ export default function AddUserForm({
   const isSubmitting =
     isSubmittingProp !== undefined ? isSubmittingProp : isSubmittingInternal;
 
-  const [values, setValues] = useState<AddUserFormValues>(EMPTY_VALUES);
+  const isEditMode = !!userToEdit;
+
+  const [values, setValues] = useState<AddUserFormValues>(() => {
+    if (userToEdit) {
+      return {
+        userName: userToEdit.name,
+        username: userToEdit.email.split('@')[0],
+        role: String(userToEdit.role_id),
+        department: String(userToEdit.department_id),
+        email: userToEdit.email,
+        password: '',
+        confirmPassword: '',
+        status: userToEdit.status === 'active' || userToEdit.status === 'Active' ? 'Active' : 'Inactive',
+      };
+    }
+
+    return EMPTY_VALUES;
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
 
@@ -222,7 +251,7 @@ export default function AddUserForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setGeneralError(null);
-    const validationErrors = validate(values);
+    const validationErrors = validate(values, isEditMode);
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
@@ -245,59 +274,107 @@ export default function AddUserForm({
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const payload = {
-          name: values.userName,
-          email: values.email,
-          password: values.password,
-          password_confirmation: values.confirmPassword,
-          department_id: Number(values.department),
-          role_id: Number(values.role),
-        };
+        if (isEditMode) {
+          const payload = {
+            name: values.userName,
+            email: values.email,
+            department_id: Number(values.department),
+            role_id: Number(values.role),
+          };
 
-        const response = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(payload),
-        });
+          const response = await fetch(`/api/users/${userToEdit.id}`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(payload),
+          });
 
-        const data = await response.json();
+          const data = await response.json();
 
-        if (!response.ok) {
-          if (data.errors) {
-            const formErrors: FormErrors = {};
+          if (!response.ok) {
+            if (data.errors) {
+              const formErrors: FormErrors = {};
 
-            if (data.errors.name) {
-              formErrors.userName = data.errors.name[0];
+              if (data.errors.name) {
+                formErrors.userName = data.errors.name[0];
+              }
+
+              if (data.errors.email) {
+                formErrors.email = data.errors.email[0];
+              }
+
+              if (data.errors.department_id) {
+                formErrors.department = data.errors.department_id[0];
+              }
+
+              if (data.errors.role_id) {
+                formErrors.role = data.errors.role_id[0];
+              }
+
+              setErrors(formErrors);
+            } else {
+              setGeneralError(data.message || 'Failed to update user.');
             }
 
-            if (data.errors.email) {
-              formErrors.email = data.errors.email[0];
-            }
+            setIsSubmittingInternal(false);
 
-            if (data.errors.password) {
-              formErrors.password = data.errors.password[0];
-            }
-
-            if (data.errors.department_id) {
-              formErrors.department = data.errors.department_id[0];
-            }
-
-            if (data.errors.role_id) {
-              formErrors.role = data.errors.role_id[0];
-            }
-
-            setErrors(formErrors);
-          } else {
-            setGeneralError(data.message || 'Failed to register user.');
+            return;
           }
 
-          setIsSubmittingInternal(false);
+          router.visit('/user-management');
+        } else {
+          const payload = {
+            name: values.userName,
+            email: values.email,
+            password: values.password,
+            password_confirmation: values.confirmPassword,
+            department_id: Number(values.department),
+            role_id: Number(values.role),
+          };
 
-          return;
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            if (data.errors) {
+              const formErrors: FormErrors = {};
+
+              if (data.errors.name) {
+                formErrors.userName = data.errors.name[0];
+              }
+
+              if (data.errors.email) {
+                formErrors.email = data.errors.email[0];
+              }
+
+              if (data.errors.password) {
+                formErrors.password = data.errors.password[0];
+              }
+
+              if (data.errors.department_id) {
+                formErrors.department = data.errors.department_id[0];
+              }
+
+              if (data.errors.role_id) {
+                formErrors.role = data.errors.role_id[0];
+              }
+
+              setErrors(formErrors);
+            } else {
+              setGeneralError(data.message || 'Failed to register user.');
+            }
+
+            setIsSubmittingInternal(false);
+
+            return;
+          }
+
+          router.visit('/user-management');
         }
-
-        // Successfully registered! Redirect to user management page
-        router.visit('/user-management');
       } catch (err: any) {
         setGeneralError(
           err.message || 'A network error occurred. Please try again.',
@@ -329,9 +406,11 @@ export default function AddUserForm({
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1>Add User</h1>
+            <h1>{isEditMode ? 'Edit User' : 'Add User'}</h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Create a new system user and assign access
+              {isEditMode
+                ? 'Update system user details and access'
+                : 'Create a new system user and assign access'}
             </p>
           </div>
         </div>
@@ -351,7 +430,7 @@ export default function AddUserForm({
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {isSubmitting ? 'Adding...' : 'Add User'}
+            {isSubmitting ? (isEditMode ? 'Saving...' : 'Adding...') : (isEditMode ? 'Save Changes' : 'Add User')}
           </button>
         </div>
       </div>
@@ -379,7 +458,7 @@ export default function AddUserForm({
           <SectionHeader
             icon={UserPlus}
             title="User Information"
-            subtitle="Basic details and credentials for the new user"
+            subtitle={isEditMode ? 'Basic details for the user' : 'Basic details and credentials for the new user'}
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -478,55 +557,59 @@ export default function AddUserForm({
               )}
             </Field>
 
-            {/* Password */}
-            <Field
-              label="Password"
-              required
-              hint="Must be at least 8 characters"
-            >
-              <div className="relative">
-                <input
-                  id="password"
-                  className={`${inputCls} pr-10`}
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="At least 8 characters"
-                  value={values.password}
-                  onChange={handleChange('password')}
-                  disabled={isSubmitting}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((s) => !s)}
-                  className="text-muted-foreground hover:text-foreground absolute right-2.5 top-1/2 -translate-y-1/2 transition-colors"
-                  tabIndex={-1}
+            {!isEditMode && (
+              <>
+                {/* Password */}
+                <Field
+                  label="Password"
+                  required
+                  hint="Must be at least 8 characters"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
+                  <div className="relative">
+                    <input
+                      id="password"
+                      className={`${inputCls} pr-10`}
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="At least 8 characters"
+                      value={values.password}
+                      onChange={handleChange('password')}
+                      disabled={isSubmitting}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="text-muted-foreground hover:text-foreground absolute right-2.5 top-1/2 -translate-y-1/2 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <span className={errCls}>{errors.password}</span>
                   )}
-                </button>
-              </div>
-              {errors.password && (
-                <span className={errCls}>{errors.password}</span>
-              )}
-            </Field>
+                </Field>
 
-            {/* Confirm Password */}
-            <Field label="Confirm Password" required>
-              <input
-                id="confirmPassword"
-                className={inputCls}
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Re-enter password"
-                value={values.confirmPassword}
-                onChange={handleChange('confirmPassword')}
-                disabled={isSubmitting}
-              />
-              {errors.confirmPassword && (
-                <span className={errCls}>{errors.confirmPassword}</span>
-              )}
-            </Field>
+                {/* Confirm Password */}
+                <Field label="Confirm Password" required>
+                  <input
+                    id="confirmPassword"
+                    className={inputCls}
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Re-enter password"
+                    value={values.confirmPassword}
+                    onChange={handleChange('confirmPassword')}
+                    disabled={isSubmitting}
+                  />
+                  {errors.confirmPassword && (
+                    <span className={errCls}>{errors.confirmPassword}</span>
+                  )}
+                </Field>
+              </>
+            )}
 
             {/* Status – full width */}
             <div className="md:col-span-2">

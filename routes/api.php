@@ -9,6 +9,7 @@ use App\Http\Controllers\LandParcelController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\PropertyOwnerController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/test', function () {
@@ -29,8 +30,15 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
-    Route::get('/users', [AuthController::class, 'getAllUsers']);
 });
+
+// ─── User Management (Protected) ────────────────────────────────────────
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/users', [UserController::class, 'getAllUsers']);
+    Route::put('/users/{id}', [UserController::class, 'updateUser']);
+    Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
+});
+
 
 // ─── Resource Routes ────────────────────────────────────────────────
 Route::apiResource('departments', DepartmentController::class);

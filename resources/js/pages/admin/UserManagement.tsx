@@ -1,9 +1,16 @@
 import { router } from '@inertiajs/react';
 import { Edit, Plus, Shield, Trash2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { SyncLoader } from 'react-spinners';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import {
+  deleteUser,
+  getAllUsers,
+  updateUser,
+} from '@/services/userManagementService';
+import AddUserForm from './AddUserForm';
 
 interface UserData {
   id: number;
@@ -23,56 +30,89 @@ export default function UserManagement() {
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getAllUsers();
+      const rawUsers: UserData[] = data.users || [];
+      const mapped = rawUsers.map((u: any) => ({
+        id: `USR-${String(u.id).padStart(3, '0')}`,
+        name: u.name,
+        username: u.email.split('@')[0],
+        role: u.role?.role_name || 'N/A',
+        department: u.department?.department_name || 'N/A',
+        email: u.email,
+        status: 'active',
+        rawId: u.id,
+        roleId: u.role?.id || 0,
+        departmentId: u.department?.id || 0,
+      }));
+      setUsers(mapped);
+      setIsLoading(false);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while loading users.');
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
-    const fetchUsers = async () => {
-      try {
-        const token = localStorage.getItem('auth_token');
-        const headers: Record<string, string> = {
-          Accept: 'application/json',
-        };
+    const init = async () => {
+      await Promise.resolve();
 
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const response = await fetch('/api/auth/users', { headers });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch users');
-        }
-
-        const data = await response.json();
-
-        if (active) {
-          const rawUsers: UserData[] = data.users || [];
-          const mapped = rawUsers.map((u) => ({
-            id: `USR-${String(u.id).padStart(3, '0')}`,
-            name: u.name,
-            username: u.email.split('@')[0],
-            role: u.role?.role_name || 'N/A',
-            department: u.department?.department_name || 'N/A',
-            email: u.email,
-            status: 'active',
-          }));
-          setUsers(mapped);
-          setIsLoading(false);
-        }
-      } catch (err: any) {
-        if (active) {
-          setError(err.message || 'An error occurred while loading users.');
-          setIsLoading(false);
-        }
+      if (active) {
+        await fetchUsers();
       }
     };
-
-    fetchUsers();
+    init();
 
     return () => {
       active = false;
     };
   }, []);
+
+  const handleDelete = async (rawId: number) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) {
+      return;
+    }
+
+    try {
+      setError(null);
+      await deleteUser(rawId);
+      setUsers((prev) => prev.filter((u) => u.rawId !== rawId));
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Failed to delete user.');
+    }
+  };
+
+  const handleUpdate = (row: any) => {
+    setEditingUser(row);
+  };
+
+  const handleUpdateSubmit = async (values: any) => {
+    if (!editingUser) {
+      return;
+    }
+
+    try {
+      setError(null);
+      const payload = {
+        name: values.userName,
+        email: values.email,
+        role_id: Number(values.role),
+        department_id: Number(values.department),
+      };
+      await updateUser(editingUser.rawId, payload);
+      await fetchUsers();
+      setEditingUser(null);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Failed to update user.');
+    }
+  };
 
   const columns = [
     { key: 'id', label: 'User ID', sortable: true },
@@ -88,22 +128,43 @@ export default function UserManagement() {
     },
   ];
 
-  const actions = () => (
+  const actions = (row: any) => (
     <div className="flex items-center justify-end gap-2">
       <button
         className="hover:bg-muted rounded p-1.5 transition-colors"
         title="Edit"
+        onClick={() => handleUpdate(row)}
       >
         <Edit className="h-4 w-4" />
       </button>
       <button
         className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
         title="Delete"
+        onClick={() => handleDelete(row.rawId)}
       >
         <Trash2 className="h-4 w-4" />
       </button>
     </div>
   );
+
+  if (editingUser) {
+    const userToEdit = {
+      id: editingUser.rawId,
+      name: editingUser.name,
+      email: editingUser.email,
+      role_id: editingUser.roleId,
+      department_id: editingUser.departmentId,
+      status: editingUser.status,
+    };
+
+    return (
+      <AddUserForm
+        userToEdit={userToEdit}
+        onCancel={() => setEditingUser(null)}
+        onSubmit={handleUpdateSubmit}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -139,8 +200,9 @@ export default function UserManagement() {
       )}
 
       {isLoading ? (
-        <div className="text-muted-foreground flex h-40 items-center justify-center">
-          <span>Loading users database...</span>
+        <div className="text-muted-foreground flex h-40 items-center justify-center gap-3 text-lg">
+          <SyncLoader size={14} color="#494949" />
+          <span>Loading users</span>
         </div>
       ) : (
         <DataTable columns={columns} data={users} actions={actions} />
