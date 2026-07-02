@@ -286,7 +286,7 @@ export default function AddUserForm({
             method: 'PUT',
             headers,
             body: JSON.stringify(payload),
-          });
+          }); //FIX with axios
 
           const data = await response.json();
 

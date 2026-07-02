@@ -177,7 +177,7 @@ export default function UserManagement() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => router.visit('/users-management')}
+            onClick={() => router.visit('/roles')}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
           >
             <Shield className="h-5 w-5" />

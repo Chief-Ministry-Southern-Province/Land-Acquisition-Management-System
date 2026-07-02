@@ -3,13 +3,15 @@ import { Bell, ChevronRight, Menu, Settings, X } from 'lucide-react';
 import { useState } from 'react';
 
 import SideBar from '@/components/SideBar';
+import type { SideBarItem } from '@/components/SideBar';
 import { useTranslation } from '@/hooks/useTranslation';
 
 type Props = {
   children: React.ReactNode;
+  sidebarItems?: SideBarItem[];
 };
 
-export default function MainLayout({ children }: Props) {
+export default function MainLayout({ children, sidebarItems }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { locale } = useTranslation();
   const { url } = usePage();
@@ -60,7 +62,7 @@ export default function MainLayout({ children }: Props) {
           sidebarOpen ? 'w-64' : 'w-0'
         } overflow-hidden`}
       >
-        <SideBar />
+        <SideBar items={sidebarItems} />
       </aside>
 
       {/* Main Content */}
