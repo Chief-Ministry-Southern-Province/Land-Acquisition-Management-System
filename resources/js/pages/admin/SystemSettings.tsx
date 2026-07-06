@@ -41,9 +41,7 @@ function Field({
     <div className="flex flex-col gap-1">
       <label className="text-sm font-medium">{label}</label>
       {children}
-      {hint && (
-        <span className="text-muted-foreground text-xs">{hint}</span>
-      )}
+      {hint && <span className="text-muted-foreground text-xs">{hint}</span>}
     </div>
   );
 }
@@ -61,7 +59,7 @@ function Toggle({
       role="switch"
       aria-checked={checked}
       onClick={onChange}
-      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2 ${
+      className={`focus:ring-primary/40 relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 ${
         checked ? 'bg-primary' : 'bg-muted-foreground/30'
       }`}
     >
@@ -117,9 +115,7 @@ function SectionCard({
       <div className="border-border border-b px-6 py-4">
         <h3>{title}</h3>
         {description && (
-          <p className="text-muted-foreground mt-0.5 text-sm">
-            {description}
-          </p>
+          <p className="text-muted-foreground mt-0.5 text-sm">{description}</p>
         )}
       </div>
       <div className="divide-border divide-y px-6">{children}</div>
@@ -143,7 +139,9 @@ export default function SystemSettings() {
   const [saved, setSaved] = useState(false);
 
   // ── General settings ──
-  const [systemName, setSystemName] = useState('Land Acquisition Management System');
+  const [systemName, setSystemName] = useState(
+    'Land Acquisition Management System',
+  );
   const [orgName, setOrgName] = useState('Chief Ministry – Southern Province');
   const [language, setLanguage] = useState('en');
   const [timezone, setTimezone] = useState('Asia/Colombo');
@@ -217,9 +215,7 @@ export default function SystemSettings() {
             <p className="text-muted-foreground text-xs uppercase tracking-wide">
               System Status
             </p>
-            <p className="text-secondary text-sm font-semibold">
-              Operational
-            </p>
+            <p className="text-secondary text-sm font-semibold">Operational</p>
           </div>
         </div>
         <div className="bg-card border-border flex items-center gap-4 rounded-xl border p-4">
@@ -351,7 +347,10 @@ export default function SystemSettings() {
               title="Dark Mode"
               description="Enable dark mode for the entire application interface"
             >
-              <Toggle checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
+              <Toggle
+                checked={darkMode}
+                onChange={() => setDarkMode(!darkMode)}
+              />
             </SettingRow>
           </SectionCard>
         </div>

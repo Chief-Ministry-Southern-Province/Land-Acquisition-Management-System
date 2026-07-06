@@ -7,11 +7,6 @@ use App\Models\PropertyOwner;
 use App\Models\Roles;
 use App\Models\User;
 
-use function Pest\Laravel\deleteJson;
-use function Pest\Laravel\getJson;
-use function Pest\Laravel\postJson;
-use function Pest\Laravel\putJson;
-
 beforeEach(function () {
     $this->department = Departments::create([
         'department_name' => 'IT Department',

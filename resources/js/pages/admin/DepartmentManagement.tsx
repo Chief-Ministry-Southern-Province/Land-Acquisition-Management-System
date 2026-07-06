@@ -19,8 +19,6 @@ import {
 } from '@/services/departmentManagement';
 import type { Department } from '@/services/departmentManagement';
 
-
-
 const EMPTY_DEP: Omit<Department, 'id'> = {
   name: '',
   code: '',
@@ -90,24 +88,23 @@ export default function DepartmentManagement() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] =
-    useState<Omit<Department, 'id'>>(EMPTY_DEP);
+  const [form, setForm] = useState<Omit<Department, 'id'>>(EMPTY_DEP);
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const fetchDepartments = async () => {
-    try {
-      setLoading(true);
-      const data = await getDepartments();
-      setDepartments(data);
-    } catch (error) {
-      console.error('Failed to fetch departments:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        setLoading(true);
+        const data = await getDepartments();
+        setDepartments(data);
+      } catch (error) {
+        console.error('Failed to fetch departments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchDepartments();
   }, []);
 

@@ -20,7 +20,7 @@ beforeEach(function () {
     ]);
     $this->role = Roles::firstOrCreate(['role_name' => 'Manager'], ['description' => 'Manager Role']);
     $this->adminRole = Roles::firstOrCreate(['role_name' => 'Admin'], ['description' => 'Administrator Role']);
-    
+
     $this->adminUser = User::factory()->create([
         'department_id' => $this->department->id,
         'role_id' => $this->adminRole->id,
@@ -89,7 +89,7 @@ test('registration fails with validation errors', function () {
 });
 
 test('cannot fetch users list if unauthenticated', function () {
-    $response = getJson('/users');
+    $response = getJson('/api/users');
     $response->assertStatus(401);
 });
 
@@ -99,7 +99,7 @@ test('cannot fetch users list if authenticated as non-admin', function () {
         'role_id' => $this->role->id, // Manager role
     ]);
 
-    $response = $this->actingAs($user, 'sanctum')->getJson('/users');
+    $response = $this->actingAs($user, 'sanctum')->getJson('/api/users');
     $response->assertStatus(403);
 });
 
@@ -110,7 +110,7 @@ test('can fetch users list if authenticated as admin', function () {
         'role_id' => $adminRole->id,
     ]);
 
-    $response = $this->actingAs($user, 'sanctum')->getJson('/users');
+    $response = $this->actingAs($user, 'sanctum')->getJson('/api/users');
     $response->assertStatus(200);
     $response->assertJsonStructure([
         'message',

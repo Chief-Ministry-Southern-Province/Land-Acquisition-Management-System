@@ -37,13 +37,13 @@ const mapToBackend = (data: Omit<Department, 'id'>) => ({
 export const getDepartments = async (): Promise<Department[]> => {
   const response = await api.get('/api/departments');
   const departments = response.data.departments || [];
-  
+
   return departments.map(mapFromBackend);
 };
 
 export const getDepartment = async (id: string): Promise<Department> => {
   const response = await api.get(`/api/departments/${id}`);
-  
+
   return mapFromBackend(response.data.department);
 };
 
@@ -51,7 +51,7 @@ export const createDepartment = async (
   data: Omit<Department, 'id'>,
 ): Promise<Department> => {
   const response = await api.post('/api/departments', mapToBackend(data));
-  
+
   return mapFromBackend(response.data.department);
 };
 
