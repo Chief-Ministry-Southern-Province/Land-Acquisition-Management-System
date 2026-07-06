@@ -9,131 +9,26 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import MainLayout from '@/layouts/MainLayout';
+import {
+  getDepartments,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment,
+} from '@/services/departmentManagement';
+import type { Department } from '@/services/departmentManagement';
 
-type Department = {
-  id: string;
-  name: string;
-  code: string;
-  head: string;
-  email: string;
-  phone: string;
-  userCount: number;
-  status: 'active' | 'inactive';
-  description: string;
-};
 
-const INITIAL: Department[] = [
-  {
-    id: 'DEP-001',
-    name: 'Land Administration',
-    code: 'LA',
-    head: 'K.P. Silva',
-    email: 'land@lams.gov.lk',
-    phone: '+94 11 234 5678',
-    userCount: 12,
-    status: 'active',
-    description: 'Manages land acquisition processes and documentation',
-  },
-  {
-    id: 'DEP-002',
-    name: 'Survey Division',
-    code: 'SD',
-    head: 'P.K. Bandara',
-    email: 'survey@lams.gov.lk',
-    phone: '+94 11 345 6789',
-    userCount: 8,
-    status: 'active',
-    description: 'Conducts land surveys and prepares survey plans',
-  },
-  {
-    id: 'DEP-003',
-    name: 'Valuation Division',
-    code: 'VD',
-    head: 'K.P. Jayasuriya',
-    email: 'valuation@lams.gov.lk',
-    phone: '+94 11 456 7890',
-    userCount: 6,
-    status: 'active',
-    description: 'Property valuation and assessment',
-  },
-  {
-    id: 'DEP-004',
-    name: 'Legal Division',
-    code: 'LD',
-    head: 'S.A. Fernando',
-    email: 'legal@lams.gov.lk',
-    phone: '+94 11 567 8901',
-    userCount: 5,
-    status: 'active',
-    description: 'Handles legal cases and documentation',
-  },
-  {
-    id: 'DEP-005',
-    name: 'Finance Division',
-    code: 'FD',
-    head: 'R.D. Silva',
-    email: 'finance@lams.gov.lk',
-    phone: '+94 11 678 9012',
-    userCount: 7,
-    status: 'active',
-    description: 'Compensation payments and financial management',
-  },
-  {
-    id: 'DEP-006',
-    name: 'Administration',
-    code: 'AD',
-    head: 'M.A. Perera',
-    email: 'admin@lams.gov.lk',
-    phone: '+94 11 789 0123',
-    userCount: 10,
-    status: 'active',
-    description: 'General administration and data entry',
-  },
-  {
-    id: 'DEP-007',
-    name: 'Information Technology',
-    code: 'IT',
-    head: 'Admin User',
-    email: 'it@lams.gov.lk',
-    phone: '+94 11 890 1234',
-    userCount: 3,
-    status: 'active',
-    description: 'System administration and IT support',
-  },
-  {
-    id: 'DEP-008',
-    name: 'GIS & Mapping Unit',
-    code: 'GIS',
-    head: 'T.M. Jayawardena',
-    email: 'gis@lams.gov.lk',
-    phone: '+94 11 901 2345',
-    userCount: 4,
-    status: 'active',
-    description: 'Geographic information systems and mapping',
-  },
-  {
-    id: 'DEP-009',
-    name: 'Internal Audit',
-    code: 'IA',
-    head: 'N.P. Dissanayake',
-    email: 'audit@lams.gov.lk',
-    phone: '+94 11 012 3456',
-    userCount: 2,
-    status: 'inactive',
-    description: 'Internal audit and compliance review',
-  },
-];
 
-const EMPTY_DEP: Omit<Department, 'id' | 'userCount'> = {
+const EMPTY_DEP: Omit<Department, 'id'> = {
   name: '',
   code: '',
   head: '',
   email: '',
   phone: '',
   status: 'active',
-  description: '',
+  userCount: 0,
 };
 
 function Modal({
@@ -190,14 +85,31 @@ function Field({
 }
 
 export default function DepartmentManagement() {
-  const [departments, setDepartments] = useState<Department[]>(INITIAL);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] =
-    useState<Omit<Department, 'id' | 'userCount'>>(EMPTY_DEP);
+    useState<Omit<Department, 'id'>>(EMPTY_DEP);
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const fetchDepartments = async () => {
+    try {
+      setLoading(true);
+      const data = await getDepartments();
+      setDepartments(data);
+    } catch (error) {
+      console.error('Failed to fetch departments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
 
   const filtered = departments.filter(
     (d) =>
@@ -221,7 +133,7 @@ export default function DepartmentManagement() {
       email: dep.email,
       phone: dep.phone,
       status: dep.status,
-      description: dep.description,
+      userCount: dep.userCount,
     });
     setErrors({});
     setEditingId(dep.id);
@@ -248,30 +160,62 @@ export default function DepartmentManagement() {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) {
       return;
     }
 
-    if (editingId) {
-      setDepartments((prev) =>
-        prev.map((d) => (d.id === editingId ? { ...d, ...form } : d)),
-      );
-    } else {
-      const newDep: Department = {
-        ...form,
-        id: `DEP-${String(departments.length + 1).padStart(3, '0')}`,
-        userCount: 0,
-      };
-      setDepartments((prev) => [...prev, newDep]);
-    }
+    try {
+      if (editingId) {
+        const updated = await updateDepartment(editingId, form);
+        setDepartments((prev) =>
+          prev.map((d) => (d.id === editingId ? updated : d)),
+        );
+      } else {
+        const created = await createDepartment(form);
+        setDepartments((prev) => [...prev, created]);
+      }
 
-    setShowModal(false);
+      setShowModal(false);
+    } catch (error: any) {
+      console.error('Failed to save department:', error);
+
+      if (error.response?.data?.errors) {
+        const backendErrors: Record<string, string> = {};
+        Object.entries(error.response.data.errors).forEach(([key, val]) => {
+          let fieldName = key;
+
+          if (key === 'department_name') {
+            fieldName = 'name';
+          }
+
+          if (key === 'dep_code') {
+            fieldName = 'code';
+          }
+
+          if (key === 'dep_head') {
+            fieldName = 'head';
+          }
+
+          if (Array.isArray(val) && val.length > 0) {
+            backendErrors[fieldName] = val[0];
+          }
+        });
+        setErrors(backendErrors);
+      } else if (error.response?.data?.message) {
+        setErrors({ name: error.response.data.message });
+      }
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setDepartments((prev) => prev.filter((d) => d.id !== id));
-    setDeleteId(null);
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDepartment(id);
+      setDepartments((prev) => prev.filter((d) => d.id !== id));
+      setDeleteId(null);
+    } catch (error) {
+      console.error('Failed to delete department:', error);
+    }
   };
 
   const set =
@@ -379,63 +323,16 @@ export default function DepartmentManagement() {
               </tr>
             </thead>
             <tbody className="divide-border divide-y">
-              {filtered.map((dep) => (
-                <tr
-                  key={dep.id}
-                  className="hover:bg-muted/30 transition-colors"
-                >
-                  <td className="text-muted-foreground px-4 py-3 font-mono text-sm">
-                    {dep.id}
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="text-sm font-medium">{dep.name}</p>
-                    <p className="text-muted-foreground mt-0.5 text-xs">
-                      {dep.description}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="bg-muted rounded px-2 py-0.5 font-mono text-xs">
-                      {dep.code}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm">{dep.head}</td>
-                  <td className="text-muted-foreground px-4 py-3 text-sm">
-                    {dep.email}
-                  </td>
-                  <td className="text-muted-foreground px-4 py-3 text-sm">
-                    {dep.phone}
-                  </td>
-                  <td className="px-4 py-3 text-center text-sm">
-                    {dep.userCount}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${dep.status === 'active' ? 'bg-secondary/10 text-secondary' : 'bg-muted text-muted-foreground'}`}
-                    >
-                      {dep.status === 'active' ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => openEdit(dep)}
-                        className="hover:bg-muted rounded p-1.5 transition-colors"
-                        title="Edit"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteId(dep.id)}
-                        className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={9}
+                    className="text-muted-foreground px-4 py-10 text-center text-sm"
+                  >
+                    Loading departments...
                   </td>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
+              ) : filtered.length === 0 ? (
                 <tr>
                   <td
                     colSpan={9}
@@ -444,6 +341,63 @@ export default function DepartmentManagement() {
                     No departments found.
                   </td>
                 </tr>
+              ) : (
+                filtered.map((dep) => (
+                  <tr
+                    key={dep.id}
+                    className="hover:bg-muted/30 transition-colors"
+                  >
+                    <td className="text-muted-foreground px-4 py-3 font-mono text-sm">
+                      {dep.id}
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-sm font-medium">{dep.name}</p>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        Staff Members: {dep.userCount}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="bg-muted rounded px-2 py-0.5 font-mono text-xs">
+                        {dep.code}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm">{dep.head}</td>
+                    <td className="text-muted-foreground px-4 py-3 text-sm">
+                      {dep.email}
+                    </td>
+                    <td className="text-muted-foreground px-4 py-3 text-sm">
+                      {dep.phone}
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm">
+                      {dep.userCount}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${dep.status === 'active' ? 'bg-secondary/10 text-secondary' : 'bg-muted text-muted-foreground'}`}
+                      >
+                        {dep.status === 'active' ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => openEdit(dep)}
+                          className="hover:bg-muted rounded p-1.5 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteId(dep.id)}
+                          className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -531,13 +485,14 @@ export default function DepartmentManagement() {
                 </Field>
               </div>
               <div className="col-span-2">
-                <Field label="Description">
-                  <textarea
-                    className={`${inputCls} resize-none`}
-                    rows={3}
-                    placeholder="Brief description of department's responsibilities"
-                    value={form.description}
-                    onChange={set('description')}
+                <Field label="Staff Members">
+                  <input
+                    type="number"
+                    className={inputCls}
+                    placeholder="e.g. 10"
+                    value={form.userCount}
+                    onChange={set('userCount')}
+                    min={0}
                   />
                 </Field>
               </div>

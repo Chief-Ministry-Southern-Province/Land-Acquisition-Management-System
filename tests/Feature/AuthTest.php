@@ -8,12 +8,27 @@ use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
 
 beforeEach(function () {
-    $this->department = Departments::firstOrCreate(['department_name' => 'IT Department']);
+    $this->department = Departments::firstOrCreate([
+        'department_name' => 'IT Department',
+    ], [
+        'dep_code' => 'IT',
+        'dep_head' => 'Admin User',
+        'email' => 'it@lams.gov.lk',
+        'phone' => '+94 11 890 1234',
+        'staff' => 3,
+        'status' => true,
+    ]);
     $this->role = Roles::firstOrCreate(['role_name' => 'Manager'], ['description' => 'Manager Role']);
+    $this->adminRole = Roles::firstOrCreate(['role_name' => 'Admin'], ['description' => 'Administrator Role']);
+    
+    $this->adminUser = User::factory()->create([
+        'department_id' => $this->department->id,
+        'role_id' => $this->adminRole->id,
+    ]);
 });
 
 test('can fetch roles', function () {
-    $response = getJson('/api/roles');
+    $response = $this->actingAs($this->adminUser, 'sanctum')->getJson('/api/roles');
     $response->assertStatus(200);
     $response->assertJsonStructure([
         'message',
@@ -24,7 +39,7 @@ test('can fetch roles', function () {
 });
 
 test('can fetch departments', function () {
-    $response = getJson('/api/departments');
+    $response = $this->actingAs($this->adminUser, 'sanctum')->getJson('/api/departments');
     $response->assertStatus(200);
     $response->assertJsonStructure([
         'message',
@@ -74,17 +89,28 @@ test('registration fails with validation errors', function () {
 });
 
 test('cannot fetch users list if unauthenticated', function () {
-    $response = getJson('/api/auth/users');
+    $response = getJson('/users');
     $response->assertStatus(401);
 });
 
-test('can fetch users list if authenticated', function () {
+test('cannot fetch users list if authenticated as non-admin', function () {
     $user = User::factory()->create([
         'department_id' => $this->department->id,
-        'role_id' => $this->role->id,
+        'role_id' => $this->role->id, // Manager role
     ]);
 
-    $response = $this->actingAs($user, 'sanctum')->getJson('/api/auth/users');
+    $response = $this->actingAs($user, 'sanctum')->getJson('/users');
+    $response->assertStatus(403);
+});
+
+test('can fetch users list if authenticated as admin', function () {
+    $adminRole = Roles::firstOrCreate(['role_name' => 'Admin'], ['description' => 'Administrator']);
+    $user = User::factory()->create([
+        'department_id' => $this->department->id,
+        'role_id' => $adminRole->id,
+    ]);
+
+    $response = $this->actingAs($user, 'sanctum')->getJson('/users');
     $response->assertStatus(200);
     $response->assertJsonStructure([
         'message',

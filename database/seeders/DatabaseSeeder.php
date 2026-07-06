@@ -19,6 +19,13 @@ class DatabaseSeeder extends Seeder
     {
         $department = Departments::firstOrCreate([
             'department_name' => 'Administration',
+        ], [
+            'dep_code' => 'AD',
+            'dep_head' => 'M.A. Perera',
+            'email' => 'admin@lams.gov.lk',
+            'phone' => '+94 11 789 0123',
+            'staff' => 10,
+            'status' => true,
         ]);
 
         $role = Roles::firstOrCreate([

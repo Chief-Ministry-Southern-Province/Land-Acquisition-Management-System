@@ -30,7 +30,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
         return inertia('Dashboard');
     })->name('dashboard');
-    Route::inertia('/settings', 'Settings')->name('settings');
+    Route::get('/settings', function (Request $request) {
+        $user = $request->user();
+        if ($user && $user->role && $user->role->role_name === 'Admin') {
+            return inertia('admin/SystemSettings');
+        }
+
+        return inertia('Settings');
+    })->name('settings');
     Route::inertia('/notifications', 'Notifications')->name('notifications');
     // Route::inertia('/user-management', 'admin/UserManagement')->name('user-management');
     // Route::inertia('/user-management/add', 'admin/AddUserForm')->name('user-management.add');
@@ -69,14 +76,12 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // ADMIN ROUTES
-Route::middleware(['auth:sanctum'])->group(function () {
-    // Route::inertia('/dashboard', 'admin/AdminDashboard')->name('admin-dashboard');
+Route::middleware(['auth:sanctum', 'check.role:Admin'])->group(function () {
     Route::inertia('/user-management', 'admin/UserManagement')->name('user-management');
     Route::inertia('/user-management/add', 'admin/AddUserForm')->name('user-management.add');
     Route::inertia('/departments', 'admin/DepartmentManagement')->name('department-management');
     Route::inertia('/roles', 'admin/RoleManagement')->name('role-management');
     Route::inertia('/audit-log', 'admin/AuditLog')->name('audit-log');
-    Route::inertia('/settings', 'admin/SystemSettings')->name('system-settings');
 });
 
 Route::inertia('/not-found', 'NotFound')->name('not-found');

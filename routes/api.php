@@ -32,19 +32,23 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
 });
 
-// ─── User Management (Protected) ────────────────────────────────────────
+// ─── Protected Routes (Authenticated) ─────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/users', [UserController::class, 'getAllUsers']);
-    Route::put('/users/{id}', [UserController::class, 'updateUser']);
-    Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
-});
+    // Resource Routes
+    Route::apiResource('projects', ProjectsController::class);
+    Route::apiResource('land-parcels', LandParcelController::class);
+    Route::apiResource('property-owners', PropertyOwnerController::class);
+    Route::apiResource('compensation', CompensationController::class);
+    Route::apiResource('documents', DocumentsController::class);
 
-// ─── Resource Routes ────────────────────────────────────────────────
-Route::apiResource('departments', DepartmentController::class);
-Route::apiResource('roles', RoleController::class);
-Route::apiResource('projects', ProjectsController::class);
-Route::apiResource('land-parcels', LandParcelController::class);
-Route::apiResource('property-owners', PropertyOwnerController::class);
-Route::apiResource('compensation', CompensationController::class);
-Route::apiResource('documents', DocumentsController::class);
-Route::apiResource('audit-logs', AuditLogsController::class);
+    // ─── Admin Only Routes ───────────────────────────────────────────
+    Route::middleware('check.role:Admin')->group(function () {
+        Route::get('/users', [UserController::class, 'getAllUsers']);
+        Route::put('/users/{id}', [UserController::class, 'updateUser']);
+        Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
+
+        Route::apiResource('departments', DepartmentController::class);
+        Route::apiResource('roles', RoleController::class);
+        Route::apiResource('audit-logs', AuditLogsController::class);
+    });
+});

@@ -22,15 +22,21 @@ class CheckRole
         $user = $request->user();
 
         if (! $user || ! $user->role) {
-            return response()->json([
-                'message' => 'Unauthorized. User role not found.',
-            ], 403);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Unauthorized. User role not found.',
+                ], 403);
+            }
+            abort(403, 'Unauthorized. User role not found.');
         }
 
         if (! in_array($user->role->role_name, $roles)) {
-            return response()->json([
-                'message' => 'Forbidden. You do not have the required role to access this resource.',
-            ], 403);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Forbidden. You do not have the required role to access this resource.',
+                ], 403);
+            }
+            abort(403, 'Forbidden. You do not have the required role to access this resource.');
         }
 
         return $next($request);

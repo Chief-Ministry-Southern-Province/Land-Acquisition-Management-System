@@ -13,12 +13,20 @@ use function Pest\Laravel\postJson;
 use function Pest\Laravel\putJson;
 
 beforeEach(function () {
-    $this->department = Departments::create(['department_name' => 'IT Department']);
-    $this->role = Roles::create(['role_name' => 'Manager', 'description' => 'Manager Role']);
+    $this->department = Departments::create([
+        'department_name' => 'IT Department',
+        'dep_code' => 'IT',
+        'dep_head' => 'Admin User',
+        'email' => 'it@lams.gov.lk',
+        'phone' => '+94 11 890 1234',
+        'staff' => 3,
+        'status' => true,
+    ]);
+    $this->role = Roles::create(['role_name' => 'Admin', 'description' => 'Admin Role']);
 
     $user = new User;
-    $user->name = 'Manager User';
-    $user->email = 'manager@test.com';
+    $user->name = 'Admin User';
+    $user->email = 'admin@test.com';
     $user->password = bcrypt('password');
     $user->department_id = $this->department->id;
     $user->role_id = $this->role->id;
@@ -49,33 +57,33 @@ test('projects crud operations', function () {
     ];
 
     // Create
-    $response = postJson('/api/projects', $projectData);
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/projects', $projectData);
     $response->assertStatus(201);
     $response->assertJsonPath('project.project_id', 'PRJ-100');
     $projectId = $response->json('project.id');
 
     // Get All
-    $response = getJson('/api/projects');
+    $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/projects');
     $response->assertStatus(200);
     $response->assertJsonFragment(['project_id' => 'PRJ-100']);
 
     // Get One
-    $response = getJson("/api/projects/{$projectId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/projects/{$projectId}");
     $response->assertStatus(200);
     $response->assertJsonPath('project.project_id', 'PRJ-100');
 
     // Update
     $projectData['name'] = 'Updated Project Name';
-    $response = putJson("/api/projects/{$projectId}", $projectData);
+    $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/projects/{$projectId}", $projectData);
     $response->assertStatus(200);
     $response->assertJsonPath('project.name', 'Updated Project Name');
 
     // Delete
-    $response = deleteJson("/api/projects/{$projectId}");
+    $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/projects/{$projectId}");
     $response->assertStatus(204);
 
     // Verify deleted
-    $response = getJson("/api/projects/{$projectId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/projects/{$projectId}");
     $response->assertStatus(404);
 });
 
@@ -113,33 +121,33 @@ test('land parcels crud operations', function () {
     ];
 
     // Create
-    $response = postJson('/api/land-parcels', $parcelData);
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/land-parcels', $parcelData);
     $response->assertStatus(201);
     $response->assertJsonPath('land_parcel.parcel_id', 'PAR-999');
     $parcelId = $response->json('land_parcel.id');
 
     // Get All
-    $response = getJson('/api/land-parcels');
+    $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/land-parcels');
     $response->assertStatus(200);
     $response->assertJsonFragment(['parcel_id' => 'PAR-999']);
 
     // Get One
-    $response = getJson("/api/land-parcels/{$parcelId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/land-parcels/{$parcelId}");
     $response->assertStatus(200);
     $response->assertJsonPath('land_parcel.parcel_id', 'PAR-999');
 
     // Update
     $parcelData['lot_no'] = 'Lot 5C';
-    $response = putJson("/api/land-parcels/{$parcelId}", $parcelData);
+    $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/land-parcels/{$parcelId}", $parcelData);
     $response->assertStatus(200);
     $response->assertJsonPath('land_parcel.lot_no', 'Lot 5C');
 
     // Delete
-    $response = deleteJson("/api/land-parcels/{$parcelId}");
+    $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/land-parcels/{$parcelId}");
     $response->assertStatus(204);
 
     // Verify deleted
-    $response = getJson("/api/land-parcels/{$parcelId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/land-parcels/{$parcelId}");
     $response->assertStatus(404);
 });
 
@@ -153,33 +161,33 @@ test('property owners crud operations', function () {
     ];
 
     // Create
-    $response = postJson('/api/property-owners', $ownerData);
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/property-owners', $ownerData);
     $response->assertStatus(201);
     $response->assertJsonPath('property_owner.owner_id', 'OWN-001');
     $ownerId = $response->json('property_owner.id');
 
     // Get All
-    $response = getJson('/api/property-owners');
+    $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/property-owners');
     $response->assertStatus(200);
     $response->assertJsonFragment(['owner_id' => 'OWN-001']);
 
     // Get One
-    $response = getJson("/api/property-owners/{$ownerId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/property-owners/{$ownerId}");
     $response->assertStatus(200);
     $response->assertJsonPath('property_owner.owner_id', 'OWN-001');
 
     // Update
     $ownerData['name'] = 'Wimal Siripala';
-    $response = putJson("/api/property-owners/{$ownerId}", $ownerData);
+    $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/property-owners/{$ownerId}", $ownerData);
     $response->assertStatus(200);
     $response->assertJsonPath('property_owner.name', 'Wimal Siripala');
 
     // Delete
-    $response = deleteJson("/api/property-owners/{$ownerId}");
+    $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/property-owners/{$ownerId}");
     $response->assertStatus(204);
 
     // Verify deleted
-    $response = getJson("/api/property-owners/{$ownerId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/property-owners/{$ownerId}");
     $response->assertStatus(404);
 });
 
@@ -213,33 +221,33 @@ test('compensation crud operations', function () {
     ];
 
     // Create
-    $response = postJson('/api/compensation', $compData);
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/compensation', $compData);
     $response->assertStatus(201);
     $response->assertJsonPath('compensation.compensation_id', 'COM-999');
     $compId = $response->json('compensation.id');
 
     // Get All
-    $response = getJson('/api/compensation');
+    $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/compensation');
     $response->assertStatus(200);
     $response->assertJsonFragment(['compensation_id' => 'COM-999']);
 
     // Get One
-    $response = getJson("/api/compensation/{$compId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/compensation/{$compId}");
     $response->assertStatus(200);
     $response->assertJsonPath('compensation.compensation_id', 'COM-999');
 
     // Update
     $compData['amount'] = 600000.00;
-    $response = putJson("/api/compensation/{$compId}", $compData);
+    $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/compensation/{$compId}", $compData);
     $response->assertStatus(200);
     expect((float) $response->json('compensation.amount'))->toEqual(600000.00);
 
     // Delete
-    $response = deleteJson("/api/compensation/{$compId}");
+    $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/compensation/{$compId}");
     $response->assertStatus(204);
 
     // Verify deleted
-    $response = getJson("/api/compensation/{$compId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/compensation/{$compId}");
     $response->assertStatus(404);
 });
 
@@ -256,33 +264,33 @@ test('documents crud operations', function () {
     ];
 
     // Create
-    $response = postJson('/api/documents', $docData);
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/documents', $docData);
     $response->assertStatus(201);
     $response->assertJsonPath('document.name', 'Deed of Land');
     $docId = $response->json('document.id');
 
     // Get All
-    $response = getJson('/api/documents');
+    $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/documents');
     $response->assertStatus(200);
     $response->assertJsonFragment(['name' => 'Deed of Land']);
 
     // Get One
-    $response = getJson("/api/documents/{$docId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/documents/{$docId}");
     $response->assertStatus(200);
     $response->assertJsonPath('document.name', 'Deed of Land');
 
     // Update
     $docData['name'] = 'Deed of Land Updated';
-    $response = putJson("/api/documents/{$docId}", $docData);
+    $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/documents/{$docId}", $docData);
     $response->assertStatus(200);
     $response->assertJsonPath('document.name', 'Deed of Land Updated');
 
     // Delete
-    $response = deleteJson("/api/documents/{$docId}");
+    $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/documents/{$docId}");
     $response->assertStatus(204);
 
     // Verify deleted
-    $response = getJson("/api/documents/{$docId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/documents/{$docId}");
     $response->assertStatus(404);
 });
 
@@ -294,32 +302,74 @@ test('audit logs crud operations', function () {
     ];
 
     // Create
-    $response = postJson('/api/audit-logs', $logData);
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/audit-logs', $logData);
     $response->assertStatus(201);
     $response->assertJsonPath('audit_log.action', 'Create Land Parcel');
     $logId = $response->json('audit_log.id');
 
     // Get All
-    $response = getJson('/api/audit-logs');
+    $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/audit-logs');
     $response->assertStatus(200);
     $response->assertJsonFragment(['action' => 'Create Land Parcel']);
 
     // Get One
-    $response = getJson("/api/audit-logs/{$logId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/audit-logs/{$logId}");
     $response->assertStatus(200);
     $response->assertJsonPath('audit_log.action', 'Create Land Parcel');
 
     // Update
     $logData['detail'] = 'Updated detail info';
-    $response = putJson("/api/audit-logs/{$logId}", $logData);
+    $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/audit-logs/{$logId}", $logData);
     $response->assertStatus(200);
     $response->assertJsonPath('audit_log.detail', 'Updated detail info');
 
     // Delete
-    $response = deleteJson("/api/audit-logs/{$logId}");
+    $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/audit-logs/{$logId}");
     $response->assertStatus(204);
 
     // Verify deleted
-    $response = getJson("/api/audit-logs/{$logId}");
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/audit-logs/{$logId}");
+    $response->assertStatus(404);
+});
+
+test('departments crud operations', function () {
+    $deptData = [
+        'department_name' => 'Survey and Mapping Department',
+        'dep_code' => 'SMD',
+        'dep_head' => 'T. Wickramasinghe',
+        'email' => 'survey.mapping@lams.gov.lk',
+        'phone' => '+94711122233',
+        'staff' => 15,
+        'status' => 'active',
+    ];
+
+    // Create
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/departments', $deptData);
+    $response->assertStatus(201);
+    $response->assertJsonPath('department.dep_code', 'SMD');
+    $deptId = $response->json('department.id');
+
+    // Get All
+    $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/departments');
+    $response->assertStatus(200);
+    $response->assertJsonFragment(['dep_code' => 'SMD']);
+
+    // Get One
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/departments/{$deptId}");
+    $response->assertStatus(200);
+    $response->assertJsonPath('department.dep_code', 'SMD');
+
+    // Update
+    $deptData['dep_head'] = 'A. Perera';
+    $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/departments/{$deptId}", $deptData);
+    $response->assertStatus(200);
+    $response->assertJsonPath('department.dep_head', 'A. Perera');
+
+    // Delete
+    $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/departments/{$deptId}");
+    $response->assertStatus(204);
+
+    // Verify deleted
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/departments/{$deptId}");
     $response->assertStatus(404);
 });
