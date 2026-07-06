@@ -40,8 +40,18 @@ class DepartmentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'department_name' => 'required|string|max:255|unique:departments',
+            'department_name' => 'required|string|max:255|unique:departments,department_name',
+            'dep_code' => 'required|string|max:255|unique:departments,dep_code',
+            'dep_head' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:departments,email',
+            'phone' => 'required|string|max:255|unique:departments,phone',
+            'staff' => 'sometimes|integer|min:0',
+            'status' => 'sometimes',
         ]);
+
+        if (isset($validated['status'])) {
+            $validated['status'] = in_array($validated['status'], ['active', '1', 'true', true, 1], true);
+        }
 
         $department = Departments::create($validated);
 
@@ -54,16 +64,26 @@ class DepartmentController extends Controller
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
-            'department_name' => 'required|string|max:255|unique:departments',
+            'department_name' => 'required|string|max:255|unique:departments,department_name,'.$id,
+            'dep_code' => 'required|string|max:255|unique:departments,dep_code,'.$id,
+            'dep_head' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:departments,email,'.$id,
+            'phone' => 'required|string|max:255|unique:departments,phone,'.$id,
+            'staff' => 'sometimes|integer|min:0',
+            'status' => 'sometimes',
         ]);
 
         /** @var Departments|null $department */
         $department = Departments::find($id, ['*']);
 
-        if (!$department) {
+        if (! $department) {
             return response()->json([
                 'message' => 'Department not found',
             ], 404);
+        }
+
+        if (isset($validated['status'])) {
+            $validated['status'] = in_array($validated['status'], ['active', '1', 'true', true, 1], true);
         }
 
         $department->update($validated);
@@ -82,7 +102,7 @@ class DepartmentController extends Controller
         /** @var Departments|null $department */
         $department = Departments::find($id, ['*']);
 
-        if (!$department) {
+        if (! $department) {
             return response()->json([
                 'message' => 'Department not found',
             ], 404);
@@ -96,15 +116,13 @@ class DepartmentController extends Controller
     }
 }
 
-
-
 /**
  * Show the form for editing the specified resource.
  */
-    // public function edit(string $id)
-    // {
-    //     //
-    // }
+// public function edit(string $id)
+// {
+//     //
+// }
 
 /**
  * Update the specified resource in storage.
@@ -113,10 +131,10 @@ class DepartmentController extends Controller
 /**
  * Show the form for creating a new resource.
  */
-    // public function create()
-    // {
-    //     //
-    // }
+// public function create()
+// {
+//     //
+// }
 
 /**
  * Store a newly created resource in storage.

@@ -14,6 +14,7 @@ return [
     // Contact
     'full_name' => 'සම්පූර්ණ නම',
     'email_address' => 'විද්‍යුත් තැපැල් ලිපිනය',
+    'email_placeholder' => 'example@gmail.com',
     'phone_number' => 'දුරකථන අංකය',
     'message' => 'පණිවිඩය',
     'send_message' => 'පණිවිඩය යවන්න',
@@ -21,7 +22,7 @@ return [
     // Footer
     'all_rights_reserved' => 'සියලුම හිමිකම් ඇවිරිණි',
     'follow_us' => 'අප අනුගමනය කරන්න',
- //-----------------------------------------------------------
+    // -----------------------------------------------------------
     // Login Page
     'Land_Acquisition_Management_System' => 'භූමි අත්පත් කරගැනීමේ කළමනාකරණ පද්ධතිය',
     'government_of_sri_lanka' => 'ශ්‍රී ලංකා රජය',
@@ -32,6 +33,28 @@ return [
     'sign_in' => 'ඇතුල් වන්න',
     'security_notice' => 'ආරක්ෂක නිවේදනය:',
     'security_notice_text' => 'මෙය රජයේ පද්ධතියකි. අනවසරයෙන් පිවිසීම තහනම් කර ඇති අතර නීතිමය පියවර ගත හැක.',
+    'personnel_sign_in' => 'නිලධාරී පිවිසුම',
+    'enter_credentials_text' => 'LAMS උපකරණ පුවරුවට ප්‍රවේශ වීමට ඔබගේ නිල අක්තපත්‍ර ඇතුළත් කරන්න.',
+    'secure_session' => 'ආරක්ෂිත සැසිය',
+    'secure_session_text' => 'මෙය සීමා කරන ලද රජයේ පද්ධතියකි. සියලුම ක්‍රියාකාරකම් සටහන් කර විගණනය කරනු ලැබේ.',
+    'officer_id_username' => 'නිලධාරී හැඳුනුම්පත / පරිශීලක නාමය',
+    'username_placeholder' => 'උදා: MIN-OFF-782',
+    'security_password' => 'ආරක්ෂක මුරපදය',
+    'remember_workstation' => 'මෙම වැඩපොළ මතක තබා ගන්න',
+    'sign_in_to_dashboard' => 'ප්‍රධාන පුවරුවට ඇතුළු වන්න',
+    'need_assistance' => 'තාක්ෂණික සහාය අවශ්‍යද?',
+    'contact_support' => 'සහාය අමතන්න',
+    'support_desk' => 'සහාය කවුළුව',
+    'data_privacy' => 'දත්ත රහස්‍යතාව',
+    'system_audit' => 'පද්ධති විගණනය',
+    'production_environment' => 'නිෂ්පාදන පරිසරය',
+    'digitalizing_nation' => 'දේශයේ භූමි අත්පත් කරගැනීම',
+    'land_acquisition' => 'ඩිජිටල්කරණය',
+    'platform_desc' => 'ප්‍රධාන අමාත්‍ය කාර්යාලය සඳහා වන ආරක්ෂිත ව්‍යවසාය වේදිකාව. GIS සිතියම්කරණය, ලේඛන සත්‍යාපනය සහ වන්දි කළමනාකරණය විනිවිදභාවයකින් යුතුව විධිමත් කිරීම.',
+    'processed_cases' => 'සම්පූර්ණ කරන ලද ලිපිගොනු',
+    'uptime_status' => 'පද්ධති සක්‍රීයතාව',
+    'legal_audit' => 'නීතිමය විගණනය',
+    'official_gov_portal' => 'නිල රාජ්‍ය ද්වාරය • ප්‍රධාන අමාත්‍ය කාර්යාලය',
 
     // Sidebar
     'dashboard' => 'ප්‍රධාන පුවරුව',
@@ -61,15 +84,15 @@ return [
     'court_cases' => 'අධිකරණ කටයුතු',
     // 'land_parcels' => 'ඉඩම් කැබලි',
     'affected_owners' => 'බලපෑමට ලක්වූ හිමිකරුවන්',
-    
+
     'bar_graph_title' => 'ව්‍යාපෘති අනුව ඉඩම් අත්පත් ප්‍රගතිය',
     'pie_chart_title' => 'ව්‍යාපෘති තත්ත්ව වර්ගීකරණය',
     'line_chart_title' => 'මාසික වන්දි ගෙවීම් (රු. මිලියන)',
-    
+
     'active' => 'ක්‍රියාකාරී',
     'completed' => 'සම්පූර්ණ',
     'pending' => 'අපේක්ෂිත',
-    
+
     'jan' => 'ජනවාරි',
     'feb' => 'පෙබරවාරි',
     'mar' => 'මාර්තු',
@@ -82,7 +105,7 @@ return [
     'oct' => 'ඔක්තෝබර්',
     'nov' => 'නවම්බර්',
     'dec' => 'දෙසැම්බර්',
-    
+
     'recent_activities' => 'මෑත කාලීන ක්‍රියාකාරකම්',
     'pending_tasks' => 'අපේක්ෂිත කාර්යයන්',
     'upcoming_deadlines' => 'ඉදිරියේ ඇති අවසන් දිනයන්',

@@ -16,16 +16,30 @@ import {
   CheckSquare,
   FolderKanban,
   DollarSign,
+  Building2,
+  Shield,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { FormEvent } from 'react';
-import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function SideBar() {
-  const { url } = usePage();
+export interface SideBarItem {
+  path: string;
+  icon: React.ComponentType<{ className?: string }> | LucideIcon;
+  label: string;
+}
+
+interface SideBarProps {
+  items?: SideBarItem[];
+}
+
+export default function SideBar({ items }: SideBarProps = {}) {
+  const { url, props } = usePage();
   const { t } = useTranslation();
 
-  const [userRole] = useState('System Administrator');
+  const user = (props.auth as any)?.user;
+  const userName = user?.name || 'User';
+  const userRole = user?.role?.role_name || 'User';
 
   const handleLogout = async (e: FormEvent) => {
     e.preventDefault();
@@ -40,26 +54,55 @@ export default function SideBar() {
     router.visit('/login');
   };
 
-  const menuItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
-    { path: '/projects', icon: FolderKanban, label: t('projects') },
-    { path: '/land-parcels', icon: Map, label: t('land_parcels') },
-    { path: '/land-owners', icon: Users, label: t('land_owners') },
-    { path: '/compensation', icon: DollarSign, label: t('compensation') },
-    {
-      path: '/acquisition-workflow',
-      icon: GitBranch,
-      label: t('acquisition_workflow'),
-    },
-    { path: '/documents', icon: FolderOpen, label: t('documents') },
-    { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
-    { path: '/approval-workflow', icon: CheckSquare, label: t('approvals') },
-    { path: '/reports', icon: BarChart3, label: t('reports') },
-    { path: '/user-management', icon: UserCog, label: t('user_management') },
-    { path: '/audit-log', icon: History, label: t('audit_log') },
-    { path: '/notifications', icon: Bell, label: t('notifications') },
-    { path: '/settings', icon: Settings, label: t('settings') },
-  ];
+  // REMOVE - not necessary
+  const defaultItems =
+    userRole === 'Admin'
+      ? [
+          {
+            path: '/dashboard',
+            icon: LayoutDashboard,
+            label: 'Admin Dashboard',
+          },
+          {
+            path: '/user-management',
+            icon: UserCog,
+            label: 'User Management',
+          },
+          { path: '/departments', icon: Building2, label: 'Departments' },
+          { path: '/roles', icon: Shield, label: 'Roles & Permissions' },
+          { path: '/audit-log', icon: History, label: 'Audit Logs' },
+          { path: '/settings', icon: Settings, label: 'System Settings' },
+        ]
+      : [
+          { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+          { path: '/projects', icon: FolderKanban, label: t('projects') },
+          { path: '/land-parcels', icon: Map, label: t('land_parcels') },
+          { path: '/land-owners', icon: Users, label: t('land_owners') },
+          { path: '/compensation', icon: DollarSign, label: t('compensation') },
+          {
+            path: '/acquisition-workflow',
+            icon: GitBranch,
+            label: t('acquisition_workflow'),
+          },
+          { path: '/documents', icon: FolderOpen, label: t('documents') },
+          { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
+          {
+            path: '/approval-workflow',
+            icon: CheckSquare,
+            label: t('approvals'),
+          },
+          { path: '/reports', icon: BarChart3, label: t('reports') },
+          {
+            path: '/user-management',
+            icon: UserCog,
+            label: t('user_management'),
+          },
+          { path: '/audit-log', icon: History, label: t('audit_log') },
+          { path: '/notifications', icon: Bell, label: t('notifications') },
+          { path: '/settings', icon: Settings, label: t('settings') },
+        ];
+
+  const menuItems = items || defaultItems;
 
   return (
     <>
@@ -107,10 +150,8 @@ export default function SideBar() {
             <User className="h-5 w-5 text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm">Admin User</p>
-            <p className="text-muted-foreground truncate text-xs">
-              {userRole} {/*IMPLEMENT Administrator*/}
-            </p>
+            <p className="truncate text-sm">{userName}</p>
+            <p className="text-muted-foreground truncate text-xs">{userRole}</p>
           </div>
         </div>
         <button

@@ -77,7 +77,7 @@ class CompensationController extends Controller
 
         $compensation = Compensation::find($id, ['*']);
 
-        if (!$compensation) {
+        if (! $compensation) {
             return response()->json([
                 'message' => 'Compensation not found',
             ], 404);
@@ -98,7 +98,7 @@ class CompensationController extends Controller
     {
         $compensation = Compensation::find($id, ['*']);
 
-        if (!$compensation) {
+        if (! $compensation) {
             return response()->json([
                 'message' => 'Compensation not found',
             ], 404);

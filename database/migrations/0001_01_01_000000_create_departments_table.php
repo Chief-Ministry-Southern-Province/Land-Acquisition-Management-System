@@ -15,6 +15,12 @@ return new class extends Migration
         Schema::create('departments', function (Blueprint $table) {
             $table->id();
             $table->string('department_name')->unique();
+            $table->string('dep_code')->unique();
+            $table->string('dep_head');
+            $table->string('email')->unique();
+            $table->string('phone')->unique();
+            $table->integer('staff')->default(0);
+            $table->boolean('status')->default(false);
             $table->timestamps();
         });
     }

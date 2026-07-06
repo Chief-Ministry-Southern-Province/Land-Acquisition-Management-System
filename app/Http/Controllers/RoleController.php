@@ -68,7 +68,7 @@ class RoleController extends Controller
         /** @var Roles|null $role */
         $role = Roles::find($id, ['*']);
 
-        if (!$role) {
+        if (! $role) {
             return response()->json([
                 'message' => 'Role not found',
             ], 404);
@@ -90,7 +90,7 @@ class RoleController extends Controller
         /** @var Roles|null $role */
         $role = Roles::find($id, ['*']);
 
-        if (!$role) {
+        if (! $role) {
             return response()->json([
                 'message' => 'Role not found',
             ], 404);
@@ -102,7 +102,6 @@ class RoleController extends Controller
             'message' => 'Role deleted successfully',
         ], 204);
     }
-
 
     /**
      * Show the form for creating a new resource.

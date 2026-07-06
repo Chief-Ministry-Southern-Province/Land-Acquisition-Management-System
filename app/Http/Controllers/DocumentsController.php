@@ -79,7 +79,7 @@ class DocumentsController extends Controller
 
         $document = Documents::find($id, ['*']);
 
-        if (!$document) {
+        if (! $document) {
             return response()->json([
                 'message' => 'Document not found',
             ], 404);
@@ -100,7 +100,7 @@ class DocumentsController extends Controller
     {
         $document = Documents::find($id, ['*']);
 
-        if (!$document) {
+        if (! $document) {
             return response()->json([
                 'message' => 'Document not found',
             ], 404);

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
     'amount',
     'approved_date',
     'payment_date',
-    'status'
+    'status',
 ])]
 class Compensation extends Model
 {

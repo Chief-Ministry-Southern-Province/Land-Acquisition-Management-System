@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
     'size',
     'upload_date',
     'document_type',
-    'link'
+    'link',
 ])]
 class Documents extends Model
 {
