@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
     'name',
     'nic',
     'address',
-    'contact'
+    'contact',
 ])]
 class PropertyOwner extends Model
 {

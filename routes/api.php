@@ -1,15 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\ProjectsController;
-use App\Http\Controllers\LandParcelController;
-use App\Http\Controllers\PropertyOwnerController;
-use App\Http\Controllers\CompensationController;
-use App\Http\Controllers\DocumentsController;
 use App\Http\Controllers\AuditLogsController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CompensationController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DocumentsController;
+use App\Http\Controllers\LandParcelController;
+use App\Http\Controllers\ProjectsController;
+use App\Http\Controllers\PropertyOwnerController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/test', function () {
     return response()->json([
@@ -31,12 +32,23 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
 });
 
-// ─── Resource Routes ────────────────────────────────────────────────
-Route::apiResource('departments', DepartmentController::class);
-Route::apiResource('roles', RoleController::class);
-Route::apiResource('projects', ProjectsController::class);
-Route::apiResource('land-parcels', LandParcelController::class);
-Route::apiResource('property-owners', PropertyOwnerController::class);
-Route::apiResource('compensation', CompensationController::class);
-Route::apiResource('documents', DocumentsController::class);
-Route::apiResource('audit-logs', AuditLogsController::class);
+// ─── Protected Routes (Authenticated) ─────────────────────────────────
+Route::middleware('auth:sanctum')->group(function () {
+    // Resource Routes
+    Route::apiResource('projects', ProjectsController::class);
+    Route::apiResource('land-parcels', LandParcelController::class);
+    Route::apiResource('property-owners', PropertyOwnerController::class);
+    Route::apiResource('compensation', CompensationController::class);
+    Route::apiResource('documents', DocumentsController::class);
+
+    // ─── Admin Only Routes ───────────────────────────────────────────
+    Route::middleware('check.role:Admin')->group(function () {
+        Route::get('/users', [UserController::class, 'getAllUsers']);
+        Route::put('/users/{id}', [UserController::class, 'updateUser']);
+        Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
+
+        Route::apiResource('departments', DepartmentController::class);
+        Route::apiResource('roles', RoleController::class);
+        Route::apiResource('audit-logs', AuditLogsController::class);
+    });
+});

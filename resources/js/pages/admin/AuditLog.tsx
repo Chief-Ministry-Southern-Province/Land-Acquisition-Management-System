@@ -1,6 +1,6 @@
 import { Calendar, Filter } from 'lucide-react';
 import MainLayout from '@/layouts/MainLayout';
-import { DataTable } from '../components/ui/DataTable';
+import { DataTable } from '../../components/ui/DataTable';
 
 export default function AuditLog() {
   const auditLogs = [

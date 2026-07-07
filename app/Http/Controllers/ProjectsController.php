@@ -97,7 +97,7 @@ class ProjectsController extends Controller
 
         $project = Projects::find($id, ['*']);
 
-        if (!$project) {
+        if (! $project) {
             return response()->json([
                 'message' => 'Project not found',
             ], 404);
@@ -118,7 +118,7 @@ class ProjectsController extends Controller
     {
         $project = Projects::find($id, ['*']);
 
-        if (!$project) {
+        if (! $project) {
             return response()->json([
                 'message' => 'Project not found',
             ], 404);

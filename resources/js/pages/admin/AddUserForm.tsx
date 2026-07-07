@@ -3,35 +3,22 @@ import { ArrowLeft, Eye, EyeOff, Info, Save, UserPlus, X } from 'lucide-react';
 import React, { useState } from 'react';
 import MainLayout from '@/layouts/MainLayout';
 
-// Roles and departments shown in the User Management table
-const ROLES = [
-  'System Administrator',
-  'Land Officer',
-  'Survey Officer',
-  'Valuation Officer',
-  'Legal Officer',
-  'Finance Officer',
-  'Data Entry Operator',
-] as const;
+export interface RoleOption {
+  id: number;
+  role_name: string;
+  description: string;
+}
 
-const DEPARTMENTS = [
-  'IT',
-  'Land Administration',
-  'Survey',
-  'Valuation',
-  'Legal',
-  'Finance',
-  'Administration',
-] as const;
-
-type Role = (typeof ROLES)[number];
-type Department = (typeof DEPARTMENTS)[number];
+export interface DepartmentOption {
+  id: number;
+  department_name: string;
+}
 
 export interface AddUserFormValues {
   userName: string;
   username: string;
-  role: Role | '';
-  department: Department | '';
+  role: string;
+  department: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -45,6 +32,15 @@ export interface AddUserFormProps {
   onCancel?: () => void;
   /** Whether a submit is currently in progress (disables the form) */
   isSubmitting?: boolean;
+  /** User data to edit if in edit mode */
+  userToEdit?: {
+    id: number;
+    name: string;
+    email: string;
+    role_id: number;
+    department_id: number;
+    status: string;
+  };
 }
 
 type FormErrors = Partial<Record<keyof AddUserFormValues, string>>;
@@ -60,7 +56,7 @@ const EMPTY_VALUES: AddUserFormValues = {
   status: 'Active',
 };
 
-function validate(values: AddUserFormValues): FormErrors {
+function validate(values: AddUserFormValues, isEditMode = false): FormErrors {
   const errors: FormErrors = {};
 
   if (!values.userName.trim()) {
@@ -88,14 +84,16 @@ function validate(values: AddUserFormValues): FormErrors {
     errors.email = 'Enter a valid email address.';
   }
 
-  if (!values.password) {
-    errors.password = 'Password is required.';
-  } else if (values.password.length < 8) {
-    errors.password = 'Password must be at least 8 characters.';
-  }
+  if (!isEditMode) {
+    if (!values.password) {
+      errors.password = 'Password is required.';
+    } else if (values.password.length < 8) {
+      errors.password = 'Password must be at least 8 characters.';
+    }
 
-  if (values.confirmPassword !== values.password) {
-    errors.confirmPassword = 'Passwords do not match.';
+    if (values.confirmPassword !== values.password) {
+      errors.confirmPassword = 'Passwords do not match.';
+    }
   }
 
   return errors;
@@ -163,11 +161,87 @@ const errCls = 'text-xs text-destructive mt-0.5';
 export default function AddUserForm({
   onSubmit,
   onCancel,
-  isSubmitting = false,
+  isSubmitting: isSubmittingProp,
+  userToEdit,
 }: AddUserFormProps) {
-  const [values, setValues] = useState<AddUserFormValues>(EMPTY_VALUES);
+  const [roles, setRoles] = useState<RoleOption[]>([]);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
+  const [isSubmittingInternal, setIsSubmittingInternal] = useState(false);
+  const [generalError, setGeneralError] = useState<string | null>(null);
+
+  const isSubmitting =
+    isSubmittingProp !== undefined ? isSubmittingProp : isSubmittingInternal;
+
+  const isEditMode = !!userToEdit;
+
+  const [values, setValues] = useState<AddUserFormValues>(() => {
+    if (userToEdit) {
+      return {
+        userName: userToEdit.name,
+        username: userToEdit.email.split('@')[0],
+        role: String(userToEdit.role_id),
+        department: String(userToEdit.department_id),
+        email: userToEdit.email,
+        password: '',
+        confirmPassword: '',
+        status:
+          userToEdit.status === 'active' || userToEdit.status === 'Active'
+            ? 'Active'
+            : 'Inactive',
+      };
+    }
+
+    return EMPTY_VALUES;
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
+
+  React.useEffect(() => {
+    let active = true;
+    const fetchOptions = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const headers: Record<string, string> = {
+          Accept: 'application/json',
+        };
+
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const [rolesRes, deptsRes] = await Promise.all([
+          fetch('/api/roles', { headers }),
+          fetch('/api/departments', { headers }),
+        ]);
+
+        if (!rolesRes.ok || !deptsRes.ok) {
+          throw new Error('Failed to fetch roles or departments');
+        }
+
+        const rolesData = await rolesRes.json();
+        const deptsData = await deptsRes.json();
+
+        if (active) {
+          setRoles(rolesData.roles || []);
+          setDepartments(deptsData.departments || []);
+          setIsLoadingOptions(false);
+        }
+      } catch (err: any) {
+        if (active) {
+          setOptionsError(err.message || 'Error loading roles/departments.');
+          setIsLoadingOptions(false);
+        }
+      }
+    };
+
+    fetchOptions();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleChange =
     (field: keyof AddUserFormValues) =>
@@ -177,13 +251,139 @@ export default function AddUserForm({
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const validationErrors = validate(values);
+    setGeneralError(null);
+    const validationErrors = validate(values, isEditMode);
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      onSubmit?.(values);
+      if (onSubmit) {
+        onSubmit(values);
+
+        return;
+      }
+
+      setIsSubmittingInternal(true);
+
+      try {
+        const token = localStorage.getItem('auth_token');
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        };
+
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        if (isEditMode) {
+          const payload = {
+            name: values.userName,
+            email: values.email,
+            department_id: Number(values.department),
+            role_id: Number(values.role),
+          };
+
+          const response = await fetch(`/api/users/${userToEdit.id}`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(payload),
+          }); //FIX with axios
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            if (data.errors) {
+              const formErrors: FormErrors = {};
+
+              if (data.errors.name) {
+                formErrors.userName = data.errors.name[0];
+              }
+
+              if (data.errors.email) {
+                formErrors.email = data.errors.email[0];
+              }
+
+              if (data.errors.department_id) {
+                formErrors.department = data.errors.department_id[0];
+              }
+
+              if (data.errors.role_id) {
+                formErrors.role = data.errors.role_id[0];
+              }
+
+              setErrors(formErrors);
+            } else {
+              setGeneralError(data.message || 'Failed to update user.');
+            }
+
+            setIsSubmittingInternal(false);
+
+            return;
+          }
+
+          router.visit('/user-management');
+        } else {
+          const payload = {
+            name: values.userName,
+            email: values.email,
+            password: values.password,
+            password_confirmation: values.confirmPassword,
+            department_id: Number(values.department),
+            role_id: Number(values.role),
+          };
+
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            if (data.errors) {
+              const formErrors: FormErrors = {};
+
+              if (data.errors.name) {
+                formErrors.userName = data.errors.name[0];
+              }
+
+              if (data.errors.email) {
+                formErrors.email = data.errors.email[0];
+              }
+
+              if (data.errors.password) {
+                formErrors.password = data.errors.password[0];
+              }
+
+              if (data.errors.department_id) {
+                formErrors.department = data.errors.department_id[0];
+              }
+
+              if (data.errors.role_id) {
+                formErrors.role = data.errors.role_id[0];
+              }
+
+              setErrors(formErrors);
+            } else {
+              setGeneralError(data.message || 'Failed to register user.');
+            }
+
+            setIsSubmittingInternal(false);
+
+            return;
+          }
+
+          router.visit('/user-management');
+        }
+      } catch (err: any) {
+        setGeneralError(
+          err.message || 'A network error occurred. Please try again.',
+        );
+        setIsSubmittingInternal(false);
+      }
     }
   };
 
@@ -209,9 +409,11 @@ export default function AddUserForm({
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1>Add User</h1>
+            <h1>{isEditMode ? 'Edit User' : 'Add User'}</h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Create a new system user and assign access
+              {isEditMode
+                ? 'Update system user details and access'
+                : 'Create a new system user and assign access'}
             </p>
           </div>
         </div>
@@ -231,7 +433,13 @@ export default function AddUserForm({
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {isSubmitting ? 'Adding...' : 'Add User'}
+            {isSubmitting
+              ? isEditMode
+                ? 'Saving...'
+                : 'Adding...'
+              : isEditMode
+                ? 'Save Changes'
+                : 'Add User'}
           </button>
         </div>
       </div>
@@ -243,11 +451,27 @@ export default function AddUserForm({
         noValidate
         className="space-y-6"
       >
+        {generalError && (
+          <div className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border p-4 text-sm">
+            {generalError}
+          </div>
+        )}
+
+        {optionsError && (
+          <div className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border p-4 text-sm">
+            {optionsError}
+          </div>
+        )}
+
         <div className="bg-card border-border rounded-xl border p-6">
           <SectionHeader
             icon={UserPlus}
             title="User Information"
-            subtitle="Basic details and credentials for the new user"
+            subtitle={
+              isEditMode
+                ? 'Basic details for the user'
+                : 'Basic details and credentials for the new user'
+            }
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -306,12 +530,15 @@ export default function AddUserForm({
                 className={inputCls}
                 value={values.role}
                 onChange={handleChange('role')}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoadingOptions}
               >
-                <option value="">Select role</option>
-                {ROLES.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
+                <option value="">
+                  {isLoadingOptions ? 'Loading roles...' : 'Select role'}
+                </option>
+                {roles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.role_name}{' '}
+                    {role.description ? `(${role.description})` : ''}
                   </option>
                 ))}
               </select>
@@ -325,12 +552,16 @@ export default function AddUserForm({
                 className={inputCls}
                 value={values.department}
                 onChange={handleChange('department')}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoadingOptions}
               >
-                <option value="">Select department</option>
-                {DEPARTMENTS.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
+                <option value="">
+                  {isLoadingOptions
+                    ? 'Loading departments...'
+                    : 'Select department'}
+                </option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.department_name}
                   </option>
                 ))}
               </select>
@@ -339,55 +570,59 @@ export default function AddUserForm({
               )}
             </Field>
 
-            {/* Password */}
-            <Field
-              label="Password"
-              required
-              hint="Must be at least 8 characters"
-            >
-              <div className="relative">
-                <input
-                  id="password"
-                  className={`${inputCls} pr-10`}
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="At least 8 characters"
-                  value={values.password}
-                  onChange={handleChange('password')}
-                  disabled={isSubmitting}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((s) => !s)}
-                  className="text-muted-foreground hover:text-foreground absolute right-2.5 top-1/2 -translate-y-1/2 transition-colors"
-                  tabIndex={-1}
+            {!isEditMode && (
+              <>
+                {/* Password */}
+                <Field
+                  label="Password"
+                  required
+                  hint="Must be at least 8 characters"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
+                  <div className="relative">
+                    <input
+                      id="password"
+                      className={`${inputCls} pr-10`}
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="At least 8 characters"
+                      value={values.password}
+                      onChange={handleChange('password')}
+                      disabled={isSubmitting}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="text-muted-foreground hover:text-foreground absolute right-2.5 top-1/2 -translate-y-1/2 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <span className={errCls}>{errors.password}</span>
                   )}
-                </button>
-              </div>
-              {errors.password && (
-                <span className={errCls}>{errors.password}</span>
-              )}
-            </Field>
+                </Field>
 
-            {/* Confirm Password */}
-            <Field label="Confirm Password" required>
-              <input
-                id="confirmPassword"
-                className={inputCls}
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Re-enter password"
-                value={values.confirmPassword}
-                onChange={handleChange('confirmPassword')}
-                disabled={isSubmitting}
-              />
-              {errors.confirmPassword && (
-                <span className={errCls}>{errors.confirmPassword}</span>
-              )}
-            </Field>
+                {/* Confirm Password */}
+                <Field label="Confirm Password" required>
+                  <input
+                    id="confirmPassword"
+                    className={inputCls}
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Re-enter password"
+                    value={values.confirmPassword}
+                    onChange={handleChange('confirmPassword')}
+                    disabled={isSubmitting}
+                  />
+                  {errors.confirmPassword && (
+                    <span className={errCls}>{errors.confirmPassword}</span>
+                  )}
+                </Field>
+              </>
+            )}
 
             {/* Status – full width */}
             <div className="md:col-span-2">
