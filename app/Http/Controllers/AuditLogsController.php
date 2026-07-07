@@ -10,11 +10,35 @@ class AuditLogsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $query = AuditLogs::with('user');
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->filled('module')) {
+            $query->where('module', $request->module);
+        }
+
+        if ($request->filled('action')) {
+            $query->where('action', $request->action);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $auditLogs = $query->orderBy('created_at', 'desc')->get();
+
         return response()->json([
             'message' => 'Audit logs fetched successfully',
-            'audit_logs' => AuditLogs::all(),
+            'audit_logs' => $auditLogs,
         ], 200);
     }
 
@@ -27,6 +51,7 @@ class AuditLogsController extends Controller
             'user_id' => 'required|exists:users,id',
             'action' => 'required|string|max:255',
             'detail' => 'required|string|max:255',
+            'ip_address' => 'nullable|string|max:255',
         ]);
 
         $auditLog = AuditLogs::create($validated);
@@ -65,6 +90,7 @@ class AuditLogsController extends Controller
             'user_id' => 'required|exists:users,id',
             'action' => 'required|string|max:255',
             'detail' => 'required|string|max:255',
+            'ip_address' => 'nullable|string|max:255',
         ]);
 
         $auditLog = AuditLogs::find($id, ['*']);
