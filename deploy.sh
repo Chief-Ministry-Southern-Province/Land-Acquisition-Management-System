@@ -2,8 +2,12 @@
 
 cd /var/www/Land-Acquisition-Management-System
 
+git stash
+
 echo "Pulling latest code..."
 git pull origin ec2-deploy
+
+git stash pop
 
 echo "Installing PHP dependencies..."
 composer install --no-dev --optimize-autoloader
