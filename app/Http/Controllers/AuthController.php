@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\AuditLogService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -35,6 +36,8 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        AuditLogService::log($user->id, $user->name, 'Register', 'Successfull register');
+
         return response()->json([
             'message' => 'User registered successfully',
             'user' => $user,
@@ -64,6 +67,8 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        AuditLogService::log($user->id, $user->name, 'Login', 'Authentication', 'Successfull login');
+
         return response()->json([
             'message' => 'Login successful',
             'user' => $user,
@@ -78,6 +83,8 @@ class AuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+
+        AuditLogService::log($user->id, $user->name, 'Log out', 'Authentication', 'Successfull logout');
 
         /** @var PersonalAccessToken $token */
         $token = $user->currentAccessToken();

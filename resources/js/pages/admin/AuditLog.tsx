@@ -1,100 +1,101 @@
-import { Calendar, Filter } from 'lucide-react';
+import { Calendar, Filter, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
 import MainLayout from '@/layouts/MainLayout';
 import { DataTable } from '../../components/ui/DataTable';
+import { getAuditLogs } from '../../services/auditLog';
+import type {
+  AuditLog as AuditLogType,
+  AuditLogFilters,
+} from '../../services/auditLog';
 
 export default function AuditLog() {
-  const auditLogs = [
-    {
-      id: 1,
-      timestamp: '2024-06-03 14:30:25',
-      user: 'K.P. Silva',
-      action: 'Updated',
-      module: 'Projects',
-      details: 'Changed status of PRJ-2024-045 to Active',
-      ipAddress: '192.168.1.45',
-    },
-    {
-      id: 2,
-      timestamp: '2024-06-03 13:15:10',
-      user: 'R.D. Silva',
-      action: 'Approved',
-      module: 'Compensation',
-      details: 'Approved COMP-3456 for ₨ 15,000,000',
-      ipAddress: '192.168.1.52',
-    },
-    {
-      id: 3,
-      timestamp: '2024-06-03 11:45:33',
-      user: 'P.K. Bandara',
-      action: 'Created',
-      module: 'Surveys',
-      details: 'Created survey request SUR-2024-156',
-      ipAddress: '192.168.1.38',
-    },
-    {
-      id: 4,
-      timestamp: '2024-06-03 10:20:18',
-      user: 'K.P. Jayasuriya',
-      action: 'Updated',
-      module: 'Valuations',
-      details: 'Submitted valuation VAL-5678',
-      ipAddress: '192.168.1.41',
-    },
-    {
-      id: 5,
-      timestamp: '2024-06-03 09:30:55',
-      user: 'S.A. Fernando',
-      action: 'Created',
-      module: 'Legal',
-      details: 'Registered case LEG-2024-023',
-      ipAddress: '192.168.1.48',
-    },
-    {
-      id: 6,
-      timestamp: '2024-06-02 16:50:42',
-      user: 'Admin User',
-      action: 'Created',
-      module: 'Users',
-      details: 'Added new user USR-008',
-      ipAddress: '192.168.1.10',
-    },
-    {
-      id: 7,
-      timestamp: '2024-06-02 15:25:19',
-      user: 'K.P. Silva',
-      action: 'Exported',
-      module: 'Reports',
-      details: 'Exported Project Progress Report',
-      ipAddress: '192.168.1.45',
-    },
-    {
-      id: 8,
-      timestamp: '2024-06-02 14:10:37',
-      user: 'M.A. Perera',
-      action: 'Updated',
-      module: 'Parcels',
-      details: 'Updated parcel information PCL-8935',
-      ipAddress: '192.168.1.55',
-    },
-    {
-      id: 9,
-      timestamp: '2024-06-02 11:40:28',
-      user: 'R.D. Silva',
-      action: 'Created',
-      module: 'Compensation',
-      details: 'Calculated compensation COMP-3458',
-      ipAddress: '192.168.1.52',
-    },
-    {
-      id: 10,
-      timestamp: '2024-06-02 09:15:50',
-      user: 'K.P. Silva',
-      action: 'Updated',
-      module: 'Gazette',
-      details: 'Published gazette GAZ-2024-045',
-      ipAddress: '192.168.1.45',
-    },
-  ];
+  const [auditLogs, setAuditLogs] = useState<AuditLogType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Filter state
+  const [userFilter, setUserFilter] = useState('');
+  const [moduleFilter, setModuleFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const fetchAuditLogs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const filters: AuditLogFilters = {};
+
+      if (userFilter) {
+        filters.user_id = userFilter;
+      }
+
+      if (moduleFilter) {
+        filters.module = moduleFilter;
+      }
+
+      if (dateFrom) {
+        filters.date_from = dateFrom;
+      }
+
+      if (dateTo) {
+        filters.date_to = dateTo;
+      }
+
+      const data = await getAuditLogs(filters);
+      setAuditLogs(data);
+    } catch (err) {
+      console.error('Failed to fetch audit logs:', err);
+      setError('Failed to load audit logs. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [userFilter, moduleFilter, dateFrom, dateTo]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const filters: AuditLogFilters = {};
+
+    if (userFilter) {
+      filters.user_id = userFilter;
+    }
+
+    if (moduleFilter) {
+      filters.module = moduleFilter;
+    }
+
+    if (dateFrom) {
+      filters.date_from = dateFrom;
+    }
+
+    if (dateTo) {
+      filters.date_to = dateTo;
+    }
+
+    getAuditLogs(filters)
+      .then((data) => {
+        if (!ignore) {
+          setAuditLogs(data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          console.error('Failed to fetch audit logs:', err);
+          setError('Failed to load audit logs. Please try again.');
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [userFilter, moduleFilter, dateFrom, dateTo]);
+
+  // Get unique users and modules for filter dropdowns
+  const uniqueUsers = [...new Set(auditLogs.map((log) => log.user))];
+  const uniqueModules = [...new Set(auditLogs.map((log) => log.module))];
 
   const columns = [
     { key: 'timestamp', label: 'Date & Time', sortable: true },
@@ -126,11 +127,15 @@ export default function AuditLog() {
             <select
               title="Select User"
               className="bg-input-background border-border w-full rounded-lg border px-4 py-2"
+              value={userFilter}
+              onChange={(e) => setUserFilter(e.target.value)}
             >
-              <option>All Users</option>
-              <option>Admin User</option>
-              <option>K.P. Silva</option>
-              <option>R.D. Silva</option>
+              <option value="">All Users</option>
+              {uniqueUsers.map((user) => (
+                <option key={user} value={user}>
+                  {user}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -139,12 +144,15 @@ export default function AuditLog() {
             <select
               title="Select Module"
               className="bg-input-background border-border w-full rounded-lg border px-4 py-2"
+              value={moduleFilter}
+              onChange={(e) => setModuleFilter(e.target.value)}
             >
-              <option>All Modules</option>
-              <option>Projects</option>
-              <option>Parcels</option>
-              <option>Compensation</option>
-              <option>Legal</option>
+              <option value="">All Modules</option>
+              {uniqueModules.map((mod) => (
+                <option key={mod} value={mod}>
+                  {mod}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -155,7 +163,8 @@ export default function AuditLog() {
               <input
                 type="date"
                 className="bg-input-background border-border w-full rounded-lg border py-2 pl-10 pr-4"
-                defaultValue="2024-06-01"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
               />
             </div>
           </div>
@@ -167,15 +176,39 @@ export default function AuditLog() {
               <input
                 type="date"
                 className="bg-input-background border-border w-full rounded-lg border py-2 pl-10 pr-4"
-                defaultValue="2024-06-03"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Audit Logs Table */}
-      <DataTable columns={columns} data={auditLogs} />
+      {/* Error State */}
+      {error && (
+        <div className="bg-destructive/10 text-destructive border-destructive/20 rounded-lg border p-4 text-sm">
+          {error}
+          <button
+            className="ml-2 underline hover:no-underline"
+            onClick={fetchAuditLogs}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading ? (
+        <div className="bg-card border-border flex items-center justify-center rounded-lg border p-12">
+          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+          <span className="text-muted-foreground ml-3">
+            Loading audit logs...
+          </span>
+        </div>
+      ) : (
+        /* Audit Logs Table */
+        <DataTable columns={columns} data={auditLogs} />
+      )}
     </div>
   );
 }
