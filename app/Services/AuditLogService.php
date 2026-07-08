@@ -17,8 +17,8 @@ class AuditLogService
             'user_id' => $userId,
             'name' => $name,
             'action' => $action,
-            'module' => $module,
-            'detail' => $detail,
+            'module' => $module ?? 'General',
+            'detail' => $detail ?? $action,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
         ]);
