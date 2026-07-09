@@ -14,6 +14,7 @@ import {
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { login } from '@/services/authService';
 
 function LoginScreen() {
   const { t, locale } = useTranslation();
@@ -31,18 +32,17 @@ function LoginScreen() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({ email: username, password }),
-      });
+      const data = await login(username, password);
 
-      const data = await response.json();
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
 
-      if (!response.ok) {
+      router.visit('/dashboard');
+    } catch (err: any) {
+      if (err.response) {
+        const data = err.response.data;
+
         if (data.errors) {
           const firstError = Object.values(data.errors).flat()[0];
           setError(firstError as string);
@@ -55,24 +55,15 @@ function LoginScreen() {
               ),
           );
         }
-
-        setIsLoading(false);
-
-        return;
+      } else {
+        setError(
+          t(
+            'network_error',
+            'A network error occurred. Please check your connection and try again.',
+          ),
+        );
       }
 
-      if (data.token) {
-        localStorage.setItem('auth_token', data.token);
-      }
-
-      router.visit('/dashboard');
-    } catch {
-      setError(
-        t(
-          'network_error',
-          'A network error occurred. Please check your connection and try again.',
-        ),
-      );
       setIsLoading(false);
     }
   };

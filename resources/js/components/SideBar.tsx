@@ -146,7 +146,9 @@ export default function SideBar({ items }: SideBarProps = {}) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm">{userName}</p>
-            <p className="text-muted-foreground truncate text-xs">{userRoleFull}</p>
+            <p className="text-muted-foreground truncate text-xs">
+              {userRoleFull}
+            </p>
           </div>
         </div>
         <button

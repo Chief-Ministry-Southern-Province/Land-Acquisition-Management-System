@@ -19,7 +19,6 @@ use App\Observers\PropertyOwnerObserver;
 use App\Observers\RoleObserver;
 use App\Observers\UserObserver;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\DateFactory;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;

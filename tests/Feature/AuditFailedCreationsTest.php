@@ -14,7 +14,7 @@ beforeEach(function () {
         'staff' => 3,
         'status' => true,
     ]);
-    
+
     $this->role = Roles::create(['role_name' => 'Admin', 'description' => 'Admin Role']);
 
     $user = new User;

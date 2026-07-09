@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuditLogFailedCreations;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -25,7 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             EnsureFrontendRequestsAreStateful::class,
         ], append: [
-            \App\Http\Middleware\AuditLogFailedCreations::class,
+            AuditLogFailedCreations::class,
         ]);
 
         $middleware->preventRequestForgery(except: [
