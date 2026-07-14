@@ -452,6 +452,7 @@ export default function RoleManagement() {
 
     try {
       progress.start();
+
       if (editingId) {
         await updateRole(editingId, {
           role_name: form.name,
