@@ -24,12 +24,22 @@ Route::get('/reset-password/{token}', function (string $token) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', function (Request $request) {
         $user = $request->user();
-        if ($user && $user->role && $user->role->role_name === 'Admin') {
-            return inertia('admin/AdminDashboard');
+        if ($user && $user->role) {
+            return match ($user->role->role_name) {
+                'Admin' => inertia('admin/AdminDashboard'),
+                'DO' => inertia('developmentOfficer/DODashboard'),
+                'HOB' => inertia('headOfBranch/HOBDashboard'),
+                'AO' => inertia('administrativeOfficer/AODashboard'),
+                'AS' => inertia('assistantSecretary/ASDashboard'),
+                'SAS' => inertia('seniorAssistantSecretary/SASDashboard'),
+                'SEC' => inertia('secretary/SecretaryDashboard'),
+                default => inertia('Dashboard'),
+            };
         }
 
         return inertia('Dashboard');
     })->name('dashboard');
+
     Route::get('/settings', function (Request $request) {
         $user = $request->user();
         if ($user && $user->role && $user->role->role_name === 'Admin') {
@@ -38,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         return inertia('Settings');
     })->name('settings');
+
     Route::inertia('/notifications', 'Notifications')->name('notifications');
     // Route::inertia('/user-management', 'admin/UserManagement')->name('user-management');
     // Route::inertia('/user-management/add', 'admin/AddUserForm')->name('user-management.add');
@@ -82,6 +93,36 @@ Route::middleware(['auth:sanctum', 'check.role:Admin'])->group(function () {
     Route::inertia('/departments', 'admin/DepartmentManagement')->name('department-management');
     Route::inertia('/roles', 'admin/RoleManagement')->name('role-management');
     Route::inertia('/audit-log', 'admin/AuditLog')->name('audit-log');
+});
+
+// DEVELOPMENT OFFICER ROUTES
+Route::middleware(['auth:sanctum', 'check.role:DO'])->group(function () {
+    //
+});
+
+// HEAD OF BRANCH ROUTES
+Route::middleware(['auth:sanctum', 'check.role:HOB'])->group(function () {
+    //
+});
+
+// ADMINISTRATIVE OFFICER ROUTES
+Route::middleware(['auth:sanctum', 'check.role:AO'])->group(function () {
+    //
+});
+
+// ASSISTANT SECRETARY ROUTES
+Route::middleware(['auth:sanctum', 'check.role:AS'])->group(function () {
+    //
+});
+
+// SENIOR ASSISTANT SECRETARY ROUTES
+Route::middleware(['auth:sanctum', 'check.role:SAS'])->group(function () {
+    //
+});
+
+// SECRETARY ROUTES
+Route::middleware(['auth:sanctum', 'check.role:SEC'])->group(function () {
+    //
 });
 
 Route::inertia('/not-found', 'NotFound')->name('not-found');
