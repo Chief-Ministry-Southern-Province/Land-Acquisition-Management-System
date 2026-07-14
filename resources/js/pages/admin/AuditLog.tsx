@@ -2,11 +2,11 @@ import { Calendar, Filter, Loader2 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import MainLayout from '@/layouts/MainLayout';
 import { DataTable } from '../../components/ui/DataTable';
-import { getAuditLogs } from '../../services/auditLog';
+import { getAuditLogs } from '../../services/auditLogService';
 import type {
   AuditLog as AuditLogType,
   AuditLogFilters,
-} from '../../services/auditLog';
+} from '../../services/auditLogService';
 
 export default function AuditLog() {
   const [auditLogs, setAuditLogs] = useState<AuditLogType[]>([]);

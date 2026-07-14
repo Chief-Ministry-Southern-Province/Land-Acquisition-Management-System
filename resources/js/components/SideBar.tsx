@@ -40,6 +40,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
   const user = (props.auth as any)?.user;
   const userName = user?.name || 'User';
   const userRole = user?.role?.role_name || 'User';
+  const userRoleFull = user?.role?.description || 'User';
 
   const handleLogout = async (e: FormEvent) => {
     e.preventDefault();
@@ -54,7 +55,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
     router.visit('/login');
   };
 
-  // REMOVE - not necessary
+  // NOTE: Do not remove default items
   const defaultItems =
     userRole === 'Admin'
       ? [
@@ -92,12 +93,6 @@ export default function SideBar({ items }: SideBarProps = {}) {
             label: t('approvals'),
           },
           { path: '/reports', icon: BarChart3, label: t('reports') },
-          {
-            path: '/user-management',
-            icon: UserCog,
-            label: t('user_management'),
-          },
-          { path: '/audit-log', icon: History, label: t('audit_log') },
           { path: '/notifications', icon: Bell, label: t('notifications') },
           { path: '/settings', icon: Settings, label: t('settings') },
         ];
@@ -151,7 +146,9 @@ export default function SideBar({ items }: SideBarProps = {}) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm">{userName}</p>
-            <p className="text-muted-foreground truncate text-xs">{userRole}</p>
+            <p className="text-muted-foreground truncate text-xs">
+              {userRoleFull}
+            </p>
           </div>
         </div>
         <button

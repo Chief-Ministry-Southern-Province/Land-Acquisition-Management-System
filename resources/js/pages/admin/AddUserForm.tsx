@@ -2,12 +2,11 @@ import { router } from '@inertiajs/react';
 import { ArrowLeft, Eye, EyeOff, Info, Save, UserPlus, X } from 'lucide-react';
 import React, { useState } from 'react';
 import MainLayout from '@/layouts/MainLayout';
-
-export interface RoleOption {
-  id: number;
-  role_name: string;
-  description: string;
-}
+import { register } from '@/services/authService';
+import { getDepartments } from '@/services/departmentManagementService';
+import { getRoles } from '@/services/roleManagementService';
+import type { Role } from '@/services/roleManagementService';
+import { updateUser } from '@/services/userManagementService';
 
 export interface DepartmentOption {
   id: number;
@@ -164,7 +163,7 @@ export default function AddUserForm({
   isSubmitting: isSubmittingProp,
   userToEdit,
 }: AddUserFormProps) {
-  const [roles, setRoles] = useState<RoleOption[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [optionsError, setOptionsError] = useState<string | null>(null);
@@ -202,30 +201,18 @@ export default function AddUserForm({
     let active = true;
     const fetchOptions = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
-        const headers: Record<string, string> = {
-          Accept: 'application/json',
-        };
-
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const [rolesRes, deptsRes] = await Promise.all([
-          fetch('/api/roles', { headers }),
-          fetch('/api/departments', { headers }),
+        const [rolesList, deptsList] = await Promise.all([
+          getRoles(),
+          getDepartments(),
         ]);
 
-        if (!rolesRes.ok || !deptsRes.ok) {
-          throw new Error('Failed to fetch roles or departments');
-        }
-
-        const rolesData = await rolesRes.json();
-        const deptsData = await deptsRes.json();
-
         if (active) {
-          setRoles(rolesData.roles || []);
-          setDepartments(deptsData.departments || []);
+          setRoles(rolesList);
+          const mappedDepts = deptsList.map((dept) => ({
+            id: Number(dept.id),
+            department_name: dept.name,
+          }));
+          setDepartments(mappedDepts);
           setIsLoadingOptions(false);
         }
       } catch (err: any) {
@@ -267,16 +254,6 @@ export default function AddUserForm({
       setIsSubmittingInternal(true);
 
       try {
-        const token = localStorage.getItem('auth_token');
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        };
-
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-
         if (isEditMode) {
           const payload = {
             name: values.userName,
@@ -285,44 +262,7 @@ export default function AddUserForm({
             role_id: Number(values.role),
           };
 
-          const response = await fetch(`/api/users/${userToEdit.id}`, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify(payload),
-          }); //FIX with axios
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            if (data.errors) {
-              const formErrors: FormErrors = {};
-
-              if (data.errors.name) {
-                formErrors.userName = data.errors.name[0];
-              }
-
-              if (data.errors.email) {
-                formErrors.email = data.errors.email[0];
-              }
-
-              if (data.errors.department_id) {
-                formErrors.department = data.errors.department_id[0];
-              }
-
-              if (data.errors.role_id) {
-                formErrors.role = data.errors.role_id[0];
-              }
-
-              setErrors(formErrors);
-            } else {
-              setGeneralError(data.message || 'Failed to update user.');
-            }
-
-            setIsSubmittingInternal(false);
-
-            return;
-          }
-
+          await updateUser(userToEdit.id, payload);
           router.visit('/user-management');
         } else {
           const payload = {
@@ -334,54 +274,51 @@ export default function AddUserForm({
             role_id: Number(values.role),
           };
 
-          const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(payload),
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            if (data.errors) {
-              const formErrors: FormErrors = {};
-
-              if (data.errors.name) {
-                formErrors.userName = data.errors.name[0];
-              }
-
-              if (data.errors.email) {
-                formErrors.email = data.errors.email[0];
-              }
-
-              if (data.errors.password) {
-                formErrors.password = data.errors.password[0];
-              }
-
-              if (data.errors.department_id) {
-                formErrors.department = data.errors.department_id[0];
-              }
-
-              if (data.errors.role_id) {
-                formErrors.role = data.errors.role_id[0];
-              }
-
-              setErrors(formErrors);
-            } else {
-              setGeneralError(data.message || 'Failed to register user.');
-            }
-
-            setIsSubmittingInternal(false);
-
-            return;
-          }
-
+          await register(payload);
           router.visit('/user-management');
         }
       } catch (err: any) {
-        setGeneralError(
-          err.message || 'A network error occurred. Please try again.',
-        );
+        if (err.response) {
+          const data = err.response.data;
+
+          if (data.errors) {
+            const formErrors: FormErrors = {};
+
+            if (data.errors.name) {
+              formErrors.userName = data.errors.name[0];
+            }
+
+            if (data.errors.email) {
+              formErrors.email = data.errors.email[0];
+            }
+
+            if (data.errors.password) {
+              formErrors.password = data.errors.password[0];
+            }
+
+            if (data.errors.department_id) {
+              formErrors.department = data.errors.department_id[0];
+            }
+
+            if (data.errors.role_id) {
+              formErrors.role = data.errors.role_id[0];
+            }
+
+            setErrors(formErrors);
+          } else {
+            setGeneralError(
+              data.message ||
+                (isEditMode
+                  ? 'Failed to update user.'
+                  : 'Failed to register user.'),
+            );
+          }
+        } else {
+          setGeneralError(
+            err.message || 'A network error occurred. Please try again.',
+          );
+        }
+
         setIsSubmittingInternal(false);
       }
     }

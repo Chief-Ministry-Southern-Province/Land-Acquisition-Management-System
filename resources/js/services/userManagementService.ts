@@ -1,37 +1,19 @@
 import api from './api';
 
 export const getAllUsers = async () => {
-  try {
-    const response = await api.get('/api/users');
+  const response = await api.get('/api/users');
 
-    return response.data;
-  } catch (err: any) {
-    console.log(err); //REMOVE: debug only
-
-    throw new Error('Failed to fetch users');
-  }
+  return response.data;
 };
 
 export const updateUser = async (id: number, data: any) => {
-  try {
-    const response = await api.put(`/api/users/${id}`, data);
+  const response = await api.put(`/api/users/${id}`, data);
 
-    return response.data;
-  } catch (err: any) {
-    console.log(err); //REMOVE: debug only
-
-    throw new Error('Failed to update user');
-  }
+  return response.data;
 };
 
 export const deleteUser = async (id: number) => {
-  try {
-    const response = await api.delete(`/api/users/${id}`);
+  const response = await api.delete(`/api/users/${id}`);
 
-    return response.data;
-  } catch (err: any) {
-    console.log(err); //REMOVE: debug only
-
-    throw new Error('Failed to delete user');
-  }
+  return response.data;
 };
