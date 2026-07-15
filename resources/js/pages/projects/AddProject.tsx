@@ -13,9 +13,14 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import {
+  createProject,
+  getProject,
+  updateProject,
+} from '@/services/projectsManagementService';
 
 const DISTRICTS = [
   'Colombo',
@@ -389,6 +394,52 @@ export default function AddProject() {
     Partial<Record<keyof ProjectForm, string>>
   >({});
 
+  // Edit states
+  const [editId, setEditId] = useState<string | null>(null);
+  const [originalProjectId, setOriginalProjectId] = useState<string>('');
+  const [originalStatus, setOriginalStatus] = useState<
+    'active' | 'pending' | 'completed'
+  >('pending');
+  const [loadingProject, setLoadingProject] = useState(false);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('edit');
+    if (id) {
+      setEditId(id);
+      const fetchProject = async () => {
+        try {
+          setLoadingProject(true);
+          const data = await getProject(id);
+          setOriginalProjectId(data.projectId);
+          setOriginalStatus(data.status);
+          setForm({
+            name: data.name,
+            ministry: data.ministry,
+            department: data.department,
+            projectType: data.projectType,
+            acquisitionAct: data.acquisitionAct,
+            district: data.district,
+            division: data.division,
+            purpose: data.purpose,
+            startDate: data.startDate,
+            estimatedCompletion: data.estimatedCompletion,
+            totalBudget: String(data.budget),
+            projectManager: data.projectManager,
+            managerContact: data.contact,
+            managerEmail: data.email,
+            remarks: data.remarks || '',
+          });
+        } catch (error) {
+          console.error('Failed to fetch project for editing:', error);
+        } finally {
+          setLoadingProject(false);
+        }
+      };
+      fetchProject();
+    }
+  }, []);
+
   // Parcel picker state
   const [parcelSearch, setParcelSearch] = useState('');
   const [selectedParcelIds, setSelectedParcelIds] = useState<Set<string>>(
@@ -479,6 +530,12 @@ export default function AddProject() {
     return sum > 0 ? `${sum.toFixed(2)} acres` : '—';
   }, [selectedParcels]);
 
+  const generateProjectId = () => {
+    const year = new Date().getFullYear();
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    return `PRJ-${year}-${rand}`;
+  };
+
   const validate = () => {
     const errs: Partial<Record<keyof ProjectForm, string>> = {};
 
@@ -515,13 +572,51 @@ export default function AddProject() {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (validate()) {
-      router.visit('/projects');
+      try {
+        const payload = {
+          projectId: editId ? originalProjectId : generateProjectId(),
+          name: form.name,
+          ministry: form.ministry,
+          department: form.department,
+          projectType: form.projectType,
+          acquisitionAct: form.acquisitionAct,
+          district: form.district,
+          division: form.division,
+          purpose: form.purpose,
+          startDate: form.startDate,
+          estimatedCompletion: form.estimatedCompletion,
+          budget: Number(form.totalBudget) || 0,
+          status: editId ? originalStatus : ('pending' as const),
+          projectManager: form.projectManager,
+          contact: form.managerContact,
+          email: form.managerEmail,
+          remarks: form.remarks || null,
+        };
+
+        if (editId) {
+          await updateProject(editId, payload);
+        } else {
+          await createProject(payload);
+        }
+        router.visit('/projects');
+      } catch (error) {
+        console.error('Failed to save project:', error);
+        alert('Failed to save project. Please check form details.');
+      }
     }
   };
+
+  if (loadingProject) {
+    return (
+      <div className="bg-card border-border text-muted-foreground flex h-64 items-center justify-center rounded-lg border">
+        Loading project details for editing...
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl space-y-6">
@@ -536,9 +631,11 @@ export default function AddProject() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1>Add New Project</h1>
+            <h1>{editId ? 'Edit Project' : 'Add New Project'}</h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Create a land acquisition project and assign parcels with owners
+              {editId
+                ? 'Update land acquisition project details'
+                : 'Create a land acquisition project and assign parcels with owners'}
             </p>
           </div>
         </div>

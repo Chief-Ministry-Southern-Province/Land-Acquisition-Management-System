@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import MainLayout from '@/layouts/MainLayout';
+import api from '@/services/api';
+import { createLandParcel } from '@/services/landParcelManagementService';
+import { createPropertyOwner } from '@/services/propertyOwnerManagement';
 
 const DISTRICTS = [
   'Colombo',
@@ -149,6 +152,7 @@ export default function AddLandParcel() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
     {},
   );
+  const [submitting, setSubmitting] = useState(false);
 
   const set =
     (field: keyof FormData) =>
@@ -194,17 +198,113 @@ export default function AddLandParcel() {
       errs.ownerName = 'Owner name is required';
     }
 
+    if (!form.ownerNic.trim()) {
+      errs.ownerNic = 'Owner NIC is required';
+    }
+
+    if (!form.ownerContact.trim()) {
+      errs.ownerContact = 'Owner contact number is required';
+    }
+
+    if (!form.ownerAddress.trim()) {
+      errs.ownerAddress = 'Owner address is required';
+    }
+
     setErrors(errs);
 
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (validate()) {
-      // In production: POST to API, then navigate to the new parcel
-      router.visit('/parcels');
+    if (!validate()) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setErrors({});
+
+      let propertyOwnerId: string | null = null;
+
+      if (form.ownerName.trim()) {
+        const ownerId = `OWN-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+        const ownerPayload = {
+          ownerId,
+          name: form.ownerName,
+          nic: form.ownerNic,
+          address: form.ownerAddress,
+          contact: form.ownerContact,
+        };
+
+        const owner = await createPropertyOwner(ownerPayload);
+        propertyOwnerId = owner.id;
+      }
+
+      const payload = {
+        parcel_id: form.surveyPlanNo,
+        lot_no: form.lotNo || '-',
+        district: form.district,
+        division: form.divisionalSecretariat,
+        village: form.village,
+        extent_acers: form.extentAcres,
+        extent_perches: form.extentPerches || '0',
+        remarks: form.remarks || null,
+        status: 'available' as const,
+        project_id: form.projectId ? form.projectId : null,
+        property_owner_id: propertyOwnerId,
+      };
+
+      await createLandParcel(payload);
+
+      router.visit('/land-parcels');
+    } catch (error: any) {
+      console.error('Failed to create land parcel:', error);
+
+      if (error.response?.data?.errors) {
+        const backendErrors: Record<string, string> = {};
+        Object.entries(error.response.data.errors).forEach(([key, val]) => {
+          let fieldName = key;
+
+          if (key === 'parcel_id') {
+            fieldName = 'surveyPlanNo';
+          }
+
+          if (key === 'lot_no') {
+            fieldName = 'lotNo';
+          }
+
+          if (key === 'division') {
+            fieldName = 'divisionalSecretariat';
+          }
+
+          if (key === 'extent_acers') {
+            fieldName = 'extentAcres';
+          }
+
+          if (key === 'extent_perches') {
+            fieldName = 'extentPerches';
+          }
+
+          if (key === 'project_id') {
+            fieldName = 'projectId';
+          }
+
+          if (Array.isArray(val) && val.length > 0) {
+            backendErrors[fieldName] = val[0];
+          }
+        });
+        setErrors(backendErrors);
+      } else if (error.response?.data?.message) {
+        setErrors({ surveyPlanNo: error.response.data.message });
+      } else {
+        setErrors({
+          surveyPlanNo: 'An error occurred while saving the land parcel.',
+        });
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -236,8 +336,9 @@ export default function AddLandParcel() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => router.visit('/parcels')}
-            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors"
+            onClick={() => router.visit('/land-parcels')}
+            disabled={submitting}
+            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:opacity-50"
           >
             <X className="h-4 w-4" />
             Cancel
@@ -245,10 +346,11 @@ export default function AddLandParcel() {
           <button
             type="submit"
             form="add-parcel-form"
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors"
+            disabled={submitting}
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            Save Parcel
+            {submitting ? 'Saving...' : 'Save Parcel'}
           </button>
         </div>
       </div>
@@ -424,16 +526,17 @@ export default function AddLandParcel() {
               {errMsg('ownerName')}
             </Field>
 
-            <Field label="NIC / Passport No">
+            <Field label="NIC / Passport No" required>
               <input
                 className={inputCls}
                 placeholder="e.g. 198512345678"
                 value={form.ownerNic}
                 onChange={set('ownerNic')}
               />
+              {errMsg('ownerNic')}
             </Field>
 
-            <Field label="Contact Number">
+            <Field label="Contact Number" required>
               <input
                 className={inputCls}
                 type="tel"
@@ -441,15 +544,17 @@ export default function AddLandParcel() {
                 value={form.ownerContact}
                 onChange={set('ownerContact')}
               />
+              {errMsg('ownerContact')}
             </Field>
 
-            <Field label="Owner Address">
+            <Field label="Owner Address" required>
               <input
                 className={inputCls}
                 placeholder="Permanent address"
                 value={form.ownerAddress}
                 onChange={set('ownerAddress')}
               />
+              {errMsg('ownerAddress')}
             </Field>
           </div>
         </div>
@@ -494,18 +599,20 @@ export default function AddLandParcel() {
         <div className="flex justify-end gap-3 pb-6 pt-2">
           <button
             type="button"
-            onClick={() => router.visit('/parcels')}
-            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors"
+            onClick={() => router.visit('/land-parcels')}
+            disabled={submitting}
+            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors disabled:opacity-50"
           >
             <X className="h-4 w-4" />
             Cancel
           </button>
           <button
             type="submit"
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm text-white transition-colors"
+            disabled={submitting}
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm text-white transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            Save Parcel
+            {submitting ? 'Saving...' : 'Save Parcel'}
           </button>
         </div>
       </form>

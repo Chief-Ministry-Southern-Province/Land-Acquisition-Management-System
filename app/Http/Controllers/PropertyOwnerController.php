@@ -14,7 +14,7 @@ class PropertyOwnerController extends Controller
     {
         return response()->json([
             'message' => 'Property owners fetched successfully',
-            'property_owners' => PropertyOwner::all(),
+            'property_owners' => PropertyOwner::with('landParcels')->get(),
         ], 200);
     }
 
@@ -32,6 +32,7 @@ class PropertyOwnerController extends Controller
         ]);
 
         $propertyOwner = PropertyOwner::create($validated);
+        $propertyOwner->load(['landParcels', 'compensations.landParcel']);
 
         return response()->json([
             'message' => 'Property owner created successfully',
@@ -44,7 +45,7 @@ class PropertyOwnerController extends Controller
      */
     public function show(string $id)
     {
-        $propertyOwner = PropertyOwner::find($id, ['*']);
+        $propertyOwner = PropertyOwner::with(['landParcels', 'compensations.landParcel'])->find($id);
 
         if ($propertyOwner) {
             return response()->json([
@@ -80,6 +81,7 @@ class PropertyOwnerController extends Controller
         }
 
         $propertyOwner->update($validated);
+        $propertyOwner->load(['landParcels', 'compensations.landParcel']);
 
         return response()->json([
             'message' => 'Property owner updated successfully',

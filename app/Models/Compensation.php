@@ -16,5 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class Compensation extends Model
 {
-    //
+    public function landParcel()
+    {
+        return $this->belongsTo(LandParcel::class, 'land_parcel_id');
+    }
 }

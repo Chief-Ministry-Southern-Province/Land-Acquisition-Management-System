@@ -1,32 +1,45 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { ArrowLeft, Download, MapPin } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import { getLandParcel } from '@/services/landParcelManagementService';
+import type { LandParcel } from '@/services/landParcelManagementService';
 
-export default function LandParcelDetails() {
-  // IMPLEMENT: Get parcel ID from route params and fetch parcel details from API
-  const parcel = {
-    id: 'PCL-8934',
-    surveyNo: '123/4A',
-    district: 'Galle',
-    division: 'Galle Four Gravets',
-    village: 'Unawatuna',
-    extent: '2.5 acres',
-    boundaries:
-      'North: Road Reserve, South: PCL-8933, East: River, West: PCL-8935',
-    landUse: 'Agricultural',
-    status: 'Acquired',
-  };
+interface Props {
+  id: string;
+}
 
-  const owners = [
-    {
-      name: 'W.A. Perera',
-      nic: '722345678V',
-      share: '100%',
-      type: 'Full Owner',
-    },
-  ];
+export default function LandParcelDetails({ id }: Props) {
+  const [parcel, setParcel] = useState<LandParcel | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchParcel = async () => {
+      try {
+        setLoading(true);
+        const data = await getLandParcel(id);
+        setParcel(data);
+      } catch (error) {
+        console.error('Failed to fetch land parcel:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchParcel();
+  }, [id]);
+
+  // Keep other tables mock/placeholder since their services are not implemented
+  const owners = parcel?.owners && parcel.owners.length > 0
+    ? parcel.owners.map((o) => ({
+        name: o.name,
+        nic: o.nic,
+        share: '100%',
+        type: 'Full Owner',
+      }))
+    : [];
 
   const structures = [
     {
@@ -80,28 +93,48 @@ export default function LandParcelDetails() {
     { name: 'Site Photographs', type: 'ZIP', date: '2024-03-10' },
   ];
 
+  if (loading) {
+    return (
+      <div className="text-muted-foreground flex h-96 items-center justify-center">
+        Loading parcel details...
+      </div>
+    );
+  }
+
+  if (!parcel) {
+    return (
+      <div className="text-muted-foreground flex h-96 flex-col items-center justify-center gap-4">
+        <p>Land parcel not found.</p>
+        <Link href="/land-parcels" className="text-primary hover:underline">
+          Back to Land Parcels
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
-            href="/parcels"
+            href="/land-parcels"
             className="hover:bg-muted rounded-lg p-2 transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
             <div className="mb-1 flex items-center gap-3">
-              <h1>Parcel {parcel.id}</h1>
-              <StatusBadge status={parcel.status.toLowerCase()} />
+              <h1>Parcel {parcel.parcel_id}</h1>
+              <StatusBadge status={parcel.status} />
             </div>
-            <p className="text-muted-foreground">
-              Survey No: {parcel.surveyNo}
-            </p>
+            <p className="text-muted-foreground">Lot No: {parcel.lot_no}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors">
+          <button
+            onClick={() => router.visit(`/gis-maps?parcel=${parcel.id}`)}
+            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
+          >
             <MapPin className="h-4 w-4" />
             <span>View on Map</span>
           </button>
@@ -130,15 +163,15 @@ export default function LandParcelDetails() {
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Extent:</dt>
-              <dd>{parcel.extent}</dd>
+              <dd>{`${parcel.extent_acers} acres, ${parcel.extent_perches} perches`}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Land Use:</dt>
-              <dd>{parcel.landUse}</dd>
+              <dt className="text-muted-foreground">Associated Project ID:</dt>
+              <dd>{parcel.project_id || 'None'}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Boundaries:</dt>
-              <dd className="text-right">{parcel.boundaries}</dd>
+              <dt className="text-muted-foreground">Remarks:</dt>
+              <dd className="text-right">{parcel.remarks || 'No remarks'}</dd>
             </div>
           </dl>
         </div>

@@ -1,30 +1,39 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { ArrowLeft, Download, Edit } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import WorkflowTimeline from '@/components/ui/WorkflowTimeline';
 import MainLayout from '@/layouts/MainLayout';
+import { getProject } from '@/services/projectsManagementService';
+import type { Project } from '@/services/projectsManagementService';
 
-export default function ProjectDetails() {
+interface ProjectDetailsProps {
+  id: string;
+}
+
+export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const [activeTab, setActiveTab] = useState('general');
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const project = {
-    id: 'PRJ-2024-045',
-    name: 'Southern Highway Expansion Phase 2',
-    ministry: 'Ministry of Highways',
-    district: 'Galle',
-    division: 'Galle Four Gravets',
-    type: 'Highway',
-    purpose: 'Construction of 4-lane highway from Galle to Matara',
-    startDate: '2024-01-15',
-    estimatedCompletion: '2026-12-31',
-    budget: '₨ 2,500,000,000',
-    status: 'Active',
-    projectManager: 'Eng. K.P. Silva',
-    contactNumber: '+94 77 123 4567',
-    email: 'kpsilva@highways.gov.lk',
-  };
+  useEffect(() => {
+    const fetchProjectDetails = async () => {
+      try {
+        setLoading(true);
+        const data = await getProject(id);
+        setProject(data);
+      } catch (error) {
+        console.error('Failed to fetch project details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProjectDetails();
+    }
+  }, [id]);
 
   const parcels = [
     {
@@ -171,6 +180,22 @@ export default function ProjectDetails() {
     { id: 'audit', label: 'Audit Trail' },
   ];
 
+  if (loading) {
+    return (
+      <div className="bg-card border-border text-muted-foreground flex h-64 items-center justify-center rounded-lg border">
+        Loading project details...
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="bg-card border-border text-destructive flex h-64 items-center justify-center rounded-lg border">
+        Project not found
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -187,7 +212,9 @@ export default function ProjectDetails() {
               <h1>{project.name}</h1>
               <StatusBadge status={project.status.toLowerCase()} />
             </div>
-            <p className="text-muted-foreground">Project ID: {project.id}</p>
+            <p className="text-muted-foreground">
+              Project ID: {project.projectId}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -195,7 +222,10 @@ export default function ProjectDetails() {
             <Download className="h-4 w-4" />
             <span>Export</span>
           </button>
-          <button className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors">
+          <button
+            onClick={() => router.visit(`/projects/new?edit=${project.id}`)}
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
+          >
             <Edit className="h-4 w-4" />
             <span>Edit Project</span>
           </button>
@@ -241,7 +271,7 @@ export default function ProjectDetails() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Type:</dt>
-                <dd>{project.type}</dd>
+                <dd>{project.projectType}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Purpose:</dt>
@@ -249,7 +279,7 @@ export default function ProjectDetails() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Budget:</dt>
-                <dd>{project.budget}</dd>
+                <dd>₨ {project.budget.toLocaleString()}</dd>
               </div>
             </dl>
           </div>
@@ -271,7 +301,7 @@ export default function ProjectDetails() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Contact:</dt>
-                <dd>{project.contactNumber}</dd>
+                <dd>{project.contact}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Email:</dt>
@@ -283,7 +313,10 @@ export default function ProjectDetails() {
       )}
 
       {activeTab === 'workflow' && (
-        <WorkflowTimeline projectId={project.id} projectName={project.name} />
+        <WorkflowTimeline
+          projectId={project.projectId}
+          projectName={project.name}
+        />
       )}
 
       {activeTab === 'parcels' && (

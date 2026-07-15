@@ -1,91 +1,50 @@
 import { router } from '@inertiajs/react';
 import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import { getProjects, deleteProject } from '@/services/projectsManagementService';
+import type { Project } from '@/services/projectsManagementService';
 
 export default function ProjectList() {
-  const projects = [
-    {
-      id: 'PRJ-2024-045',
-      name: 'Southern Highway Expansion Phase 2',
-      ministry: 'Ministry of Highways',
-      district: 'Galle',
-      type: 'Highway',
-      startDate: '2024-01-15',
-      status: 'active',
-    },
-    {
-      id: 'PRJ-2024-043',
-      name: 'Mattala Airport Development',
-      ministry: 'Ministry of Aviation',
-      district: 'Hambantota',
-      type: 'Airport',
-      startDate: '2024-02-20',
-      status: 'in-progress',
-    },
-    {
-      id: 'PRJ-2024-041',
-      name: 'Colombo Metro Rail Extension',
-      ministry: 'Ministry of Transport',
-      district: 'Colombo',
-      type: 'Railway',
-      startDate: '2023-11-10',
-      status: 'active',
-    },
-    {
-      id: 'PRJ-2024-038',
-      name: 'Trincomalee Port Expansion',
-      ministry: 'Ministry of Ports',
-      district: 'Trincomalee',
-      type: 'Port',
-      startDate: '2024-03-05',
-      status: 'pending',
-    },
-    {
-      id: 'PRJ-2023-122',
-      name: 'Kandy Urban Infrastructure Project',
-      ministry: 'Ministry of Urban Development',
-      district: 'Kandy',
-      type: 'Urban Development',
-      startDate: '2023-08-22',
-      status: 'completed',
-    },
-    {
-      id: 'PRJ-2024-047',
-      name: 'Jaffna Irrigation Scheme',
-      ministry: 'Ministry of Agriculture',
-      district: 'Jaffna',
-      type: 'Irrigation',
-      startDate: '2024-04-01',
-      status: 'active',
-    },
-    {
-      id: 'PRJ-2024-049',
-      name: 'Gampaha Industrial Zone',
-      ministry: 'Ministry of Industry',
-      district: 'Gampaha',
-      type: 'Industrial',
-      startDate: '2024-05-10',
-      status: 'pending',
-    },
-    {
-      id: 'PRJ-2023-115',
-      name: 'Anuradhapura Heritage Conservation',
-      ministry: 'Ministry of Cultural Affairs',
-      district: 'Anuradhapura',
-      type: 'Heritage',
-      startDate: '2023-06-15',
-      status: 'completed',
-    },
-  ];
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const data = await getProjects();
+        setProjects(data);
+      } catch (error) {
+        console.error('Failed to fetch projects:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  const handleDelete = async (id: string, name: string) => {
+    if (confirm(`Are you sure you want to delete project "${name}"?`)) {
+      try {
+        await deleteProject(id);
+        setProjects((prev) => prev.filter((p) => p.id !== id));
+      } catch (error) {
+        console.error('Failed to delete project:', error);
+        alert('Failed to delete project. Please try again.');
+      }
+    }
+  };
 
   const columns = [
-    { key: 'id', label: 'Project ID', sortable: true },
+    { key: 'projectId', label: 'Project ID', sortable: true },
     { key: 'name', label: 'Project Name', sortable: true },
     { key: 'ministry', label: 'Ministry', sortable: true },
     { key: 'district', label: 'District', sortable: true },
-    { key: 'type', label: 'Acquisition Type', sortable: true },
+    { key: 'projectType', label: 'Acquisition Type', sortable: true },
     { key: 'startDate', label: 'Start Date', sortable: true },
     {
       key: 'status',
@@ -112,14 +71,20 @@ export default function ProjectList() {
         <Eye className="h-4 w-4" />
       </button>
       <button
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          router.visit(`/projects/new?edit=${row.id}`);
+        }}
         className="hover:bg-muted rounded p-1.5 transition-colors"
         title="Edit"
       >
         <Edit className="h-4 w-4" />
       </button>
       <button
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDelete(row.id, row.name);
+        }}
         className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
         title="Delete"
       >
@@ -148,12 +113,18 @@ export default function ProjectList() {
       </div>
 
       {/* Projects Table */}
-      <DataTable
-        columns={columns}
-        data={projects}
-        onRowClick={handleRowClick}
-        actions={actions}
-      />
+      {loading ? (
+        <div className="bg-card border-border text-muted-foreground flex h-64 items-center justify-center rounded-lg border">
+          Loading projects...
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={projects}
+          onRowClick={handleRowClick}
+          actions={actions}
+        />
+      )}
     </div>
   );
 }
