@@ -118,11 +118,11 @@ export default function LandOwnerDetails({ id }: Props) {
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Date of Birth:</dt>
-              <dd>{owner.dateOfBirth ?? "-"}</dd>
+              <dd>{owner.dateOfBirth ?? '-'}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Occupation:</dt>
-              <dd>{owner.occupation ?? "-"}</dd>
+              <dd>{owner.occupation ?? '-'}</dd>
             </div>
           </dl>
         </div>
@@ -170,7 +170,11 @@ export default function LandOwnerDetails({ id }: Props) {
           <h3 className="mb-4">Compensation History</h3>
           <DataTable
             columns={[
-              { key: 'compensationId', label: 'Compensation ID', sortable: true },
+              {
+                key: 'compensationId',
+                label: 'Compensation ID',
+                sortable: true,
+              },
               { key: 'parcel', label: 'Parcel', sortable: true },
               { key: 'amount', label: 'Amount', sortable: true },
               { key: 'approvedDate', label: 'Approved Date', sortable: true },

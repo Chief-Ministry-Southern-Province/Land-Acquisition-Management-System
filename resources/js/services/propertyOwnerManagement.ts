@@ -8,6 +8,9 @@ export interface PropertyOwner {
   nic: string;
   address: string;
   contact: string;
+  dateOfBirth?: string;
+  occupation?: string;
+  email?: string;
   created_at: string;
   updated_at: string;
   landParcels?: LandParcel[];
@@ -22,6 +25,9 @@ const mapFromBackend = (data: any): PropertyOwner => ({
   nic: data.nic,
   address: data.address,
   contact: data.contact,
+  dateOfBirth: data.date_of_birth,
+  occupation: data.occupation,
+  email: data.email,
   created_at: data.created_at,
   updated_at: data.updated_at,
   landParcels: data.land_parcels
@@ -75,7 +81,10 @@ const mapFromBackend = (data: any): PropertyOwner => ({
 
 // Map frontend PropertyOwner data to backend format
 const mapToBackend = (
-  data: Omit<PropertyOwner, 'id' | 'created_at' | 'updated_at' | 'landParcels' | 'compensations'>,
+  data: Omit<
+    PropertyOwner,
+    'id' | 'created_at' | 'updated_at' | 'landParcels' | 'compensations'
+  >,
 ) => ({
   owner_id: data.ownerId,
   name: data.name,
@@ -109,7 +118,10 @@ export const updatePropertyOwner = async (
   id: string,
   data: Omit<PropertyOwner, 'id' | 'created_at' | 'updated_at'>,
 ): Promise<PropertyOwner> => {
-  const response = await api.put(`/api/property-owners/${id}`, mapToBackend(data));
+  const response = await api.put(
+    `/api/property-owners/${id}`,
+    mapToBackend(data),
+  );
 
   return mapFromBackend(response.data.property_owner);
 };

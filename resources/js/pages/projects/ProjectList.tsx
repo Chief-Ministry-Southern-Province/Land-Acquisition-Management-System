@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
-import { getProjects, deleteProject } from '@/services/projectsManagementService';
+import {
+  getProjects,
+  deleteProject,
+} from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
 export default function ProjectList() {
@@ -43,14 +46,48 @@ export default function ProjectList() {
     { key: 'projectId', label: 'Project ID', sortable: true },
     { key: 'name', label: 'Project Name', sortable: true },
     { key: 'ministry', label: 'Ministry', sortable: true },
-    { key: 'district', label: 'District', sortable: true },
+    { key: 'department', label: 'Department', sortable: true },
     { key: 'projectType', label: 'Acquisition Type', sortable: true },
+    { key: 'acquisitionAct', label: 'Acquisition Act', sortable: true },
+    { key: 'district', label: 'District', sortable: true },
+    { key: 'division', label: 'Division', sortable: true },
+    { key: 'purpose', label: 'Purpose', sortable: true },
     { key: 'startDate', label: 'Start Date', sortable: true },
+    { key: 'estimatedCompletion', label: 'Est. Completion', sortable: true },
+    {
+      key: 'budget',
+      label: 'Budget (Mn LKR)',
+      sortable: true,
+      render: (value: number) => `₨ ${value.toLocaleString()}`,
+    },
+    { key: 'projectManager', label: 'Project Manager', sortable: true },
+    { key: 'contact', label: 'Contact No', sortable: true },
+    { key: 'email', label: 'Email', sortable: true },
+    {
+      key: 'remarks',
+      label: 'Remarks',
+      sortable: true,
+      render: (value: string | null) => value || 'N/A',
+    },
     {
       key: 'status',
       label: 'Status',
       sortable: true,
       render: (value: string) => <StatusBadge status={value} />,
+    },
+    {
+      key: 'created_at',
+      label: 'Created At',
+      sortable: true,
+      render: (value: string) =>
+        value ? new Date(value).toLocaleDateString() : 'N/A',
+    },
+    {
+      key: 'updated_at',
+      label: 'Updated At',
+      sortable: true,
+      render: (value: string) =>
+        value ? new Date(value).toLocaleDateString() : 'N/A',
     },
   ];
 

@@ -29,6 +29,12 @@ export default function LandParcelList() {
 
   const columns = [
     { key: 'parcel_id', label: 'Parcel Number', sortable: true },
+    {
+      key: 'project',
+      label: 'Associated Project',
+      sortable: true,
+      render: (_val: any, row: any) => row.project?.name || 'N/A',
+    },
     { key: 'lot_no', label: 'Lot No', sortable: true },
     { key: 'district', label: 'District', sortable: true },
     { key: 'division', label: 'Division', sortable: true },
@@ -41,7 +47,7 @@ export default function LandParcelList() {
         if (row.owners && row.owners.length > 0) {
           return row.owners.map((o: any) => o.name).join(', ');
         }
-        
+
         return 'N/A';
       },
     },
@@ -53,10 +59,30 @@ export default function LandParcelList() {
         `${row.extent_acers} ac, ${row.extent_perches} per`,
     },
     {
+      key: 'remarks',
+      label: 'Remarks',
+      sortable: true,
+      render: (value: string | null) => value || 'N/A',
+    },
+    {
       key: 'status',
       label: 'Current Status',
       sortable: true,
       render: (value: string) => <StatusBadge status={value} />,
+    },
+    {
+      key: 'created_at',
+      label: 'Created At',
+      sortable: true,
+      render: (value: string) =>
+        value ? new Date(value).toLocaleDateString() : 'N/A',
+    },
+    {
+      key: 'updated_at',
+      label: 'Updated At',
+      sortable: true,
+      render: (value: string) =>
+        value ? new Date(value).toLocaleDateString() : 'N/A',
     },
   ];
 

@@ -32,14 +32,15 @@ export default function LandParcelDetails({ id }: Props) {
   }, [id]);
 
   // Keep other tables mock/placeholder since their services are not implemented
-  const owners = parcel?.owners && parcel.owners.length > 0
-    ? parcel.owners.map((o) => ({
-        name: o.name,
-        nic: o.nic,
-        share: '100%',
-        type: 'Full Owner',
-      }))
-    : [];
+  const owners =
+    parcel?.owners && parcel.owners.length > 0
+      ? parcel.owners.map((o) => ({
+          name: o.name,
+          nic: o.nic,
+          share: '100%',
+          type: 'Full Owner',
+        }))
+      : [];
 
   const structures = [
     {
@@ -166,12 +167,39 @@ export default function LandParcelDetails({ id }: Props) {
               <dd>{`${parcel.extent_acers} acres, ${parcel.extent_perches} perches`}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Associated Project ID:</dt>
-              <dd>{parcel.project_id || 'None'}</dd>
+              <dt className="text-muted-foreground">Associated Project:</dt>
+              <dd>
+                {parcel.project ? (
+                  <Link
+                    href={`/projects/${parcel.project.id}`}
+                    className="text-primary font-medium hover:underline"
+                  >
+                    {parcel.project.name}
+                  </Link>
+                ) : (
+                  'None'
+                )}
+              </dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Remarks:</dt>
               <dd className="text-right">{parcel.remarks || 'No remarks'}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Created At:</dt>
+              <dd>
+                {parcel.created_at
+                  ? new Date(parcel.created_at).toLocaleString()
+                  : 'N/A'}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Last Updated:</dt>
+              <dd>
+                {parcel.updated_at
+                  ? new Date(parcel.updated_at).toLocaleString()
+                  : 'N/A'}
+              </dd>
             </div>
           </dl>
         </div>

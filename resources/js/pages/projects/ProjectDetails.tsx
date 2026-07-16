@@ -35,53 +35,36 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     }
   }, [id]);
 
-  const parcels = [
-    {
-      id: 'PCL-8934',
-      surveyNo: '123/4A',
-      village: 'Unawatuna',
-      extent: '2.5 acres',
-      status: 'acquired',
-    },
-    {
-      id: 'PCL-8935',
-      surveyNo: '124/1B',
-      village: 'Galle',
-      extent: '1.8 acres',
-      status: 'in-progress',
-    },
-    {
-      id: 'PCL-8936',
-      surveyNo: '125/3',
-      village: 'Habaraduwa',
-      extent: '3.2 acres',
-      status: 'pending',
-    },
-  ];
+  const parcels = project?.landParcels
+    ? project.landParcels.map((p) => ({
+        id: p.id,
+        parcelId: p.parcel_id,
+        surveyNo: p.parcel_id,
+        village: p.village,
+        extent: `${p.extent_acers} acres, ${p.extent_perches} perches`,
+        status: p.status,
+      }))
+    : [];
 
-  const owners = [
-    {
-      id: 'OWN-1247',
-      name: 'W.A. Perera',
-      nic: '722345678V',
-      contact: '+94 71 234 5678',
-      parcels: 2,
-    },
-    {
-      id: 'OWN-1248',
-      name: 'S.M. Fernando',
-      nic: '801234567V',
-      contact: '+94 77 345 6789',
-      parcels: 1,
-    },
-    {
-      id: 'OWN-1249',
-      name: 'R.K. Silva',
-      nic: '691234567V',
-      contact: '+94 76 456 7890',
-      parcels: 1,
-    },
-  ];
+  const owners = project?.landParcels
+    ? Array.from(
+        new Map(
+          project.landParcels
+            .flatMap((p) => p.owners || [])
+            .map((o) => [o.id, o]),
+        ).values(),
+      ).map((o) => ({
+        id: o.id,
+        ownerId: o.ownerId,
+        name: o.name,
+        nic: o.nic,
+        contact: o.contact,
+        parcels:
+          project.landParcels?.filter((p) =>
+            p.owners?.some((po) => po.id === o.id),
+          ).length || 0,
+      }))
+    : [];
 
   const valuations = [
     {
@@ -322,7 +305,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       {activeTab === 'parcels' && (
         <DataTable
           columns={[
-            { key: 'id', label: 'Parcel ID', sortable: true },
+            { key: 'parcelId', label: 'Parcel ID', sortable: true },
             { key: 'surveyNo', label: 'Survey No', sortable: true },
             { key: 'village', label: 'Village', sortable: true },
             { key: 'extent', label: 'Extent', sortable: true },
@@ -333,19 +316,21 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             },
           ]}
           data={parcels}
+          onRowClick={(row) => router.visit(`/land-parcels/${row.id}`)}
         />
       )}
 
       {activeTab === 'owners' && (
         <DataTable
           columns={[
-            { key: 'id', label: 'Owner ID', sortable: true },
+            { key: 'ownerId', label: 'Owner ID', sortable: true },
             { key: 'name', label: 'Name', sortable: true },
             { key: 'nic', label: 'NIC', sortable: true },
             { key: 'contact', label: 'Contact', sortable: true },
             { key: 'parcels', label: 'Parcels', sortable: true },
           ]}
           data={owners}
+          onRowClick={(row) => router.visit(`/land-owners/${row.id}`)}
         />
       )}
 

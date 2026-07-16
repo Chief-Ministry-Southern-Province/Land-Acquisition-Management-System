@@ -38,6 +38,20 @@ export default function LandOwnerList() {
       sortable: true,
       render: (_val: any, row: any) => row.landParcels?.length || 0,
     },
+    {
+      key: 'created_at',
+      label: 'Created At',
+      sortable: true,
+      render: (value: string) =>
+        value ? new Date(value).toLocaleDateString() : 'N/A',
+    },
+    {
+      key: 'updated_at',
+      label: 'Updated At',
+      sortable: true,
+      render: (value: string) =>
+        value ? new Date(value).toLocaleDateString() : 'N/A',
+    },
   ];
 
   const actions = (row: any) => (

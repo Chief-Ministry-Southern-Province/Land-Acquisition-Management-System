@@ -26,7 +26,7 @@ class PropertyOwnerController extends Controller
         $validated = $request->validate([
             'owner_id' => 'required|string|max:255',
             'name' => 'required|string|max:255',
-            'nic' => 'required|string|max:255',
+            'nic' => 'required|string|max:255|unique:property_owners,nic',
             'address' => 'required|string|max:255',
             'contact' => 'required|string|max:255',
         ]);
@@ -67,7 +67,7 @@ class PropertyOwnerController extends Controller
         $validated = $request->validate([
             'owner_id' => 'required|string|max:255',
             'name' => 'required|string|max:255',
-            'nic' => 'required|string|max:255',
+            'nic' => 'required|string|max:255|unique:property_owners,nic,'.$id,
             'address' => 'required|string|max:255',
             'contact' => 'required|string|max:255',
         ]);

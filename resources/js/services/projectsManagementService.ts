@@ -1,4 +1,5 @@
 import api from './api';
+import type { LandParcel } from './landParcelManagementService';
 
 export interface Project {
   id: string;
@@ -21,6 +22,7 @@ export interface Project {
   remarks: string | null;
   created_at?: string;
   updated_at?: string;
+  landParcels?: LandParcel[];
 }
 
 // Map backend project model to frontend Project type
@@ -45,11 +47,42 @@ const mapFromBackend = (data: any): Project => ({
   remarks: data.remarks || null,
   created_at: data.created_at,
   updated_at: data.updated_at,
+  landParcels: data.land_parcels
+    ? data.land_parcels.map((p: any) => ({
+        id: String(p.id),
+        parcel_id: p.parcel_id,
+        project_id: p.project_id ? String(p.project_id) : null,
+        lot_no: p.lot_no,
+        district: p.district,
+        division: p.division,
+        village: p.village,
+        extent_acers: String(p.extent_acers),
+        extent_perches: String(p.extent_perches),
+        remarks: p.remarks || null,
+        status: p.status,
+        created_at: p.created_at,
+        updated_at: p.updated_at,
+        owners: p.owners
+          ? p.owners.map((o: any) => ({
+              id: String(o.id),
+              ownerId: o.owner_id,
+              name: o.name,
+              nic: o.nic,
+              address: o.address,
+              contact: o.contact,
+              created_at: o.created_at,
+              updated_at: o.updated_at,
+            }))
+          : [],
+      }))
+    : [],
 });
 
 // Map frontend Project data to backend format
 const mapToBackend = (
-  data: Omit<Project, 'id' | 'created_at' | 'updated_at'>,
+  data: Omit<Project, 'id' | 'created_at' | 'updated_at'> & {
+    parcel_ids?: string[];
+  },
 ) => ({
   project_id: data.projectId,
   name: data.name,
@@ -68,6 +101,7 @@ const mapToBackend = (
   contact: data.contact,
   email: data.email,
   remarks: data.remarks,
+  parcel_ids: data.parcel_ids,
 });
 
 export const getProjects = async (): Promise<Project[]> => {
@@ -84,7 +118,9 @@ export const getProject = async (id: string): Promise<Project> => {
 };
 
 export const createProject = async (
-  data: Omit<Project, 'id' | 'created_at' | 'updated_at'>,
+  data: Omit<Project, 'id' | 'created_at' | 'updated_at'> & {
+    parcel_ids?: string[];
+  },
 ): Promise<Project> => {
   const response = await api.post('/api/projects', mapToBackend(data));
 
@@ -93,7 +129,9 @@ export const createProject = async (
 
 export const updateProject = async (
   id: string,
-  data: Omit<Project, 'id' | 'created_at' | 'updated_at'>,
+  data: Omit<Project, 'id' | 'created_at' | 'updated_at'> & {
+    parcel_ids?: string[];
+  },
 ): Promise<Project> => {
   const response = await api.put(`/api/projects/${id}`, mapToBackend(data));
 
