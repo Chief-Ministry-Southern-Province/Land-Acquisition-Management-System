@@ -1,3 +1,4 @@
+import { progress } from '@inertiajs/react';
 import {
   X,
   Plus,
@@ -10,8 +11,15 @@ import {
   Save,
   Info,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import MainLayout from '@/layouts/MainLayout';
+import {
+  getRoles,
+  createRole,
+  updateRole,
+  deleteRole,
+} from '@/services/roleManagementService';
+import { getAllUsers } from '@/services/userManagementService';
 
 type Permission = {
   key: string;
@@ -292,8 +300,9 @@ const inputCls =
   'w-full px-3 py-2 border border-border rounded-lg bg-input-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors';
 
 export default function RoleManagement() {
-  const [roles, setRoles] = useState<Role[]>(INITIAL_ROLES);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [selectedRole, setSelectedRole] = useState<Role>(INITIAL_ROLES[0]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
@@ -303,6 +312,103 @@ export default function RoleManagement() {
   const [matrixDraft, setMatrixDraft] = useState<
     Record<string, Record<string, boolean>>
   >({});
+
+  const saveRolesConfig = (updatedRoles: Role[]) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const config: Record<
+      string,
+      { color: string; permissions: Record<string, boolean> }
+    > = {};
+    updatedRoles.forEach((r) => {
+      config[r.id] = {
+        color: r.color,
+        permissions: r.permissions,
+      };
+    });
+    localStorage.setItem('lams_roles_config', JSON.stringify(config));
+  };
+
+  useEffect(() => {
+    const fetchRolesAndUsers = async () => {
+      try {
+        progress.start();
+        setLoading(true);
+        const dbRoles = await getRoles();
+
+        let dbUsers: any[] = [];
+
+        try {
+          const usersRes = await getAllUsers();
+          dbUsers = usersRes?.users || [];
+        } catch (err) {
+          console.error('Failed to load users for counting:', err);
+        }
+
+        const localConfigStr =
+          typeof window !== 'undefined'
+            ? localStorage.getItem('lams_roles_config')
+            : null;
+        const localConfig = localConfigStr ? JSON.parse(localConfigStr) : {};
+
+        const mapped: Role[] = dbRoles.map((r, index) => {
+          const saved = localConfig[r.id];
+          const match = INITIAL_ROLES.find(
+            (ir) => ir.name.toLowerCase() === r.role_name.toLowerCase(),
+          );
+          const isSystem =
+            r.role_name === 'Admin' || r.role_name === 'System Administrator';
+
+          return {
+            id: r.id,
+            name: r.role_name,
+            description: r.description,
+            userCount: dbUsers.filter(
+              (u: any) => String(u.role_id) === String(r.id),
+            ).length,
+            isSystem: isSystem,
+            color:
+              saved?.color ||
+              match?.color ||
+              ROLE_COLORS[index % ROLE_COLORS.length],
+            permissions: saved?.permissions ||
+              match?.permissions || { ...EMPTY_PERM },
+          };
+        });
+
+        setRoles(mapped);
+
+        if (mapped.length > 0) {
+          setSelectedRole((prev) => {
+            if (prev) {
+              const stillExists = mapped.find((m) => m.id === prev.id);
+
+              if (stillExists) {
+                return stillExists;
+              }
+            }
+
+            return mapped[0];
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load roles list:', err);
+      } finally {
+        progress.finish();
+        setLoading(false);
+      }
+    };
+
+    fetchRolesAndUsers();
+  }, []);
+
+  useEffect(() => {
+    if (roles.length > 0) {
+      saveRolesConfig(roles);
+    }
+  }, [roles]);
 
   const openAdd = () => {
     setForm({ ...EMPTY_FORM, permissions: { ...EMPTY_PERM } });
@@ -339,34 +445,87 @@ export default function RoleManagement() {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) {
       return;
     }
 
-    if (editingId) {
-      const updated = roles.map((r) =>
-        r.id === editingId ? { ...r, ...form } : r,
-      );
-      setRoles(updated);
+    try {
+      progress.start();
 
-      if (selectedRole.id === editingId) {
-        setSelectedRole({ ...selectedRole, ...form });
+      if (editingId) {
+        await updateRole(editingId, {
+          role_name: form.name,
+          description: form.description,
+        });
+
+        setRoles((prev) =>
+          prev.map((r) =>
+            r.id === editingId
+              ? {
+                  ...r,
+                  name: form.name,
+                  description: form.description,
+                  color: form.color,
+                  permissions: { ...form.permissions },
+                }
+              : r,
+          ),
+        );
+
+        if (selectedRole.id === editingId) {
+          setSelectedRole((s) => ({
+            ...s,
+            name: form.name,
+            description: form.description,
+            color: form.color,
+            permissions: { ...form.permissions },
+          }));
+        }
+      } else {
+        const created = await createRole({
+          role_name: form.name,
+          description: form.description,
+        });
+
+        const newRole: Role = {
+          id: String(created.id),
+          name: created.role_name,
+          description: created.description,
+          color: form.color,
+          userCount: 0,
+          isSystem: false,
+          permissions: { ...form.permissions },
+        };
+
+        setRoles((prev) => [...prev, newRole]);
+        setSelectedRole(newRole);
       }
-    } else {
-      const newRole: Role = {
-        id: `ROL-${String(roles.length + 1).padStart(3, '0')}`,
-        name: form.name,
-        description: form.description,
-        color: form.color,
-        userCount: 0,
-        isSystem: false,
-        permissions: form.permissions,
-      };
-      setRoles((prev) => [...prev, newRole]);
-    }
 
-    setShowModal(false);
+      setShowModal(false);
+    } catch (error: any) {
+      console.error('Failed to save role:', error);
+
+      if (error.response?.data?.errors) {
+        const backendErrors: Record<string, string> = {};
+        Object.entries(error.response.data.errors).forEach(([key, val]) => {
+          let fieldName = key;
+
+          if (key === 'role_name') {
+            fieldName = 'name';
+          }
+
+          if (Array.isArray(val) && val.length > 0) {
+            backendErrors[fieldName] = val[0];
+          }
+        });
+        setErrors(backendErrors);
+      } else {
+        setErrors({ name: 'An error occurred while saving the role.' });
+      }
+    } finally {
+      progress.finish();
+    }
   };
 
   const toggleFormPerm = (key: string) =>
@@ -408,6 +567,14 @@ export default function RoleManagement() {
       [roleId]: { ...d[roleId], [key]: !d[roleId][key] },
     }));
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -451,7 +618,7 @@ export default function RoleManagement() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-sm font-medium">{role.name}</p>
+                  <p className="truncate text-sm font-medium">{`${role.description} (${role.name})`}</p>
                   {role.isSystem && (
                     <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs">
                       System
@@ -809,14 +976,27 @@ export default function RoleManagement() {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  setRoles((prev) => prev.filter((r) => r.id !== deleteId));
-
-                  if (selectedRole.id === deleteId) {
-                    setSelectedRole(INITIAL_ROLES[0]);
+                onClick={async () => {
+                  if (!deleteId) {
+                    return;
                   }
 
-                  setDeleteId(null);
+                  try {
+                    progress.start();
+                    await deleteRole(deleteId);
+                    const remaining = roles.filter((r) => r.id !== deleteId);
+                    setRoles(remaining);
+
+                    if (selectedRole.id === deleteId) {
+                      setSelectedRole(remaining[0] || INITIAL_ROLES[0]);
+                    }
+
+                    setDeleteId(null);
+                  } catch (error) {
+                    console.error('Failed to delete role:', error);
+                  } finally {
+                    progress.finish();
+                  }
                 }}
                 disabled={
                   (roles.find((r) => r.id === deleteId)?.userCount ?? 0) > 0

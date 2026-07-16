@@ -36,7 +36,9 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        AuditLogService::log($user->id, $user->name, 'Register', 'Successfull register');
+        if ($admin = auth()->user()) {
+            AuditLogService::log($admin->id, $admin->name, 'Register', 'Authentication', "Successfull register new user: {$user->name}");
+        }
 
         return response()->json([
             'message' => 'User registered successfully',

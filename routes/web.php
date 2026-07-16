@@ -24,12 +24,22 @@ Route::get('/reset-password/{token}', function (string $token) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', function (Request $request) {
         $user = $request->user();
-        if ($user && $user->role && $user->role->role_name === 'Admin') {
-            return inertia('admin/AdminDashboard');
+        if ($user && $user->role) {
+            return match ($user->role->role_name) {
+                'Admin' => inertia('admin/AdminDashboard'),
+                'DO' => inertia('developmentOfficer/DODashboard'),
+                'HOB' => inertia('headOfBranch/HOBDashboard'),
+                'AO' => inertia('administrativeOfficer/AODashboard'),
+                'AS' => inertia('assistantSecretary/ASDashboard'),
+                'SAS' => inertia('seniorAssistantSecretary/SASDashboard'),
+                'SEC' => inertia('secretary/SecretaryDashboard'),
+                default => inertia('Dashboard'),
+            };
         }
 
         return inertia('Dashboard');
     })->name('dashboard');
+
     Route::get('/settings', function (Request $request) {
         $user = $request->user();
         if ($user && $user->role && $user->role->role_name === 'Admin') {
@@ -38,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         return inertia('Settings');
     })->name('settings');
+
     Route::inertia('/notifications', 'Notifications')->name('notifications');
     // Route::inertia('/user-management', 'admin/UserManagement')->name('user-management');
     // Route::inertia('/user-management/add', 'admin/AddUserForm')->name('user-management.add');
@@ -45,11 +56,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // Land Parcels routes
     Route::inertia('/land-parcels', 'land_parcels/LandParcelList')->name('land-parcels');
     Route::inertia('/land-parcels/create', 'land_parcels/AddLandParcel')->name('add-land-parcel');
-    Route::inertia('/land-parcels/{id}', 'land_parcels/LandParcelDetails')->name('land-parcel-details');
+    Route::get('/land-parcels/{id}', function ($id) {
+        return inertia('land_parcels/LandParcelDetails', ['id' => $id]);
+    })->name('land-parcel-details');
 
     // Land Owners routes
     Route::inertia('/land-owners', 'land_owners/LandOwnerList')->name('land-owners');
-    Route::inertia('/land-owners/{id}', 'land_owners/LandOwnerDetails')->name('land-owner-details');
+    Route::get('/land-owners/{id}', function ($id) {
+        return inertia('land_owners/LandOwnerDetails', ['id' => $id]);
+    })->name('land-owner-details');
 
     // Documents routes
     Route::inertia('/documents', 'DocumentList')->name('documents');
@@ -67,7 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Projects routes
     Route::inertia('/projects', 'projects/ProjectList')->name('projects');
     Route::inertia('/projects/new', 'projects/AddProject')->name('add-project');
-    Route::inertia('/projects/{id}', 'projects/ProjectDetails')->name('project-details');
+    Route::get('/projects/{id}', function ($id) {
+        return inertia('projects/ProjectDetails', ['id' => $id]);
+    })->name('project-details');
 
     // Compensation routes
     Route::inertia('/compensation', 'compensation/CompensationDashboard')->name('compensation-dashboard');
@@ -82,6 +99,36 @@ Route::middleware(['auth:sanctum', 'check.role:Admin'])->group(function () {
     Route::inertia('/departments', 'admin/DepartmentManagement')->name('department-management');
     Route::inertia('/roles', 'admin/RoleManagement')->name('role-management');
     Route::inertia('/audit-log', 'admin/AuditLog')->name('audit-log');
+});
+
+// DEVELOPMENT OFFICER ROUTES
+Route::middleware(['auth:sanctum', 'check.role:DO'])->group(function () {
+    //
+});
+
+// HEAD OF BRANCH ROUTES
+Route::middleware(['auth:sanctum', 'check.role:HOB'])->group(function () {
+    //
+});
+
+// ADMINISTRATIVE OFFICER ROUTES
+Route::middleware(['auth:sanctum', 'check.role:AO'])->group(function () {
+    //
+});
+
+// ASSISTANT SECRETARY ROUTES
+Route::middleware(['auth:sanctum', 'check.role:AS'])->group(function () {
+    //
+});
+
+// SENIOR ASSISTANT SECRETARY ROUTES
+Route::middleware(['auth:sanctum', 'check.role:SAS'])->group(function () {
+    //
+});
+
+// SECRETARY ROUTES
+Route::middleware(['auth:sanctum', 'check.role:SEC'])->group(function () {
+    //
 });
 
 Route::inertia('/not-found', 'NotFound')->name('not-found');

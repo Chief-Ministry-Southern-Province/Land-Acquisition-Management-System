@@ -13,9 +13,16 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import { getLandParcels } from '@/services/landParcelManagementService';
+import type { LandParcel } from '@/services/landParcelManagementService';
+import {
+  createProject,
+  getProject,
+  updateProject,
+} from '@/services/projectsManagementService';
 
 const DISTRICTS = [
   'Colombo',
@@ -86,204 +93,6 @@ const ACQUISITION_ACTS = [
   'Urban Development Authority Act',
   'National Environmental Act',
   'Other',
-];
-
-// ── Parcel master (shared catalogue) ───────────────────────────────────────
-
-type Parcel = {
-  id: string;
-  surveyNo: string;
-  district: string;
-  division: string;
-  village: string;
-  extent: string;
-  landUse: string;
-  tenure: string;
-  status: string;
-  owners: Owner[];
-};
-
-type Owner = {
-  id: string;
-  name: string;
-  nic: string;
-  contact: string;
-  address: string;
-  sharePercent: number;
-};
-
-const ALL_PARCELS: Parcel[] = [
-  {
-    id: 'PCL-8934',
-    surveyNo: '123/4A',
-    district: 'Galle',
-    division: 'Galle Four Gravets',
-    village: 'Unawatuna',
-    extent: '2.5 acres',
-    landUse: 'Agricultural',
-    tenure: 'Freehold',
-    status: 'available',
-    owners: [
-      {
-        id: 'OWN-1247',
-        name: 'W.A. Perera',
-        nic: '722345678V',
-        contact: '+94 71 234 5678',
-        address: '45, Galle Road, Unawatuna',
-        sharePercent: 100,
-      },
-    ],
-  },
-  {
-    id: 'PCL-8935',
-    surveyNo: '124/1B',
-    district: 'Galle',
-    division: 'Galle Four Gravets',
-    village: 'Galle',
-    extent: '1.8 acres',
-    landUse: 'Residential',
-    tenure: 'Freehold',
-    status: 'available',
-    owners: [
-      {
-        id: 'OWN-1248',
-        name: 'S.M. Fernando',
-        nic: '801234567V',
-        contact: '+94 77 345 6789',
-        address: '12, Hospital Road, Galle',
-        sharePercent: 60,
-      },
-      {
-        id: 'OWN-1251',
-        name: 'P.K. Fernando',
-        nic: '820987654V',
-        contact: '+94 76 123 4567',
-        address: '12, Hospital Road, Galle',
-        sharePercent: 40,
-      },
-    ],
-  },
-  {
-    id: 'PCL-8936',
-    surveyNo: '125/3',
-    district: 'Galle',
-    division: 'Habaraduwa',
-    village: 'Habaraduwa',
-    extent: '3.2 acres',
-    landUse: 'Agricultural',
-    tenure: 'Leasehold',
-    status: 'pending',
-    owners: [
-      {
-        id: 'OWN-1249',
-        name: 'R.K. Silva',
-        nic: '691234567V',
-        contact: '+94 76 456 7890',
-        address: '78, Matara Road, Habaraduwa',
-        sharePercent: 100,
-      },
-    ],
-  },
-  {
-    id: 'PCL-8937',
-    surveyNo: '89/2C',
-    district: 'Hambantota',
-    division: 'Tangalle',
-    village: 'Tangalle',
-    extent: '4.1 acres',
-    landUse: 'Commercial',
-    tenure: 'Freehold',
-    status: 'available',
-    owners: [
-      {
-        id: 'OWN-1252',
-        name: 'A.B. Rajapaksa',
-        nic: '750234567V',
-        contact: '+94 71 987 6543',
-        address: '22, Beach Road, Tangalle',
-        sharePercent: 50,
-      },
-      {
-        id: 'OWN-1253',
-        name: 'C.D. Rajapaksa',
-        nic: '780345678V',
-        contact: '+94 77 876 5432',
-        address: '22, Beach Road, Tangalle',
-        sharePercent: 50,
-      },
-    ],
-  },
-  {
-    id: 'PCL-8938',
-    surveyNo: '156/7',
-    district: 'Colombo',
-    division: 'Dehiwala',
-    village: 'Mount Lavinia',
-    extent: '1.2 acres',
-    landUse: 'Residential',
-    tenure: 'Freehold',
-    status: 'available',
-    owners: [
-      {
-        id: 'OWN-1254',
-        name: 'T.M. Jayawardena',
-        nic: '880123456V',
-        contact: '+94 71 345 6789',
-        address: '10, Sea Avenue, Mount Lavinia',
-        sharePercent: 100,
-      },
-    ],
-  },
-  {
-    id: 'PCL-8939',
-    surveyNo: '234/5B',
-    district: 'Kandy',
-    division: 'Kandy Central',
-    village: 'Peradeniya',
-    extent: '2.8 acres',
-    landUse: 'Agricultural',
-    tenure: 'Crown Land',
-    status: 'available',
-    owners: [
-      {
-        id: 'OWN-1255',
-        name: 'N.P. Dissanayake',
-        nic: '710456789V',
-        contact: '+94 77 234 5678',
-        address: '5, University Road, Peradeniya',
-        sharePercent: 75,
-      },
-      {
-        id: 'OWN-1256',
-        name: 'K.L. Dissanayake',
-        nic: '740567890V',
-        contact: '+94 71 123 9876',
-        address: '5, University Road, Peradeniya',
-        sharePercent: 25,
-      },
-    ],
-  },
-  {
-    id: 'PCL-8940',
-    surveyNo: '78/3A',
-    district: 'Jaffna',
-    division: 'Jaffna',
-    village: 'Nallur',
-    extent: '3.5 acres',
-    landUse: 'Agricultural',
-    tenure: 'Freehold',
-    status: 'pending',
-    owners: [
-      {
-        id: 'OWN-1257',
-        name: 'S. Sivakumar',
-        nic: '680678901V',
-        contact: '+94 77 456 7890',
-        address: '33, Nallur Road, Jaffna',
-        sharePercent: 100,
-      },
-    ],
-  },
 ];
 
 // ── Form types ──────────────────────────────────────────────────────────────
@@ -396,6 +205,82 @@ export default function AddProject() {
   );
   const [pickerOpen, setPickerOpen] = useState(true);
 
+  // Dynamic parcels state
+  const [allParcels, setAllParcels] = useState<LandParcel[]>([]);
+  const [loadingParcels, setLoadingParcels] = useState(true);
+
+  // Edit states
+  const [editId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+
+      return urlParams.get('edit');
+    }
+
+    return null;
+  });
+  const [originalProjectId, setOriginalProjectId] = useState<string>('');
+  const [originalStatus, setOriginalStatus] = useState<
+    'active' | 'pending' | 'completed'
+  >('pending');
+  const [loadingProject, setLoadingProject] = useState(false);
+
+  // Fetch all parcels
+  useEffect(() => {
+    const fetchParcels = async () => {
+      try {
+        setLoadingParcels(true);
+        const data = await getLandParcels();
+        setAllParcels(data);
+      } catch (error) {
+        console.error('Failed to fetch land parcels:', error);
+      } finally {
+        setLoadingParcels(false);
+      }
+    };
+    fetchParcels();
+  }, []);
+
+  // Fetch project details (for edit mode)
+  useEffect(() => {
+    if (editId) {
+      const fetchProject = async () => {
+        try {
+          setLoadingProject(true);
+          const data = await getProject(editId);
+          setOriginalProjectId(data.projectId);
+          setOriginalStatus(data.status);
+          setForm({
+            name: data.name,
+            ministry: data.ministry,
+            department: data.department,
+            projectType: data.projectType,
+            acquisitionAct: data.acquisitionAct,
+            district: data.district,
+            division: data.division,
+            purpose: data.purpose,
+            startDate: data.startDate,
+            estimatedCompletion: data.estimatedCompletion,
+            totalBudget: String(data.budget),
+            projectManager: data.projectManager,
+            managerContact: data.contact,
+            managerEmail: data.email,
+            remarks: data.remarks || '',
+          });
+
+          if (data.landParcels) {
+            setSelectedParcelIds(new Set(data.landParcels.map((p) => p.id)));
+          }
+        } catch (error) {
+          console.error('Failed to fetch project for editing:', error);
+        } finally {
+          setLoadingProject(false);
+        }
+      };
+      fetchProject();
+    }
+  }, [editId]);
+
   const set =
     (field: keyof ProjectForm) =>
     (
@@ -407,20 +292,22 @@ export default function AddProject() {
 
   // Derived: selected parcel objects
   const selectedParcels = useMemo(
-    () => ALL_PARCELS.filter((p) => selectedParcelIds.has(p.id)),
-    [selectedParcelIds],
+    () => allParcels.filter((p) => selectedParcelIds.has(p.id)),
+    [allParcels, selectedParcelIds],
   );
 
-  // Derived: unique owners across all selected parcels (de-duped by OWN id)
+  // Derived: unique owners across all selected parcels
   const autoOwners = useMemo(() => {
-    const seen = new Map<string, Owner & { parcelIds: string[] }>();
+    const seen = new Map<string, any>();
 
     for (const parcel of selectedParcels) {
-      for (const owner of parcel.owners) {
-        if (seen.has(owner.id)) {
-          seen.get(owner.id)!.parcelIds.push(parcel.id);
-        } else {
-          seen.set(owner.id, { ...owner, parcelIds: [parcel.id] });
+      if (parcel.owners) {
+        for (const owner of parcel.owners) {
+          if (seen.has(owner.id)) {
+            seen.get(owner.id)!.parcelIds.push(parcel.parcel_id);
+          } else {
+            seen.set(owner.id, { ...owner, parcelIds: [parcel.parcel_id] });
+          }
         }
       }
     }
@@ -433,17 +320,17 @@ export default function AddProject() {
     const q = parcelSearch.toLowerCase();
 
     if (!q) {
-      return ALL_PARCELS;
+      return allParcels;
     }
 
-    return ALL_PARCELS.filter(
+    return allParcels.filter(
       (p) =>
         p.id.toLowerCase().includes(q) ||
-        p.surveyNo.toLowerCase().includes(q) ||
+        p.parcel_id.toLowerCase().includes(q) ||
         p.district.toLowerCase().includes(q) ||
         p.village.toLowerCase().includes(q),
     );
-  }, [parcelSearch]);
+  }, [allParcels, parcelSearch]);
 
   const toggleParcel = (id: string) => {
     setSelectedParcelIds((prev) => {
@@ -471,13 +358,20 @@ export default function AddProject() {
   // Total extent (numeric sum of acres)
   const totalExtent = useMemo(() => {
     const sum = selectedParcels.reduce((acc, p) => {
-      const val = parseFloat(p.extent.replace(' acres', '')) || 0;
+      const val = parseFloat(p.extent_acers) || 0;
 
       return acc + val;
     }, 0);
 
     return sum > 0 ? `${sum.toFixed(2)} acres` : '—';
   }, [selectedParcels]);
+
+  const generateProjectId = () => {
+    const year = new Date().getFullYear();
+    const rand = Math.floor(1000 + Math.random() * 9000);
+
+    return `PRJ-${year}-${rand}`;
+  };
 
   const validate = () => {
     const errs: Partial<Record<keyof ProjectForm, string>> = {};
@@ -515,13 +409,53 @@ export default function AddProject() {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (validate()) {
-      router.visit('/projects');
+      try {
+        const payload = {
+          projectId: editId ? originalProjectId : generateProjectId(),
+          name: form.name,
+          ministry: form.ministry,
+          department: form.department,
+          projectType: form.projectType,
+          acquisitionAct: form.acquisitionAct,
+          district: form.district,
+          division: form.division,
+          purpose: form.purpose,
+          startDate: form.startDate,
+          estimatedCompletion: form.estimatedCompletion,
+          budget: Number(form.totalBudget) || 0,
+          status: editId ? originalStatus : ('pending' as const),
+          projectManager: form.projectManager,
+          contact: form.managerContact,
+          email: form.managerEmail,
+          remarks: form.remarks || null,
+          parcel_ids: Array.from(selectedParcelIds),
+        };
+
+        if (editId) {
+          await updateProject(editId, payload);
+        } else {
+          await createProject(payload);
+        }
+
+        router.visit('/projects');
+      } catch (error) {
+        console.error('Failed to save project:', error);
+        alert('Failed to save project. Please check form details.');
+      }
     }
   };
+
+  if (loadingProject) {
+    return (
+      <div className="bg-card border-border text-muted-foreground flex h-64 items-center justify-center rounded-lg border">
+        Loading project details for editing...
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl space-y-6">
@@ -536,9 +470,11 @@ export default function AddProject() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1>Add New Project</h1>
+            <h1>{editId ? 'Edit Project' : 'Add New Project'}</h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Create a land acquisition project and assign parcels with owners
+              {editId
+                ? 'Update land acquisition project details'
+                : 'Create a land acquisition project and assign parcels with owners'}
             </p>
           </div>
         </div>
@@ -818,71 +754,79 @@ export default function AddProject() {
 
               {/* Parcel catalogue */}
               <div className="divide-border max-h-80 divide-y overflow-y-auto">
-                {filteredParcels.length === 0 && (
+                {loadingParcels ? (
+                  <p className="text-muted-foreground px-6 py-8 text-center text-sm">
+                    Loading land parcels...
+                  </p>
+                ) : filteredParcels.length === 0 ? (
                   <p className="text-muted-foreground px-6 py-8 text-center text-sm">
                     No parcels match your search.
                   </p>
-                )}
-                {filteredParcels.map((parcel) => {
-                  const selected = selectedParcelIds.has(parcel.id);
+                ) : (
+                  filteredParcels.map((parcel) => {
+                    const selected = selectedParcelIds.has(parcel.id);
 
-                  return (
-                    <label
-                      key={parcel.id}
-                      className={`flex cursor-pointer select-none items-start gap-4 px-6 py-3 transition-colors ${
-                        selected ? 'bg-primary/5' : 'hover:bg-muted/40'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        className="hidden"
-                        checked={selected}
-                        onChange={() => toggleParcel(parcel.id)}
-                      />
-                      <div className="mt-0.5 shrink-0">
-                        {selected ? (
-                          <CheckSquare className="text-primary h-5 w-5" />
-                        ) : (
-                          <Square className="text-muted-foreground h-5 w-5" />
-                        )}
-                      </div>
-                      <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 md:grid-cols-5">
-                        <div>
-                          <p className="text-muted-foreground text-xs">
-                            Parcel ID
-                          </p>
-                          <p className="font-medium">{parcel.id}</p>
+                    return (
+                      <label
+                        key={parcel.id}
+                        className={`flex cursor-pointer select-none items-start gap-4 px-6 py-3 transition-colors ${
+                          selected ? 'bg-primary/5' : 'hover:bg-muted/40'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="hidden"
+                          checked={selected}
+                          onChange={() => toggleParcel(parcel.id)}
+                        />
+                        <div className="mt-0.5 shrink-0">
+                          {selected ? (
+                            <CheckSquare className="text-primary h-5 w-5" />
+                          ) : (
+                            <Square className="text-muted-foreground h-5 w-5" />
+                          )}
                         </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">
-                            Survey No
-                          </p>
-                          <p>{parcel.surveyNo}</p>
+                        <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 md:grid-cols-5">
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Parcel ID
+                            </p>
+                            <p className="font-medium">{parcel.parcel_id}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Lot No
+                            </p>
+                            <p>{parcel.lot_no}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              District / Village
+                            </p>
+                            <p>
+                              {parcel.district}, {parcel.village}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Extent
+                            </p>
+                            <p>
+                              {parcel.extent_acers} ac, {parcel.extent_perches}{' '}
+                              per
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Status
+                            </p>
+                            <StatusBadge status={parcel.status} />
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">
-                            District / Village
-                          </p>
-                          <p>
-                            {parcel.district}, {parcel.village}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">
-                            Extent
-                          </p>
-                          <p>{parcel.extent}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">
-                            Status
-                          </p>
-                          <StatusBadge status={parcel.status} />
-                        </div>
-                      </div>
-                    </label>
-                  );
-                })}
+                      </label>
+                    );
+                  })
+                )}
               </div>
 
               {/* Selected summary strip */}
@@ -897,12 +841,12 @@ export default function AddProject() {
                         key={p.id}
                         className="bg-primary/10 text-primary inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
                       >
-                        {p.id} · {p.surveyNo}
+                        {p.parcel_id} · Lot {p.lot_no}
                         <button
                           type="button"
                           onClick={() => removeParcel(p.id)}
                           className="hover:text-destructive transition-colors"
-                          title={`Remove ${p.id}`}
+                          title={`Remove ${p.parcel_id}`}
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -953,14 +897,13 @@ export default function AddProject() {
                   key={owner.id}
                   className="grid grid-cols-1 gap-4 px-6 py-4 sm:grid-cols-2 lg:grid-cols-4"
                 >
-                  {/* Owner info */}
                   <div>
                     <p className="text-muted-foreground mb-0.5 text-xs">
                       Owner
                     </p>
                     <p className="text-sm font-medium">{owner.name}</p>
                     <p className="text-muted-foreground mt-0.5 text-xs">
-                      {owner.id}
+                      {owner.ownerId}
                     </p>
                   </div>
                   <div>
@@ -980,10 +923,10 @@ export default function AddProject() {
                   </div>
                   <div>
                     <p className="text-muted-foreground mb-0.5 text-xs">
-                      Linked Parcels · Share
+                      Linked Parcels
                     </p>
                     <div className="mt-0.5 flex flex-wrap gap-1">
-                      {owner.parcelIds.map((pid) => (
+                      {owner.parcelIds.map((pid: string) => (
                         <span
                           key={pid}
                           className="bg-muted rounded px-2 py-0.5 text-xs font-medium"
@@ -992,9 +935,6 @@ export default function AddProject() {
                         </span>
                       ))}
                     </div>
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      {owner.sharePercent}% share
-                    </p>
                   </div>
                 </div>
               ))}

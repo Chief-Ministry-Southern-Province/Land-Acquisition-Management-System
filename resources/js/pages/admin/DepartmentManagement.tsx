@@ -16,8 +16,8 @@ import {
   createDepartment,
   updateDepartment,
   deleteDepartment,
-} from '@/services/departmentManagement';
-import type { Department } from '@/services/departmentManagement';
+} from '@/services/departmentManagementService';
+import type { Department } from '@/services/departmentManagementService';
 
 const EMPTY_DEP: Omit<Department, 'id'> = {
   name: '',

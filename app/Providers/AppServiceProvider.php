@@ -2,7 +2,21 @@
 
 namespace App\Providers;
 
+use App\Models\Compensation;
+use App\Models\Departments;
+use App\Models\Documents;
+use App\Models\LandParcel;
+use App\Models\Projects;
+use App\Models\PropertyOwner;
+use App\Models\Roles;
 use App\Models\User;
+use App\Observers\CompensationObserver;
+use App\Observers\DepartmentsObserver;
+use App\Observers\DocumentsObserver;
+use App\Observers\LandParcelObserver;
+use App\Observers\ProjectsObserver;
+use App\Observers\PropertyOwnerObserver;
+use App\Observers\RoleObserver;
 use App\Observers\UserObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -27,6 +41,13 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         User::observe(UserObserver::class);
+        Departments::observe(DepartmentsObserver::class);
+        Projects::observe(ProjectsObserver::class);
+        LandParcel::observe(LandParcelObserver::class);
+        PropertyOwner::observe(PropertyOwnerObserver::class);
+        Compensation::observe(CompensationObserver::class);
+        Documents::observe(DocumentsObserver::class);
+        Roles::observe(RoleObserver::class);
     }
 
     /**

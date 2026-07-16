@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LandParcel;
 use App\Models\Projects;
 use Illuminate\Http\Request;
 
@@ -41,9 +42,16 @@ class ProjectsController extends Controller
             'contact' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'remarks' => 'nullable|string',
+            'parcel_ids' => 'nullable|array',
+            'parcel_ids.*' => 'exists:land_parcels,id',
         ]);
 
         $project = Projects::create($validated);
+
+        if ($request->has('parcel_ids') && is_array($request->input('parcel_ids'))) {
+            LandParcel::whereIn('id', $request->input('parcel_ids'))
+                ->update(['project_id' => $project->id]);
+        }
 
         return response()->json([
             'message' => 'Project created successfully',
@@ -56,7 +64,7 @@ class ProjectsController extends Controller
      */
     public function show(string $id)
     {
-        $project = Projects::find($id, ['*']);
+        $project = Projects::with('landParcels.owners')->find($id);
 
         if ($project) {
             return response()->json([
@@ -93,6 +101,8 @@ class ProjectsController extends Controller
             'contact' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'remarks' => 'nullable|string',
+            'parcel_ids' => 'nullable|array',
+            'parcel_ids.*' => 'exists:land_parcels,id',
         ]);
 
         $project = Projects::find($id, ['*']);
@@ -104,6 +114,16 @@ class ProjectsController extends Controller
         }
 
         $project->update($validated);
+
+        if ($request->has('parcel_ids') && is_array($request->input('parcel_ids'))) {
+            // Dissociate old parcels
+            LandParcel::where('project_id', $project->id)
+                ->update(['project_id' => null]);
+
+            // Associate new parcels
+            LandParcel::whereIn('id', $request->input('parcel_ids'))
+                ->update(['project_id' => $project->id]);
+        }
 
         return response()->json([
             'message' => 'Project updated successfully',

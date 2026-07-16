@@ -19,5 +19,13 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class LandParcel extends Model
 {
-    //
+    public function owners()
+    {
+        return $this->belongsToMany(PropertyOwner::class, 'land_parcel_property_owner', 'land_parcel_id', 'property_owner_id');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Projects::class, 'project_id');
+    }
 }

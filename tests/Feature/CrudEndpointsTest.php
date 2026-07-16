@@ -57,6 +57,13 @@ test('projects crud operations', function () {
     $response->assertJsonPath('project.project_id', 'PRJ-100');
     $projectId = $response->json('project.id');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Create',
+        'module' => 'Projects',
+        'detail' => 'Created project Test Project Name',
+    ]);
+
     // Get All
     $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/projects');
     $response->assertStatus(200);
@@ -73,9 +80,23 @@ test('projects crud operations', function () {
     $response->assertStatus(200);
     $response->assertJsonPath('project.name', 'Updated Project Name');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Update',
+        'module' => 'Projects',
+        'detail' => 'Updated project Updated Project Name',
+    ]);
+
     // Delete
     $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/projects/{$projectId}");
     $response->assertStatus(204);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Delete',
+        'module' => 'Projects',
+        'detail' => 'Deleted project Updated Project Name',
+    ]);
 
     // Verify deleted
     $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/projects/{$projectId}");
@@ -121,6 +142,13 @@ test('land parcels crud operations', function () {
     $response->assertJsonPath('land_parcel.parcel_id', 'PAR-999');
     $parcelId = $response->json('land_parcel.id');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Create',
+        'module' => 'Land Parcels',
+        'detail' => 'Created land parcel PAR-999',
+    ]);
+
     // Get All
     $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/land-parcels');
     $response->assertStatus(200);
@@ -137,9 +165,23 @@ test('land parcels crud operations', function () {
     $response->assertStatus(200);
     $response->assertJsonPath('land_parcel.lot_no', 'Lot 5C');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Update',
+        'module' => 'Land Parcels',
+        'detail' => 'Updated land parcel PAR-999',
+    ]);
+
     // Delete
     $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/land-parcels/{$parcelId}");
     $response->assertStatus(204);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Delete',
+        'module' => 'Land Parcels',
+        'detail' => 'Deleted land parcel PAR-999',
+    ]);
 
     // Verify deleted
     $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/land-parcels/{$parcelId}");
@@ -161,6 +203,13 @@ test('property owners crud operations', function () {
     $response->assertJsonPath('property_owner.owner_id', 'OWN-001');
     $ownerId = $response->json('property_owner.id');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Create',
+        'module' => 'Property Owners',
+        'detail' => 'Created property owner Wimal Perera',
+    ]);
+
     // Get All
     $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/property-owners');
     $response->assertStatus(200);
@@ -177,9 +226,23 @@ test('property owners crud operations', function () {
     $response->assertStatus(200);
     $response->assertJsonPath('property_owner.name', 'Wimal Siripala');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Update',
+        'module' => 'Property Owners',
+        'detail' => 'Updated property owner Wimal Siripala',
+    ]);
+
     // Delete
     $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/property-owners/{$ownerId}");
     $response->assertStatus(204);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Delete',
+        'module' => 'Property Owners',
+        'detail' => 'Deleted property owner Wimal Siripala',
+    ]);
 
     // Verify deleted
     $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/property-owners/{$ownerId}");
@@ -221,6 +284,13 @@ test('compensation crud operations', function () {
     $response->assertJsonPath('compensation.compensation_id', 'COM-999');
     $compId = $response->json('compensation.id');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Create',
+        'module' => 'Compensation',
+        'detail' => 'Created compensation COM-999',
+    ]);
+
     // Get All
     $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/compensation');
     $response->assertStatus(200);
@@ -237,9 +307,23 @@ test('compensation crud operations', function () {
     $response->assertStatus(200);
     expect((float) $response->json('compensation.amount'))->toEqual(600000.00);
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Update',
+        'module' => 'Compensation',
+        'detail' => 'Updated compensation COM-999',
+    ]);
+
     // Delete
     $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/compensation/{$compId}");
     $response->assertStatus(204);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Delete',
+        'module' => 'Compensation',
+        'detail' => 'Deleted compensation COM-999',
+    ]);
 
     // Verify deleted
     $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/compensation/{$compId}");
@@ -264,6 +348,13 @@ test('documents crud operations', function () {
     $response->assertJsonPath('document.name', 'Deed of Land');
     $docId = $response->json('document.id');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Create',
+        'module' => 'Documents',
+        'detail' => 'Created document Deed of Land',
+    ]);
+
     // Get All
     $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/documents');
     $response->assertStatus(200);
@@ -280,9 +371,23 @@ test('documents crud operations', function () {
     $response->assertStatus(200);
     $response->assertJsonPath('document.name', 'Deed of Land Updated');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Update',
+        'module' => 'Documents',
+        'detail' => 'Updated document Deed of Land Updated',
+    ]);
+
     // Delete
     $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/documents/{$docId}");
     $response->assertStatus(204);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Delete',
+        'module' => 'Documents',
+        'detail' => 'Deleted document Deed of Land Updated',
+    ]);
 
     // Verify deleted
     $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/documents/{$docId}");
@@ -344,6 +449,13 @@ test('departments crud operations', function () {
     $response->assertJsonPath('department.dep_code', 'SMD');
     $deptId = $response->json('department.id');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Create',
+        'module' => 'Departments',
+        'detail' => 'Created department Survey and Mapping Department',
+    ]);
+
     // Get All
     $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/departments');
     $response->assertStatus(200);
@@ -360,11 +472,83 @@ test('departments crud operations', function () {
     $response->assertStatus(200);
     $response->assertJsonPath('department.dep_head', 'A. Perera');
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Update',
+        'module' => 'Departments',
+        'detail' => 'Updated department Survey and Mapping Department',
+    ]);
+
     // Delete
     $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/departments/{$deptId}");
     $response->assertStatus(204);
 
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Delete',
+        'module' => 'Departments',
+        'detail' => 'Deleted department Survey and Mapping Department',
+    ]);
+
     // Verify deleted
     $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/departments/{$deptId}");
+    $response->assertStatus(404);
+});
+
+test('roles crud operations', function () {
+    $roleData = [
+        'role_name' => 'Manager',
+        'description' => 'Manager Role',
+    ];
+
+    // Create
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/roles', $roleData);
+    $response->assertStatus(201);
+    $response->assertJsonPath('role.role_name', 'Manager');
+    $roleId = $response->json('role.id');
+
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Create',
+        'module' => 'Roles',
+        'detail' => 'Created role Manager',
+    ]);
+
+    // Get All
+    $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/roles');
+    $response->assertStatus(200);
+    $response->assertJsonFragment(['role_name' => 'Manager']);
+
+    // Get One
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/roles/{$roleId}");
+    $response->assertStatus(200);
+    $response->assertJsonPath('role.role_name', 'Manager');
+
+    // Update
+    $roleData['description'] = 'Updated Manager Role';
+    $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/roles/{$roleId}", $roleData);
+    $response->assertStatus(200);
+    $response->assertJsonPath('role.description', 'Updated Manager Role');
+
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Update',
+        'module' => 'Roles',
+        'detail' => 'Updated role Manager',
+    ]);
+
+    // Delete
+    $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/roles/{$roleId}");
+    $response->assertStatus(204);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $this->user->id,
+        'action' => 'Delete',
+        'module' => 'Roles',
+        'detail' => 'Deleted role Manager',
+    ]);
+
+    // Verify deleted
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/roles/{$roleId}");
     $response->assertStatus(404);
 });

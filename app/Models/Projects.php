@@ -26,5 +26,8 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class Projects extends Model
 {
-    //
+    public function landParcels()
+    {
+        return $this->hasMany(LandParcel::class, 'project_id');
+    }
 }

@@ -12,7 +12,9 @@ class UserObserver
      */
     public function created(User $user): void
     {
-        AuditLogService::log($user->id, $user->name, 'Create', 'Users', "Created user {$user->name}");
+        // if ($user = auth()->user()) {
+        //     AuditLogService::log($user->id, $user->name, 'Create', 'Users', "Created user {$user->name}");
+        // } // REMOVE: duplicate audit log when user creating
     }
 
     /**
@@ -20,7 +22,9 @@ class UserObserver
      */
     public function updated(User $user): void
     {
-        AuditLogService::log($user->id, $user->name, 'Update', 'Users', "Updated user {$user->name}");
+        if ($user = auth()->user()) {
+            AuditLogService::log($user->id, $user->name, 'Update', 'Users', "Updated user {$user->name}");
+        }
     }
 
     /**
@@ -28,7 +32,9 @@ class UserObserver
      */
     public function deleted(User $user): void
     {
-        AuditLogService::log($user->id, $user->name, 'Delete', 'Users', "Deleted user {$user->name}");
+        if ($user = auth()->user()) {
+            AuditLogService::log($user->id, $user->name, 'Delete', 'Users', "Deleted user {$user->name}");
+        }
     }
 
     /**
