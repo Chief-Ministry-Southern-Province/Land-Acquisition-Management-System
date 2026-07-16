@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     // Resource Routes
     Route::apiResource('projects', ProjectsController::class);
+    Route::get('land-parcels/export', [LandParcelController::class, 'export']);
     Route::apiResource('land-parcels', LandParcelController::class);
     Route::apiResource('property-owners', PropertyOwnerController::class);
     Route::apiResource('compensation', CompensationController::class);

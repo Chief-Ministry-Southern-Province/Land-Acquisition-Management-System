@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LandParcel;
+use App\Services\ExportService;
 use Illuminate\Http\Request;
 
 class LandParcelController extends Controller
@@ -138,5 +139,63 @@ class LandParcelController extends Controller
         return response()->json([
             'message' => 'Land parcel deleted successfully',
         ], 204);
+    }
+
+    public function export(Request $request, ExportService $exportService)
+    {
+        $format = $request->query('format', 'pdf');
+        $records = LandParcel::with(['owners', 'project'])->get();
+
+        $filename = 'land_parcels_'.date('Ymd_His');
+
+        if ($format === 'pdf') {
+            return $exportService->export(
+                data: collect([]),
+                headings: [],
+                filename: $filename,
+                format: $format,
+                pdfView: 'pdf.land_parcels',
+                pdfData: ['parcels' => $records]
+            );
+        }
+
+        $headings = [
+            'Parcel Number',
+            'Associated Project',
+            'Lot No',
+            'District',
+            'Division',
+            'Village',
+            'Owner Name',
+            'Extent',
+            'Remarks',
+            'Current Status',
+            'Created At',
+        ];
+
+        $data = $records->map(function ($parcel) {
+            $ownersList = $parcel->owners->pluck('name')->implode(', ');
+
+            return [
+                'parcel_id' => $parcel->parcel_id,
+                'project' => $parcel->project?->name ?? 'N/A',
+                'lot_no' => $parcel->lot_no,
+                'district' => $parcel->district,
+                'division' => $parcel->division,
+                'village' => $parcel->village,
+                'owners' => $ownersList ?: 'N/A',
+                'extent' => "{$parcel->extent_acers} ac, {$parcel->extent_perches} per",
+                'remarks' => $parcel->remarks ?? 'N/A',
+                'status' => ucfirst($parcel->status),
+                'created_at' => $parcel->created_at ? $parcel->created_at->format('Y-m-d H:i:s') : 'N/A',
+            ];
+        });
+
+        return $exportService->export(
+            data: $data,
+            headings: $headings,
+            filename: $filename,
+            format: $format
+        );
     }
 }
