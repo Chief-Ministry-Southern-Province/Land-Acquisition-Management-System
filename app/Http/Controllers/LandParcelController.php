@@ -14,7 +14,7 @@ class LandParcelController extends Controller
     {
         return response()->json([
             'message' => 'Land parcels fetched successfully',
-            'land_parcels' => LandParcel::all(),
+            'land_parcels' => LandParcel::with(['owners', 'project'])->get(),
         ], 200);
     }
 
@@ -34,9 +34,18 @@ class LandParcelController extends Controller
             'extent_perches' => 'required|numeric',
             'remarks' => 'nullable|string',
             'status' => 'required|string|in:available,pending,acquired,in-progress',
+            'property_owner_id' => 'nullable|exists:property_owners,id',
+            'property_owner_ids' => 'nullable|array',
+            'property_owner_ids.*' => 'exists:property_owners,id',
         ]);
 
         $landParcel = LandParcel::create($validated);
+        if ($request->has('property_owner_ids') && is_array($request->input('property_owner_ids'))) {
+            $landParcel->owners()->attach($request->input('property_owner_ids'));
+        } elseif ($request->has('property_owner_id') && $request->input('property_owner_id')) {
+            $landParcel->owners()->attach($request->input('property_owner_id'));
+        }
+        $landParcel->load(['owners', 'project']);
 
         return response()->json([
             'message' => 'Land parcel created successfully',
@@ -49,7 +58,7 @@ class LandParcelController extends Controller
      */
     public function show(string $id)
     {
-        $landParcel = LandParcel::find($id, ['*']);
+        $landParcel = LandParcel::with(['owners', 'project'])->find($id);
 
         if ($landParcel) {
             return response()->json([
@@ -79,6 +88,9 @@ class LandParcelController extends Controller
             'extent_perches' => 'required|numeric',
             'remarks' => 'nullable|string',
             'status' => 'required|string|in:available,pending,acquired,in-progress',
+            'property_owner_id' => 'nullable|exists:property_owners,id',
+            'property_owner_ids' => 'nullable|array',
+            'property_owner_ids.*' => 'exists:property_owners,id',
         ]);
 
         $landParcel = LandParcel::find($id, ['*']);
@@ -90,6 +102,17 @@ class LandParcelController extends Controller
         }
 
         $landParcel->update($validated);
+        if ($request->has('property_owner_ids') && is_array($request->input('property_owner_ids'))) {
+            $landParcel->owners()->sync($request->input('property_owner_ids'));
+        } elseif ($request->has('property_owner_id')) {
+            $ownerId = $request->input('property_owner_id');
+            if ($ownerId) {
+                $landParcel->owners()->sync([$ownerId]);
+            } else {
+                $landParcel->owners()->detach();
+            }
+        }
+        $landParcel->load(['owners', 'project']);
 
         return response()->json([
             'message' => 'Land parcel updated successfully',

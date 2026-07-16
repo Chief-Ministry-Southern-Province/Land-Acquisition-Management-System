@@ -1,67 +1,87 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { ArrowLeft, Download } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import { getPropertyOwner } from '@/services/propertyOwnerManagement';
+import type { PropertyOwner } from '@/services/propertyOwnerManagement';
 
-export default function LandOwnerDetails() {
-  // IMPLEMENT: Get id from route params and fetch owner details from backend
-  const owner = {
-    id: 'OWN-1247',
-    name: 'W.A. Perera',
-    nic: '722345678V',
-    contact: '+94 71 234 5678',
-    email: 'waperera@email.com',
-    address: '123, Galle Road, Unawatuna, Galle',
-    dateOfBirth: '1972-05-15',
-    occupation: 'Business Owner',
-  };
+interface Props {
+  id: string;
+}
 
-  const parcels = [
-    {
-      id: 'PCL-8934',
-      surveyNo: '123/4A',
-      village: 'Unawatuna',
-      extent: '2.5 acres',
-      status: 'acquired',
-    },
-    {
-      id: 'PCL-8940',
-      surveyNo: '124/2',
-      village: 'Galle',
-      extent: '1.2 acres',
-      status: 'pending',
-    },
-  ];
+export default function LandOwnerDetails({ id }: Props) {
+  const [owner, setOwner] = useState<PropertyOwner | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const compensation = [
-    {
-      id: 'COMP-3456',
-      parcel: 'PCL-8934',
-      amount: '₨ 15,000,000',
-      approvedDate: '2024-05-10',
-      paymentDate: '2024-05-20',
-      status: 'paid',
-    },
-    {
-      id: 'COMP-3460',
-      parcel: 'PCL-8940',
-      amount: '₨ 8,500,000',
-      approvedDate: '-',
-      paymentDate: '-',
-      status: 'pending',
-    },
-  ];
+  useEffect(() => {
+    const fetchOwner = async () => {
+      try {
+        setLoading(true);
+        const data = await getPropertyOwner(id);
+        setOwner(data);
+      } catch (error) {
+        console.error('Failed to fetch property owner:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOwner();
+  }, [id]);
+
+  const parcels = owner?.landParcels
+    ? owner.landParcels.map((p) => ({
+        id: p.id,
+        parcelId: p.parcel_id,
+        surveyNo: p.parcel_id,
+        village: p.village,
+        extent: `${p.extent_acers} acres, ${p.extent_perches} perches`,
+        status: p.status,
+      }))
+    : [];
+
+  const compensation = owner?.compensations
+    ? owner.compensations.map((c) => ({
+        id: c.id,
+        compensationId: c.compensation_id,
+        parcel: c.landParcel?.parcel_id || 'N/A',
+        amount: `₨ ${Number(c.amount).toLocaleString('en-LK', { minimumFractionDigits: 2 })}`,
+        approvedDate: c.approved_date || '-',
+        paymentDate: c.payment_date || '-',
+        status: c.status,
+      }))
+    : [];
 
   const documents = [
     { name: 'National Identity Card', type: 'PDF', uploadDate: '2024-02-05' },
     {
-      name: 'Deed of Ownership - PCL-8934',
+      name: `Deed of Ownership${owner?.landParcels && owner.landParcels.length > 0 ? ` - ${owner.landParcels[0].parcel_id}` : ''}`,
       type: 'PDF',
       uploadDate: '2024-02-05',
     },
     { name: 'Bank Account Details', type: 'PDF', uploadDate: '2024-05-10' },
   ];
+
+  if (loading) {
+    return (
+      <div className="text-muted-foreground flex h-96 items-center justify-center">
+        Loading property owner details...
+      </div>
+    );
+  }
+
+  if (!owner) {
+    return (
+      <div className="text-muted-foreground flex h-96 flex-col items-center justify-center gap-4">
+        <p>Property owner not found.</p>
+        <Link href="/land-owners" className="text-primary hover:underline">
+          Back to Property Owners
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -75,7 +95,7 @@ export default function LandOwnerDetails() {
           </Link>
           <div>
             <h1>{owner.name}</h1>
-            <p className="text-muted-foreground">Owner ID: {owner.id}</p>
+            <p className="text-muted-foreground">Owner ID: {owner.ownerId}</p>
           </div>
         </div>
         <button className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors">
@@ -98,11 +118,11 @@ export default function LandOwnerDetails() {
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Date of Birth:</dt>
-              <dd>{owner.dateOfBirth}</dd>
+              <dd>{owner.dateOfBirth ?? '-'}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Occupation:</dt>
-              <dd>{owner.occupation}</dd>
+              <dd>{owner.occupation ?? '-'}</dd>
             </div>
           </dl>
         </div>
@@ -129,7 +149,7 @@ export default function LandOwnerDetails() {
           <h3 className="mb-4">Owned Parcels</h3>
           <DataTable
             columns={[
-              { key: 'id', label: 'Parcel ID', sortable: true },
+              { key: 'parcelId', label: 'Parcel ID', sortable: true },
               { key: 'surveyNo', label: 'Survey No', sortable: true },
               { key: 'village', label: 'Village', sortable: true },
               { key: 'extent', label: 'Extent', sortable: true },
@@ -140,6 +160,7 @@ export default function LandOwnerDetails() {
               },
             ]}
             data={parcels}
+            onRowClick={(row) => router.visit(`/land-parcels/${row.id}`)}
             searchable={false}
             filterable={false}
           />
@@ -149,7 +170,11 @@ export default function LandOwnerDetails() {
           <h3 className="mb-4">Compensation History</h3>
           <DataTable
             columns={[
-              { key: 'id', label: 'Compensation ID', sortable: true },
+              {
+                key: 'compensationId',
+                label: 'Compensation ID',
+                sortable: true,
+              },
               { key: 'parcel', label: 'Parcel', sortable: true },
               { key: 'amount', label: 'Amount', sortable: true },
               { key: 'approvedDate', label: 'Approved Date', sortable: true },
