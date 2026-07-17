@@ -84,7 +84,10 @@ export default function MainLayout({ children, sidebarItems }: Props) {
             {/* Breadcrumbs */}
             <nav className="flex items-center gap-2 text-sm">
               {breadcrumbs.map((crumb, index) => (
-                <div key={`${index}-${crumb.path}`} className="flex items-center gap-2">
+                <div
+                  key={`${index}-${crumb.path}`}
+                  className="flex items-center gap-2"
+                >
                   {index > 0 && (
                     <ChevronRight className="text-muted-foreground h-4 w-4" />
                   )}
