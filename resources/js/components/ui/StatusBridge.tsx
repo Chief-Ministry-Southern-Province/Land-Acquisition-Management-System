@@ -12,7 +12,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     cancelled: { variant: "danger", label: "Cancelled" },
     approved: { variant: "success", label: "Approved" },
     rejected: { variant: "danger", label: "Rejected" },
-    "in-progress": { variant: "info", label: "In Progress" },
+
     draft: { variant: "default", label: "Draft" },
     scheduled: { variant: "info", label: "Scheduled" },
     paid: { variant: "success", label: "Paid" },

@@ -12,7 +12,7 @@ export interface LandParcel {
   extent_acers: string;
   extent_perches: string;
   remarks: string | null;
-  status: 'available' | 'pending' | 'acquired' | 'in-progress';
+  status: 'available' | 'pending' | 'acquired';
   created_at: string;
   updated_at: string;
   owners?: PropertyOwner[];
