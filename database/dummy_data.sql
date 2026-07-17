@@ -80,7 +80,7 @@ INSERT INTO projects (id, project_id, name, ministry, department, project_type, 
 -- 7. Seed land_parcels table
 INSERT INTO land_parcels (id, parcel_id, project_id, lot_no, district, division, village, extent_acers, extent_perches, remarks, status, created_at, updated_at) VALUES
 (1, 'PCL-8934', 1, '123/4A', 'Galle', 'Galle Four Gravets', 'Unawatuna', 2.50, 15.00, 'Clear terrain, high value residential land.', 'acquired', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(2, 'PCL-8935', 1, '124/1B', 'Galle', 'Galle Four Gravets', 'Galle', 1.80, 10.00, 'Residential property with a 2-story building structure.', 'in-progress', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 'PCL-8935', 1, '124/1B', 'Galle', 'Galle Four Gravets', 'Galle', 1.80, 10.00, 'Residential property with a 2-story building structure.', 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (3, 'PCL-8936', 2, '125/3', 'Galle', 'Habaraduwa', 'Habaraduwa', 3.20, 25.00, 'Agricultural coconut estate land.', 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (4, 'PCL-8937', NULL, '89/2C', 'Hambantota', 'Tangalle', 'Tangalle', 4.10, 0.00, 'Vacant commercial space near coastal main road.', 'available', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 

@@ -20,7 +20,7 @@ class FileUploadService
 
         // Securely guess the extension based on MIME type rather than client input
         $extension = strtolower($file->guessExtension() ?? $file->getClientOriginalExtension());
-        $storedFileName = Str::uuid() . '.' . $extension;
+        $storedFileName = Str::uuid().'.'.$extension;
         $folder = trim($folder, '/');
 
         $path = Storage::disk($disk)->putFileAs($folder, $file, $storedFileName);
@@ -31,11 +31,11 @@ class FileUploadService
 
         return [
             'original_filename' => $file->getClientOriginalName(),
-            'stored_filename'   => $storedFileName,
-            'file_path'         => "{$folder}/{$storedFileName}",
-            'mime_type'         => $file->getMimeType(),
-            'file_size'         => $file->getSize(),
-            'disk'              => $disk,
+            'stored_filename' => $storedFileName,
+            'file_path' => "{$folder}/{$storedFileName}",
+            'mime_type' => $file->getMimeType(),
+            'file_size' => $file->getSize(),
+            'disk' => $disk,
         ];
     }
 
@@ -51,7 +51,7 @@ class FileUploadService
                 $filePath,
                 now()->addMinutes($expiresInMinutes)
             );
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             // Fallback to normal public URL for drivers that don't support temporary URLs (e.g. local)
             return Storage::disk($disk)->url($filePath);
         }

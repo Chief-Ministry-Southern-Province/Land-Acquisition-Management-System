@@ -83,10 +83,7 @@
             background-color: #e1effe;
             color: #1e40af;
         }
-        .status-in-progress {
-            background-color: #edf2f7;
-            color: #2d3748;
-        }
+
         .footer {
             position: fixed;
             bottom: -30px;

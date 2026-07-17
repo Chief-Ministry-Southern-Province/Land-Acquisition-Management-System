@@ -428,18 +428,30 @@ export default function AddProject() {
   const filteredParcels = useMemo(() => {
     const q = parcelSearch.toLowerCase();
 
+    const availableOrSelected = allParcels.filter((p) => {
+      if (editId) {
+        return (
+          p.status === 'available' ||
+          selectedParcelIds.has(p.id) ||
+          (p.project_id && String(p.project_id) === String(editId))
+        );
+      }
+
+      return p.status === 'available' || selectedParcelIds.has(p.id);
+    });
+
     if (!q) {
-      return allParcels;
+      return availableOrSelected;
     }
 
-    return allParcels.filter(
+    return availableOrSelected.filter(
       (p) =>
         p.id.toLowerCase().includes(q) ||
         p.parcel_id.toLowerCase().includes(q) ||
         p.district.toLowerCase().includes(q) ||
         p.village.toLowerCase().includes(q),
     );
-  }, [allParcels, parcelSearch]);
+  }, [allParcels, parcelSearch, editId, selectedParcelIds]);
 
   const toggleParcel = (id: string) => {
     setSelectedParcelIds((prev) => {

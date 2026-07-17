@@ -34,12 +34,13 @@ class LandParcelController extends Controller
             'extent_acers' => 'required|numeric',
             'extent_perches' => 'required|numeric',
             'remarks' => 'nullable|string',
-            'status' => 'required|string|in:available,pending,acquired,in-progress',
+            'status' => 'nullable|string|in:available,pending,acquired',
             'property_owner_id' => 'nullable|exists:property_owners,id',
             'property_owner_ids' => 'nullable|array',
             'property_owner_ids.*' => 'exists:property_owners,id',
         ]);
 
+        $validated['status'] = 'available';
         $landParcel = LandParcel::create($validated);
         if ($request->has('property_owner_ids') && is_array($request->input('property_owner_ids'))) {
             $landParcel->owners()->attach($request->input('property_owner_ids'));
@@ -88,7 +89,7 @@ class LandParcelController extends Controller
             'extent_acers' => 'required|numeric',
             'extent_perches' => 'required|numeric',
             'remarks' => 'nullable|string',
-            'status' => 'required|string|in:available,pending,acquired,in-progress',
+            'status' => 'required|string|in:available,pending,acquired',
             'property_owner_id' => 'nullable|exists:property_owners,id',
             'property_owner_ids' => 'nullable|array',
             'property_owner_ids.*' => 'exists:property_owners,id',

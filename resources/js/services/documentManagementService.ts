@@ -40,8 +40,12 @@ export const downloadDocument = async (
     responseType: 'blob',
   });
 
+  const contentType = response.headers['content-type'];
   const blob = new Blob([response.data], {
-    type: response.headers['content-type'] || 'application/octet-stream',
+    type:
+      typeof contentType === 'string'
+        ? contentType
+        : 'application/octet-stream',
   });
   const url = window.URL.createObjectURL(blob);
   const link = window.document.createElement('a');

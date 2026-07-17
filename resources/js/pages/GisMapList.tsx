@@ -23,7 +23,7 @@ export default function GisMapList() {
     {
       id: 'PCL-8935',
       name: 'Galle - 124/1B',
-      status: 'in-progress',
+      status: 'pending',
       coordinates: '6.0328, 80.2170',
     },
     {

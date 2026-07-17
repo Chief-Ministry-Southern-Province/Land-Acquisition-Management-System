@@ -22,7 +22,7 @@ return new class extends Migration
             $table->decimal('extent_acers', 10, 2);
             $table->decimal('extent_perches', 10, 2);
             $table->text('remarks')->nullable();
-            $table->enum('status', ['available', 'pending', 'acquired', 'in-progress'])->default('available');
+            $table->enum('status', ['available', 'pending', 'acquired'])->default('available');
             $table->timestamps();
         });
     }
