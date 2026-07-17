@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('purpose');
             $table->date('start_date');
             $table->date('estimated_completion');
-            $table->decimal('budget_im_mn', 5, 2);
+            $table->decimal('budget_im_mn', 15, 2);
             $table->enum('status', ['active', 'pending', 'completed']); // active, pending, completed
             $table->string('project_manager');
             $table->string('contact');

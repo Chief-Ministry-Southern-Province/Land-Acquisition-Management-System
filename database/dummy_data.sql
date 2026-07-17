@@ -103,10 +103,10 @@ INSERT INTO compensation (id, owner_id, land_parcel_id, compensation_id, amount,
 (2, 2, 2, 'COMP-3457', 10800000.00, '2024-05-15', '2024-05-20', 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 11. Seed documents table
-INSERT INTO documents (id, user_id, name, type, category, size, upload_date, document_type, link, created_at, updated_at) VALUES
-(1, 4, 'Project Approval Letter', 'PDF', 'Approvals', '2.3 MB', '2024-01-15', 'project', '/uploads/docs/proj_approval.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(2, 4, 'Environmental Impact Assessment', 'PDF', 'Reports', '15.7 MB', '2024-01-20', 'project', '/uploads/docs/env_impact.pdf', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(3, 3, 'Survey Plans - Lot 123', 'DWG', 'Survey Plan', '8.2 MB', '2024-02-05', 'parcel', '/uploads/docs/survey_plan_123.dwg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO documents (id, user_id, project_id, original_filename, stored_filename, file_type, file_path, file_size, document_category, upload_date, created_at, updated_at) VALUES
+(1, 4, 1, 'Project Approval Letter.pdf', 'proj_approval.pdf', 'PDF', '/uploads/docs/proj_approval.pdf', '2.3 MB', 'Approvals', '2024-01-15', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 4, 1, 'Environmental Impact Assessment.pdf', 'env_impact.pdf', 'PDF', '/uploads/docs/env_impact.pdf', '15.7 MB', 'Reports', '2024-01-20', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 3, 1, 'Survey Plans - Lot 123.dwg', 'survey_plan_123.dwg', 'DWG', '/uploads/docs/survey_plan_123.dwg', '8.2 MB', 'Survey Plan', '2024-02-05', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 12. Seed audit_logs table
 INSERT INTO audit_logs (id, user_id, name, action, module, detail, ip_address, user_agent, created_at, updated_at) VALUES

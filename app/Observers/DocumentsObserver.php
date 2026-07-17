@@ -13,7 +13,7 @@ class DocumentsObserver
     public function created(Documents $document): void
     {
         if ($user = auth()->user()) {
-            AuditLogService::log($user->id, $user->name, 'Create', 'Documents', "Created document {$document->name}");
+            AuditLogService::log($user->id, $user->name, 'Create', 'Documents', "Created document {$document->original_filename}");
         }
     }
 
@@ -23,7 +23,7 @@ class DocumentsObserver
     public function updated(Documents $document): void
     {
         if ($user = auth()->user()) {
-            AuditLogService::log($user->id, $user->name, 'Update', 'Documents', "Updated document {$document->name}");
+            AuditLogService::log($user->id, $user->name, 'Update', 'Documents', "Updated document {$document->original_filename}");
         }
     }
 
@@ -33,7 +33,7 @@ class DocumentsObserver
     public function deleted(Documents $document): void
     {
         if ($user = auth()->user()) {
-            AuditLogService::log($user->id, $user->name, 'Delete', 'Documents', "Deleted document {$document->name}");
+            AuditLogService::log($user->id, $user->name, 'Delete', 'Documents', "Deleted document {$document->original_filename}");
         }
     }
 }

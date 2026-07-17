@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('land-parcels', LandParcelController::class);
     Route::apiResource('property-owners', PropertyOwnerController::class);
     Route::apiResource('compensation', CompensationController::class);
+    Route::get('documents/{id}/download', [DocumentsController::class, 'download']);
     Route::apiResource('documents', DocumentsController::class);
 
     // ─── Admin Only Routes ───────────────────────────────────────────

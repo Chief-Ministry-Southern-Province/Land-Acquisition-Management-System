@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
   ArrowLeft,
   CheckSquare,
@@ -12,10 +12,18 @@ import {
   Square,
   Users,
   X,
+  Trash2,
+  Upload,
+  Download,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import {
+  uploadDocument,
+  deleteDocument,
+  downloadDocument,
+} from '@/services/documentManagementService';
 import { getLandParcels } from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 import {
@@ -23,6 +31,7 @@ import {
   getProject,
   updateProject,
 } from '@/services/projectsManagementService';
+import type { Document } from '@/services/projectsManagementService';
 
 const DISTRICTS = [
   'Colombo',
@@ -224,6 +233,14 @@ export default function AddProject() {
     'active' | 'pending' | 'completed'
   >('pending');
   const [loadingProject, setLoadingProject] = useState(false);
+  const [projectDocuments, setProjectDocuments] = useState<Document[]>([]);
+  const [queuedFiles, setQueuedFiles] = useState<
+    { id: string; file: File; category: string }[]
+  >([]);
+
+  const { props: pageProps } = usePage();
+  const user = (pageProps.auth as any)?.user;
+  const userId = user?.id;
 
   // Fetch all parcels
   useEffect(() => {
@@ -271,6 +288,10 @@ export default function AddProject() {
           if (data.landParcels) {
             setSelectedParcelIds(new Set(data.landParcels.map((p) => p.id)));
           }
+
+          if (data.documents) {
+            setProjectDocuments(data.documents);
+          }
         } catch (error) {
           console.error('Failed to fetch project for editing:', error);
         } finally {
@@ -280,6 +301,94 @@ export default function AddProject() {
       fetchProject();
     }
   }, [editId]);
+
+  const refreshDocuments = async () => {
+    if (editId) {
+      try {
+        const data = await getProject(editId);
+
+        if (data.documents) {
+          setProjectDocuments(data.documents);
+        }
+      } catch (error) {
+        console.error('Failed to refresh documents:', error);
+      }
+    }
+  };
+
+  const getCategoryFromModule = () => {
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+
+      if (pathname.includes('/projects')) {
+        return 'Acquisition Case';
+      }
+
+      if (pathname.includes('/land-parcels')) {
+        return 'Land Parcels';
+      }
+
+      if (pathname.includes('/land-owners')) {
+        return 'Property Owners';
+      }
+    }
+
+    return 'Acquisition Case';
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const newQueuedFiles = Array.from(files).map((file) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      file: file,
+      category: getCategoryFromModule(),
+    }));
+
+    setQueuedFiles((prev) => [...prev, ...newQueuedFiles]);
+  };
+
+  const handleRemoveQueuedFile = (tempId: string) => {
+    setQueuedFiles((prev) => prev.filter((item) => item.id !== tempId));
+  };
+
+  const handleDownload = async (docId: string, filename: string) => {
+    try {
+      await downloadDocument(docId, filename);
+    } catch (error) {
+      console.error('Failed to download document:', error);
+      alert('Failed to download document.');
+    }
+  };
+
+  const handleDelete = async (docId: string, isQueued: boolean) => {
+    if (isQueued) {
+      handleRemoveQueuedFile(docId);
+
+      return;
+    }
+
+    if (
+      !confirm('Are you sure you want to delete this document permanently?')
+    ) {
+      return;
+    }
+
+    try {
+      setLoadingProject(true);
+      await deleteDocument(docId);
+      await refreshDocuments();
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      alert('Failed to delete document.');
+    } finally {
+      setLoadingProject(false);
+    }
+  };
 
   const set =
     (field: keyof ProjectForm) =>
@@ -384,12 +493,24 @@ export default function AddProject() {
       errs.ministry = 'Ministry is required';
     }
 
+    if (!form.department.trim()) {
+      errs.department = 'Department is required';
+    }
+
     if (!form.projectType) {
       errs.projectType = 'Project type is required';
     }
 
+    if (!form.acquisitionAct) {
+      errs.acquisitionAct = 'Acquisition Act is required';
+    }
+
     if (!form.district) {
       errs.district = 'District is required';
+    }
+
+    if (!form.division.trim()) {
+      errs.division = 'Divisional Secretariat is required';
     }
 
     if (!form.purpose.trim()) {
@@ -400,8 +521,22 @@ export default function AddProject() {
       errs.startDate = 'Start date is required';
     }
 
+    if (!form.estimatedCompletion) {
+      errs.estimatedCompletion = 'Estimated completion date is required';
+    }
+
     if (!form.projectManager.trim()) {
       errs.projectManager = 'Project manager name is required';
+    }
+
+    if (!form.managerContact.trim()) {
+      errs.managerContact = 'Manager contact is required';
+    }
+
+    if (!form.managerEmail.trim()) {
+      errs.managerEmail = 'Manager email is required';
+    } else if (!/\S+@\S+\.\S+/.test(form.managerEmail)) {
+      errs.managerEmail = 'Manager email is invalid';
     }
 
     setErrors(errs);
@@ -414,6 +549,7 @@ export default function AddProject() {
 
     if (validate()) {
       try {
+        setLoadingProject(true);
         const payload = {
           projectId: editId ? originalProjectId : generateProjectId(),
           name: form.name,
@@ -435,16 +571,34 @@ export default function AddProject() {
           parcel_ids: Array.from(selectedParcelIds),
         };
 
+        let savedProject: any;
+
         if (editId) {
-          await updateProject(editId, payload);
+          savedProject = await updateProject(editId, payload);
         } else {
-          await createProject(payload);
+          savedProject = await createProject(payload);
+        }
+
+        const targetProjectId = editId || savedProject.id;
+
+        // Upload queued files
+        if (queuedFiles.length > 0) {
+          for (const item of queuedFiles) {
+            await uploadDocument(
+              item.file,
+              String(userId),
+              String(targetProjectId),
+              item.category,
+            );
+          }
         }
 
         router.visit('/projects');
       } catch (error) {
-        console.error('Failed to save project:', error);
+        console.error('Failed to save project and upload documents:', error);
         alert('Failed to save project. Please check form details.');
+      } finally {
+        setLoadingProject(false);
       }
     }
   };
@@ -541,13 +695,16 @@ export default function AddProject() {
               )}
             </Field>
 
-            <Field label="Department / Authority">
+            <Field label="Department / Authority" required>
               <input
                 className={inputCls}
                 placeholder="e.g. Road Development Authority"
                 value={form.department}
                 onChange={set('department')}
               />
+              {errors.department && (
+                <span className={errCls}>{errors.department}</span>
+              )}
             </Field>
 
             <Field label="Project Type" required>
@@ -586,16 +743,19 @@ export default function AddProject() {
               )}
             </Field>
 
-            <Field label="Divisional Secretariat">
+            <Field label="Divisional Secretariat" required>
               <input
                 className={inputCls}
                 placeholder="e.g. Galle Four Gravets"
                 value={form.division}
                 onChange={set('division')}
               />
+              {errors.division && (
+                <span className={errCls}>{errors.division}</span>
+              )}
             </Field>
 
-            <Field label="Acquisition Act">
+            <Field label="Acquisition Act" required>
               <select
                 className={inputCls}
                 value={form.acquisitionAct}
@@ -608,6 +768,9 @@ export default function AddProject() {
                   </option>
                 ))}
               </select>
+              {errors.acquisitionAct && (
+                <span className={errCls}>{errors.acquisitionAct}</span>
+              )}
             </Field>
 
             <div className="lg:col-span-3">
@@ -637,13 +800,16 @@ export default function AddProject() {
               )}
             </Field>
 
-            <Field label="Estimated Completion">
+            <Field label="Estimated Completion" required>
               <input
                 type="date"
                 className={inputCls}
                 value={form.estimatedCompletion}
                 onChange={set('estimatedCompletion')}
               />
+              {errors.estimatedCompletion && (
+                <span className={errCls}>{errors.estimatedCompletion}</span>
+              )}
             </Field>
 
             <Field
@@ -670,7 +836,7 @@ export default function AddProject() {
               )}
             </Field>
 
-            <Field label="Manager Contact">
+            <Field label="Manager Contact" required>
               <input
                 className={inputCls}
                 type="tel"
@@ -678,9 +844,12 @@ export default function AddProject() {
                 value={form.managerContact}
                 onChange={set('managerContact')}
               />
+              {errors.managerContact && (
+                <span className={errCls}>{errors.managerContact}</span>
+              )}
             </Field>
 
-            <Field label="Manager Email">
+            <Field label="Manager Email" required>
               <input
                 className={inputCls}
                 type="email"
@@ -688,6 +857,9 @@ export default function AddProject() {
                 value={form.managerEmail}
                 onChange={set('managerEmail')}
               />
+              {errors.managerEmail && (
+                <span className={errCls}>{errors.managerEmail}</span>
+              )}
             </Field>
 
             <div className="lg:col-span-3">
@@ -941,6 +1113,143 @@ export default function AddProject() {
             </div>
           )}
         </div>
+
+        {/* ── Section 4: Project Documents ── */}
+        {(() => {
+          const formatBytes = (bytes: number, precision = 1) => {
+            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const maxVal = Math.max(bytes, 0);
+            const pow = Math.min(
+              Math.floor((maxVal ? Math.log(maxVal) : 0) / Math.log(1024)),
+              units.length - 1,
+            );
+            const val = maxVal / Math.pow(1024, pow);
+
+            return `${val.toFixed(precision)} ${units[pow]}`;
+          };
+
+          const savedDocs = projectDocuments.map((doc) => ({
+            id: doc.id,
+            name: doc.original_filename,
+            type: doc.file_type.replace('.', '').toUpperCase(),
+            category: doc.document_category,
+            uploadDate: doc.upload_date,
+            size: doc.file_size,
+            isQueued: false,
+          }));
+
+          const queuedDocs = queuedFiles.map((q) => ({
+            id: q.id,
+            name: q.file.name,
+            type: q.file.name.split('.').pop()?.toUpperCase() || 'UNKNOWN',
+            category: q.category,
+            uploadDate: new Date().toISOString().split('T')[0],
+            size: formatBytes(q.file.size),
+            isQueued: true,
+          }));
+
+          const allDisplayDocs = [...savedDocs, ...queuedDocs];
+
+          return (
+            <div className="bg-card border-border overflow-hidden rounded-xl border">
+              <div className="border-border flex flex-wrap items-center justify-between gap-3 border-b px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 rounded-lg p-2">
+                    <FolderKanban className="text-primary h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-foreground text-sm font-semibold uppercase tracking-wide">
+                      Project Documents
+                    </p>
+                    <p className="text-muted-foreground mt-0.5 text-xs">
+                      Attach documents to this project. Queued files will be
+                      uploaded when you save the project.
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-white transition-colors">
+                    <Upload className="h-3.5 w-3.5" />
+                    <span>Select File</span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={handleFileSelect}
+                      accept=".pdf,.jpg,.jpeg,.png,.docx,.dwg"
+                      multiple
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {allDisplayDocs.length === 0 ? (
+                <div className="px-6 py-12 text-center">
+                  <div className="bg-muted mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
+                    <FolderKanban className="text-muted-foreground h-5 w-5" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    No documents selected or uploaded for this project yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-border divide-y">
+                  {allDisplayDocs.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="hover:bg-muted/10 flex items-center justify-between px-6 py-4 transition-colors"
+                    >
+                      <div className="mr-4 flex min-w-0 flex-1 items-center gap-3">
+                        <div className="bg-secondary/15 text-secondary flex w-12 flex-shrink-0 items-center justify-center rounded p-2 text-center font-mono text-xs font-bold uppercase">
+                          {doc.type}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-medium">
+                              {doc.name}
+                            </p>
+                            {doc.isQueued && (
+                              <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
+                                Queued
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground mt-0.5 text-xs">
+                            Category: {doc.category} • Size: {doc.size} • Date:{' '}
+                            {doc.uploadDate}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {!doc.isQueued && (
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(doc.id, doc.name)}
+                            className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+                            title="Download"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(doc.id, doc.isQueued)}
+                          className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                          title={
+                            doc.isQueued
+                              ? 'Remove from queue'
+                              : 'Delete permanently'
+                          }
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* ── Bottom actions ── */}
         <div className="flex justify-end gap-3 pb-8">
