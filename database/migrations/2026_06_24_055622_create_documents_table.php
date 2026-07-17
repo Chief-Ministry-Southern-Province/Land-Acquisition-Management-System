@@ -14,13 +14,14 @@ return new class extends Migration
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('name');
-            $table->string('type'); // .pdf, .xls
-            $table->string('category');
-            $table->string('size');
+            $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
+            $table->string('original_filename');
+            $table->string('stored_filename');
+            $table->string('file_type'); // .pdf, .xls
+            $table->string('file_path');
+            $table->string('file_size');
+            $table->string('document_category'); // project, parcel,
             $table->date('upload_date');
-            $table->string('document_type'); // project, parcel,
-            $table->string('link');
             $table->timestamps();
         });
     }

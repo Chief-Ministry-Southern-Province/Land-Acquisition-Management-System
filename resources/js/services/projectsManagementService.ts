@@ -23,6 +23,22 @@ export interface Project {
   created_at?: string;
   updated_at?: string;
   landParcels?: LandParcel[];
+  documents?: Document[];
+}
+
+export interface Document {
+  id: string;
+  user_id: string;
+  project_id: string;
+  original_filename: string;
+  stored_filename: string;
+  file_type: string;
+  file_path: string;
+  file_size: string;
+  document_category: string;
+  upload_date: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Map backend project model to frontend Project type
@@ -74,6 +90,22 @@ const mapFromBackend = (data: any): Project => ({
               updated_at: o.updated_at,
             }))
           : [],
+      }))
+    : [],
+  documents: data.documents
+    ? data.documents.map((d: any) => ({
+        id: String(d.id),
+        user_id: String(d.user_id),
+        project_id: String(d.project_id),
+        original_filename: d.original_filename || '',
+        stored_filename: d.stored_filename || '',
+        file_type: d.file_type || '',
+        file_path: d.file_path || '',
+        file_size: d.file_size || '',
+        document_category: d.document_category || '',
+        upload_date: d.upload_date || '',
+        created_at: d.created_at,
+        updated_at: d.updated_at,
       }))
     : [],
 });

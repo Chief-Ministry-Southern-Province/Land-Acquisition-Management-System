@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Documents;
+use App\Services\FileUploadService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentsController extends Controller
 {
@@ -23,18 +25,51 @@ class DocumentsController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|max:255',
-            'category' => 'required|string|max:255',
-            'size' => 'required|string|max:255',
-            'upload_date' => 'required|date',
-            'document_type' => 'required|string|max:255',
-            'link' => 'required|string|max:255',
-        ]);
+        if ($request->hasFile('file')) {
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'project_id' => 'required|exists:projects,id',
+                'document_category' => 'required|string|max:255',
+                'file' => 'required|file|max:51200', // 50MB max
+            ]);
 
-        $document = Documents::create($validated);
+            $fileUploadService = new FileUploadService();
+            $uploadResult = $fileUploadService->upload(
+                $request->file('file'),
+                'acquisition_case_documents',
+                'projects/' . $validated['project_id']
+            );
+
+            // Extension is retrieved from the uploaded file
+            $extension = '.' . strtolower($request->file('file')->guessExtension() ?? $request->file('file')->getClientOriginalExtension());
+            $fileSize = $this->formatBytes($uploadResult['file_size']);
+
+            $document = Documents::create([
+                'user_id' => $validated['user_id'],
+                'project_id' => $validated['project_id'],
+                'original_filename' => $uploadResult['original_filename'],
+                'stored_filename' => $uploadResult['stored_filename'],
+                'file_type' => $extension,
+                'file_path' => $uploadResult['file_path'],
+                'file_size' => $fileSize,
+                'document_category' => $validated['document_category'],
+                'upload_date' => now()->toDateString(),
+            ]);
+        } else {
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'project_id' => 'required|exists:projects,id',
+                'original_filename' => 'required|string|max:255',
+                'stored_filename' => 'required|string|max:255',
+                'file_type' => 'required|string|max:255',
+                'file_path' => 'required|string|max:255',
+                'file_size' => 'required|string|max:255',
+                'document_category' => 'required|string|max:255',
+                'upload_date' => 'required|date',
+            ]);
+
+            $document = Documents::create($validated);
+        }
 
         return response()->json([
             'message' => 'Document created successfully',
@@ -66,17 +101,6 @@ class DocumentsController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|max:255',
-            'category' => 'required|string|max:255',
-            'size' => 'required|string|max:255',
-            'upload_date' => 'required|date',
-            'document_type' => 'required|string|max:255',
-            'link' => 'required|string|max:255',
-        ]);
-
         $document = Documents::find($id, ['*']);
 
         if (! $document) {
@@ -85,7 +109,54 @@ class DocumentsController extends Controller
             ], 404);
         }
 
-        $document->update($validated);
+        if ($request->hasFile('file')) {
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'project_id' => 'required|exists:projects,id',
+                'document_category' => 'required|string|max:255',
+                'file' => 'required|file|max:51200',
+            ]);
+
+            $fileUploadService = new FileUploadService();
+            
+            // Delete old file if it exists
+            $fileUploadService->delete('acquisition_case_documents', $document->file_path);
+
+            $uploadResult = $fileUploadService->upload(
+                $request->file('file'),
+                'acquisition_case_documents',
+                'projects/' . $validated['project_id']
+            );
+
+            $extension = '.' . strtolower($request->file('file')->guessExtension() ?? $request->file('file')->getClientOriginalExtension());
+            $fileSize = $this->formatBytes($uploadResult['file_size']);
+
+            $document->update([
+                'user_id' => $validated['user_id'],
+                'project_id' => $validated['project_id'],
+                'original_filename' => $uploadResult['original_filename'],
+                'stored_filename' => $uploadResult['stored_filename'],
+                'file_type' => $extension,
+                'file_path' => $uploadResult['file_path'],
+                'file_size' => $fileSize,
+                'document_category' => $validated['document_category'],
+                'upload_date' => now()->toDateString(),
+            ]);
+        } else {
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'project_id' => 'required|exists:projects,id',
+                'original_filename' => 'required|string|max:255',
+                'stored_filename' => 'required|string|max:255',
+                'file_type' => 'required|string|max:255',
+                'file_path' => 'required|string|max:255',
+                'file_size' => 'required|string|max:255',
+                'document_category' => 'required|string|max:255',
+                'upload_date' => 'required|date',
+            ]);
+
+            $document->update($validated);
+        }
 
         return response()->json([
             'message' => 'Document updated successfully',
@@ -106,10 +177,55 @@ class DocumentsController extends Controller
             ], 404);
         }
 
+        // Delete file from storage if it exists
+        $fileUploadService = new FileUploadService();
+        $fileUploadService->delete('acquisition_case_documents', $document->file_path);
+
         $document->delete();
 
         return response()->json([
             'message' => 'Document deleted successfully',
         ], 204);
+    }
+
+    /**
+     * Download the document file from storage.
+     */
+    public function download(string $id)
+    {
+        $document = Documents::find($id);
+
+        if (! $document) {
+            return response()->json([
+                'message' => 'Document not found',
+            ], 404);
+        }
+
+        if (! Storage::disk('acquisition_case_documents')->exists($document->file_path)) {
+            return response()->json([
+                'message' => 'File not found on storage disk',
+            ], 404);
+        }
+
+        return Storage::disk('acquisition_case_documents')->download(
+            $document->file_path,
+            $document->original_filename
+        );
+    }
+
+    /**
+     * Helper to format bytes to human-readable size.
+     */
+    private function formatBytes($bytes, $precision = 1)
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+
+        $bytes /= pow(1024, $pow);
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }

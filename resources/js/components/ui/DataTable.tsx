@@ -14,6 +14,7 @@ interface DataTableProps {
   searchable?: boolean;
   filterable?: boolean;
   exportable?: boolean;
+  onExport?: (format: 'pdf' | 'excel' | 'csv') => void;
   onRowClick?: (row: any) => void;
   actions?: (row: any) => React.ReactNode;
   pageSize?: number;
@@ -25,6 +26,7 @@ export function DataTable({
   searchable = true,
   filterable = true,
   exportable = true,
+  onExport,
   onRowClick,
   actions,
   pageSize = 10,
@@ -32,6 +34,7 @@ export function DataTable({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" } | null>(null);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   const handleSort = (key: string) => {
     setSortConfig((prev) => {
@@ -97,11 +100,47 @@ export function DataTable({
                 <span className="text-sm">Filter</span>
               </button>
             )}
-            {exportable && (
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors">
-                <Download className="w-4 h-4" />
-                <span className="text-sm">Export</span>
-              </button>
+            {exportable && onExport && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowExportDropdown(!showExportDropdown)}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="text-sm">Export</span>
+                </button>
+                {showExportDropdown && (
+                  <div className="absolute right-0 mt-2 w-36 bg-card border border-border rounded-lg shadow-lg z-50 py-1">
+                    <button
+                      onClick={() => {
+                        onExport('pdf');
+                        setShowExportDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                    >
+                      Export PDF
+                    </button>
+                    <button
+                      onClick={() => {
+                        onExport('excel');
+                        setShowExportDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                    >
+                      Export Excel
+                    </button>
+                    <button
+                      onClick={() => {
+                        onExport('csv');
+                        setShowExportDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                    >
+                      Export CSV
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

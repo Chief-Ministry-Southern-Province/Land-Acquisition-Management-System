@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
-import { getLandParcels } from '@/services/landParcelManagementService';
+import {
+  getLandParcels,
+  exportLandParcels,
+} from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 
 export default function LandParcelList() {
@@ -26,6 +29,14 @@ export default function LandParcelList() {
 
     fetchParcels();
   }, []);
+
+  const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
+    try {
+      await exportLandParcels(format);
+    } catch (error) {
+      console.error(`Failed to export land parcels as ${format}:`, error);
+    }
+  };
 
   const columns = [
     { key: 'parcel_id', label: 'Parcel Number', sortable: true },
@@ -140,6 +151,7 @@ export default function LandParcelList() {
           columns={columns}
           data={parcels}
           onRowClick={(row) => router.visit(`/land-parcels/${row.id}`)}
+          onExport={handleExport}
           actions={actions}
         />
       )}

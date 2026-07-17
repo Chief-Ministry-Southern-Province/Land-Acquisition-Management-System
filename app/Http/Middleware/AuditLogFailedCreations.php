@@ -49,7 +49,7 @@ class AuditLogFailedCreations
                     $detail = "Failed to create compensation {$compensationId}";
                 } elseif (str_contains($action, 'DocumentsController@store')) {
                     $module = 'Documents';
-                    $name = $request->input('name') ?? 'Unknown';
+                    $name = $request->input('original_filename') ?? 'Unknown';
                     $detail = "Failed to create document {$name}";
                 } elseif (str_contains($action, 'DepartmentController@store')) {
                     $module = 'Departments';
