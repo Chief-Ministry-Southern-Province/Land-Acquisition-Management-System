@@ -9,7 +9,6 @@ import {
   ArrowRight,
   HelpCircle,
   Globe,
-  Landmark,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
@@ -84,11 +83,13 @@ function LoginScreen() {
         <div className="relative z-20 flex h-full flex-col justify-between gap-12">
           {/* Logo and Name */}
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 shadow-md shadow-blue-500/20">
-              <Landmark className="h-6 w-6 text-white" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="Land Acquisition Management Logo"
+              className="h-11 w-11 object-contain rounded-xl bg-white p-1 shadow-md shadow-blue-500/20"
+            />
             <span className="text-2xl font-bold tracking-tight text-white">
-              LandPath
+              Land Acquisition Management
             </span>
           </div>
 

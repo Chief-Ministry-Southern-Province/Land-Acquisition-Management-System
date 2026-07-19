@@ -111,11 +111,15 @@ export default function SideBar({ items }: SideBarProps = {}) {
     <>
       {/* Logo */}
       <div className="border-border bg-primary flex h-16 items-center justify-between border-b px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-white">
-            <span className="text-primary font-bold">LA</span>
-          </div>
-          <span className="text-white">LAMS</span>
+        <div className="flex items-center gap-2.5">
+          <img
+            src="/logo.png"
+            alt="Land Acquisition Management Logo"
+            className="h-9 w-9 object-contain rounded bg-white p-0.5 shadow-sm"
+          />
+          <span className="text-white font-semibold text-xs leading-snug tracking-wide uppercase">
+            Land Acquisition<br />Management
+          </span>
         </div>
       </div>
 
