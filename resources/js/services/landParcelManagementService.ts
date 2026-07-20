@@ -12,7 +12,7 @@ export interface LandParcel {
   extent_acers: string;
   extent_perches: string;
   remarks: string | null;
-  status: 'available' | 'pending' | 'acquired' | 'in-progress';
+  status: 'available' | 'pending' | 'acquired';
   created_at: string;
   updated_at: string;
   owners?: PropertyOwner[];
@@ -107,4 +107,59 @@ export const updateLandParcel = async (
 
 export const deleteLandParcel = async (id: string): Promise<void> => {
   await api.delete(`/api/land-parcels/${id}`);
+};
+
+export const exportLandParcels = async (
+  format: 'pdf' | 'excel' | 'csv',
+): Promise<void> => {
+  const response = await api.get(`/api/land-parcels/export?format=${format}`, {
+    responseType: 'blob',
+  });
+
+  const contentType = response.headers['content-type'];
+  const blob = new Blob([response.data], {
+    type:
+      typeof contentType === 'string'
+        ? contentType
+        : 'application/octet-stream',
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = `land_parcels_export.${format === 'excel' ? 'xlsx' : format}`;
+
+  if (typeof contentDisposition === 'string') {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+
+    if (match && match[1]) {
+      filename = match[1];
+    }
+  }
+
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+export const importLandParcels = async (
+  file: File,
+): Promise<{
+  message: string;
+  imported_count: number;
+  failures: any[];
+}> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await api.post('/api/land-parcels/import', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data;
 };

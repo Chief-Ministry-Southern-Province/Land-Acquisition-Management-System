@@ -30,4 +30,9 @@ class Projects extends Model
     {
         return $this->hasMany(LandParcel::class, 'project_id');
     }
+
+    public function documents()
+    {
+        return $this->hasMany(Documents::class, 'project_id');
+    }
 }

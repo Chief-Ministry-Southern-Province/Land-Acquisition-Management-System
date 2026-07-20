@@ -6,6 +6,8 @@ use App\Models\Projects;
 use App\Models\PropertyOwner;
 use App\Models\Roles;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->department = Departments::create([
@@ -331,51 +333,72 @@ test('compensation crud operations', function () {
 });
 
 test('documents crud operations', function () {
+    $project = Projects::create([
+        'project_id' => 'PRJ-100',
+        'name' => 'Test Project Name',
+        'ministry' => 'Ministry of Lands',
+        'department' => 'Acquisition Department',
+        'project_type' => 'Infrastructure',
+        'acquisition_act' => 'Act 2026',
+        'district' => 'Galle',
+        'division' => 'Four Gravets',
+        'purpose' => 'Highway Expansion',
+        'start_date' => '2026-01-01',
+        'estimated_completion' => '2027-12-31',
+        'budget_im_mn' => 123.45,
+        'status' => 'pending',
+        'project_manager' => 'John Doe',
+        'contact' => '+94771234567',
+        'email' => 'manager@lands.gov',
+        'remarks' => 'Urgent priority',
+    ]);
+
     $docData = [
         'user_id' => $this->user->id,
-        'name' => 'Deed of Land',
-        'type' => '.pdf',
-        'category' => 'Legal',
-        'size' => '2.4MB',
+        'project_id' => $project->id,
+        'original_filename' => 'Deed of Land.pdf',
+        'stored_filename' => 'stored_deed_of_land.pdf',
+        'file_type' => '.pdf',
+        'file_path' => 'uploads/docs/stored_deed_of_land.pdf',
+        'file_size' => '2.4MB',
+        'document_category' => 'Legal',
         'upload_date' => '2026-06-24',
-        'document_type' => 'parcel',
-        'link' => 'https://storage.provider.com/deed.pdf',
     ];
 
     // Create
     $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/documents', $docData);
     $response->assertStatus(201);
-    $response->assertJsonPath('document.name', 'Deed of Land');
+    $response->assertJsonPath('document.original_filename', 'Deed of Land.pdf');
     $docId = $response->json('document.id');
 
     $this->assertDatabaseHas('audit_logs', [
         'user_id' => $this->user->id,
         'action' => 'Create',
         'module' => 'Documents',
-        'detail' => 'Created document Deed of Land',
+        'detail' => 'Created document Deed of Land.pdf',
     ]);
 
     // Get All
     $response = $this->actingAs($this->user, 'sanctum')->getJson('/api/documents');
     $response->assertStatus(200);
-    $response->assertJsonFragment(['name' => 'Deed of Land']);
+    $response->assertJsonFragment(['original_filename' => 'Deed of Land.pdf']);
 
     // Get One
     $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/documents/{$docId}");
     $response->assertStatus(200);
-    $response->assertJsonPath('document.name', 'Deed of Land');
+    $response->assertJsonPath('document.original_filename', 'Deed of Land.pdf');
 
     // Update
-    $docData['name'] = 'Deed of Land Updated';
+    $docData['original_filename'] = 'Deed of Land Updated.pdf';
     $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/documents/{$docId}", $docData);
     $response->assertStatus(200);
-    $response->assertJsonPath('document.name', 'Deed of Land Updated');
+    $response->assertJsonPath('document.original_filename', 'Deed of Land Updated.pdf');
 
     $this->assertDatabaseHas('audit_logs', [
         'user_id' => $this->user->id,
         'action' => 'Update',
         'module' => 'Documents',
-        'detail' => 'Updated document Deed of Land Updated',
+        'detail' => 'Updated document Deed of Land Updated.pdf',
     ]);
 
     // Delete
@@ -386,12 +409,91 @@ test('documents crud operations', function () {
         'user_id' => $this->user->id,
         'action' => 'Delete',
         'module' => 'Documents',
-        'detail' => 'Deleted document Deed of Land Updated',
+        'detail' => 'Deleted document Deed of Land Updated.pdf',
     ]);
 
     // Verify deleted
     $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/documents/{$docId}");
     $response->assertStatus(404);
+});
+
+test('documents file upload and download operations', function () {
+    Storage::fake('acquisition_case_documents');
+
+    $project = Projects::create([
+        'project_id' => 'PRJ-101',
+        'name' => 'Test Project Name 2',
+        'ministry' => 'Ministry of Lands',
+        'department' => 'Acquisition Department',
+        'project_type' => 'Infrastructure',
+        'acquisition_act' => 'Act 2026',
+        'district' => 'Galle',
+        'division' => 'Four Gravets',
+        'purpose' => 'Highway Expansion',
+        'start_date' => '2026-01-01',
+        'estimated_completion' => '2027-12-31',
+        'budget_im_mn' => 123.45,
+        'status' => 'pending',
+        'project_manager' => 'John Doe',
+        'contact' => '+94771234567',
+        'email' => 'manager@lands.gov',
+        'remarks' => 'Urgent priority',
+    ]);
+
+    $file = UploadedFile::fake()->create('contract.pdf', 1500); // 1.5MB PDF file
+
+    $uploadData = [
+        'user_id' => $this->user->id,
+        'project_id' => $project->id,
+        'document_category' => 'Legal',
+        'file' => $file,
+    ];
+
+    // Create / Upload
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/documents', $uploadData);
+    $response->assertStatus(201);
+    $response->assertJsonPath('document.original_filename', 'contract.pdf');
+    $response->assertJsonPath('document.file_size', '1.5 MB');
+
+    $doc = $response->json('document');
+    $docId = $doc['id'];
+    $filePath = $doc['file_path'];
+
+    // Assert file exists on the fake disk
+    Storage::disk('acquisition_case_documents')->assertExists($filePath);
+
+    // Download file
+    $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/documents/{$docId}/download");
+    $response->assertStatus(200);
+    $response->assertHeader('content-disposition', 'attachment; filename=contract.pdf');
+
+    // Update with new file
+    $newFile = UploadedFile::fake()->create('contract_v2.pdf', 2500); // 2.5MB
+    $updateData = [
+        'user_id' => $this->user->id,
+        'project_id' => $project->id,
+        'document_category' => 'Legal Updated',
+        'file' => $newFile,
+    ];
+
+    $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/documents/{$docId}", $updateData);
+    $response->assertStatus(200);
+    $response->assertJsonPath('document.original_filename', 'contract_v2.pdf');
+    $response->assertJsonPath('document.file_size', '2.4 MB'); // 2500 KB / 1024 ~ 2.44 MB
+
+    $newDoc = $response->json('document');
+    $newFilePath = $newDoc['file_path'];
+
+    // Assert new file exists and old file is deleted
+    Storage::disk('acquisition_case_documents')->assertExists($newFilePath);
+    Storage::disk('acquisition_case_documents')->assertMissing($filePath);
+
+    // Delete document
+    $response = $this->actingAs($this->user, 'sanctum')->deleteJson("/api/documents/{$docId}");
+    $response->assertStatus(204);
+
+    // Assert file is deleted from disk
+    Storage::disk('acquisition_case_documents')->assertMissing($newFilePath);
 });
 
 test('audit logs crud operations', function () {
@@ -551,4 +653,88 @@ test('roles crud operations', function () {
     // Verify deleted
     $response = $this->actingAs($this->user, 'sanctum')->getJson("/api/roles/{$roleId}");
     $response->assertStatus(404);
+});
+
+test('land parcel status transitions on creation and project association', function () {
+    // 1. A land parcel status should be "available" when a new land is created.
+    $parcelData = [
+        'parcel_id' => 'PAR-12345',
+        'lot_no' => 'Lot 10',
+        'district' => 'Galle',
+        'division' => 'Bope-Poddala',
+        'village' => 'Pinnaduwa',
+        'extent_acers' => 1.5,
+        'extent_perches' => 20.0,
+        'remarks' => 'Test remarks',
+        'status' => 'pending', // Even if we send pending, it should be created as available
+    ];
+
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/land-parcels', $parcelData);
+    $response->assertStatus(201);
+    $response->assertJsonPath('land_parcel.status', 'available');
+    $parcelId = $response->json('land_parcel.id');
+
+    // Also check database
+    $this->assertDatabaseHas('land_parcels', [
+        'id' => $parcelId,
+        'status' => 'available',
+    ]);
+
+    // Create a second parcel
+    $parcelData2 = $parcelData;
+    $parcelData2['parcel_id'] = 'PAR-54321';
+    $response2 = $this->actingAs($this->user, 'sanctum')->postJson('/api/land-parcels', $parcelData2);
+    $response2->assertStatus(201);
+    $parcelId2 = $response2->json('land_parcel.id');
+
+    // 2. Update landparcel status to pending when an acquisition case (project) is made.
+    $projectData = [
+        'project_id' => 'PRJ-TEST-CASE',
+        'name' => 'Acquisition Case Project',
+        'ministry' => 'Ministry of Lands',
+        'department' => 'Acquisition Department',
+        'project_type' => 'Highway',
+        'acquisition_act' => 'Act 2026',
+        'district' => 'Galle',
+        'division' => 'Four Gravets',
+        'purpose' => 'Highway Expansion',
+        'start_date' => '2026-01-01',
+        'estimated_completion' => '2027-12-31',
+        'budget_im_mn' => 100.0,
+        'status' => 'pending',
+        'project_manager' => 'John Manager',
+        'contact' => '+94771234567',
+        'email' => 'manager@lands.gov',
+        'parcel_ids' => [$parcelId],
+    ];
+
+    $responseProject = $this->actingAs($this->user, 'sanctum')->postJson('/api/projects', $projectData);
+    $responseProject->assertStatus(201);
+    $projectId = $responseProject->json('project.id');
+
+    // Verify parcel status changed to pending
+    $this->assertDatabaseHas('land_parcels', [
+        'id' => $parcelId,
+        'status' => 'pending',
+        'project_id' => $projectId,
+    ]);
+
+    // 3. Update project: dissociate $parcelId (should become available) and associate $parcelId2 (should become pending)
+    $projectData['parcel_ids'] = [$parcelId2];
+    $responseUpdateProject = $this->actingAs($this->user, 'sanctum')->putJson("/api/projects/{$projectId}", $projectData);
+    $responseUpdateProject->assertStatus(200);
+
+    // Verify dissociated parcel is back to available
+    $this->assertDatabaseHas('land_parcels', [
+        'id' => $parcelId,
+        'status' => 'available',
+        'project_id' => null,
+    ]);
+
+    // Verify newly associated parcel is pending
+    $this->assertDatabaseHas('land_parcels', [
+        'id' => $parcelId2,
+        'status' => 'pending',
+        'project_id' => $projectId,
+    ]);
 });

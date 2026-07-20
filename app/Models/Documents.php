@@ -7,15 +7,24 @@ use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
     'user_id',
-    'name',
-    'type',
-    'category',
-    'size',
+    'project_id',
+    'original_filename',
+    'stored_filename',
+    'file_type',
+    'file_path',
+    'file_size',
+    'document_category',
     'upload_date',
-    'document_type',
-    'link',
 ])]
 class Documents extends Model
 {
-    //
+    public function project()
+    {
+        return $this->belongsTo(Projects::class, 'project_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

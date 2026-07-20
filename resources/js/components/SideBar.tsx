@@ -56,46 +56,54 @@ export default function SideBar({ items }: SideBarProps = {}) {
   };
 
   // NOTE: Do not remove default items
-  const defaultItems =
-    userRole === 'Admin'
-      ? [
-          {
-            path: '/dashboard',
-            icon: LayoutDashboard,
-            label: 'Admin Dashboard',
-          },
-          {
-            path: '/user-management',
-            icon: UserCog,
-            label: 'User Management',
-          },
-          { path: '/departments', icon: Building2, label: 'Departments' },
-          { path: '/roles', icon: Shield, label: 'Roles & Permissions' },
-          { path: '/audit-log', icon: History, label: 'Audit Logs' },
-          { path: '/settings', icon: Settings, label: 'System Settings' },
-        ]
-      : [
-          { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
-          { path: '/projects', icon: FolderKanban, label: t('projects') },
-          { path: '/land-parcels', icon: Map, label: t('land_parcels') },
-          { path: '/land-owners', icon: Users, label: t('land_owners') },
-          { path: '/compensation', icon: DollarSign, label: t('compensation') },
-          {
-            path: '/acquisition-workflow',
-            icon: GitBranch,
-            label: t('acquisition_workflow'),
-          },
-          { path: '/documents', icon: FolderOpen, label: t('documents') },
-          { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
-          {
-            path: '/approval-workflow',
-            icon: CheckSquare,
-            label: t('approvals'),
-          },
-          { path: '/reports', icon: BarChart3, label: t('reports') },
-          { path: '/notifications', icon: Bell, label: t('notifications') },
-          { path: '/settings', icon: Settings, label: t('settings') },
-        ];
+  const navItemByRole: Record<string, SideBarItem[]> = {
+    Admin: [
+      {
+        path: '/dashboard',
+        icon: LayoutDashboard,
+        label: 'Admin Dashboard',
+      },
+      {
+        path: '/user-management',
+        icon: UserCog,
+        label: 'User Management',
+      },
+      { path: '/departments', icon: Building2, label: 'Departments' },
+      { path: '/roles', icon: Shield, label: 'Roles & Permissions' },
+      { path: '/audit-log', icon: History, label: 'Audit Logs' },
+      { path: '/settings', icon: Settings, label: 'System Settings' },
+    ],
+    DO: [
+      { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      { path: '/land-parcels', icon: Map, label: t('land_parcels') },
+      { path: '/land-owners', icon: Users, label: t('land_owners') },
+      { path: '/notifications', icon: Bell, label: t('notifications') },
+      { path: '/settings', icon: Settings, label: t('settings') },
+    ],
+    HOB: [
+      { path: '/compensation', icon: DollarSign, label: t('compensation') },
+      {
+        path: '/acquisition-workflow',
+        icon: GitBranch,
+        label: t('acquisition_workflow'),
+      },
+      { path: '/documents', icon: FolderOpen, label: t('documents') },
+      { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
+      {
+        path: '/approval-workflow',
+        icon: CheckSquare,
+        label: t('approvals'),
+      },
+      { path: '/reports', icon: BarChart3, label: t('reports') },
+    ],
+    AO: [],
+    AS: [],
+    SAS: [],
+    SEC: [],
+  };
+
+  const defaultItems = navItemByRole[userRole] || navItemByRole['DO'];
 
   const menuItems = items || defaultItems;
 
@@ -103,11 +111,17 @@ export default function SideBar({ items }: SideBarProps = {}) {
     <>
       {/* Logo */}
       <div className="border-border bg-primary flex h-16 items-center justify-between border-b px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-white">
-            <span className="text-primary font-bold">LA</span>
-          </div>
-          <span className="text-white">LAMS</span>
+        <div className="flex items-center gap-2.5">
+          <img
+            src="/logo.png"
+            alt="Land Acquisition Management Logo"
+            className="h-9 w-9 rounded bg-white object-contain p-0.5 shadow-sm"
+          />
+          <span className="text-xs font-semibold uppercase leading-snug tracking-wide text-white">
+            Land Acquisition
+            <br />
+            Management
+          </span>
         </div>
       </div>
 

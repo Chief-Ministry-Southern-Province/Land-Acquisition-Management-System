@@ -1,10 +1,15 @@
-import { Link, router } from '@inertiajs/react';
-import { ArrowLeft, Download, Edit } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { ArrowLeft, Download, Edit, Trash2, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import WorkflowTimeline from '@/components/ui/WorkflowTimeline';
 import MainLayout from '@/layouts/MainLayout';
+import {
+  uploadDocument,
+  deleteDocument,
+  downloadDocument,
+} from '@/services/documentManagementService';
 import { getProject } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
@@ -17,23 +22,129 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const { props: pageProps } = usePage();
+  const user = (pageProps.auth as any)?.user;
+  const userId = user?.id;
+
+  const fetchProjectDetails = async () => {
+    try {
+      const data = await getProject(id);
+      setProject(data);
+    } catch (error) {
+      console.error('Failed to fetch project details:', error);
+    }
+  };
+
   useEffect(() => {
-    const fetchProjectDetails = async () => {
+    const initialFetch = async () => {
       try {
         setLoading(true);
-        const data = await getProject(id);
-        setProject(data);
-      } catch (error) {
-        console.error('Failed to fetch project details:', error);
+        await fetchProjectDetails();
       } finally {
         setLoading(false);
       }
     };
 
     if (id) {
-      fetchProjectDetails();
+      initialFetch();
     }
   }, [id]);
+
+  const getCategoryFromModule = () => {
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+
+      if (pathname.includes('/projects')) {
+        return 'Acquisition Case';
+      }
+
+      if (pathname.includes('/land-parcels')) {
+        return 'Land Parcels';
+      }
+
+      if (pathname.includes('/land-owners')) {
+        return 'Property Owners';
+      }
+    }
+
+    return 'Acquisition Case';
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const fileArray = Array.from(files);
+
+      for (const file of fileArray) {
+        await uploadDocument(
+          file,
+          String(userId),
+          String(project?.id),
+          getCategoryFromModule(),
+        );
+      }
+
+      await fetchProjectDetails();
+    } catch (error) {
+      console.error('Failed to upload documents:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = async (docId: string, filename: string) => {
+    try {
+      await downloadDocument(docId, filename);
+    } catch (error) {
+      console.error('Failed to download document:', error);
+      alert('Failed to download document.');
+    }
+  };
+
+  const handleDelete = async (docId: string) => {
+    if (!confirm('Are you sure you want to delete this document?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await deleteDocument(docId);
+      await fetchProjectDetails();
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      alert('Failed to delete document.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const documentActions = (row: any) => (
+    <div
+      className="flex justify-end gap-2"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        onClick={() => handleDownload(row.id, row.name)}
+        className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+        title="Download"
+      >
+        <Download className="h-4 w-4" />
+      </button>
+      <button
+        onClick={() => handleDelete(row.id)}
+        className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+        title="Delete"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  );
 
   const parcels = project?.landParcels
     ? project.landParcels.map((p) => ({
@@ -100,26 +211,16 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     },
   ];
 
-  const documents = [
-    {
-      name: 'Project Approval Letter',
-      type: 'PDF',
-      uploadDate: '2024-01-15',
-      size: '2.3 MB',
-    },
-    {
-      name: 'Environmental Impact Assessment',
-      type: 'PDF',
-      uploadDate: '2024-01-20',
-      size: '15.7 MB',
-    },
-    {
-      name: 'Survey Plans',
-      type: 'DWG',
-      uploadDate: '2024-02-05',
-      size: '8.2 MB',
-    },
-  ];
+  const documents = project?.documents
+    ? project.documents.map((doc) => ({
+        id: doc.id,
+        name: doc.original_filename,
+        type: doc.file_type.replace('.', '').toUpperCase(),
+        category: doc.document_category,
+        uploadDate: doc.upload_date,
+        size: doc.file_size,
+      }))
+    : [];
 
   const legalCases = [
     {
@@ -369,15 +470,41 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       )}
 
       {activeTab === 'documents' && (
-        <DataTable
-          columns={[
-            { key: 'name', label: 'Document Name', sortable: true },
-            { key: 'type', label: 'Type', sortable: true },
-            { key: 'uploadDate', label: 'Upload Date', sortable: true },
-            { key: 'size', label: 'Size', sortable: true },
-          ]}
-          data={documents}
-        />
+        <div className="space-y-4">
+          <div className="bg-card border-border flex items-center justify-between rounded-lg border p-4">
+            <div>
+              <h3 className="text-base font-semibold">Project Documents</h3>
+              <p className="text-muted-foreground text-sm">
+                Manage and upload documents related to this project.
+              </p>
+            </div>
+            <div>
+              <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors">
+                <Upload className="h-4 w-4" />
+                <span>Upload Document</span>
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  accept=".pdf,.jpg,.jpeg,.png,.docx,.dwg"
+                  multiple
+                />
+              </label>
+            </div>
+          </div>
+
+          <DataTable
+            columns={[
+              { key: 'name', label: 'Document Name', sortable: true },
+              { key: 'type', label: 'Type', sortable: true },
+              { key: 'category', label: 'Category', sortable: true },
+              { key: 'uploadDate', label: 'Upload Date', sortable: true },
+              { key: 'size', label: 'Size', sortable: true },
+            ]}
+            data={documents}
+            actions={documentActions}
+          />
+        </div>
       )}
 
       {activeTab === 'legal' && (

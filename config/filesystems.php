@@ -60,6 +60,12 @@ return [
             'report' => false,
         ],
 
+        'acquisition_case_documents' => [
+            'driver' => 'local',
+            'root' => storage_path('app/acquisition_case_documents'),
+            'visibility' => 'private',
+        ],
+
     ],
 
     /*

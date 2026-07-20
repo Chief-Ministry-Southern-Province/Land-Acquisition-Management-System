@@ -50,7 +50,10 @@ class ProjectsController extends Controller
 
         if ($request->has('parcel_ids') && is_array($request->input('parcel_ids'))) {
             LandParcel::whereIn('id', $request->input('parcel_ids'))
-                ->update(['project_id' => $project->id]);
+                ->update([
+                    'project_id' => $project->id,
+                    'status' => 'pending',
+                ]);
         }
 
         return response()->json([
@@ -64,7 +67,7 @@ class ProjectsController extends Controller
      */
     public function show(string $id)
     {
-        $project = Projects::with('landParcels.owners')->find($id);
+        $project = Projects::with(['landParcels.owners', 'documents'])->find($id);
 
         if ($project) {
             return response()->json([
@@ -116,13 +119,26 @@ class ProjectsController extends Controller
         $project->update($validated);
 
         if ($request->has('parcel_ids') && is_array($request->input('parcel_ids'))) {
-            // Dissociate old parcels
-            LandParcel::where('project_id', $project->id)
-                ->update(['project_id' => null]);
+            $newParcelIds = $request->input('parcel_ids');
 
-            // Associate new parcels
-            LandParcel::whereIn('id', $request->input('parcel_ids'))
-                ->update(['project_id' => $project->id]);
+            // Dissociate old parcels that are not in the new list
+            LandParcel::where('project_id', $project->id)
+                ->whereNotIn('id', $newParcelIds)
+                ->update([
+                    'project_id' => null,
+                    'status' => 'available',
+                ]);
+
+            // Associate new parcels that were not already associated with this project
+            LandParcel::whereIn('id', $newParcelIds)
+                ->where(function ($query) use ($project) {
+                    $query->where('project_id', '!=', $project->id)
+                        ->orWhereNull('project_id');
+                })
+                ->update([
+                    'project_id' => $project->id,
+                    'status' => 'pending',
+                ]);
         }
 
         return response()->json([
