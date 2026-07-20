@@ -86,7 +86,7 @@ function LoginScreen() {
             <img
               src="/logo.png"
               alt="Land Acquisition Management Logo"
-              className="h-11 w-11 object-contain rounded-xl bg-white p-1 shadow-md shadow-blue-500/20"
+              className="h-11 w-11 rounded-xl bg-white object-contain p-1 shadow-md shadow-blue-500/20"
             />
             <span className="text-2xl font-bold tracking-tight text-white">
               Land Acquisition Management

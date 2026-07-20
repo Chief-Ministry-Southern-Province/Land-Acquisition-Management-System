@@ -115,10 +115,12 @@ export default function SideBar({ items }: SideBarProps = {}) {
           <img
             src="/logo.png"
             alt="Land Acquisition Management Logo"
-            className="h-9 w-9 object-contain rounded bg-white p-0.5 shadow-sm"
+            className="h-9 w-9 rounded bg-white object-contain p-0.5 shadow-sm"
           />
-          <span className="text-white font-semibold text-xs leading-snug tracking-wide uppercase">
-            Land Acquisition<br />Management
+          <span className="text-xs font-semibold uppercase leading-snug tracking-wide text-white">
+            Land Acquisition
+            <br />
+            Management
           </span>
         </div>
       </div>
