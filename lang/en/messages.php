@@ -34,7 +34,7 @@ return [
     'security_notice' => 'Security Notice:',
     'security_notice_text' => 'This is a government system. Unauthorized access is prohibited and may be subject to legal action.',
     'personnel_sign_in' => 'Personnel Sign In',
-    'enter_credentials_text' => 'Enter your official credentials to access the LandPath dashboard.',
+    'enter_credentials_text' => 'Enter your official credentials to access the Land Acquisition Management dashboard.',
     'secure_session' => 'Secure Session',
     'secure_session_text' => 'This is a restricted government system. All activities are logged and audited.',
     'officer_id_username' => 'Officer ID / Username',

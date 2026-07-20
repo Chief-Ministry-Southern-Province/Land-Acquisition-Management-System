@@ -144,3 +144,22 @@ export const exportLandParcels = async (
   link.parentNode?.removeChild(link);
   window.URL.revokeObjectURL(url);
 };
+
+export const importLandParcels = async (
+  file: File,
+): Promise<{
+  message: string;
+  imported_count: number;
+  failures: any[];
+}> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await api.post('/api/land-parcels/import', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data;
+};

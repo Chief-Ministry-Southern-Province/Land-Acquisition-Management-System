@@ -1,18 +1,25 @@
 import { router } from '@inertiajs/react';
-import { Eye, MapPin, Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Eye, MapPin, Plus, Upload } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
 import {
   getLandParcels,
   exportLandParcels,
+  importLandParcels,
 } from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 
 export default function LandParcelList() {
   const [parcels, setParcels] = useState<LandParcel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchParcels = async () => {
@@ -35,6 +42,89 @@ export default function LandParcelList() {
       await exportLandParcels(format);
     } catch (error) {
       console.error(`Failed to export land parcels as ${format}:`, error);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      setImporting(true);
+      setImportMessage(null);
+      const res = await importLandParcels(file);
+
+      if (res.failures && res.failures.length > 0) {
+        const failedCount = res.failures.length;
+        const msg = `Successfully imported ${res.imported_count} land parcels. ${failedCount} rows failed validation.`;
+        setImportMessage({ type: 'success', text: msg });
+        alert(msg + '\n\nFirst failure: ' + res.failures[0].errors.join(', '));
+      } else {
+        const msg = `Successfully imported all ${res.imported_count} land parcels!`;
+        setImportMessage({ type: 'success', text: msg });
+        alert(msg);
+      }
+
+      // Refresh list
+      const data = await getLandParcels();
+      setParcels(data);
+    } catch (error: any) {
+      console.error('Failed to import land parcels:', error);
+
+      if (error.response?.status === 422) {
+        const data = error.response.data;
+        const failedCount = data.failures?.length || 0;
+        const msg = `Import failed: ${failedCount} rows had validation errors. ${data.imported_count} land parcels were imported successfully.`;
+        setImportMessage({ type: 'error', text: msg });
+
+        let failureDetails = '';
+
+        if (data.failures && data.failures.length > 0) {
+          failureDetails =
+            '\n\nValidation failures:\n' +
+            data.failures
+              .slice(0, 5)
+              .map(
+                (f: any) =>
+                  `Row ${f.row} (${f.attribute}): ${f.errors.join(', ')}`,
+              )
+              .join('\n');
+
+          if (data.failures.length > 5) {
+            failureDetails += `\n... and ${data.failures.length - 5} more failures.`;
+          }
+        }
+
+        alert(msg + failureDetails);
+
+        // Refresh list if partial records were imported
+        if (data.imported_count > 0) {
+          try {
+            const data = await getLandParcels();
+            setParcels(data);
+          } catch (fetchError) {
+            console.error(
+              'Failed to refresh land parcels after partial import:',
+              fetchError,
+            );
+          }
+        }
+      } else {
+        const errorMsg =
+          error.response?.data?.message ||
+          'Failed to import land parcels. Please check the file format.';
+        setImportMessage({ type: 'error', text: errorMsg });
+        alert(errorMsg);
+      }
+    } finally {
+      setImporting(false);
+
+      if (e.target) {
+        e.target.value = '';
+      }
     }
   };
 
@@ -131,16 +221,47 @@ export default function LandParcelList() {
             Manage land parcel information
           </p>
         </div>
-        <button
-          onClick={() => {
-            router.visit('/land-parcels/create');
-          }}
-          className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Add Parcel</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleImport}
+            disabled={importing}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            className="bg-muted hover:bg-muted/80 text-foreground flex items-center gap-2 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
+            title="Import Land Parcels from Excel or CSV file"
+          >
+            <Upload className="h-5 w-5" />
+            <span>{importing ? 'Importing...' : 'Import'}</span>
+          </button>
+          <button
+            onClick={() => {
+              router.visit('/land-parcels/create');
+            }}
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Add Parcel</span>
+          </button>
+        </div>
       </div>
+
+      {importMessage && (
+        <div
+          className={`rounded-lg border p-4 text-sm ${
+            importMessage.type === 'success'
+              ? 'border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400'
+              : 'bg-destructive/10 border-destructive/30 text-destructive'
+          }`}
+        >
+          {importMessage.text}
+        </div>
+      )}
 
       {loading ? (
         <div className="bg-card border-border text-muted-foreground flex h-64 items-center justify-center rounded-lg border">
