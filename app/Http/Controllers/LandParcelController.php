@@ -78,7 +78,7 @@ class LandParcelController extends Controller
             'residents.*.relationship' => 'nullable|string|in:owner,tenant,family_member',
         ]);
 
-        $validated['land_name'] = $validated['land_name'] ?? 'Land Parcel ' . $validated['parcel_id'];
+        $validated['land_name'] = $validated['land_name'] ?? 'Land Parcel '.$validated['parcel_id'];
         $validated['province'] = $validated['province'] ?? 'Southern';
         $validated['divisional_secretariat'] = $validated['divisional_secretariat'] ?? ($validated['division'] ?? 'N/A');
         $validated['grama_niladari_division'] = $validated['grama_niladari_division'] ?? 'N/A';
@@ -151,7 +151,7 @@ class LandParcelController extends Controller
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
-            'parcel_id' => 'required|string|max:255|unique:land_parcels,parcel_id,' . $id,
+            'parcel_id' => 'required|string|max:255|unique:land_parcels,parcel_id,'.$id,
             'project_id' => 'nullable|exists:projects,id',
             'document_id' => 'nullable|exists:documents,id',
             'land_name' => 'nullable|string|max:255',
@@ -275,7 +275,7 @@ class LandParcelController extends Controller
         $format = $request->query('format', 'pdf');
         $records = LandParcel::with(['owners', 'project'])->get();
 
-        $filename = 'land_parcels_' . date('Ymd_His');
+        $filename = 'land_parcels_'.date('Ymd_His');
 
         if ($format === 'pdf') {
             return $exportService->export(
@@ -412,7 +412,7 @@ class LandParcelController extends Controller
                     $perches = (float) $row['land_size_perches'];
                 }
 
-                $mappedData['land_name'] = $mappedData['land_name'] ?? ('Land Parcel ' . $mappedData['parcel_id']);
+                $mappedData['land_name'] = $mappedData['land_name'] ?? ('Land Parcel '.$mappedData['parcel_id']);
                 $mappedData['province'] = $mappedData['province'] ?? 'Southern';
                 $mappedData['divisional_secretariat'] = $mappedData['divisional_secretariat'] ?? ($row['division'] ?? 'N/A');
                 $mappedData['grama_niladari_division'] = $mappedData['grama_niladari_division'] ?? 'N/A';
@@ -460,9 +460,9 @@ class LandParcelController extends Controller
                         // Find existing owner or create a new one
                         $owner = PropertyOwner::where('name', $name)->first();
                         if (! $owner) {
-                            $ownerId = 'OWN-' . strtoupper(Str::random(6));
+                            $ownerId = 'OWN-'.strtoupper(Str::random(6));
                             while (PropertyOwner::where('owner_id', $ownerId)->exists()) {
-                                $ownerId = 'OWN-' . strtoupper(Str::random(6));
+                                $ownerId = 'OWN-'.strtoupper(Str::random(6));
                             }
 
                             $owner = PropertyOwner::create([
@@ -509,7 +509,7 @@ class LandParcelController extends Controller
             ], 422);
         } catch (\Throwable $e) {
             return response()->json([
-                'message' => 'Import failed: ' . $e->getMessage(),
+                'message' => 'Import failed: '.$e->getMessage(),
             ], 500);
         }
     }

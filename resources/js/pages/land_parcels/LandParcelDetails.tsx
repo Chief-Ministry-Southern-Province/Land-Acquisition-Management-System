@@ -128,9 +128,7 @@ export default function LandParcelDetails({ id }: Props) {
               <h1>Land Number: {parcel.parcel_id}</h1>
               <StatusBadge status={parcel.status} />
             </div>
-            <p className="text-muted-foreground">
-              {parcel.land_name || ''}
-            </p>
+            <p className="text-muted-foreground">{parcel.land_name || ''}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">

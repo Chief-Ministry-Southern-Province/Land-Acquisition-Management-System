@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
 
         if (File::exists($dummySqlFile)) {
             DB::unprepared(File::get($dummySqlFile));
+
             return;
         }
 

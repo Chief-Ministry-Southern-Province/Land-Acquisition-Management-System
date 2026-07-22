@@ -298,20 +298,39 @@ export default function AddProject() {
           setOriginalProjectId(data.projectId);
           setOriginalStatus(data.status);
           setForm({
+            title: data.title || '',
             name: data.name,
-            ministry: data.ministry,
-            department: data.department,
-            projectType: data.projectType,
-            acquisitionAct: data.acquisitionAct,
-            district: data.district,
-            division: data.division,
+            institution: data.institution || '',
+            institutionAddress: data.institutionAddress || '',
+            ministry: data.ministry || '',
+            department: data.department || '',
+            projectType: data.projectType || '',
+            acquisitionAct: data.acquisitionAct || '',
+            district: data.district || '',
+            division: data.division || '',
             purpose: data.purpose,
-            startDate: data.startDate,
-            estimatedCompletion: data.estimatedCompletion,
-            totalBudget: String(data.budget),
-            projectManager: data.projectManager,
-            managerContact: data.contact,
-            managerEmail: data.email,
+            landAreaAcers: String(data.landAreaAcers ?? ''),
+            landAreaRoods: String(data.landAreaRoods ?? ''),
+            landAreaPerches: String(data.landAreaPerches ?? ''),
+            areResidentsMovedTemp: !!data.areResidentsMovedTemp,
+            section20Observation: data.section20Observation ?? null,
+            section21SecretaryReport: data.section21SecretaryReport ?? null,
+            section22SecretaryRecommendation:
+              data.section22SecretaryRecommendation || '',
+            section23ValuationRecommendation:
+              data.section23ValuationRecommendation || '',
+            section24DecisionRemarks: data.section24DecisionRemarks ?? null,
+            section25AdditionalConditions:
+              data.section25AdditionalConditions || '',
+            section26FinalRecommendation:
+              data.section26FinalRecommendation ?? null,
+            approvalDate: data.approvalDate || '',
+            startDate: data.startDate || '',
+            estimatedCompletion: data.estimatedCompletion || '',
+            totalBudget: String(data.budget || ''),
+            projectManager: data.projectManager || '',
+            managerContact: data.contact || '',
+            managerEmail: data.email || '',
             remarks: data.remarks || '',
           });
 
@@ -509,7 +528,7 @@ export default function AddProject() {
   // Total extent (numeric sum of acres)
   const totalExtent = useMemo(() => {
     const sum = selectedParcels.reduce((acc, p) => {
-      const val = parseFloat(p.extent_acers) || 0;
+      const val = parseFloat(p.extent_acers || '') || 0;
 
       return acc + val;
     }, 0);

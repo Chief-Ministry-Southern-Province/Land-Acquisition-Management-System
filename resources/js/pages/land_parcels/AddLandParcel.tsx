@@ -385,7 +385,7 @@ export default function AddLandParcel() {
 
     if (
       selectedOwners.some(
-        (o) => o.nic.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
+        (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
       )
     ) {
       errs.nic = 'This owner is already added';
@@ -393,7 +393,7 @@ export default function AddLandParcel() {
 
     if (
       existingOwners.some(
-        (o) => o.nic.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
+        (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
       )
     ) {
       errs.nic =
@@ -459,7 +459,7 @@ export default function AddLandParcel() {
     return existingOwners.filter(
       (owner) =>
         owner.name.toLowerCase().includes(q) ||
-        owner.nic.toLowerCase().includes(q) ||
+        owner.nic?.toLowerCase().includes(q) ||
         owner.ownerId.toLowerCase().includes(q),
     );
   }, [existingOwners, ownerSearch]);
@@ -507,6 +507,7 @@ export default function AddLandParcel() {
       errs.projectId = 'A project must be selected to upload documents';
       alert('You must select an Associated Project to upload documents.');
       setErrors(errs);
+
       return false;
     }
 
@@ -567,6 +568,7 @@ export default function AddLandParcel() {
             String(form.projectId),
             item.category,
           );
+
           if (i === 0 && uploaded && uploaded.id) {
             primaryDocumentId = uploaded.id;
           }
@@ -604,7 +606,9 @@ export default function AddLandParcel() {
         is_resident_owner: form.isResidentOwner,
         is_cultivated: form.isCultivated,
         cultivation: form.isCultivated ? form.cultivation || 'N/A' : 'N/A',
-        cultivation_status: form.isCultivated ? form.cultivationStatus : 'unspecified',
+        cultivation_status: form.isCultivated
+          ? form.cultivationStatus
+          : 'unspecified',
         annual_income: form.isCultivated ? Number(form.annualIncome) || 0 : 0,
         land_type: form.landType || form.landUseType || 'Standard',
         estimated_value: Number(form.estimatedValue) || 0,
@@ -861,11 +865,11 @@ export default function AddLandParcel() {
               />
             </Field>
 
-            <div className="flex items-center gap-2 lg:col-span-4 md:col-span-2 py-2">
-              <label className="flex cursor-pointer items-center gap-2 select-none">
+            <div className="flex items-center gap-2 py-2 md:col-span-2 lg:col-span-4">
+              <label className="flex cursor-pointer select-none items-center gap-2">
                 <input
                   type="checkbox"
-                  className="rounded border-border text-primary focus:ring-primary/40 h-4 w-4"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.hasPlan}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, hasPlan: e.target.checked }))
@@ -938,11 +942,11 @@ export default function AddLandParcel() {
               </>
             )}
 
-            <div className="flex items-center gap-2 lg:col-span-4 md:col-span-2 py-2">
-              <label className="flex cursor-pointer items-center gap-2 select-none">
+            <div className="flex items-center gap-2 py-2 md:col-span-2 lg:col-span-4">
+              <label className="flex cursor-pointer select-none items-center gap-2">
                 <input
                   type="checkbox"
-                  className="rounded border-border text-primary focus:ring-primary/40 h-4 w-4"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.isCultivated}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, isCultivated: e.target.checked }))
@@ -991,7 +995,7 @@ export default function AddLandParcel() {
               </>
             )}
 
-            <div className="lg:col-start-1 md:col-start-1">
+            <div className="md:col-start-1 lg:col-start-1">
               <Field label="Estimated Value (LKR)">
                 <input
                   className={inputCls}
@@ -1321,12 +1325,12 @@ export default function AddLandParcel() {
         {/* Resident Details */}
         <div className="bg-card border-border rounded-xl border p-6">
           <SectionHeader icon={Users} title="Resident Details" />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-4">
-            <div className="flex items-center gap-2 lg:col-span-2 md:col-span-1">
-              <label className="flex cursor-pointer items-center gap-2 select-none">
+          <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="flex items-center gap-2 md:col-span-1 lg:col-span-2">
+              <label className="flex cursor-pointer select-none items-center gap-2">
                 <input
                   type="checkbox"
-                  className="rounded border-border text-primary focus:ring-primary/40 h-4 w-4"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.hasResidentialHouses}
                   onChange={(e) =>
                     setForm((f) => ({
@@ -1341,14 +1345,17 @@ export default function AddLandParcel() {
               </label>
             </div>
 
-            <div className="flex items-center gap-2 lg:col-span-2 md:col-span-1">
-              <label className="flex cursor-pointer items-center gap-2 select-none">
+            <div className="flex items-center gap-2 md:col-span-1 lg:col-span-2">
+              <label className="flex cursor-pointer select-none items-center gap-2">
                 <input
                   type="checkbox"
-                  className="rounded border-border text-primary focus:ring-primary/40 h-4 w-4"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.isResidentOwner}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, isResidentOwner: e.target.checked }))
+                    setForm((f) => ({
+                      ...f,
+                      isResidentOwner: e.target.checked,
+                    }))
                   }
                 />
                 <span className="text-foreground text-sm font-medium">
@@ -1359,7 +1366,7 @@ export default function AddLandParcel() {
           </div>
 
           {form.hasResidentialHouses && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t pt-4">
+            <div className="grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-2">
               {/* List of currently added residents */}
               <div className="space-y-3 md:col-span-2">
                 {selectedResidents.length === 0 ? (

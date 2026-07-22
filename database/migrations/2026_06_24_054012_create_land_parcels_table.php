@@ -31,7 +31,7 @@ return new class extends Migration
             $table->decimal('land_size_acers', 10, 2)->default(0);
             $table->decimal('land_size_roods', 10, 2)->default(0);
             $table->decimal('land_size_perches', 10, 2)->default(0);
-            $table->decimal('full_land_size', 10, 2)->default(0); //in perches
+            $table->decimal('full_land_size', 10, 2)->default(0); // in perches
 
             // location map fields
             $table->decimal('latitude', 11, 8)->nullable();

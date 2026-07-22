@@ -14,6 +14,7 @@ class Resident extends Model
         'contact',
         'relationship',
     ];
+
     public function landParcel()
     {
         return $this->belongsTo(LandParcel::class);
