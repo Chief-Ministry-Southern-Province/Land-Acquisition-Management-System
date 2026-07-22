@@ -126,9 +126,9 @@
             <tr>
                 <th style="width: 12%;">Parcel Number</th>
                 <th style="width: 15%;">Associated Project</th>
-                <th style="width: 8%;">Lot No</th>
+                <th style="width: 12%;">Land Name</th>
                 <th style="width: 25%;">Location (District, Division, Village)</th>
-                <th style="width: 20%;">Owner(s)</th>
+                <th style="width: 16%;">Owner(s)</th>
                 <th style="width: 10%;">Extent</th>
                 <th style="width: 10%;">Status</th>
             </tr>
@@ -137,10 +137,10 @@
             @foreach($parcels as $parcel)
                 <tr>
                     <td style="font-weight: bold; color: #2d3748;">{{ $parcel->parcel_id }}</td>
-                    <td>{{ $parcel->project->name ?? 'N/A' }}</td>
-                    <td>{{ $parcel->lot_no }}</td>
+                    <td>{{ $parcel->project->title ?? ($parcel->project->name ?? 'N/A') }}</td>
+                    <td>{{ $parcel->land_name ?? 'N/A' }}</td>
                     <td>
-                        {{ $parcel->district }} &gt; {{ $parcel->division }} &gt; {{ $parcel->village }}
+                        {{ $parcel->district }} &gt; {{ $parcel->divisional_secretariat ?? ($parcel->division ?? 'N/A') }} &gt; {{ $parcel->village }}
                     </td>
                     <td>
                         @if($parcel->owners && count($parcel->owners) > 0)
@@ -149,7 +149,7 @@
                             N/A
                         @endif
                     </td>
-                    <td>{{ $parcel->extent_acers }} ac, {{ $parcel->extent_perches }} per</td>
+                    <td>{{ $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0) }} ac, {{ $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0) }} per</td>
                     <td>
                         @php
                             $statusClass = 'status-' . strtolower($parcel->status);

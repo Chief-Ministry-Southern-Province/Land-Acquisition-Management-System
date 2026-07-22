@@ -5,9 +5,9 @@ export interface PropertyOwner {
   id: string;
   ownerId: string;
   name: string;
-  nic: string;
+  nic?: string | null;
   address: string;
-  contact: string;
+  contact?: string | null;
   dateOfBirth?: string;
   occupation?: string;
   email?: string;

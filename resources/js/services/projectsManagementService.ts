@@ -4,21 +4,38 @@ import type { LandParcel } from './landParcelManagementService';
 export interface Project {
   id: string;
   projectId: string;
+  title: string;
   name: string;
-  ministry: string;
-  department: string;
-  projectType: string;
-  acquisitionAct: string;
-  district: string;
-  division: string;
+  institution?: string;
+  institutionAddress?: string;
+  ministry?: string;
+  department?: string;
+  projectType?: string;
+  acquisitionAct?: string;
+  district?: string;
+  division?: string;
   purpose: string;
-  startDate: string;
-  estimatedCompletion: string;
-  budget: number;
+  landAreaAcers?: number;
+  landAreaRoods?: number;
+  landAreaPerches?: number;
+  fullLandArea?: number;
+  areResidentsMovedTemp?: boolean;
+  section20Observation?: boolean | null;
+  section21SecretaryReport?: boolean | null;
+  section22SecretaryRecommendation?: string | null;
+  section23ValuationRecommendation?: string | null;
+  section24DecisionRemarks?: boolean | null;
+  section25AdditionalConditions?: string | null;
+  section26FinalRecommendation?: boolean | null;
+  approvalDate?: string | null;
+  approvedBy?: number | null;
+  startDate?: string;
+  estimatedCompletion?: string;
+  budget?: number;
   status: 'active' | 'pending' | 'completed';
-  projectManager: string;
-  contact: string;
-  email: string;
+  projectManager?: string;
+  contact?: string;
+  email?: string;
   remarks: string | null;
   created_at?: string;
   updated_at?: string;
@@ -45,14 +62,33 @@ export interface Document {
 const mapFromBackend = (data: any): Project => ({
   id: String(data.id),
   projectId: data.project_id || '',
-  name: data.name || '',
-  ministry: data.ministry || '',
+  title: data.title || data.name || '',
+  name: data.title || data.name || '',
+  institution: data.institution || '',
+  institutionAddress: data.institution_address || '',
+  ministry: data.ministry || data.institution || '',
   department: data.department || '',
   projectType: data.project_type || '',
   acquisitionAct: data.acquisition_act || '',
   district: data.district || '',
   division: data.division || '',
   purpose: data.purpose || '',
+  landAreaAcers: Number(data.land_area_to_be_acquired_acers) || 0,
+  landAreaRoods: Number(data.land_area_to_be_acquired_roods) || 0,
+  landAreaPerches: Number(data.land_area_to_be_acquired_perches) || 0,
+  fullLandArea: Number(data.full_land_area_to_be_acquired) || 0,
+  areResidentsMovedTemp: Boolean(data.are_residents_moved_temp),
+  section20Observation: data.section20_observation ?? null,
+  section21SecretaryReport: data.section21_secretary_report ?? null,
+  section22SecretaryRecommendation:
+    data.section22_secretary_recommendation ?? null,
+  section23ValuationRecommendation:
+    data.section23_valuation_recommendation ?? null,
+  section24DecisionRemarks: data.section24_decision_remarks ?? null,
+  section25AdditionalConditions: data.section25_additional_conditions ?? null,
+  section26FinalRecommendation: data.section26_final_recommendation ?? null,
+  approvalDate: data.approval_date || null,
+  approvedBy: data.approved_by || null,
   startDate: data.start_date || '',
   estimatedCompletion: data.estimated_completion || '',
   budget: Number(data.budget_im_mn) || 0,
@@ -68,12 +104,13 @@ const mapFromBackend = (data: any): Project => ({
         id: String(p.id),
         parcel_id: p.parcel_id,
         project_id: p.project_id ? String(p.project_id) : null,
-        lot_no: p.lot_no,
+        land_name: p.land_name || '',
+        lot_no: p.lot_no || p.plan_number || '',
         district: p.district,
-        division: p.division,
+        division: p.divisional_secretariat || p.division || '',
         village: p.village,
-        extent_acers: String(p.extent_acers),
-        extent_perches: String(p.extent_perches),
+        extent_acers: String(p.land_size_acers ?? p.extent_acers ?? 0),
+        extent_perches: String(p.land_size_perches ?? p.extent_perches ?? 0),
         remarks: p.remarks || null,
         status: p.status,
         created_at: p.created_at,
@@ -117,21 +154,28 @@ const mapToBackend = (
   },
 ) => ({
   project_id: data.projectId,
-  name: data.name,
-  ministry: data.ministry,
-  department: data.department,
-  project_type: data.projectType,
-  acquisition_act: data.acquisitionAct,
-  district: data.district,
-  division: data.division,
+  title: data.title || data.name,
+  name: data.name || data.title,
   purpose: data.purpose,
-  start_date: data.startDate,
-  estimated_completion: data.estimatedCompletion,
-  budget_im_mn: Number(data.budget) || 0,
+  institution: data.institution || data.ministry || 'N/A',
+  institution_address: data.institutionAddress || 'N/A',
+  land_area_to_be_acquired_acers: data.landAreaAcers ?? 0,
+  land_area_to_be_acquired_roods: data.landAreaRoods ?? 0,
+  land_area_to_be_acquired_perches: data.landAreaPerches ?? 0,
+  full_land_area_to_be_acquired: data.fullLandArea ?? 0,
+  are_residents_moved_temp: Boolean(data.areResidentsMovedTemp),
+  section20_observation: data.section20Observation ?? null,
+  section21_secretary_report: data.section21SecretaryReport ?? null,
+  section22_secretary_recommendation:
+    data.section22SecretaryRecommendation ?? null,
+  section23_valuation_recommendation:
+    data.section23ValuationRecommendation ?? null,
+  section24_decision_remarks: data.section24DecisionRemarks ?? null,
+  section25_additional_conditions: data.section25AdditionalConditions ?? null,
+  section26_final_recommendation: data.section26FinalRecommendation ?? null,
+  approval_date: data.approvalDate || null,
+  approved_by: data.approvedBy || null,
   status: data.status,
-  project_manager: data.projectManager,
-  contact: data.contact,
-  email: data.email,
   remarks: data.remarks,
   parcel_ids: data.parcel_ids,
 });
