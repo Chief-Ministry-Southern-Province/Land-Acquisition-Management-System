@@ -18,9 +18,11 @@ class LandParcelController extends Controller
      */
     public function index()
     {
+        $landParcels = LandParcel::with(['owners', 'project', 'residents'])->get();
+
         return response()->json([
             'message' => 'Land parcels fetched successfully',
-            'land_parcels' => LandParcel::with(['owners', 'project'])->get(),
+            'land_parcels' => $landParcels,
         ], 200);
     }
 
@@ -68,6 +70,12 @@ class LandParcelController extends Controller
             'property_owner_id' => 'nullable|exists:property_owners,id',
             'property_owner_ids' => 'nullable|array',
             'property_owner_ids.*' => 'exists:property_owners,id',
+            'residents' => 'nullable|array',
+            'residents.*.name' => 'required|string|max:255',
+            'residents.*.address' => 'nullable|string',
+            'residents.*.nic' => 'nullable|string|max:255',
+            'residents.*.contact' => 'nullable|string|max:255',
+            'residents.*.relationship' => 'nullable|string|in:owner,tenant,family_member',
         ]);
 
         $validated['land_name'] = $validated['land_name'] ?? 'Land Parcel ' . $validated['parcel_id'];
@@ -95,7 +103,22 @@ class LandParcelController extends Controller
         } elseif ($request->has('property_owner_id') && $request->input('property_owner_id')) {
             $landParcel->owners()->attach($request->input('property_owner_id'));
         }
-        $landParcel->load(['owners', 'project']);
+
+        if ($request->has('residents') && is_array($request->input('residents'))) {
+            foreach ($request->input('residents') as $res) {
+                if (! empty($res['name'])) {
+                    $landParcel->residents()->create([
+                        'name' => $res['name'],
+                        'address' => $res['address'] ?? null,
+                        'nic' => $res['nic'] ?? null,
+                        'contact' => $res['contact'] ?? null,
+                        'relationship' => $res['relationship'] ?? 'owner',
+                    ]);
+                }
+            }
+        }
+
+        $landParcel->load(['owners', 'project', 'residents']);
 
         return response()->json([
             'message' => 'Land parcel created successfully',
@@ -108,7 +131,7 @@ class LandParcelController extends Controller
      */
     public function show(string $id)
     {
-        $landParcel = LandParcel::with(['owners', 'project'])->find($id);
+        $landParcel = LandParcel::with(['owners', 'project', 'residents'])->find($id);
 
         if ($landParcel) {
             return response()->json([
@@ -166,6 +189,12 @@ class LandParcelController extends Controller
             'property_owner_id' => 'nullable|exists:property_owners,id',
             'property_owner_ids' => 'nullable|array',
             'property_owner_ids.*' => 'exists:property_owners,id',
+            'residents' => 'nullable|array',
+            'residents.*.name' => 'required|string|max:255',
+            'residents.*.address' => 'nullable|string',
+            'residents.*.nic' => 'nullable|string|max:255',
+            'residents.*.contact' => 'nullable|string|max:255',
+            'residents.*.relationship' => 'nullable|string|in:owner,tenant,family_member',
         ]);
 
         if (isset($validated['division']) && ! isset($validated['divisional_secretariat'])) {
@@ -197,7 +226,23 @@ class LandParcelController extends Controller
                 $landParcel->owners()->detach();
             }
         }
-        $landParcel->load(['owners', 'project']);
+
+        if ($request->has('residents') && is_array($request->input('residents'))) {
+            $landParcel->residents()->delete();
+            foreach ($request->input('residents') as $res) {
+                if (! empty($res['name'])) {
+                    $landParcel->residents()->create([
+                        'name' => $res['name'],
+                        'address' => $res['address'] ?? null,
+                        'nic' => $res['nic'] ?? null,
+                        'contact' => $res['contact'] ?? null,
+                        'relationship' => $res['relationship'] ?? 'owner',
+                    ]);
+                }
+            }
+        }
+
+        $landParcel->load(['owners', 'project', 'residents']);
 
         return response()->json([
             'message' => 'Land parcel updated successfully',
@@ -244,7 +289,7 @@ class LandParcelController extends Controller
         }
 
         $headings = [
-            'Parcel Number',
+            'Land Number',
             'Associated Project',
             'Land Name',
             'District',
@@ -294,7 +339,7 @@ class LandParcelController extends Controller
         ]);
 
         $columnMap = [
-            'parcel_id' => 'Parcel Number',
+            'parcel_id' => 'Land Number',
             'land_name' => 'Land Name',
             'district' => 'District',
             'divisional_secretariat' => 'Division',

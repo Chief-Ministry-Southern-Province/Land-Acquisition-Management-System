@@ -53,8 +53,9 @@ return new class extends Migration
             $table->boolean('is_resident_owner')->default(false);
 
             // cultivation
+            $table->boolean('is_cultivated')->default(false);
             $table->string('cultivation')->nullable();
-            $table->enum('cultivation_status', ['fertile', 'mid', 'infertile'])->default('mid');
+            $table->enum('cultivation_status', ['fertile', 'mid', 'infertile', 'unspecified'])->default('unspecified');
             $table->decimal('annual_income', 12, 2)->default(0);
 
             $table->string('land_type')->nullable(); // Lands under litigation, donated lands

@@ -35,7 +35,6 @@ const mapFromBackend = (data: any): PropertyOwner => ({
         id: String(p.id),
         parcel_id: p.parcel_id,
         project_id: p.project_id ? String(p.project_id) : null,
-        lot_no: p.lot_no,
         district: p.district,
         division: p.division,
         village: p.village,
@@ -63,7 +62,6 @@ const mapFromBackend = (data: any): PropertyOwner => ({
           ? {
               id: String(c.land_parcel.id),
               parcel_id: c.land_parcel.parcel_id,
-              lot_no: c.land_parcel.lot_no,
               district: c.land_parcel.district,
               division: c.land_parcel.division,
               village: c.land_parcel.village,

@@ -8,7 +8,6 @@ export interface LandParcel {
   document_id?: string | null;
   land_name?: string;
   province?: string;
-  lot_no?: string;
   district: string;
   division?: string;
   divisional_secretariat?: string;
@@ -32,8 +31,9 @@ export interface LandParcel {
   boundaries_west?: string | null;
   has_residential_houses?: boolean;
   is_resident_owner?: boolean;
+  is_cultivated?: boolean;
   cultivation?: string;
-  cultivation_status?: 'fertile' | 'mid' | 'infertile';
+  cultivation_status?: 'fertile' | 'mid' | 'infertile' | 'unspecified';
   annual_income?: number;
   land_type?: string;
   estimated_value?: number;
@@ -56,7 +56,6 @@ const mapFromBackend = (data: any): LandParcel => ({
   document_id: data.document_id ? String(data.document_id) : null,
   land_name: data.land_name || '',
   province: data.province || 'Southern',
-  lot_no: data.lot_no || data.plan_number || '',
   district: data.district,
   division: data.divisional_secretariat || data.division || '',
   divisional_secretariat: data.divisional_secretariat || data.division || '',
@@ -80,8 +79,9 @@ const mapFromBackend = (data: any): LandParcel => ({
   boundaries_west: data.boundaries_west || null,
   has_residential_houses: Boolean(data.has_residential_houses),
   is_resident_owner: Boolean(data.is_resident_owner),
+  is_cultivated: Boolean(data.is_cultivated),
   cultivation: data.cultivation || 'N/A',
-  cultivation_status: data.cultivation_status || 'fertile',
+  cultivation_status: data.cultivation_status || 'unspecified',
   annual_income: Number(data.annual_income) || 0,
   land_type: data.land_type || 'Standard',
   estimated_value: Number(data.estimated_value) || 0,
@@ -139,8 +139,9 @@ const mapToBackend = (
   boundaries_west: data.boundaries_west,
   has_residential_houses: Boolean(data.has_residential_houses),
   is_resident_owner: Boolean(data.is_resident_owner),
+  is_cultivated: Boolean(data.is_cultivated),
   cultivation: data.cultivation || 'N/A',
-  cultivation_status: data.cultivation_status || 'fertile',
+  cultivation_status: data.cultivation_status || 'unspecified',
   annual_income: data.annual_income ?? 0,
   land_type: data.land_type || 'Standard',
   estimated_value: data.estimated_value ?? 0,
@@ -148,6 +149,7 @@ const mapToBackend = (
   status: data.status,
   property_owner_id: data.property_owner_id,
   property_owner_ids: data.property_owner_ids,
+  residents: data.residents,
 });
 
 export const getLandParcels = async (): Promise<LandParcel[]> => {

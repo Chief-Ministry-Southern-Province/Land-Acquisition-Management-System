@@ -57,7 +57,7 @@ beforeEach(function () {
 
 test('import land parcels successfully', function () {
     $csvContent = implode("\n", [
-        'Parcel Number,Associated Project,Land Name,District,Division,Village,Owner Name,Extent,Remarks,Current Status',
+        'Land Number,Associated Project,Land Name,District,Division,Village,Owner Name,Extent,Remarks,Current Status',
         'PAR-TEST-1,Test Project,Lot 100,Galle,Four Gravets,Galle City,Owner A,2.5 ac,Remarks 1,Available',
         'PAR-TEST-2,Test Project,Lot 101,Matara,Weligama,Weligama Town,Owner B,1.0 ac 15 per,Remarks 2,Pending',
         'PAR-TEST-3,N/A,Lot 102,Hambantota,Tangalle,Tangalle Town,"Owner C, Owner D",20 per,Remarks 3,Acquired',
@@ -148,7 +148,7 @@ test('import validation errors handled and skipped', function () {
     ]);
 
     $csvContent = implode("\n", [
-        'Parcel Number,Associated Project,Land Name,District,Division,Village,Owner Name,Extent,Remarks,Current Status',
+        'Land Number,Associated Project,Land Name,District,Division,Village,Owner Name,Extent,Remarks,Current Status',
         'PAR-TEST-DUP,Test Project,Lot 100,Galle,Four Gravets,Galle City,Owner A,2.5 ac,Remarks 1,Available', // Should fail validation (duplicate parcel_id)
         'PAR-TEST-VALID,Test Project,Lot 101,Matara,Weligama,Weligama Town,Owner B,1.0 ac,Remarks 2,Pending', // Should succeed
         ',Test Project,Lot 102,Hambantota,Tangalle,Tangalle Town,Owner C,20 per,Remarks 3,Acquired', // Should fail validation (missing parcel_id)
@@ -180,11 +180,11 @@ test('import validation errors handled and skipped', function () {
 
     // First failure (row 2 because header is row 1)
     expect($failures[0]['row'])->toBe(2);
-    expect($failures[0]['attribute'])->toBe('parcel_number');
+    expect($failures[0]['attribute'])->toBe('land_number');
 
     // Second failure (row 4)
     expect($failures[1]['row'])->toBe(4);
-    expect($failures[1]['attribute'])->toBe('parcel_number');
+    expect($failures[1]['attribute'])->toBe('land_number');
 
     // Verify only the valid one was imported
     $validParcel = LandParcel::where('parcel_id', 'PAR-TEST-VALID')->first();

@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,6 +17,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $dummySqlFile = database_path('dummy_data.sql');
+
+        if (File::exists($dummySqlFile)) {
+            DB::unprepared(File::get($dummySqlFile));
+            return;
+        }
+
         $departments = [
             [
                 'id' => 1,

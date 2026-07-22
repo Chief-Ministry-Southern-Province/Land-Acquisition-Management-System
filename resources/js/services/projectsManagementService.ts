@@ -105,7 +105,6 @@ const mapFromBackend = (data: any): Project => ({
         parcel_id: p.parcel_id,
         project_id: p.project_id ? String(p.project_id) : null,
         land_name: p.land_name || '',
-        lot_no: p.lot_no || p.plan_number || '',
         district: p.district,
         division: p.divisional_secretariat || p.division || '',
         village: p.village,

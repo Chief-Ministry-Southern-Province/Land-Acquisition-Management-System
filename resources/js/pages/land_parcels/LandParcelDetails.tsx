@@ -125,10 +125,12 @@ export default function LandParcelDetails({ id }: Props) {
           </Link>
           <div>
             <div className="mb-1 flex items-center gap-3">
-              <h1>Parcel {parcel.parcel_id}</h1>
+              <h1>Land Number: {parcel.parcel_id}</h1>
               <StatusBadge status={parcel.status} />
             </div>
-            <p className="text-muted-foreground">Lot No: {parcel.lot_no}</p>
+            <p className="text-muted-foreground">
+              {parcel.land_name || ''}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -149,22 +151,90 @@ export default function LandParcelDetails({ id }: Props) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="bg-card border-border rounded-lg border p-6">
           <h3 className="mb-4">Parcel Information</h3>
-          <dl className="space-y-3">
+          <dl className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">District:</dt>
-              <dd>{parcel.district}</dd>
+              <dt className="text-muted-foreground">Land Name:</dt>
+              <dd className="font-medium">{parcel.land_name || 'N/A'}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Division:</dt>
-              <dd>{parcel.division}</dd>
+              <dt className="text-muted-foreground">Province / District:</dt>
+              <dd>
+                {parcel.province || 'Southern'} / {parcel.district}
+              </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Village:</dt>
+              <dt className="text-muted-foreground">Divisional Secretariat:</dt>
+              <dd>
+                {parcel.divisional_secretariat || parcel.division || 'N/A'}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">
+                Grama Niladhari Division:
+              </dt>
+              <dd>{parcel.grama_niladari_division || 'N/A'}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Village / Town:</dt>
               <dd>{parcel.village}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Extent:</dt>
-              <dd>{`${parcel.extent_acers} acres, ${parcel.extent_perches} perches`}</dd>
+              <dt className="text-muted-foreground">Extent Breakdown:</dt>
+              <dd className="font-mono">
+                {parcel.land_size_acers ?? parcel.extent_acers ?? 0} A,{' '}
+                {parcel.land_size_roods ?? 0} R,{' '}
+                {parcel.land_size_perches ?? parcel.extent_perches ?? 0} P
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Total Land Size:</dt>
+              <dd className="font-medium">
+                {parcel.full_land_size ?? 0} Perches
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Plan Status / No:</dt>
+              <dd>
+                {parcel.has_plan ? parcel.plan_number || 'Yes' : 'No Plan'}
+              </dd>
+            </div>
+            {parcel.parcel_numbers && parcel.parcel_numbers.length > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Parcel Numbers:</dt>
+                <dd className="font-mono">
+                  {parcel.parcel_numbers.join(', ')}
+                </dd>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Cultivation & Status:</dt>
+              <dd>
+                {parcel.cultivation || 'N/A'} (
+                {parcel.cultivation_status || 'fertile'})
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Annual Income:</dt>
+              <dd>₨ {Number(parcel.annual_income || 0).toLocaleString()}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Land Type:</dt>
+              <dd>{parcel.land_type || 'Standard'}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Estimated Value:</dt>
+              <dd className="font-medium">
+                ₨ {Number(parcel.estimated_value || 0).toLocaleString()}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">
+                Residential / Owner Living:
+              </dt>
+              <dd>
+                {parcel.has_residential_houses ? 'Yes' : 'No'} /{' '}
+                {parcel.is_resident_owner ? 'Yes' : 'No'}
+              </dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Associated Project:</dt>
@@ -174,7 +244,7 @@ export default function LandParcelDetails({ id }: Props) {
                     href={`/projects/${parcel.project.id}`}
                     className="text-primary font-medium hover:underline"
                   >
-                    {parcel.project.name}
+                    {parcel.project.title || parcel.project.name}
                   </Link>
                 ) : (
                   'None'

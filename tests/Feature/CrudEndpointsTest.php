@@ -263,7 +263,6 @@ test('compensation crud operations', function () {
     ]);
     $parcel = LandParcel::create([
         'parcel_id' => 'PAR-777',
-        'lot_no' => 'Lot 2',
         'district' => 'Galle',
         'division' => 'Four Gravets',
         'village' => 'Karapitiya',
@@ -651,7 +650,6 @@ test('land parcel status transitions on creation and project association', funct
     // 1. A land parcel status should be "available" when a new land is created.
     $parcelData = [
         'parcel_id' => 'PAR-12345',
-        'lot_no' => 'Lot 10',
         'district' => 'Galle',
         'division' => 'Bope-Poddala',
         'village' => 'Pinnaduwa',
