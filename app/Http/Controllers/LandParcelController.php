@@ -447,6 +447,7 @@ class LandParcelController extends Controller
                         return [];
                     }
                     $delimiter = strpos($value, ';') !== false ? ';' : ',';
+
                     return array_map('trim', explode($delimiter, $value));
                 };
 

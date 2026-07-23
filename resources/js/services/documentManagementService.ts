@@ -11,12 +11,15 @@ export const uploadDocument = async (
   const formData = new FormData();
   formData.append('file', file);
   formData.append('user_id', userId);
+
   if (projectId) {
     formData.append('project_id', projectId);
   }
+
   if (landParcelId) {
     formData.append('land_parcel_id', landParcelId);
   }
+
   formData.append('document_category', category);
 
   const response = await api.post('/api/documents', formData, {

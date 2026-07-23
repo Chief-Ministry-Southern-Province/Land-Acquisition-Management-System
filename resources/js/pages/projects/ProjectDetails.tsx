@@ -1,6 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Download, Edit, Trash2, Upload } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import WorkflowTimeline from '@/components/ui/WorkflowTimeline';
@@ -26,14 +26,14 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const user = (pageProps.auth as any)?.user;
   const userId = user?.id;
 
-  const fetchProjectDetails = async () => {
+  const fetchProjectDetails = useCallback(async () => {
     try {
       const data = await getProject(id);
       setProject(data);
     } catch (error) {
       console.error('Failed to fetch project details:', error);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     const initialFetch = async () => {
@@ -48,7 +48,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     if (id) {
       initialFetch();
     }
-  }, [id]);
+  }, [id, fetchProjectDetails]);
 
   const getCategoryFromModule = () => {
     if (typeof window !== 'undefined') {

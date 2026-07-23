@@ -90,9 +90,11 @@ export default function LandParcelDetails({ id }: Props) {
   const documents =
     parcel?.documents && parcel.documents.length > 0
       ? parcel.documents.map((d) => ({
-          name: d.originalFilename,
-          type: d.fileType ? d.fileType.toUpperCase().replace('.', '') : 'N/A',
-          date: d.uploadDate || 'N/A',
+          name: d.original_filename,
+          type: d.file_type
+            ? d.file_type.toUpperCase().replace('.', '')
+            : 'N/A',
+          date: d.upload_date || 'N/A',
         }))
       : [
           { name: 'Survey Plan', type: 'PDF', date: '2024-03-10' },

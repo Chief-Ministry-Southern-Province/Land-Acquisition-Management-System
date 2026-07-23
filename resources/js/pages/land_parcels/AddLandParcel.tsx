@@ -13,7 +13,7 @@ import {
   FolderKanban,
   Upload,
 } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
 import { uploadDocument } from '@/services/documentManagementService';
 import { createLandParcel } from '@/services/landParcelManagementService';
@@ -251,9 +251,9 @@ export default function AddLandParcel() {
     { id: string; file: File; category: string }[]
   >([]);
 
-  // Google Map states
-  const [mapInstance, setMapInstance] = useState<any>(null);
-  const [markerInstance, setMarkerInstance] = useState<any>(null);
+  // Google Map refs
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
 
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
@@ -363,6 +363,12 @@ export default function AddLandParcel() {
     fetchData();
   }, []);
 
+  // Store initial form coordinates in a ref to prevent re-running map loader effect
+  const initialCoords = useRef({
+    latitude: form.latitude,
+    longitude: form.longitude,
+  });
+
   // Load Google Maps API and initialize map
   useEffect(() => {
     const apiKey = (import.meta as any).env.VITE_GOOGLE_MAP_API_KEY || '';
@@ -370,14 +376,19 @@ export default function AddLandParcel() {
 
     // Default center in Galle, Sri Lanka (Southern Province)
     const defaultLat = 6.0535;
-    const defaultLng = 80.2210;
+    const defaultLng = 80.221;
 
     (window as any).initAddLandParcelMapCallback = () => {
       const mapContainer = document.getElementById('google-map-picker');
-      if (!mapContainer) return;
 
-      const initialLat = parseFloat(form.latitude) || defaultLat;
-      const initialLng = parseFloat(form.longitude) || defaultLng;
+      if (!mapContainer) {
+        return;
+      }
+
+      const initialLat =
+        parseFloat(initialCoords.current.latitude) || defaultLat;
+      const initialLng =
+        parseFloat(initialCoords.current.longitude) || defaultLng;
       const center = { lat: initialLat, lng: initialLng };
 
       const map = new (window as any).google.maps.Map(mapContainer, {
@@ -385,17 +396,17 @@ export default function AddLandParcel() {
         zoom: 12,
         mapTypeId: 'roadmap',
       });
-      setMapInstance(map);
+      mapRef.current = map;
 
-      let marker: any = null;
-      if (form.latitude && form.longitude) {
-        marker = new (window as any).google.maps.Marker({
+      if (initialCoords.current.latitude && initialCoords.current.longitude) {
+        const marker = new (window as any).google.maps.Marker({
           position: center,
           map: map,
           draggable: true,
         });
         marker.addListener('dragend', () => {
           const pos = marker.getPosition();
+
           if (pos) {
             setForm((f) => ({
               ...f,
@@ -404,12 +415,15 @@ export default function AddLandParcel() {
             }));
           }
         });
-        setMarkerInstance(marker);
+        markerRef.current = marker;
       }
 
       // Add click listener on map to pin location
       map.addListener('click', (e: any) => {
-        if (!e.latLng) return;
+        if (!e.latLng) {
+          return;
+        }
+
         const clickedLat = e.latLng.lat();
         const clickedLng = e.latLng.lng();
 
@@ -424,6 +438,7 @@ export default function AddLandParcel() {
     // Load script
     if (!(window as any).google || !(window as any).google.maps) {
       const existingScript = document.getElementById('google-maps-script');
+
       if (!existingScript) {
         const script = document.createElement('script');
         script.id = 'google-maps-script';
@@ -454,10 +469,11 @@ export default function AddLandParcel() {
     if (
       (window as any).google &&
       (window as any).google.maps &&
-      mapInstance
+      mapRef.current
     ) {
       const lat = parseFloat(form.latitude);
       const lng = parseFloat(form.longitude);
+
       if (
         !isNaN(lat) &&
         !isNaN(lng) &&
@@ -467,16 +483,18 @@ export default function AddLandParcel() {
         lng <= 180
       ) {
         const newPos = { lat, lng };
-        if (markerInstance) {
-          markerInstance.setPosition(newPos);
+
+        if (markerRef.current) {
+          markerRef.current.setPosition(newPos);
         } else {
           const newMarker = new (window as any).google.maps.Marker({
             position: newPos,
-            map: mapInstance,
+            map: mapRef.current,
             draggable: true,
           });
           newMarker.addListener('dragend', () => {
             const pos = newMarker.getPosition();
+
             if (pos) {
               setForm((f) => ({
                 ...f,
@@ -485,12 +503,13 @@ export default function AddLandParcel() {
               }));
             }
           });
-          setMarkerInstance(newMarker);
+          markerRef.current = newMarker;
         }
-        mapInstance.setCenter(newPos);
+
+        mapRef.current.setCenter(newPos);
       }
     }
-  }, [form.latitude, form.longitude, mapInstance]);
+  }, [form.latitude, form.longitude]);
 
   const set =
     (field: keyof FormData) =>
@@ -639,8 +658,6 @@ export default function AddLandParcel() {
     if (!form.tenureType) {
       errs.tenureType = 'Tenure type is required';
     }
-
-
 
     if (selectedOwners.length === 0) {
       alert('You must add or select at least one property owner.');
@@ -964,13 +981,13 @@ export default function AddLandParcel() {
               />
             </Field>
 
-            <div className="md:col-span-2 lg:col-span-3 mt-2">
-              <label className="text-foreground text-sm font-medium mb-1.5 block">
+            <div className="mt-2 md:col-span-2 lg:col-span-3">
+              <label className="text-foreground mb-1.5 block text-sm font-medium">
                 Google Map Pin (Click on the map to pin/re-pin the location)
               </label>
               <div
                 id="google-map-picker"
-                className="w-full rounded-xl border border-border overflow-hidden bg-muted/20"
+                className="border-border bg-muted/20 w-full overflow-hidden rounded-xl border"
                 style={{ minHeight: '320px', height: '320px' }}
               />
             </div>
