@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompensationController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentsController;
+use App\Http\Controllers\HOBApprovalController;
 use App\Http\Controllers\LandParcelController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\PropertyOwnerController;
@@ -43,6 +44,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('compensation', CompensationController::class);
     Route::get('documents/{id}/download', [DocumentsController::class, 'download']);
     Route::apiResource('documents', DocumentsController::class);
+
+    // ─── Head of Branch Routes ───────────────────────────────────────
+    Route::middleware('check.role:HOB')->group(function () {
+        Route::get('/hob/pending-approvals', [HOBApprovalController::class, 'index']);
+        Route::post('/hob/approvals/{type}/{id}/approve', [HOBApprovalController::class, 'approve']);
+        Route::post('/hob/approvals/{type}/{id}/query', [HOBApprovalController::class, 'query']);
+        Route::post('/hob/approvals/{type}/{id}/reject', [HOBApprovalController::class, 'reject']);
+    });
 
     // ─── Admin Only Routes ───────────────────────────────────────────
     Route::middleware('check.role:Admin')->group(function () {

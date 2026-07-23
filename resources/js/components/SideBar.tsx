@@ -91,7 +91,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
       { path: '/documents', icon: FolderOpen, label: t('documents') },
       { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
       {
-        path: '/approval-workflow',
+        path: '/pending-approvals',
         icon: CheckSquare,
         label: t('approvals'),
       },

@@ -45,11 +45,22 @@ class ProjectsController extends Controller
             'section26_final_recommendation' => 'nullable|boolean',
             'approval_date' => 'nullable|date',
             'approved_by' => 'nullable|exists:users,id',
-            'status' => 'required|string|in:active,pending,completed',
+            'status' => 'nullable|string|max:255',
+            'case_status' => 'nullable|string|in:active,pending,rejected,completed',
+            'do_status' => 'nullable|string|in:draft,submitted',
+            'hob_status' => 'nullable|string|in:approved,pending,rejected',
+            'ao_status' => 'nullable|string|in:approved,pending,rejected',
+            'as_status' => 'nullable|string|in:approved,pending,rejected',
+            'sas_status' => 'nullable|string|in:approved,pending,rejected',
+            'sec_status' => 'nullable|string|in:approved,pending,rejected',
             'remarks' => 'nullable|string',
             'parcel_ids' => 'nullable|array',
             'parcel_ids.*' => 'exists:land_parcels,id',
         ]);
+
+        if (isset($validated['status']) && ! isset($validated['case_status'])) {
+            $validated['case_status'] = $validated['status'];
+        }
 
         if (empty($validated['title']) && ! empty($validated['name'])) {
             $validated['title'] = $validated['name'];
@@ -140,11 +151,22 @@ class ProjectsController extends Controller
             'section26_final_recommendation' => 'nullable|boolean',
             'approval_date' => 'nullable|date',
             'approved_by' => 'nullable|exists:users,id',
-            'status' => 'required|string|in:active,pending,completed',
+            'status' => 'nullable|string|max:255',
+            'case_status' => 'nullable|string|in:active,pending,rejected,completed',
+            'do_status' => 'nullable|string|in:draft,submitted',
+            'hob_status' => 'nullable|string|in:approved,pending,rejected',
+            'ao_status' => 'nullable|string|in:approved,pending,rejected',
+            'as_status' => 'nullable|string|in:approved,pending,rejected',
+            'sas_status' => 'nullable|string|in:approved,pending,rejected',
+            'sec_status' => 'nullable|string|in:approved,pending,rejected',
             'remarks' => 'nullable|string',
             'parcel_ids' => 'nullable|array',
             'parcel_ids.*' => 'exists:land_parcels,id',
         ]);
+
+        if (isset($validated['status']) && ! isset($validated['case_status'])) {
+            $validated['case_status'] = $validated['status'];
+        }
 
         if (empty($validated['title']) && ! empty($validated['name'])) {
             $validated['title'] = $validated['name'];

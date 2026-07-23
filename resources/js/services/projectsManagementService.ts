@@ -33,6 +33,13 @@ export interface Project {
   estimatedCompletion?: string;
   budget?: number;
   status: 'active' | 'pending' | 'completed';
+  caseStatus?: 'active' | 'pending' | 'rejected' | 'completed';
+  doStatus?: 'draft' | 'submitted';
+  hobStatus?: 'approved' | 'pending' | 'rejected';
+  aoStatus?: 'approved' | 'pending' | 'rejected';
+  asStatus?: 'approved' | 'pending' | 'rejected';
+  sasStatus?: 'approved' | 'pending' | 'rejected';
+  secStatus?: 'approved' | 'pending' | 'rejected';
   projectManager?: string;
   contact?: string;
   email?: string;
@@ -92,7 +99,14 @@ const mapFromBackend = (data: any): Project => ({
   startDate: data.start_date || '',
   estimatedCompletion: data.estimated_completion || '',
   budget: Number(data.budget_im_mn) || 0,
-  status: data.status || 'pending',
+  status: data.case_status || data.status || 'pending',
+  caseStatus: data.case_status || 'pending',
+  doStatus: data.do_status || 'draft',
+  hobStatus: data.hob_status || 'pending',
+  aoStatus: data.ao_status || 'pending',
+  asStatus: data.as_status || 'pending',
+  sasStatus: data.sas_status || 'pending',
+  secStatus: data.sec_status || 'pending',
   projectManager: data.project_manager || '',
   contact: data.contact || '',
   email: data.email || '',
@@ -174,6 +188,13 @@ const mapToBackend = (
   section26_final_recommendation: data.section26FinalRecommendation ?? null,
   approval_date: data.approvalDate || null,
   approved_by: data.approvedBy || null,
+  case_status: data.caseStatus || data.status,
+  do_status: data.doStatus,
+  hob_status: data.hobStatus,
+  ao_status: data.aoStatus,
+  as_status: data.asStatus,
+  sas_status: data.sasStatus,
+  sec_status: data.secStatus,
   status: data.status,
   remarks: data.remarks,
   parcel_ids: data.parcel_ids,

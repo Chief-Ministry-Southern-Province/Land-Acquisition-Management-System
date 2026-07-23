@@ -108,7 +108,9 @@ Route::middleware(['auth:sanctum', 'check.role:DO'])->group(function () {
 
 // HEAD OF BRANCH ROUTES
 Route::middleware(['auth:sanctum', 'check.role:HOB'])->group(function () {
-    //
+    Route::get('/pending-approvals', function () {
+        return inertia('headOfBranch/HOBApprovals');
+    })->name('hob.pending-approvals');
 });
 
 // ADMINISTRATIVE OFFICER ROUTES
