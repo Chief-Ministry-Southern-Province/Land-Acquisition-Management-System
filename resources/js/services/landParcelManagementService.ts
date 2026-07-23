@@ -1,11 +1,11 @@
 import api from './api';
+import type { Document } from './projectsManagementService';
 import type { PropertyOwner } from './propertyOwnerManagement';
 
 export interface LandParcel {
   id: string;
   parcel_id: string;
   project_id: string | null;
-  document_id?: string | null;
   land_name?: string;
   province?: string;
   district: string;
@@ -43,6 +43,7 @@ export interface LandParcel {
   updated_at: string;
   owners?: PropertyOwner[];
   residents?: any[];
+  documents?: Document[];
   property_owner_id?: string | null;
   property_owner_ids?: string[] | null;
   project?: any;
@@ -53,7 +54,6 @@ const mapFromBackend = (data: any): LandParcel => ({
   id: String(data.id),
   parcel_id: data.parcel_id,
   project_id: data.project_id ? String(data.project_id) : null,
-  document_id: data.document_id ? String(data.document_id) : null,
   land_name: data.land_name || '',
   province: data.province || 'Southern',
   district: data.district,
@@ -91,6 +91,21 @@ const mapFromBackend = (data: any): LandParcel => ({
   updated_at: data.updated_at,
   project: data.project || null,
   residents: data.residents || [],
+  documents: data.documents
+    ? data.documents.map((d: any) => ({
+        id: String(d.id),
+        userId: d.user_id,
+        projectId: d.project_id ? String(d.project_id) : null,
+        landParcelId: d.land_parcel_id ? String(d.land_parcel_id) : null,
+        originalFilename: d.original_filename,
+        storedFilename: d.stored_filename,
+        fileType: d.file_type,
+        filePath: d.file_path,
+        fileSize: d.file_size,
+        documentCategory: d.document_category,
+        uploadDate: d.upload_date,
+      }))
+    : [],
   owners: data.owners
     ? data.owners.map((o: any) => ({
         id: String(o.id),
@@ -113,7 +128,6 @@ const mapToBackend = (
 ) => ({
   parcel_id: data.parcel_id,
   project_id: data.project_id,
-  document_id: data.document_id,
   land_name: data.land_name || 'Land Parcel ' + data.parcel_id,
   province: data.province || 'Southern',
   district: data.district,

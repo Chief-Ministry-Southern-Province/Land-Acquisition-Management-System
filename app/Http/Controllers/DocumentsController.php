@@ -28,16 +28,20 @@ class DocumentsController extends Controller
         if ($request->hasFile('file')) {
             $validated = $request->validate([
                 'user_id' => 'required|exists:users,id',
-                'project_id' => 'required|exists:projects,id',
+                'project_id' => 'nullable|exists:projects,id',
+                'land_parcel_id' => 'nullable|exists:land_parcels,id',
                 'document_category' => 'required|string|max:255',
                 'file' => 'required|file|max:51200', // 50MB max
             ]);
 
             $fileUploadService = new FileUploadService;
+            $storagePath = $validated['project_id']
+                ? 'projects/'.$validated['project_id']
+                : 'general';
             $uploadResult = $fileUploadService->upload(
                 $request->file('file'),
                 'acquisition_case_documents',
-                'projects/'.$validated['project_id']
+                $storagePath
             );
 
             // Extension is retrieved from the uploaded file
@@ -46,7 +50,8 @@ class DocumentsController extends Controller
 
             $document = Documents::create([
                 'user_id' => $validated['user_id'],
-                'project_id' => $validated['project_id'],
+                'project_id' => $validated['project_id'] ?? null,
+                'land_parcel_id' => $validated['land_parcel_id'] ?? null,
                 'original_filename' => $uploadResult['original_filename'],
                 'stored_filename' => $uploadResult['stored_filename'],
                 'file_type' => $extension,
@@ -58,7 +63,8 @@ class DocumentsController extends Controller
         } else {
             $validated = $request->validate([
                 'user_id' => 'required|exists:users,id',
-                'project_id' => 'required|exists:projects,id',
+                'project_id' => 'nullable|exists:projects,id',
+                'land_parcel_id' => 'nullable|exists:land_parcels,id',
                 'original_filename' => 'required|string|max:255',
                 'stored_filename' => 'required|string|max:255',
                 'file_type' => 'required|string|max:255',

@@ -190,3 +190,89 @@ test('import validation errors handled and skipped', function () {
     $validParcel = LandParcel::where('parcel_id', 'PAR-TEST-VALID')->first();
     expect($validParcel)->not->toBeNull();
 });
+
+test('import land parcels with detailed owner and resident columns', function () {
+    $csvContent = implode("\n", [
+        'Land Number,Associated Project,Land Name,District,Division,Village,Owner Name,Owner NIC,Owner Address,Owner Contact,Extent,Remarks,Current Status,Resident Name,Resident NIC,Resident Address,Resident Contact,Resident Relationship',
+        'PAR-DET-1,Test Project,Lot 200,Galle,Four Gravets,Galle City,Owner A,198012345678,123 Main St Galle,+94777777777,2.5 ac,Detail test,Available,Res One,200012345678,456 Elm St Galle,+94771111111,tenant',
+        'PAR-DET-2,Test Project,Lot 201,Matara,Weligama,Weligama Town,New Owner X;New Owner Y,199912345678;200112345678,10 First Lane Matara;20 Second Lane Matara,+94772222222;+94773333333,1.0 ac 10 per,Multi owner test,Pending,Res Two;Res Three,200212345678;200312345678,30 Third Lane;40 Fourth Lane,+94774444444;+94775555555,owner;family_member',
+    ]);
+
+    $tempFile = tempnam(sys_get_temp_dir(), 'import_det_');
+    file_put_contents($tempFile, $csvContent);
+
+    $uploadedFile = new UploadedFile(
+        $tempFile,
+        'land_parcels_detailed.csv',
+        'text/csv',
+        null,
+        true
+    );
+
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->postJson('/api/land-parcels/import', [
+            'file' => $uploadedFile,
+        ]);
+
+    @unlink($tempFile);
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'message' => 'Land parcels imported successfully',
+        'imported_count' => 2,
+        'failures' => [],
+    ]);
+
+    // Verify parcel 1 – single owner with details + single resident
+    $parcel1 = LandParcel::where('parcel_id', 'PAR-DET-1')->first();
+    expect($parcel1)->not->toBeNull();
+    expect($parcel1->owners)->toHaveCount(1);
+
+    $ownerA = $parcel1->owners->first();
+    expect($ownerA->name)->toBe('Owner A');
+    // Existing owner was found by name; NIC/address/contact were already set from beforeEach, so not overwritten
+    expect($ownerA->nic)->toBe('198012345678');
+    expect($ownerA->address)->toBe('123 Main St, Galle');
+    expect($ownerA->contact)->toBe('+94777777777');
+
+    // Verify resident
+    expect($parcel1->residents)->toHaveCount(1);
+    $res1 = $parcel1->residents->first();
+    expect($res1->name)->toBe('Res One');
+    expect($res1->nic)->toBe('200012345678');
+    expect($res1->address)->toBe('456 Elm St Galle');
+    expect($res1->contact)->toBe('94771111111');
+    expect($res1->relationship)->toBe('tenant');
+
+    // Verify parcel 2 – two owners with semicolon-separated details + two residents
+    $parcel2 = LandParcel::where('parcel_id', 'PAR-DET-2')->first();
+    expect($parcel2)->not->toBeNull();
+    expect($parcel2->owners)->toHaveCount(2);
+
+    $ownerNames = $parcel2->owners->pluck('name')->sort()->values()->toArray();
+    expect($ownerNames)->toBe(['New Owner X', 'New Owner Y']);
+
+    $ownerX = $parcel2->owners->firstWhere('name', 'New Owner X');
+    expect($ownerX->nic)->toBe('199912345678');
+    expect($ownerX->address)->toBe('10 First Lane Matara');
+    expect($ownerX->contact)->toBe('+94772222222');
+
+    $ownerY = $parcel2->owners->firstWhere('name', 'New Owner Y');
+    expect($ownerY->nic)->toBe('200112345678');
+    expect($ownerY->address)->toBe('20 Second Lane Matara');
+    expect($ownerY->contact)->toBe('+94773333333');
+
+    // Verify residents
+    expect($parcel2->residents)->toHaveCount(2);
+    $resTwo = $parcel2->residents->firstWhere('name', 'Res Two');
+    expect($resTwo->nic)->toBe('200212345678');
+    expect($resTwo->address)->toBe('30 Third Lane');
+    expect($resTwo->contact)->toBe('+94774444444');
+    expect($resTwo->relationship)->toBe('owner');
+
+    $resThree = $parcel2->residents->firstWhere('name', 'Res Three');
+    expect($resThree->nic)->toBe('200312345678');
+    expect($resThree->address)->toBe('40 Fourth Lane');
+    expect($resThree->contact)->toBe('+94775555555');
+    expect($resThree->relationship)->toBe('family_member');
+});

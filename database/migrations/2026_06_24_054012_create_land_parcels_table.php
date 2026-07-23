@@ -16,7 +16,6 @@ return new class extends Migration
 
             $table->string('parcel_id')->unique();
             $table->foreignId('project_id')->nullable()->constrained('projects')->cascadeOnDelete();
-            $table->foreignId('document_id')->nullable()->constrained('documents')->cascadeOnDelete();
 
             $table->string('land_name')->nullable();
 

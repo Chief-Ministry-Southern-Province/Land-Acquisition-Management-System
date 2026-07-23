@@ -87,12 +87,19 @@ export default function LandParcelDetails({ id }: Props) {
     },
   ];
 
-  const documents = [
-    { name: 'Survey Plan', type: 'PDF', date: '2024-03-10' },
-    { name: 'Valuation Report', type: 'PDF', date: '2024-04-20' },
-    { name: 'Ownership Certificate', type: 'PDF', date: '2024-02-05' },
-    { name: 'Site Photographs', type: 'ZIP', date: '2024-03-10' },
-  ];
+  const documents =
+    parcel?.documents && parcel.documents.length > 0
+      ? parcel.documents.map((d) => ({
+          name: d.originalFilename,
+          type: d.fileType ? d.fileType.toUpperCase().replace('.', '') : 'N/A',
+          date: d.uploadDate || 'N/A',
+        }))
+      : [
+          { name: 'Survey Plan', type: 'PDF', date: '2024-03-10' },
+          { name: 'Valuation Report', type: 'PDF', date: '2024-04-20' },
+          { name: 'Ownership Certificate', type: 'PDF', date: '2024-02-05' },
+          { name: 'Site Photographs', type: 'ZIP', date: '2024-03-10' },
+        ];
 
   if (loading) {
     return (

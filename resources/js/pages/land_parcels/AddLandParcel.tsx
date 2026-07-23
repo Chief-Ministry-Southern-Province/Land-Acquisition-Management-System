@@ -503,13 +503,7 @@ export default function AddLandParcel() {
       errs.tenureType = 'Tenure type is required';
     }
 
-    if (queuedFiles.length > 0 && !form.projectId) {
-      errs.projectId = 'A project must be selected to upload documents';
-      alert('You must select an Associated Project to upload documents.');
-      setErrors(errs);
 
-      return false;
-    }
 
     if (selectedOwners.length === 0) {
       alert('You must add or select at least one property owner.');
@@ -557,24 +551,6 @@ export default function AddLandParcel() {
       const perches = parseFloat(form.extentPerches) || 0;
       const totalPerches = acres * 160 + roods * 40 + perches;
 
-      let primaryDocumentId: string | null = null;
-
-      if (queuedFiles.length > 0 && form.projectId) {
-        for (let i = 0; i < queuedFiles.length; i++) {
-          const item = queuedFiles[i];
-          const uploaded = await uploadDocument(
-            item.file,
-            String(userId || ''),
-            String(form.projectId),
-            item.category,
-          );
-
-          if (i === 0 && uploaded && uploaded.id) {
-            primaryDocumentId = uploaded.id;
-          }
-        }
-      }
-
       const payload = {
         parcel_id: form.landNumber,
         land_name: form.landName || 'Land Parcel ' + form.landNumber,
@@ -615,12 +591,26 @@ export default function AddLandParcel() {
         remarks: form.remarks || null,
         status: 'available' as const,
         project_id: form.projectId ? form.projectId : null,
-        document_id: primaryDocumentId,
         property_owner_ids: finalOwnerIds,
         residents: selectedResidents,
       };
 
-      await createLandParcel(payload);
+      const createdParcel = await createLandParcel(payload);
+      const createdParcelId = createdParcel?.id ?? null;
+
+      // Upload documents after the land parcel is created, so we can link them
+      if (queuedFiles.length > 0 && createdParcelId) {
+        for (let i = 0; i < queuedFiles.length; i++) {
+          const item = queuedFiles[i];
+          await uploadDocument(
+            item.file,
+            String(userId || ''),
+            form.projectId ? String(form.projectId) : null,
+            item.category,
+            String(createdParcelId),
+          );
+        }
+      }
 
       router.visit('/land-parcels');
     } catch (error: any) {

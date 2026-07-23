@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable([
     'parcel_id',
     'project_id',
-    'document_id',
     'land_name',
     'province',
     'district',
@@ -69,9 +68,9 @@ class LandParcel extends Model
         return $this->belongsTo(Projects::class, 'project_id');
     }
 
-    public function document()
+    public function documents()
     {
-        return $this->belongsTo(Documents::class, 'document_id');
+        return $this->hasMany(Documents::class, 'land_parcel_id');
     }
 
     public function residents()
