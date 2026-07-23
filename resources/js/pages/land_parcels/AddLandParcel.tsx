@@ -158,6 +158,8 @@ type FormData = {
   projectId: string;
   acquisitionSection: string;
   remarks: string;
+  latitude: string;
+  longitude: string;
 };
 
 const EMPTY: FormData = {
@@ -191,6 +193,8 @@ const EMPTY: FormData = {
   projectId: '',
   acquisitionSection: '',
   remarks: '',
+  latitude: '',
+  longitude: '',
 };
 
 function SectionHeader({
@@ -246,6 +250,10 @@ export default function AddLandParcel() {
   const [queuedFiles, setQueuedFiles] = useState<
     { id: string; file: File; category: string }[]
   >([]);
+
+  // Google Map states
+  const [mapInstance, setMapInstance] = useState<any>(null);
+  const [markerInstance, setMarkerInstance] = useState<any>(null);
 
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
@@ -354,6 +362,135 @@ export default function AddLandParcel() {
     };
     fetchData();
   }, []);
+
+  // Load Google Maps API and initialize map
+  useEffect(() => {
+    const apiKey = (import.meta as any).env.VITE_GOOGLE_MAP_API_KEY || '';
+    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initAddLandParcelMapCallback`;
+
+    // Default center in Galle, Sri Lanka (Southern Province)
+    const defaultLat = 6.0535;
+    const defaultLng = 80.2210;
+
+    (window as any).initAddLandParcelMapCallback = () => {
+      const mapContainer = document.getElementById('google-map-picker');
+      if (!mapContainer) return;
+
+      const initialLat = parseFloat(form.latitude) || defaultLat;
+      const initialLng = parseFloat(form.longitude) || defaultLng;
+      const center = { lat: initialLat, lng: initialLng };
+
+      const map = new (window as any).google.maps.Map(mapContainer, {
+        center: center,
+        zoom: 12,
+        mapTypeId: 'roadmap',
+      });
+      setMapInstance(map);
+
+      let marker: any = null;
+      if (form.latitude && form.longitude) {
+        marker = new (window as any).google.maps.Marker({
+          position: center,
+          map: map,
+          draggable: true,
+        });
+        marker.addListener('dragend', () => {
+          const pos = marker.getPosition();
+          if (pos) {
+            setForm((f) => ({
+              ...f,
+              latitude: pos.lat().toFixed(6),
+              longitude: pos.lng().toFixed(6),
+            }));
+          }
+        });
+        setMarkerInstance(marker);
+      }
+
+      // Add click listener on map to pin location
+      map.addListener('click', (e: any) => {
+        if (!e.latLng) return;
+        const clickedLat = e.latLng.lat();
+        const clickedLng = e.latLng.lng();
+
+        setForm((f) => ({
+          ...f,
+          latitude: clickedLat.toFixed(6),
+          longitude: clickedLng.toFixed(6),
+        }));
+      });
+    };
+
+    // Load script
+    if (!(window as any).google || !(window as any).google.maps) {
+      const existingScript = document.getElementById('google-maps-script');
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.id = 'google-maps-script';
+        script.src = scriptUrl;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      } else {
+        if (
+          typeof (window as any).initAddLandParcelMapCallback === 'function' &&
+          (window as any).google &&
+          (window as any).google.maps
+        ) {
+          (window as any).initAddLandParcelMapCallback();
+        }
+      }
+    } else {
+      (window as any).initAddLandParcelMapCallback();
+    }
+
+    return () => {
+      delete (window as any).initAddLandParcelMapCallback;
+    };
+  }, []);
+
+  // Update marker position and center map when latitude/longitude change manually
+  useEffect(() => {
+    if (
+      (window as any).google &&
+      (window as any).google.maps &&
+      mapInstance
+    ) {
+      const lat = parseFloat(form.latitude);
+      const lng = parseFloat(form.longitude);
+      if (
+        !isNaN(lat) &&
+        !isNaN(lng) &&
+        lat >= -90 &&
+        lat <= 90 &&
+        lng >= -180 &&
+        lng <= 180
+      ) {
+        const newPos = { lat, lng };
+        if (markerInstance) {
+          markerInstance.setPosition(newPos);
+        } else {
+          const newMarker = new (window as any).google.maps.Marker({
+            position: newPos,
+            map: mapInstance,
+            draggable: true,
+          });
+          newMarker.addListener('dragend', () => {
+            const pos = newMarker.getPosition();
+            if (pos) {
+              setForm((f) => ({
+                ...f,
+                latitude: pos.lat().toFixed(6),
+                longitude: pos.lng().toFixed(6),
+              }));
+            }
+          });
+          setMarkerInstance(newMarker);
+        }
+        mapInstance.setCenter(newPos);
+      }
+    }
+  }, [form.latitude, form.longitude, mapInstance]);
 
   const set =
     (field: keyof FormData) =>
@@ -591,6 +728,8 @@ export default function AddLandParcel() {
         remarks: form.remarks || null,
         status: 'available' as const,
         project_id: form.projectId ? form.projectId : null,
+        latitude: form.latitude ? parseFloat(form.latitude) : null,
+        longitude: form.longitude ? parseFloat(form.longitude) : null,
         property_owner_ids: finalOwnerIds,
         residents: selectedResidents,
       };
@@ -802,6 +941,39 @@ export default function AddLandParcel() {
               />
               {errMsg('village')}
             </Field>
+
+            <Field label="Latitude">
+              <input
+                className={inputCls}
+                type="number"
+                step="any"
+                placeholder="e.g. 6.053500"
+                value={form.latitude}
+                onChange={set('latitude')}
+              />
+            </Field>
+
+            <Field label="Longitude">
+              <input
+                className={inputCls}
+                type="number"
+                step="any"
+                placeholder="e.g. 80.221000"
+                value={form.longitude}
+                onChange={set('longitude')}
+              />
+            </Field>
+
+            <div className="md:col-span-2 lg:col-span-3 mt-2">
+              <label className="text-foreground text-sm font-medium mb-1.5 block">
+                Google Map Pin (Click on the map to pin/re-pin the location)
+              </label>
+              <div
+                id="google-map-picker"
+                className="w-full rounded-xl border border-border overflow-hidden bg-muted/20"
+                style={{ minHeight: '320px', height: '320px' }}
+              />
+            </div>
           </div>
         </div>
 

@@ -788,7 +788,7 @@ export default function AddProject() {
               </Field>
             </div>
 
-            <Field label="Land Area — Acres">
+            <Field label="Acquiring Land Area — Acres">
               <input
                 className={inputCls}
                 type="number"
@@ -800,7 +800,7 @@ export default function AddProject() {
               />
             </Field>
 
-            <Field label="Land Area — Roods">
+            <Field label="Acquiring Land Area — Roods">
               <input
                 className={inputCls}
                 type="number"
@@ -812,7 +812,7 @@ export default function AddProject() {
               />
             </Field>
 
-            <Field label="Land Area — Perches">
+            <Field label="Acquiring Land Area — Perches">
               <input
                 className={inputCls}
                 type="number"
@@ -821,6 +821,20 @@ export default function AddProject() {
                 placeholder="0.00"
                 value={form.landAreaPerches}
                 onChange={set('landAreaPerches')}
+              />
+            </Field>
+
+            <Field label="Full Acquiring Land Size (Perches)">
+              <input
+                className={`${inputCls} bg-muted/30 cursor-not-allowed font-medium`}
+                type="text"
+                readOnly
+                placeholder="0.00"
+                value={(
+                  (parseFloat(form.landAreaAcers) || 0) * 160 +
+                  (parseFloat(form.landAreaRoods) || 0) * 40 +
+                  (parseFloat(form.landAreaPerches) || 0)
+                ).toFixed(2)}
               />
             </Field>
 
