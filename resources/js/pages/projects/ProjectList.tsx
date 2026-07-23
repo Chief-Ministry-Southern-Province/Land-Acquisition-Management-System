@@ -44,25 +44,32 @@ export default function ProjectList() {
 
   const columns = [
     { key: 'projectId', label: 'Project ID', sortable: true },
-    { key: 'name', label: 'Project Name', sortable: true },
-    { key: 'ministry', label: 'Ministry', sortable: true },
-    { key: 'department', label: 'Department', sortable: true },
-    { key: 'projectType', label: 'Acquisition Type', sortable: true },
-    { key: 'acquisitionAct', label: 'Acquisition Act', sortable: true },
-    { key: 'district', label: 'District', sortable: true },
-    { key: 'division', label: 'Division', sortable: true },
-    { key: 'purpose', label: 'Purpose', sortable: true },
-    { key: 'startDate', label: 'Start Date', sortable: true },
-    { key: 'estimatedCompletion', label: 'Est. Completion', sortable: true },
     {
-      key: 'budget',
-      label: 'Budget (Mn LKR)',
+      key: 'title',
+      label: 'Project Title',
       sortable: true,
-      render: (value: number) => `₨ ${value.toLocaleString()}`,
+      render: (_val: any, row: any) => row.title || row.name || 'N/A',
     },
-    { key: 'projectManager', label: 'Project Manager', sortable: true },
-    { key: 'contact', label: 'Contact No', sortable: true },
-    { key: 'email', label: 'Email', sortable: true },
+    {
+      key: 'institution',
+      label: 'Institution',
+      sortable: true,
+      render: (_val: any, row: any) => row.institution || row.ministry || 'N/A',
+    },
+    { key: 'purpose', label: 'Purpose', sortable: true },
+    {
+      key: 'landArea',
+      label: 'Land Area (A-R-P)',
+      sortable: true,
+      render: (_val: any, row: any) =>
+        `${row.landAreaAcers ?? 0} A, ${row.landAreaRoods ?? 0} R, ${row.landAreaPerches ?? 0} P`,
+    },
+    {
+      key: 'approvalDate',
+      label: 'Approval Date',
+      sortable: true,
+      render: (value: string | null) => value || 'N/A',
+    },
     {
       key: 'remarks',
       label: 'Remarks',

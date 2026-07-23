@@ -129,16 +129,28 @@ export default function LandParcelList() {
   };
 
   const columns = [
-    { key: 'parcel_id', label: 'Parcel Number', sortable: true },
+    { key: 'parcel_id', label: 'Land Number', sortable: true },
+    {
+      key: 'land_name',
+      label: 'Land Name',
+      sortable: true,
+      render: (value: string | null) => value || 'N/A',
+    },
     {
       key: 'project',
       label: 'Associated Project',
       sortable: true,
-      render: (_val: any, row: any) => row.project?.name || 'N/A',
+      render: (_val: any, row: any) =>
+        row.project?.title || row.project?.name || 'N/A',
     },
-    { key: 'lot_no', label: 'Lot No', sortable: true },
     { key: 'district', label: 'District', sortable: true },
-    { key: 'division', label: 'Division', sortable: true },
+    {
+      key: 'divisional_secretariat',
+      label: 'Divisional Secretariat',
+      sortable: true,
+      render: (_val: any, row: any) =>
+        row.divisional_secretariat || row.division || 'N/A',
+    },
     { key: 'village', label: 'Village', sortable: true },
     {
       key: 'owners',
@@ -153,15 +165,15 @@ export default function LandParcelList() {
       },
     },
     {
-      key: 'extent_acers',
+      key: 'extent',
       label: 'Extent',
       sortable: true,
       render: (_val: any, row: any) =>
-        `${row.extent_acers} ac, ${row.extent_perches} per`,
+        `${row.land_size_acers ?? row.extent_acers ?? 0} ac, ${row.land_size_perches ?? row.extent_perches ?? 0} per`,
     },
     {
-      key: 'remarks',
-      label: 'Remarks',
+      key: 'cultivation_status',
+      label: 'Cultivation',
       sortable: true,
       render: (value: string | null) => value || 'N/A',
     },

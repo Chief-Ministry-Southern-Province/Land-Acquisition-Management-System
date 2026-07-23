@@ -35,9 +35,10 @@ export default function LandOwnerDetails({ id }: Props) {
     ? owner.landParcels.map((p) => ({
         id: p.id,
         parcelId: p.parcel_id,
-        surveyNo: p.parcel_id,
+        landNo: p.parcel_id,
+        landName: p.land_name || 'N/A',
         village: p.village,
-        extent: `${p.extent_acers} acres, ${p.extent_perches} perches`,
+        extent: `${p.land_size_acers ?? p.extent_acers ?? 0} acres, ${p.land_size_perches ?? p.extent_perches ?? 0} perches`,
         status: p.status,
       }))
     : [];
@@ -114,7 +115,7 @@ export default function LandOwnerDetails({ id }: Props) {
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">NIC:</dt>
-              <dd>{owner.nic}</dd>
+              <dd>{owner.nic || 'N/A'}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Date of Birth:</dt>
@@ -132,11 +133,11 @@ export default function LandOwnerDetails({ id }: Props) {
           <dl className="space-y-3">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Contact:</dt>
-              <dd>{owner.contact}</dd>
+              <dd>{owner.contact || 'N/A'}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Email:</dt>
-              <dd>{owner.email}</dd>
+              <dd>{owner.email || 'N/A'}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Address:</dt>
@@ -150,7 +151,7 @@ export default function LandOwnerDetails({ id }: Props) {
           <DataTable
             columns={[
               { key: 'parcelId', label: 'Parcel ID', sortable: true },
-              { key: 'surveyNo', label: 'Survey No', sortable: true },
+              { key: 'landNo', label: 'Land No', sortable: true },
               { key: 'village', label: 'Village', sortable: true },
               { key: 'extent', label: 'Extent', sortable: true },
               {

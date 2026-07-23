@@ -18,9 +18,11 @@ class LandParcelController extends Controller
      */
     public function index()
     {
+        $landParcels = LandParcel::with(['owners', 'project', 'residents', 'documents'])->get();
+
         return response()->json([
             'message' => 'Land parcels fetched successfully',
-            'land_parcels' => LandParcel::with(['owners', 'project'])->get(),
+            'land_parcels' => $landParcels,
         ], 200);
     }
 
@@ -32,18 +34,66 @@ class LandParcelController extends Controller
         $validated = $request->validate([
             'parcel_id' => 'required|string|max:255|unique:land_parcels,parcel_id',
             'project_id' => 'nullable|exists:projects,id',
-            'lot_no' => 'required|string|max:255',
+            'land_name' => 'nullable|string|max:255',
+            'province' => 'nullable|string|max:255',
             'district' => 'required|string|max:255',
-            'division' => 'required|string|max:255',
+            'division' => 'nullable|string|max:255',
+            'divisional_secretariat' => 'nullable|string|max:255',
+            'grama_niladari_division' => 'nullable|string|max:255',
             'village' => 'required|string|max:255',
-            'extent_acers' => 'required|numeric',
-            'extent_perches' => 'required|numeric',
+            'extent_acers' => 'nullable|numeric',
+            'extent_perches' => 'nullable|numeric',
+            'land_size_acers' => 'nullable|numeric',
+            'land_size_roods' => 'nullable|numeric',
+            'land_size_perches' => 'nullable|numeric',
+            'full_land_size' => 'nullable|numeric',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'boundary_geojson' => 'nullable|array',
+            'has_plan' => 'nullable|boolean',
+            'plan_number' => 'nullable|string|max:255',
+            'parcel_numbers' => 'nullable|array',
+            'boundaries_north' => 'nullable|string|max:255',
+            'boundaries_south' => 'nullable|string|max:255',
+            'boundaries_east' => 'nullable|string|max:255',
+            'boundaries_west' => 'nullable|string|max:255',
+            'has_residential_houses' => 'nullable|boolean',
+            'is_resident_owner' => 'nullable|boolean',
+            'cultivation' => 'nullable|string|max:255',
+            'cultivation_status' => 'nullable|string|in:fertile,mid,infertile',
+            'annual_income' => 'nullable|numeric',
+            'land_type' => 'nullable|string|max:255',
+            'estimated_value' => 'nullable|numeric',
             'remarks' => 'nullable|string',
             'status' => 'nullable|string|in:available,pending,acquired',
             'property_owner_id' => 'nullable|exists:property_owners,id',
             'property_owner_ids' => 'nullable|array',
             'property_owner_ids.*' => 'exists:property_owners,id',
+            'residents' => 'nullable|array',
+            'residents.*.name' => 'required|string|max:255',
+            'residents.*.address' => 'nullable|string',
+            'residents.*.nic' => 'nullable|string|max:255',
+            'residents.*.contact' => 'nullable|string|max:255',
+            'residents.*.relationship' => 'nullable|string|in:owner,tenant,family_member',
         ]);
+
+        $validated['land_name'] = $validated['land_name'] ?? 'Land Parcel '.$validated['parcel_id'];
+        $validated['province'] = $validated['province'] ?? 'Southern';
+        $validated['divisional_secretariat'] = $validated['divisional_secretariat'] ?? ($validated['division'] ?? 'N/A');
+        $validated['grama_niladari_division'] = $validated['grama_niladari_division'] ?? 'N/A';
+        $validated['land_size_acers'] = $validated['land_size_acers'] ?? ($validated['extent_acers'] ?? 0);
+        $validated['land_size_roods'] = $validated['land_size_roods'] ?? 0;
+        $validated['land_size_perches'] = $validated['land_size_perches'] ?? ($validated['extent_perches'] ?? 0);
+        $validated['full_land_size'] = $validated['full_land_size'] ?? (($validated['land_size_acers'] * 160) + $validated['land_size_perches']);
+        $validated['has_plan'] = $validated['has_plan'] ?? false;
+        $validated['parcel_numbers'] = $validated['parcel_numbers'] ?? [];
+        $validated['has_residential_houses'] = $validated['has_residential_houses'] ?? false;
+        $validated['is_resident_owner'] = $validated['is_resident_owner'] ?? false;
+        $validated['cultivation'] = $validated['cultivation'] ?? 'N/A';
+        $validated['cultivation_status'] = $validated['cultivation_status'] ?? 'fertile';
+        $validated['annual_income'] = $validated['annual_income'] ?? 0;
+        $validated['land_type'] = $validated['land_type'] ?? 'Standard';
+        $validated['estimated_value'] = $validated['estimated_value'] ?? 0;
 
         $validated['status'] = 'available';
         $landParcel = LandParcel::create($validated);
@@ -52,7 +102,22 @@ class LandParcelController extends Controller
         } elseif ($request->has('property_owner_id') && $request->input('property_owner_id')) {
             $landParcel->owners()->attach($request->input('property_owner_id'));
         }
-        $landParcel->load(['owners', 'project']);
+
+        if ($request->has('residents') && is_array($request->input('residents'))) {
+            foreach ($request->input('residents') as $res) {
+                if (! empty($res['name'])) {
+                    $landParcel->residents()->create([
+                        'name' => $res['name'],
+                        'address' => $res['address'] ?? null,
+                        'nic' => $res['nic'] ?? null,
+                        'contact' => $res['contact'] ?? null,
+                        'relationship' => $res['relationship'] ?? 'owner',
+                    ]);
+                }
+            }
+        }
+
+        $landParcel->load(['owners', 'project', 'residents', 'documents']);
 
         return response()->json([
             'message' => 'Land parcel created successfully',
@@ -65,7 +130,7 @@ class LandParcelController extends Controller
      */
     public function show(string $id)
     {
-        $landParcel = LandParcel::with(['owners', 'project'])->find($id);
+        $landParcel = LandParcel::with(['owners', 'project', 'residents', 'documents'])->find($id);
 
         if ($landParcel) {
             return response()->json([
@@ -87,18 +152,58 @@ class LandParcelController extends Controller
         $validated = $request->validate([
             'parcel_id' => 'required|string|max:255|unique:land_parcels,parcel_id,'.$id,
             'project_id' => 'nullable|exists:projects,id',
-            'lot_no' => 'required|string|max:255',
+            'land_name' => 'nullable|string|max:255',
+            'province' => 'nullable|string|max:255',
             'district' => 'required|string|max:255',
-            'division' => 'required|string|max:255',
+            'division' => 'nullable|string|max:255',
+            'divisional_secretariat' => 'nullable|string|max:255',
+            'grama_niladari_division' => 'nullable|string|max:255',
             'village' => 'required|string|max:255',
-            'extent_acers' => 'required|numeric',
-            'extent_perches' => 'required|numeric',
+            'extent_acers' => 'nullable|numeric',
+            'extent_perches' => 'nullable|numeric',
+            'land_size_acers' => 'nullable|numeric',
+            'land_size_roods' => 'nullable|numeric',
+            'land_size_perches' => 'nullable|numeric',
+            'full_land_size' => 'nullable|numeric',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'boundary_geojson' => 'nullable|array',
+            'has_plan' => 'nullable|boolean',
+            'plan_number' => 'nullable|string|max:255',
+            'parcel_numbers' => 'nullable|array',
+            'boundaries_north' => 'nullable|string|max:255',
+            'boundaries_south' => 'nullable|string|max:255',
+            'boundaries_east' => 'nullable|string|max:255',
+            'boundaries_west' => 'nullable|string|max:255',
+            'has_residential_houses' => 'nullable|boolean',
+            'is_resident_owner' => 'nullable|boolean',
+            'cultivation' => 'nullable|string|max:255',
+            'cultivation_status' => 'nullable|string|in:fertile,mid,infertile',
+            'annual_income' => 'nullable|numeric',
+            'land_type' => 'nullable|string|max:255',
+            'estimated_value' => 'nullable|numeric',
             'remarks' => 'nullable|string',
             'status' => 'required|string|in:available,pending,acquired',
             'property_owner_id' => 'nullable|exists:property_owners,id',
             'property_owner_ids' => 'nullable|array',
             'property_owner_ids.*' => 'exists:property_owners,id',
+            'residents' => 'nullable|array',
+            'residents.*.name' => 'required|string|max:255',
+            'residents.*.address' => 'nullable|string',
+            'residents.*.nic' => 'nullable|string|max:255',
+            'residents.*.contact' => 'nullable|string|max:255',
+            'residents.*.relationship' => 'nullable|string|in:owner,tenant,family_member',
         ]);
+
+        if (isset($validated['division']) && ! isset($validated['divisional_secretariat'])) {
+            $validated['divisional_secretariat'] = $validated['division'];
+        }
+        if (isset($validated['extent_acers']) && ! isset($validated['land_size_acers'])) {
+            $validated['land_size_acers'] = $validated['extent_acers'];
+        }
+        if (isset($validated['extent_perches']) && ! isset($validated['land_size_perches'])) {
+            $validated['land_size_perches'] = $validated['extent_perches'];
+        }
 
         $landParcel = LandParcel::find($id, ['*']);
 
@@ -119,7 +224,23 @@ class LandParcelController extends Controller
                 $landParcel->owners()->detach();
             }
         }
-        $landParcel->load(['owners', 'project']);
+
+        if ($request->has('residents') && is_array($request->input('residents'))) {
+            $landParcel->residents()->delete();
+            foreach ($request->input('residents') as $res) {
+                if (! empty($res['name'])) {
+                    $landParcel->residents()->create([
+                        'name' => $res['name'],
+                        'address' => $res['address'] ?? null,
+                        'nic' => $res['nic'] ?? null,
+                        'contact' => $res['contact'] ?? null,
+                        'relationship' => $res['relationship'] ?? 'owner',
+                    ]);
+                }
+            }
+        }
+
+        $landParcel->load(['owners', 'project', 'residents', 'documents']);
 
         return response()->json([
             'message' => 'Land parcel updated successfully',
@@ -166,11 +287,11 @@ class LandParcelController extends Controller
         }
 
         $headings = [
-            'Parcel Number',
+            'Land Number',
             'Associated Project',
-            'Lot No',
+            'Land Name',
             'District',
-            'Division',
+            'Divisional Secretariat',
             'Village',
             'Owner Name',
             'Extent',
@@ -181,16 +302,20 @@ class LandParcelController extends Controller
 
         $data = $records->map(function ($parcel) {
             $ownersList = $parcel->owners->pluck('name')->implode(', ');
+            $projectName = $parcel->project?->title ?? ($parcel->project?->name ?? 'N/A');
+            $divSec = $parcel->divisional_secretariat ?? ($parcel->division ?? 'N/A');
+            $acers = $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0);
+            $perches = $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0);
 
             return [
                 'parcel_id' => $parcel->parcel_id,
-                'project' => $parcel->project?->name ?? 'N/A',
-                'lot_no' => $parcel->lot_no,
+                'project' => $projectName,
+                'land_name' => $parcel->land_name ?? 'N/A',
                 'district' => $parcel->district,
-                'division' => $parcel->division,
+                'division' => $divSec,
                 'village' => $parcel->village,
                 'owners' => $ownersList ?: 'N/A',
-                'extent' => "{$parcel->extent_acers} ac, {$parcel->extent_perches} per",
+                'extent' => "{$acers} ac, {$perches} per",
                 'remarks' => $parcel->remarks ?? 'N/A',
                 'status' => ucfirst($parcel->status),
                 'created_at' => $parcel->created_at ? $parcel->created_at->format('Y-m-d H:i:s') : 'N/A',
@@ -212,10 +337,10 @@ class LandParcelController extends Controller
         ]);
 
         $columnMap = [
-            'parcel_id' => 'Parcel Number',
-            'lot_no' => 'Lot No',
+            'parcel_id' => 'Land Number',
+            'land_name' => 'Land Name',
             'district' => 'District',
-            'division' => 'Division',
+            'divisional_secretariat' => 'Division',
             'village' => 'Village',
             'remarks' => 'Remarks',
             'status' => 'Current Status',
@@ -223,9 +348,7 @@ class LandParcelController extends Controller
 
         $validationRules = [
             'parcel_id' => 'required|string|max:255|unique:land_parcels,parcel_id',
-            'lot_no' => 'required|string|max:255',
             'district' => 'required|string|max:255',
-            'division' => 'required|string|max:255',
             'village' => 'required|string|max:255',
             'status' => 'nullable|string|in:available,pending,acquired,Available,Pending,Acquired,AVAILABLE,PENDING,ACQUIRED',
         ];
@@ -245,7 +368,7 @@ class LandParcelController extends Controller
                 }
 
                 if ($projectField && trim($projectField) !== 'N/A') {
-                    $project = Projects::where('name', trim($projectField))
+                    $project = Projects::where('title', trim($projectField))
                         ->orWhere('project_id', trim($projectField))
                         ->first();
                     if ($project) {
@@ -277,14 +400,33 @@ class LandParcelController extends Controller
                     $acers = (float) $row['extent_acers'];
                 } elseif (isset($row['extent_acres'])) {
                     $acers = (float) $row['extent_acres'];
+                } elseif (isset($row['land_size_acers'])) {
+                    $acers = (float) $row['land_size_acers'];
                 }
 
                 if (isset($row['extent_perches'])) {
                     $perches = (float) $row['extent_perches'];
+                } elseif (isset($row['land_size_perches'])) {
+                    $perches = (float) $row['land_size_perches'];
                 }
 
-                $mappedData['extent_acers'] = $acers;
-                $mappedData['extent_perches'] = $perches;
+                $mappedData['land_name'] = $mappedData['land_name'] ?? ('Land Parcel '.$mappedData['parcel_id']);
+                $mappedData['province'] = $mappedData['province'] ?? 'Southern';
+                $mappedData['divisional_secretariat'] = $mappedData['divisional_secretariat'] ?? ($row['division'] ?? 'N/A');
+                $mappedData['grama_niladari_division'] = $mappedData['grama_niladari_division'] ?? 'N/A';
+                $mappedData['land_size_acers'] = $acers;
+                $mappedData['land_size_roods'] = 0;
+                $mappedData['land_size_perches'] = $perches;
+                $mappedData['full_land_size'] = ($acers * 160) + $perches;
+                $mappedData['has_plan'] = false;
+                $mappedData['parcel_numbers'] = [];
+                $mappedData['has_residential_houses'] = false;
+                $mappedData['is_resident_owner'] = false;
+                $mappedData['cultivation'] = 'N/A';
+                $mappedData['cultivation_status'] = 'fertile';
+                $mappedData['annual_income'] = 0;
+                $mappedData['land_type'] = 'Standard';
+                $mappedData['estimated_value'] = 0;
 
                 // 3. Handle default status
                 if (empty($mappedData['status'])) {
@@ -299,22 +441,42 @@ class LandParcelController extends Controller
                 // 4. Create and save model so we can attach relationships
                 $landParcel = LandParcel::create($mappedData);
 
-                // 5. Resolve and attach owners
-                $ownersField = null;
-                if (isset($row['owner_name'])) {
-                    $ownersField = $row['owner_name'];
-                } elseif (isset($row['owners'])) {
-                    $ownersField = $row['owners'];
-                }
+                // 5. Helper to split values by semicolon or comma
+                $splitHelper = function ($value) {
+                    if (empty($value) || trim($value) === 'N/A') {
+                        return [];
+                    }
+                    $delimiter = strpos($value, ';') !== false ? ';' : ',';
 
+                    return array_map('trim', explode($delimiter, $value));
+                };
+
+                // 6. Resolve and attach owners
+                $ownersField = $row['owner_name'] ?? ($row['owners'] ?? null);
                 if ($ownersField && trim($ownersField) !== 'N/A') {
-                    $ownerNames = array_map('trim', explode(',', $ownersField));
-                    foreach ($ownerNames as $name) {
+                    $ownerNames = $splitHelper($ownersField);
+                    $ownerNics = $splitHelper($row['owner_nic'] ?? ($row['owner_nics'] ?? ''));
+                    $ownerAddresses = $splitHelper($row['owner_address'] ?? ($row['owner_addresses'] ?? ''));
+                    $ownerContacts = $splitHelper($row['owner_contact'] ?? ($row['owner_contacts'] ?? ''));
+
+                    foreach ($ownerNames as $index => $name) {
                         if (empty($name)) {
                             continue;
                         }
-                        // Find existing owner or create a new one
-                        $owner = PropertyOwner::where('name', $name)->first();
+
+                        $nic = $ownerNics[$index] ?? 'N/A';
+                        $address = $ownerAddresses[$index] ?? 'N/A';
+                        $contact = $ownerContacts[$index] ?? 'N/A';
+
+                        // Find existing owner by name or NIC, or create a new one
+                        $owner = null;
+                        if ($nic !== 'N/A') {
+                            $owner = PropertyOwner::where('nic', $nic)->first();
+                        }
+                        if (! $owner) {
+                            $owner = PropertyOwner::where('name', $name)->first();
+                        }
+
                         if (! $owner) {
                             $ownerId = 'OWN-'.strtoupper(Str::random(6));
                             while (PropertyOwner::where('owner_id', $ownerId)->exists()) {
@@ -324,12 +486,62 @@ class LandParcelController extends Controller
                             $owner = PropertyOwner::create([
                                 'owner_id' => $ownerId,
                                 'name' => $name,
-                                'nic' => 'N/A',
-                                'address' => 'N/A',
-                                'contact' => 'N/A',
+                                'nic' => $nic,
+                                'address' => $address,
+                                'contact' => $contact,
                             ]);
+                        } else {
+                            // Update details if they are provided and current is N/A or empty
+                            $updates = [];
+                            if ($nic !== 'N/A' && ($owner->nic === 'N/A' || empty($owner->nic))) {
+                                $updates['nic'] = $nic;
+                            }
+                            if ($address !== 'N/A' && ($owner->address === 'N/A' || empty($owner->address))) {
+                                $updates['address'] = $address;
+                            }
+                            if ($contact !== 'N/A' && ($owner->contact === 'N/A' || empty($owner->contact))) {
+                                $updates['contact'] = $contact;
+                            }
+                            if (! empty($updates)) {
+                                $owner->update($updates);
+                            }
                         }
                         $landParcel->owners()->attach($owner->id);
+                    }
+                }
+
+                // 7. Resolve and attach residents
+                $residentNamesField = $row['resident_name'] ?? ($row['resident_names'] ?? null);
+                if ($residentNamesField && trim($residentNamesField) !== 'N/A') {
+                    $residentNames = $splitHelper($residentNamesField);
+                    $residentNics = $splitHelper($row['resident_nic'] ?? ($row['resident_nics'] ?? ''));
+                    $residentAddresses = $splitHelper($row['resident_address'] ?? ($row['resident_addresses'] ?? ''));
+                    $residentContacts = $splitHelper($row['resident_contact'] ?? ($row['resident_contacts'] ?? ''));
+                    $residentRelationships = $splitHelper($row['resident_relationship'] ?? ($row['resident_relationships'] ?? ''));
+
+                    foreach ($residentNames as $index => $name) {
+                        if (empty($name)) {
+                            continue;
+                        }
+
+                        $nic = $residentNics[$index] ?? null;
+                        $address = $residentAddresses[$index] ?? null;
+                        $contact = $residentContacts[$index] ?? null;
+                        $relationship = $residentRelationships[$index] ?? 'owner';
+
+                        // Standardize relationship
+                        $relationship = strtolower(trim($relationship));
+                        if (! in_array($relationship, ['owner', 'tenant', 'family_member'])) {
+                            $relationship = 'owner';
+                        }
+
+                        $landParcel->residents()->create([
+                            'name' => $name,
+                            'address' => $address,
+                            'nic' => $nic,
+                            'contact' => $contact,
+                            'relationship' => $relationship,
+                        ]);
                     }
                 }
 

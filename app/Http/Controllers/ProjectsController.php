@@ -26,25 +26,58 @@ class ProjectsController extends Controller
     {
         $validated = $request->validate([
             'project_id' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'ministry' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
-            'project_type' => 'required|string|max:255',
-            'acquisition_act' => 'required|string|max:255',
-            'district' => 'required|string|max:255',
-            'division' => 'required|string|max:255',
+            'title' => 'nullable|string|max:255',
+            'name' => 'nullable|string|max:255',
             'purpose' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'estimated_completion' => 'required|date',
-            'budget_im_mn' => 'required|numeric',
+            'institution' => 'nullable|string|max:255',
+            'institution_address' => 'nullable|string|max:255',
+            'land_area_to_be_acquired_acers' => 'nullable|numeric',
+            'land_area_to_be_acquired_roods' => 'nullable|numeric',
+            'land_area_to_be_acquired_perches' => 'nullable|numeric',
+            'full_land_area_to_be_acquired' => 'nullable|numeric',
+            'are_residents_moved_temp' => 'nullable|boolean',
+            'section20_observation' => 'nullable|boolean',
+            'section21_secretary_report' => 'nullable|boolean',
+            'section22_secretary_recommendation' => 'nullable|string|max:255',
+            'section23_valuation_recommendation' => 'nullable|string|max:255',
+            'section24_decision_remarks' => 'nullable|boolean',
+            'section25_additional_conditions' => 'nullable|string|max:255',
+            'section26_final_recommendation' => 'nullable|boolean',
+            'approval_date' => 'nullable|date',
+            'approved_by' => 'nullable|exists:users,id',
             'status' => 'required|string|in:active,pending,completed',
-            'project_manager' => 'required|string|max:255',
-            'contact' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
             'remarks' => 'nullable|string',
             'parcel_ids' => 'nullable|array',
             'parcel_ids.*' => 'exists:land_parcels,id',
         ]);
+
+        if (empty($validated['title']) && ! empty($validated['name'])) {
+            $validated['title'] = $validated['name'];
+        }
+        if (empty($validated['title'])) {
+            $validated['title'] = 'Untitled Project';
+        }
+        if (! isset($validated['institution'])) {
+            $validated['institution'] = $request->input('ministry') ?? ($request->input('department') ?? 'N/A');
+        }
+        if (! isset($validated['institution_address'])) {
+            $validated['institution_address'] = 'N/A';
+        }
+        if (! isset($validated['land_area_to_be_acquired_acers'])) {
+            $validated['land_area_to_be_acquired_acers'] = 0;
+        }
+        if (! isset($validated['land_area_to_be_acquired_roods'])) {
+            $validated['land_area_to_be_acquired_roods'] = 0;
+        }
+        if (! isset($validated['land_area_to_be_acquired_perches'])) {
+            $validated['land_area_to_be_acquired_perches'] = 0;
+        }
+        if (! isset($validated['full_land_area_to_be_acquired'])) {
+            $validated['full_land_area_to_be_acquired'] = 0;
+        }
+        if (! isset($validated['are_residents_moved_temp'])) {
+            $validated['are_residents_moved_temp'] = false;
+        }
 
         $project = Projects::create($validated);
 
@@ -88,25 +121,34 @@ class ProjectsController extends Controller
     {
         $validated = $request->validate([
             'project_id' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'ministry' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
-            'project_type' => 'required|string|max:255',
-            'acquisition_act' => 'required|string|max:255',
-            'district' => 'required|string|max:255',
-            'division' => 'required|string|max:255',
+            'title' => 'nullable|string|max:255',
+            'name' => 'nullable|string|max:255',
             'purpose' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'estimated_completion' => 'required|date',
-            'budget_im_mn' => 'required|numeric',
+            'institution' => 'nullable|string|max:255',
+            'institution_address' => 'nullable|string|max:255',
+            'land_area_to_be_acquired_acers' => 'nullable|numeric',
+            'land_area_to_be_acquired_roods' => 'nullable|numeric',
+            'land_area_to_be_acquired_perches' => 'nullable|numeric',
+            'full_land_area_to_be_acquired' => 'nullable|numeric',
+            'are_residents_moved_temp' => 'nullable|boolean',
+            'section20_observation' => 'nullable|boolean',
+            'section21_secretary_report' => 'nullable|boolean',
+            'section22_secretary_recommendation' => 'nullable|string|max:255',
+            'section23_valuation_recommendation' => 'nullable|string|max:255',
+            'section24_decision_remarks' => 'nullable|boolean',
+            'section25_additional_conditions' => 'nullable|string|max:255',
+            'section26_final_recommendation' => 'nullable|boolean',
+            'approval_date' => 'nullable|date',
+            'approved_by' => 'nullable|exists:users,id',
             'status' => 'required|string|in:active,pending,completed',
-            'project_manager' => 'required|string|max:255',
-            'contact' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
             'remarks' => 'nullable|string',
             'parcel_ids' => 'nullable|array',
             'parcel_ids.*' => 'exists:land_parcels,id',
         ]);
+
+        if (empty($validated['title']) && ! empty($validated['name'])) {
+            $validated['title'] = $validated['name'];
+        }
 
         $project = Projects::find($id, ['*']);
 

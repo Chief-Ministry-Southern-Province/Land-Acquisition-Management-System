@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
   ArrowLeft,
   FileText,
@@ -10,9 +10,12 @@ import {
   Plus,
   Search,
   Users,
+  FolderKanban,
+  Upload,
 } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
+import { uploadDocument } from '@/services/documentManagementService';
 import { createLandParcel } from '@/services/landParcelManagementService';
 import { getProjects } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
@@ -22,32 +25,86 @@ import {
 } from '@/services/propertyOwnerManagement';
 import type { PropertyOwner } from '@/services/propertyOwnerManagement';
 
-const DISTRICTS = [
-  'Colombo',
-  'Gampaha',
-  'Kalutara',
-  'Kandy',
-  'Matale',
-  'Nuwara Eliya',
-  'Galle',
-  'Matara',
-  'Hambantota',
-  'Jaffna',
-  'Kilinochchi',
-  'Mannar',
-  'Vavuniya',
-  'Mullaitivu',
-  'Batticaloa',
-  'Ampara',
-  'Trincomalee',
-  'Kurunegala',
-  'Puttalam',
-  'Anuradhapura',
-  'Polonnaruwa',
-  'Badulla',
-  'Monaragala',
-  'Ratnapura',
-  'Kegalle',
+const PROVINCES = [
+  {
+    value: 'Western',
+    label: 'Western',
+    districts: [
+      { value: 'Colombo', label: 'Colombo' },
+      { value: 'Gampaha', label: 'Gampaha' },
+      { value: 'Kalutara', label: 'Kalutara' },
+    ],
+  },
+  {
+    value: 'Central',
+    label: 'Central',
+    districts: [
+      { value: 'Kandy', label: 'Kandy' },
+      { value: 'Matale', label: 'Matale' },
+      { value: 'Nuwara Eliya', label: 'Nuwara Eliya' },
+    ],
+  },
+  {
+    value: 'Southern',
+    label: 'Southern',
+    districts: [
+      { value: 'Galle', label: 'Galle' },
+      { value: 'Matara', label: 'Matara' },
+      { value: 'Hambantota', label: 'Hambantota' },
+    ],
+  },
+  {
+    value: 'Northern',
+    label: 'Northern',
+    districts: [
+      { value: 'Jaffna', label: 'Jaffna' },
+      { value: 'Kilinochchi', label: 'Kilinochchi' },
+      { value: 'Mannar', label: 'Mannar' },
+      { value: 'Mullaitivu', label: 'Mullaitivu' },
+      { value: 'Vavuniya', label: 'Vavuniya' },
+    ],
+  },
+  {
+    value: 'Eastern',
+    label: 'Eastern',
+    districts: [
+      { value: 'Ampara', label: 'Ampara' },
+      { value: 'Batticaloa', label: 'Batticaloa' },
+      { value: 'Trincomalee', label: 'Trincomalee' },
+    ],
+  },
+  {
+    value: 'North Western',
+    label: 'North Western',
+    districts: [
+      { value: 'Kurunegala', label: 'Kurunegala' },
+      { value: 'Puttalam', label: 'Puttalam' },
+    ],
+  },
+  {
+    value: 'North Central',
+    label: 'North Central',
+    districts: [
+      { value: 'Anuradhapura', label: 'Anuradhapura' },
+      { value: 'Polonnaruwa', label: 'Polonnaruwa' },
+    ],
+  },
+  {
+    value: 'Uva',
+    label: 'Uva',
+    districts: [
+      { value: 'Badulla', label: 'Badulla' },
+      { value: 'Monaragala', label: 'Monaragala' },
+    ],
+  },
+  {
+    value: 'Sabaragamuwa',
+    label: 'Sabaragamuwa',
+    districts: [
+      { value: 'Kegalle', label: 'Kegalle' },
+      { value: 'Ratnapura', label: 'Ratnapura' },
+    ],
+  },
 ];
 
 const LAND_USE_TYPES = [
@@ -71,39 +128,73 @@ const TENURE_TYPES = [
 ];
 
 type FormData = {
-  surveyPlanNo: string;
-  lotNo: string;
+  landName: string;
+  landNumber: string;
+  province: string;
   district: string;
   divisionalSecretariat: string;
   gramaNiladhari: string;
   village: string;
   extentAcres: string;
+  extentRoods: string;
   extentPerches: string;
+  hasPlan: boolean;
+  planNumber: string;
+  parcelNumbers: string;
+  boundariesNorth: string;
+  boundariesSouth: string;
+  boundariesEast: string;
+  boundariesWest: string;
+  hasResidentialHouses: boolean;
+  isResidentOwner: boolean;
+  isCultivated: boolean;
+  cultivation: string;
+  cultivationStatus: 'fertile' | 'mid' | 'infertile' | 'unspecified';
+  annualIncome: string;
+  landType: string;
+  estimatedValue: string;
   landUseType: string;
   tenureType: string;
-  assessmentNo: string;
-  titleDeedNo: string;
   projectId: string;
   acquisitionSection: string;
   remarks: string;
+  latitude: string;
+  longitude: string;
 };
 
 const EMPTY: FormData = {
-  surveyPlanNo: '',
-  lotNo: '',
+  landName: '',
+  landNumber: '',
+  province: 'Southern',
   district: '',
   divisionalSecretariat: '',
   gramaNiladhari: '',
   village: '',
   extentAcres: '',
+  extentRoods: '',
   extentPerches: '',
+  hasPlan: false,
+  planNumber: '',
+  parcelNumbers: '',
+  boundariesNorth: '',
+  boundariesSouth: '',
+  boundariesEast: '',
+  boundariesWest: '',
+  hasResidentialHouses: false,
+  isResidentOwner: false,
+  isCultivated: false,
+  cultivation: '',
+  cultivationStatus: 'unspecified',
+  annualIncome: '',
+  landType: '',
+  estimatedValue: '',
   landUseType: '',
   tenureType: '',
-  assessmentNo: '',
-  titleDeedNo: '',
   projectId: '',
   acquisitionSection: '',
   remarks: '',
+  latitude: '',
+  longitude: '',
 };
 
 function SectionHeader({
@@ -155,6 +246,39 @@ export default function AddLandParcel() {
   );
   const [submitting, setSubmitting] = useState(false);
 
+  // Document upload state
+  const [queuedFiles, setQueuedFiles] = useState<
+    { id: string; file: File; category: string }[]
+  >([]);
+
+  // Google Map refs
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+
+  const { props: pageProps } = usePage();
+  const user = (pageProps.auth as any)?.user;
+  const userId = user?.id;
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const newQueuedFiles = Array.from(files).map((file) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      file: file,
+      category: 'Land Parcels',
+    }));
+
+    setQueuedFiles((prev) => [...prev, ...newQueuedFiles]);
+  };
+
+  const handleRemoveQueuedFile = (tempId: string) => {
+    setQueuedFiles((prev) => prev.filter((item) => item.id !== tempId));
+  };
+
   // Property owners selection state
   const [selectedOwners, setSelectedOwners] = useState<any[]>([]);
   const [existingOwners, setExistingOwners] = useState<PropertyOwner[]>([]);
@@ -170,6 +294,57 @@ export default function AddLandParcel() {
     address: '',
   });
   const [newOwnerErrors, setNewOwnerErrors] = useState<any>({});
+
+  // Residents state
+  const [selectedResidents, setSelectedResidents] = useState<any[]>([]);
+  const [showNewResidentForm, setShowNewResidentForm] = useState(false);
+  const [newResidentForm, setNewResidentForm] = useState({
+    name: '',
+    nic: '',
+    contact: '',
+    address: '',
+    relationship: 'tenant' as 'owner' | 'tenant' | 'family_member',
+  });
+  const [newResidentErrors, setNewResidentErrors] = useState<any>({});
+
+  const handleAddNewResident = () => {
+    const errs: any = {};
+
+    if (!newResidentForm.name.trim()) {
+      errs.name = 'Resident name is required';
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setNewResidentErrors(errs);
+
+      return;
+    }
+
+    setSelectedResidents((prev) => [
+      ...prev,
+      {
+        name: newResidentForm.name.trim(),
+        nic: newResidentForm.nic.trim() || null,
+        contact: newResidentForm.contact.trim() || null,
+        address: newResidentForm.address.trim() || null,
+        relationship: newResidentForm.relationship || 'tenant',
+      },
+    ]);
+
+    setNewResidentForm({
+      name: '',
+      nic: '',
+      contact: '',
+      address: '',
+      relationship: 'tenant',
+    });
+    setNewResidentErrors({});
+    setShowNewResidentForm(false);
+  };
+
+  const handleRemoveResident = (index: number) => {
+    setSelectedResidents((prev) => prev.filter((_, i) => i !== index));
+  };
 
   // Fetch projects and property owners
   useEffect(() => {
@@ -187,6 +362,154 @@ export default function AddLandParcel() {
     };
     fetchData();
   }, []);
+
+  // Store initial form coordinates in a ref to prevent re-running map loader effect
+  const initialCoords = useRef({
+    latitude: form.latitude,
+    longitude: form.longitude,
+  });
+
+  // Load Google Maps API and initialize map
+  useEffect(() => {
+    const apiKey = (import.meta as any).env.VITE_GOOGLE_MAP_API_KEY || '';
+    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initAddLandParcelMapCallback`;
+
+    // Default center in Galle, Sri Lanka (Southern Province)
+    const defaultLat = 6.0535;
+    const defaultLng = 80.221;
+
+    (window as any).initAddLandParcelMapCallback = () => {
+      const mapContainer = document.getElementById('google-map-picker');
+
+      if (!mapContainer) {
+        return;
+      }
+
+      const initialLat =
+        parseFloat(initialCoords.current.latitude) || defaultLat;
+      const initialLng =
+        parseFloat(initialCoords.current.longitude) || defaultLng;
+      const center = { lat: initialLat, lng: initialLng };
+
+      const map = new (window as any).google.maps.Map(mapContainer, {
+        center: center,
+        zoom: 12,
+        mapTypeId: 'roadmap',
+      });
+      mapRef.current = map;
+
+      if (initialCoords.current.latitude && initialCoords.current.longitude) {
+        const marker = new (window as any).google.maps.Marker({
+          position: center,
+          map: map,
+          draggable: true,
+        });
+        marker.addListener('dragend', () => {
+          const pos = marker.getPosition();
+
+          if (pos) {
+            setForm((f) => ({
+              ...f,
+              latitude: pos.lat().toFixed(6),
+              longitude: pos.lng().toFixed(6),
+            }));
+          }
+        });
+        markerRef.current = marker;
+      }
+
+      // Add click listener on map to pin location
+      map.addListener('click', (e: any) => {
+        if (!e.latLng) {
+          return;
+        }
+
+        const clickedLat = e.latLng.lat();
+        const clickedLng = e.latLng.lng();
+
+        setForm((f) => ({
+          ...f,
+          latitude: clickedLat.toFixed(6),
+          longitude: clickedLng.toFixed(6),
+        }));
+      });
+    };
+
+    // Load script
+    if (!(window as any).google || !(window as any).google.maps) {
+      const existingScript = document.getElementById('google-maps-script');
+
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.id = 'google-maps-script';
+        script.src = scriptUrl;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      } else {
+        if (
+          typeof (window as any).initAddLandParcelMapCallback === 'function' &&
+          (window as any).google &&
+          (window as any).google.maps
+        ) {
+          (window as any).initAddLandParcelMapCallback();
+        }
+      }
+    } else {
+      (window as any).initAddLandParcelMapCallback();
+    }
+
+    return () => {
+      delete (window as any).initAddLandParcelMapCallback;
+    };
+  }, []);
+
+  // Update marker position and center map when latitude/longitude change manually
+  useEffect(() => {
+    if (
+      (window as any).google &&
+      (window as any).google.maps &&
+      mapRef.current
+    ) {
+      const lat = parseFloat(form.latitude);
+      const lng = parseFloat(form.longitude);
+
+      if (
+        !isNaN(lat) &&
+        !isNaN(lng) &&
+        lat >= -90 &&
+        lat <= 90 &&
+        lng >= -180 &&
+        lng <= 180
+      ) {
+        const newPos = { lat, lng };
+
+        if (markerRef.current) {
+          markerRef.current.setPosition(newPos);
+        } else {
+          const newMarker = new (window as any).google.maps.Marker({
+            position: newPos,
+            map: mapRef.current,
+            draggable: true,
+          });
+          newMarker.addListener('dragend', () => {
+            const pos = newMarker.getPosition();
+
+            if (pos) {
+              setForm((f) => ({
+                ...f,
+                latitude: pos.lat().toFixed(6),
+                longitude: pos.lng().toFixed(6),
+              }));
+            }
+          });
+          markerRef.current = newMarker;
+        }
+
+        mapRef.current.setCenter(newPos);
+      }
+    }
+  }, [form.latitude, form.longitude]);
 
   const set =
     (field: keyof FormData) =>
@@ -218,7 +541,7 @@ export default function AddLandParcel() {
 
     if (
       selectedOwners.some(
-        (o) => o.nic.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
+        (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
       )
     ) {
       errs.nic = 'This owner is already added';
@@ -226,7 +549,7 @@ export default function AddLandParcel() {
 
     if (
       existingOwners.some(
-        (o) => o.nic.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
+        (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
       )
     ) {
       errs.nic =
@@ -292,16 +615,24 @@ export default function AddLandParcel() {
     return existingOwners.filter(
       (owner) =>
         owner.name.toLowerCase().includes(q) ||
-        owner.nic.toLowerCase().includes(q) ||
+        owner.nic?.toLowerCase().includes(q) ||
         owner.ownerId.toLowerCase().includes(q),
     );
   }, [existingOwners, ownerSearch]);
 
+  const fullLandSizePerches = useMemo(() => {
+    const acres = parseFloat(form.extentAcres) || 0;
+    const roods = parseFloat(form.extentRoods) || 0;
+    const perches = parseFloat(form.extentPerches) || 0;
+
+    return acres * 160 + roods * 40 + perches;
+  }, [form.extentAcres, form.extentRoods, form.extentPerches]);
+
   const validate = () => {
     const errs: Partial<Record<keyof FormData, string>> = {};
 
-    if (!form.surveyPlanNo.trim()) {
-      errs.surveyPlanNo = 'Survey Plan No is required';
+    if (!form.landNumber.trim()) {
+      errs.landNumber = 'Land Number is required';
     }
 
     if (!form.district) {
@@ -369,21 +700,73 @@ export default function AddLandParcel() {
         }
       }
 
+      const acres = parseFloat(form.extentAcres) || 0;
+      const roods = parseFloat(form.extentRoods) || 0;
+      const perches = parseFloat(form.extentPerches) || 0;
+      const totalPerches = acres * 160 + roods * 40 + perches;
+
       const payload = {
-        parcel_id: form.surveyPlanNo,
-        lot_no: form.lotNo || '-',
+        parcel_id: form.landNumber,
+        land_name: form.landName || 'Land Parcel ' + form.landNumber,
+        province: form.province || 'Southern',
         district: form.district,
         division: form.divisionalSecretariat,
+        divisional_secretariat: form.divisionalSecretariat,
+        grama_niladari_division: form.gramaNiladhari || 'N/A',
         village: form.village,
         extent_acers: form.extentAcres,
         extent_perches: form.extentPerches || '0',
+        land_size_acers: form.extentAcres || '0',
+        land_size_roods: form.extentRoods || '0',
+        land_size_perches: form.extentPerches || '0',
+        full_land_size: totalPerches.toString(),
+        has_plan: form.hasPlan,
+        plan_number: form.planNumber || form.landNumber,
+        parcel_numbers: form.parcelNumbers
+          ? form.parcelNumbers
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : [],
+        boundaries_north: form.boundariesNorth || null,
+        boundaries_south: form.boundariesSouth || null,
+        boundaries_east: form.boundariesEast || null,
+        boundaries_west: form.boundariesWest || null,
+        has_residential_houses: form.hasResidentialHouses,
+        is_resident_owner: form.isResidentOwner,
+        is_cultivated: form.isCultivated,
+        cultivation: form.isCultivated ? form.cultivation || 'N/A' : 'N/A',
+        cultivation_status: form.isCultivated
+          ? form.cultivationStatus
+          : 'unspecified',
+        annual_income: form.isCultivated ? Number(form.annualIncome) || 0 : 0,
+        land_type: form.landType || form.landUseType || 'Standard',
+        estimated_value: Number(form.estimatedValue) || 0,
         remarks: form.remarks || null,
         status: 'available' as const,
         project_id: form.projectId ? form.projectId : null,
+        latitude: form.latitude ? parseFloat(form.latitude) : null,
+        longitude: form.longitude ? parseFloat(form.longitude) : null,
         property_owner_ids: finalOwnerIds,
+        residents: selectedResidents,
       };
 
-      await createLandParcel(payload);
+      const createdParcel = await createLandParcel(payload);
+      const createdParcelId = createdParcel?.id ?? null;
+
+      // Upload documents after the land parcel is created, so we can link them
+      if (queuedFiles.length > 0 && createdParcelId) {
+        for (let i = 0; i < queuedFiles.length; i++) {
+          const item = queuedFiles[i];
+          await uploadDocument(
+            item.file,
+            String(userId || ''),
+            form.projectId ? String(form.projectId) : null,
+            item.category,
+            String(createdParcelId),
+          );
+        }
+      }
 
       router.visit('/land-parcels');
     } catch (error: any) {
@@ -395,11 +778,7 @@ export default function AddLandParcel() {
           let fieldName = key;
 
           if (key === 'parcel_id') {
-            fieldName = 'surveyPlanNo';
-          }
-
-          if (key === 'lot_no') {
-            fieldName = 'lotNo';
+            fieldName = 'landNumber';
           }
 
           if (key === 'division') {
@@ -424,10 +803,10 @@ export default function AddLandParcel() {
         });
         setErrors(backendErrors);
       } else if (error.response?.data?.message) {
-        setErrors({ surveyPlanNo: error.response.data.message });
+        setErrors({ landNumber: error.response.data.message });
       } else {
         setErrors({
-          surveyPlanNo: 'An error occurred while saving the land parcel.',
+          landNumber: 'An error occurred while saving the land parcel.',
         });
       }
     } finally {
@@ -492,23 +871,44 @@ export default function AddLandParcel() {
         <div className="bg-card border-border rounded-xl border p-6">
           <SectionHeader icon={MapPin} title="Location Details" />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Field label="Survey Plan No" required>
+            <Field label="Land Name">
               <input
                 className={inputCls}
-                placeholder="e.g. 123/4A"
-                value={form.surveyPlanNo}
-                onChange={set('surveyPlanNo')}
+                placeholder="e.g. Watta Land"
+                value={form.landName}
+                onChange={set('landName')}
               />
-              {errMsg('surveyPlanNo')}
             </Field>
 
-            <Field label="Lot No">
+            <Field label="Land Number" required>
               <input
                 className={inputCls}
-                placeholder="e.g. Lot 3"
-                value={form.lotNo}
-                onChange={set('lotNo')}
+                placeholder="e.g. LND/2026/001"
+                value={form.landNumber}
+                onChange={set('landNumber')}
               />
+              {errMsg('landNumber')}
+            </Field>
+
+            <Field label="Province">
+              <select
+                className={inputCls}
+                value={form.province}
+                onChange={(e) => {
+                  setForm((f) => ({
+                    ...f,
+                    province: e.target.value,
+                    district: '',
+                  }));
+                }}
+              >
+                <option value="">Select Province</option>
+                {PROVINCES.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
             </Field>
 
             <Field label="District" required>
@@ -516,13 +916,16 @@ export default function AddLandParcel() {
                 className={inputCls}
                 value={form.district}
                 onChange={set('district')}
+                disabled={!form.province}
               >
                 <option value="">Select District</option>
-                {DISTRICTS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
+                {PROVINCES.find(
+                  (p) => p.value === form.province,
+                )?.districts.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
                   </option>
-                ))}
+                )) || null}
               </select>
               {errMsg('district')}
             </Field>
@@ -555,13 +958,46 @@ export default function AddLandParcel() {
               />
               {errMsg('village')}
             </Field>
+
+            <Field label="Latitude">
+              <input
+                className={inputCls}
+                type="number"
+                step="any"
+                placeholder="e.g. 6.053500"
+                value={form.latitude}
+                onChange={set('latitude')}
+              />
+            </Field>
+
+            <Field label="Longitude">
+              <input
+                className={inputCls}
+                type="number"
+                step="any"
+                placeholder="e.g. 80.221000"
+                value={form.longitude}
+                onChange={set('longitude')}
+              />
+            </Field>
+
+            <div className="mt-2 md:col-span-2 lg:col-span-3">
+              <label className="text-foreground mb-1.5 block text-sm font-medium">
+                Google Map Pin (Click on the map to pin/re-pin the location)
+              </label>
+              <div
+                id="google-map-picker"
+                className="border-border bg-muted/20 w-full overflow-hidden rounded-xl border"
+                style={{ minHeight: '320px', height: '320px' }}
+              />
+            </div>
           </div>
         </div>
 
         {/* Parcel Details */}
         <div className="bg-card border-border rounded-xl border p-6">
           <SectionHeader icon={Layers} title="Parcel Details" />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Field label="Extent — Acres" required>
               <input
                 className={inputCls}
@@ -575,6 +1011,18 @@ export default function AddLandParcel() {
               {errMsg('extentAcres')}
             </Field>
 
+            <Field label="Extent — Roods">
+              <input
+                className={inputCls}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={form.extentRoods}
+                onChange={set('extentRoods')}
+              />
+            </Field>
+
             <Field label="Extent — Perches">
               <input
                 className={inputCls}
@@ -586,6 +1034,158 @@ export default function AddLandParcel() {
                 onChange={set('extentPerches')}
               />
             </Field>
+
+            <Field label="Full Land Size (Perches)">
+              <input
+                className={`${inputCls} bg-muted/40 cursor-not-allowed`}
+                type="text"
+                readOnly
+                value={`${fullLandSizePerches.toFixed(2)} Perches`}
+              />
+            </Field>
+
+            <div className="flex items-center gap-2 py-2 md:col-span-2 lg:col-span-4">
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
+                  checked={form.hasPlan}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, hasPlan: e.target.checked }))
+                  }
+                />
+                <span className="text-foreground text-sm font-medium">
+                  Does land parcel has a plan
+                </span>
+              </label>
+            </div>
+
+            {form.hasPlan ? (
+              <>
+                <Field label="Plan Number" required>
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. P/2024/001"
+                    value={form.planNumber}
+                    onChange={set('planNumber')}
+                  />
+                  {errMsg('planNumber')}
+                </Field>
+
+                <Field label="Parcel Numbers">
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. 1, 2, 3"
+                    value={form.parcelNumbers}
+                    onChange={set('parcelNumbers')}
+                  />
+                </Field>
+              </>
+            ) : (
+              <>
+                <Field label="Boundary — North">
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. Main Road"
+                    value={form.boundariesNorth}
+                    onChange={set('boundariesNorth')}
+                  />
+                </Field>
+
+                <Field label="Boundary — South">
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. River"
+                    value={form.boundariesSouth}
+                    onChange={set('boundariesSouth')}
+                  />
+                </Field>
+
+                <Field label="Boundary — East">
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. Land of Mr. Silva"
+                    value={form.boundariesEast}
+                    onChange={set('boundariesEast')}
+                  />
+                </Field>
+
+                <Field label="Boundary — West">
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. Temple Land"
+                    value={form.boundariesWest}
+                    onChange={set('boundariesWest')}
+                  />
+                </Field>
+              </>
+            )}
+
+            <div className="flex items-center gap-2 py-2 md:col-span-2 lg:col-span-4">
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
+                  checked={form.isCultivated}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, isCultivated: e.target.checked }))
+                  }
+                />
+                <span className="text-foreground text-sm font-medium">
+                  Does land has a cultivation
+                </span>
+              </label>
+            </div>
+
+            {form.isCultivated && (
+              <>
+                <Field label="Cultivation Details">
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. Coconut, Paddy"
+                    value={form.cultivation}
+                    onChange={set('cultivation')}
+                  />
+                </Field>
+
+                <Field label="Cultivation Status">
+                  <select
+                    className={inputCls}
+                    value={form.cultivationStatus}
+                    onChange={set('cultivationStatus')}
+                  >
+                    <option value="unspecified">Unspecified</option>
+                    <option value="fertile">Fertile</option>
+                    <option value="mid">Mid</option>
+                    <option value="infertile">Infertile</option>
+                  </select>
+                </Field>
+
+                <Field label="Annual Income (LKR)">
+                  <input
+                    className={inputCls}
+                    type="number"
+                    min="0"
+                    placeholder="0.00"
+                    value={form.annualIncome}
+                    onChange={set('annualIncome')}
+                  />
+                </Field>
+              </>
+            )}
+
+            <div className="md:col-start-1 lg:col-start-1">
+              <Field label="Estimated Value (LKR)">
+                <input
+                  className={inputCls}
+                  type="number"
+                  min="0"
+                  placeholder="0.00"
+                  value={form.estimatedValue}
+                  onChange={set('estimatedValue')}
+                />
+              </Field>
+            </div>
 
             <Field label="Land Use Type" required>
               <select
@@ -617,24 +1217,6 @@ export default function AddLandParcel() {
                 ))}
               </select>
               {errMsg('tenureType')}
-            </Field>
-
-            <Field label="Assessment No">
-              <input
-                className={inputCls}
-                placeholder="Local authority assessment no"
-                value={form.assessmentNo}
-                onChange={set('assessmentNo')}
-              />
-            </Field>
-
-            <Field label="Title Deed No">
-              <input
-                className={inputCls}
-                placeholder="Deed reference number"
-                value={form.titleDeedNo}
-                onChange={set('titleDeedNo')}
-              />
             </Field>
           </div>
         </div>
@@ -918,6 +1500,355 @@ export default function AddLandParcel() {
             )}
           </div>
         </div>
+
+        {/* Resident Details */}
+        <div className="bg-card border-border rounded-xl border p-6">
+          <SectionHeader icon={Users} title="Resident Details" />
+          <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="flex items-center gap-2 md:col-span-1 lg:col-span-2">
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
+                  checked={form.hasResidentialHouses}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      hasResidentialHouses: e.target.checked,
+                    }))
+                  }
+                />
+                <span className="text-foreground text-sm font-medium">
+                  Is land has residential houses
+                </span>
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2 md:col-span-1 lg:col-span-2">
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
+                  checked={form.isResidentOwner}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      isResidentOwner: e.target.checked,
+                    }))
+                  }
+                />
+                <span className="text-foreground text-sm font-medium">
+                  Are resident is owner
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {form.hasResidentialHouses && (
+            <div className="grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-2">
+              {/* List of currently added residents */}
+              <div className="space-y-3 md:col-span-2">
+                {selectedResidents.length === 0 ? (
+                  <div className="border-border text-muted-foreground bg-muted/10 rounded-xl border-2 border-dashed p-6 text-center">
+                    <Users className="text-muted-foreground/60 mx-auto mb-2 h-7 w-7" />
+                    <p className="text-sm font-medium">
+                      No residents added to this parcel yet.
+                    </p>
+                    <p className="mt-1 text-xs">
+                      Click "Add Resident" below to record people living on this
+                      land.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {selectedResidents.map((res, idx) => (
+                      <div
+                        key={idx}
+                        className="border-border bg-muted/20 relative flex flex-col justify-between rounded-xl border p-4"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveResident(idx)}
+                          className="text-muted-foreground hover:text-destructive absolute right-3 top-3 transition-colors"
+                          title="Remove Resident"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                        <div>
+                          <div className="mb-2 flex items-center gap-2">
+                            <span className="rounded bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-purple-600">
+                              {res.relationship || 'resident'}
+                            </span>
+                          </div>
+                          <h4 className="text-foreground text-sm font-semibold">
+                            {res.name}
+                          </h4>
+                          {res.nic && (
+                            <p className="text-muted-foreground mt-1 text-xs">
+                              NIC: {res.nic}
+                            </p>
+                          )}
+                          {res.contact && (
+                            <p className="text-muted-foreground font-mono text-xs">
+                              Contact: {res.contact}
+                            </p>
+                          )}
+                          {res.address && (
+                            <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
+                              Address: {res.address}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="border-border flex flex-wrap gap-3 border-t pt-4 md:col-span-2">
+                <button
+                  type="button"
+                  onClick={() => setShowNewResidentForm(!showNewResidentForm)}
+                  className="bg-primary/10 hover:bg-primary/20 text-primary flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Resident
+                </button>
+              </div>
+
+              {showNewResidentForm && (
+                <div className="bg-muted/30 border-border space-y-4 rounded-xl border p-4 md:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                      Add New Resident Details
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNewResidentForm(false);
+                        setNewResidentErrors({});
+                      }}
+                      className="text-muted-foreground hover:text-foreground text-xs"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-foreground text-xs font-medium">
+                        Full Name *
+                      </label>
+                      <input
+                        className={inputCls}
+                        placeholder="Resident Name"
+                        value={newResidentForm.name}
+                        onChange={(e) =>
+                          setNewResidentForm((p) => ({
+                            ...p,
+                            name: e.target.value,
+                          }))
+                        }
+                      />
+                      {newResidentErrors.name && (
+                        <span className="text-destructive text-[10px]">
+                          {newResidentErrors.name}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-foreground text-xs font-medium">
+                        Relationship
+                      </label>
+                      <select
+                        className={inputCls}
+                        value={newResidentForm.relationship}
+                        onChange={(e: any) =>
+                          setNewResidentForm((p) => ({
+                            ...p,
+                            relationship: e.target.value,
+                          }))
+                        }
+                      >
+                        <option value="owner">Owner Resident</option>
+                        <option value="tenant">Tenant</option>
+                        <option value="family_member">Family Member</option>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-foreground text-xs font-medium">
+                        NIC No
+                      </label>
+                      <input
+                        className={inputCls}
+                        placeholder="e.g. 199012345678"
+                        value={newResidentForm.nic}
+                        onChange={(e) =>
+                          setNewResidentForm((p) => ({
+                            ...p,
+                            nic: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-foreground text-xs font-medium">
+                        Contact Number
+                      </label>
+                      <input
+                        className={inputCls}
+                        placeholder="e.g. 0771234567"
+                        value={newResidentForm.contact}
+                        onChange={(e) =>
+                          setNewResidentForm((p) => ({
+                            ...p,
+                            contact: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1 md:col-span-2">
+                      <label className="text-foreground text-xs font-medium">
+                        Address
+                      </label>
+                      <input
+                        className={inputCls}
+                        placeholder="Resident Address"
+                        value={newResidentForm.address}
+                        onChange={(e) =>
+                          setNewResidentForm((p) => ({
+                            ...p,
+                            address: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      onClick={handleAddNewResident}
+                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Add Resident to List
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Section: Land Documents ── */}
+        {(() => {
+          const formatBytes = (bytes: number, precision = 1) => {
+            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const maxVal = Math.max(bytes, 0);
+            const pow = Math.min(
+              Math.floor((maxVal ? Math.log(maxVal) : 0) / Math.log(1024)),
+              units.length - 1,
+            );
+            const val = maxVal / Math.pow(1024, pow);
+
+            return `${val.toFixed(precision)} ${units[pow]}`;
+          };
+
+          const queuedDocs = queuedFiles.map((q) => ({
+            id: q.id,
+            name: q.file.name,
+            type: q.file.name.split('.').pop()?.toUpperCase() || 'UNKNOWN',
+            category: q.category,
+            uploadDate: new Date().toISOString().split('T')[0],
+            size: formatBytes(q.file.size),
+            isQueued: true,
+          }));
+
+          return (
+            <div className="bg-card border-border overflow-hidden rounded-xl border">
+              <div className="border-border flex flex-wrap items-center justify-between gap-3 border-b px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 rounded-lg p-2">
+                    <FolderKanban className="text-primary h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-foreground text-sm font-semibold uppercase tracking-wide">
+                      Land Documents
+                    </p>
+                    <p className="text-muted-foreground mt-0.5 text-xs">
+                      Attach documents to this land parcel. Queued files will be
+                      uploaded when you save the parcel.
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-white transition-colors">
+                    <Upload className="h-3.5 w-3.5" />
+                    <span>Select File</span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={handleFileSelect}
+                      accept=".pdf,.jpg,.jpeg,.png,.docx,.dwg"
+                      multiple
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {queuedDocs.length === 0 ? (
+                <div className="px-6 py-12 text-center">
+                  <div className="bg-muted mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
+                    <FolderKanban className="text-muted-foreground h-5 w-5" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    No documents selected for this parcel yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-border divide-y">
+                  {queuedDocs.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="hover:bg-muted/10 flex items-center justify-between px-6 py-4 transition-colors"
+                    >
+                      <div className="mr-4 flex min-w-0 flex-1 items-center gap-3">
+                        <div className="bg-secondary/15 text-secondary flex w-12 flex-shrink-0 items-center justify-center rounded p-2 text-center font-mono text-xs font-bold uppercase">
+                          {doc.type}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-medium">
+                              {doc.name}
+                            </p>
+                            <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
+                              Queued
+                            </span>
+                          </div>
+                          <p className="text-muted-foreground mt-0.5 text-xs">
+                            Category: {doc.category} • Size: {doc.size} • Date:{' '}
+                            {doc.uploadDate}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveQueuedFile(doc.id)}
+                        className="text-muted-foreground hover:text-destructive p-1 transition-colors"
+                        title="Remove from queue"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Acquisition Info */}
         <div className="bg-card border-border rounded-xl border p-6">

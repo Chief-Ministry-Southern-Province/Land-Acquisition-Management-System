@@ -35,21 +35,16 @@ beforeEach(function () {
 test('projects crud operations', function () {
     $projectData = [
         'project_id' => 'PRJ-100',
-        'name' => 'Test Project Name',
-        'ministry' => 'Ministry of Lands',
-        'department' => 'Acquisition Department',
-        'project_type' => 'Infrastructure',
-        'acquisition_act' => 'Act 2026',
-        'district' => 'Galle',
-        'division' => 'Four Gravets',
+        'title' => 'Test Project Name',
         'purpose' => 'Highway Expansion',
-        'start_date' => '2026-01-01',
-        'estimated_completion' => '2027-12-31',
-        'budget_im_mn' => 123.45,
+        'institution' => 'Ministry of Lands',
+        'institution_address' => '123 Land Office, Galle',
+        'land_area_to_be_acquired_acers' => 10.0,
+        'land_area_to_be_acquired_roods' => 2.0,
+        'land_area_to_be_acquired_perches' => 15.0,
+        'full_land_area_to_be_acquired' => 1715.0,
+        'are_residents_moved_temp' => false,
         'status' => 'pending',
-        'project_manager' => 'John Doe',
-        'contact' => '+94771234567',
-        'email' => 'manager@lands.gov',
         'remarks' => 'Urgent priority',
     ];
 
@@ -77,10 +72,10 @@ test('projects crud operations', function () {
     $response->assertJsonPath('project.project_id', 'PRJ-100');
 
     // Update
-    $projectData['name'] = 'Updated Project Name';
+    $projectData['title'] = 'Updated Project Name';
     $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/projects/{$projectId}", $projectData);
     $response->assertStatus(200);
-    $response->assertJsonPath('project.name', 'Updated Project Name');
+    $response->assertJsonPath('project.title', 'Updated Project Name');
 
     $this->assertDatabaseHas('audit_logs', [
         'user_id' => $this->user->id,
@@ -108,32 +103,39 @@ test('projects crud operations', function () {
 test('land parcels crud operations', function () {
     $project = Projects::create([
         'project_id' => 'PRJ-200',
-        'name' => 'Project 2',
-        'ministry' => 'Ministry of Lands',
-        'department' => 'Acquisition Department',
-        'project_type' => 'Infrastructure',
-        'acquisition_act' => 'Act 2026',
-        'district' => 'Galle',
-        'division' => 'Four Gravets',
+        'title' => 'Project 2',
         'purpose' => 'Highway Expansion',
-        'start_date' => '2026-01-01',
-        'estimated_completion' => '2027-12-31',
-        'budget_im_mn' => 123.45,
+        'institution' => 'Ministry of Lands',
+        'institution_address' => 'Galle',
+        'land_area_to_be_acquired_acers' => 5.0,
+        'land_area_to_be_acquired_roods' => 0.0,
+        'land_area_to_be_acquired_perches' => 0.0,
+        'full_land_area_to_be_acquired' => 800.0,
+        'are_residents_moved_temp' => false,
         'status' => 'pending',
-        'project_manager' => 'John Doe',
-        'contact' => '+94771234567',
-        'email' => 'manager@lands.gov',
     ]);
 
     $parcelData = [
         'parcel_id' => 'PAR-999',
         'project_id' => $project->id,
-        'lot_no' => 'Lot 5B',
+        'land_name' => 'Lot 5B Land',
+        'province' => 'Southern',
         'district' => 'Galle',
-        'division' => 'Bope-Poddala',
+        'divisional_secretariat' => 'Bope-Poddala',
+        'grama_niladari_division' => 'Pinnaduwa North',
         'village' => 'Pinnaduwa',
-        'extent_acers' => 1.5,
-        'extent_perches' => 20.0,
+        'land_size_acers' => 1.5,
+        'land_size_roods' => 0.0,
+        'land_size_perches' => 20.0,
+        'full_land_size' => 260.0,
+        'has_plan' => false,
+        'has_residential_houses' => false,
+        'is_resident_owner' => false,
+        'cultivation' => 'Paddy',
+        'cultivation_status' => 'fertile',
+        'annual_income' => 50000.00,
+        'land_type' => 'Private',
+        'estimated_value' => 1500000.00,
         'remarks' => 'Requires survey',
         'status' => 'available',
     ];
@@ -162,10 +164,10 @@ test('land parcels crud operations', function () {
     $response->assertJsonPath('land_parcel.parcel_id', 'PAR-999');
 
     // Update
-    $parcelData['lot_no'] = 'Lot 5C';
+    $parcelData['land_name'] = 'Lot 5C Land';
     $response = $this->actingAs($this->user, 'sanctum')->putJson("/api/land-parcels/{$parcelId}", $parcelData);
     $response->assertStatus(200);
-    $response->assertJsonPath('land_parcel.lot_no', 'Lot 5C');
+    $response->assertJsonPath('land_parcel.land_name', 'Lot 5C Land');
 
     $this->assertDatabaseHas('audit_logs', [
         'user_id' => $this->user->id,
@@ -261,7 +263,6 @@ test('compensation crud operations', function () {
     ]);
     $parcel = LandParcel::create([
         'parcel_id' => 'PAR-777',
-        'lot_no' => 'Lot 2',
         'district' => 'Galle',
         'division' => 'Four Gravets',
         'village' => 'Karapitiya',
@@ -335,21 +336,16 @@ test('compensation crud operations', function () {
 test('documents crud operations', function () {
     $project = Projects::create([
         'project_id' => 'PRJ-100',
-        'name' => 'Test Project Name',
-        'ministry' => 'Ministry of Lands',
-        'department' => 'Acquisition Department',
-        'project_type' => 'Infrastructure',
-        'acquisition_act' => 'Act 2026',
-        'district' => 'Galle',
-        'division' => 'Four Gravets',
+        'title' => 'Test Project Name',
         'purpose' => 'Highway Expansion',
-        'start_date' => '2026-01-01',
-        'estimated_completion' => '2027-12-31',
-        'budget_im_mn' => 123.45,
+        'institution' => 'Ministry of Lands',
+        'institution_address' => 'Acquisition Department',
+        'land_area_to_be_acquired_acers' => 10.0,
+        'land_area_to_be_acquired_roods' => 0.0,
+        'land_area_to_be_acquired_perches' => 0.0,
+        'full_land_area_to_be_acquired' => 1600.0,
+        'are_residents_moved_temp' => false,
         'status' => 'pending',
-        'project_manager' => 'John Doe',
-        'contact' => '+94771234567',
-        'email' => 'manager@lands.gov',
         'remarks' => 'Urgent priority',
     ]);
 
@@ -422,21 +418,16 @@ test('documents file upload and download operations', function () {
 
     $project = Projects::create([
         'project_id' => 'PRJ-101',
-        'name' => 'Test Project Name 2',
-        'ministry' => 'Ministry of Lands',
-        'department' => 'Acquisition Department',
-        'project_type' => 'Infrastructure',
-        'acquisition_act' => 'Act 2026',
-        'district' => 'Galle',
-        'division' => 'Four Gravets',
+        'title' => 'Test Project Name 2',
         'purpose' => 'Highway Expansion',
-        'start_date' => '2026-01-01',
-        'estimated_completion' => '2027-12-31',
-        'budget_im_mn' => 123.45,
+        'institution' => 'Ministry of Lands',
+        'institution_address' => 'Acquisition Department',
+        'land_area_to_be_acquired_acers' => 10.0,
+        'land_area_to_be_acquired_roods' => 0.0,
+        'land_area_to_be_acquired_perches' => 0.0,
+        'full_land_area_to_be_acquired' => 1600.0,
+        'are_residents_moved_temp' => false,
         'status' => 'pending',
-        'project_manager' => 'John Doe',
-        'contact' => '+94771234567',
-        'email' => 'manager@lands.gov',
         'remarks' => 'Urgent priority',
     ]);
 
@@ -659,7 +650,6 @@ test('land parcel status transitions on creation and project association', funct
     // 1. A land parcel status should be "available" when a new land is created.
     $parcelData = [
         'parcel_id' => 'PAR-12345',
-        'lot_no' => 'Lot 10',
         'district' => 'Galle',
         'division' => 'Bope-Poddala',
         'village' => 'Pinnaduwa',
@@ -690,21 +680,16 @@ test('land parcel status transitions on creation and project association', funct
     // 2. Update landparcel status to pending when an acquisition case (project) is made.
     $projectData = [
         'project_id' => 'PRJ-TEST-CASE',
-        'name' => 'Acquisition Case Project',
-        'ministry' => 'Ministry of Lands',
-        'department' => 'Acquisition Department',
-        'project_type' => 'Highway',
-        'acquisition_act' => 'Act 2026',
-        'district' => 'Galle',
-        'division' => 'Four Gravets',
+        'title' => 'Acquisition Case Project',
         'purpose' => 'Highway Expansion',
-        'start_date' => '2026-01-01',
-        'estimated_completion' => '2027-12-31',
-        'budget_im_mn' => 100.0,
+        'institution' => 'Ministry of Lands',
+        'institution_address' => 'Galle',
+        'land_area_to_be_acquired_acers' => 5.0,
+        'land_area_to_be_acquired_roods' => 0.0,
+        'land_area_to_be_acquired_perches' => 0.0,
+        'full_land_area_to_be_acquired' => 800.0,
+        'are_residents_moved_temp' => false,
         'status' => 'pending',
-        'project_manager' => 'John Manager',
-        'contact' => '+94771234567',
-        'email' => 'manager@lands.gov',
         'parcel_ids' => [$parcelId],
     ];
 

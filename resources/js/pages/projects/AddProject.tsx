@@ -107,7 +107,10 @@ const ACQUISITION_ACTS = [
 // ── Form types ──────────────────────────────────────────────────────────────
 
 type ProjectForm = {
+  title: string;
   name: string;
+  institution: string;
+  institutionAddress: string;
   ministry: string;
   department: string;
   projectType: string;
@@ -115,6 +118,18 @@ type ProjectForm = {
   district: string;
   division: string;
   purpose: string;
+  landAreaAcers: string;
+  landAreaRoods: string;
+  landAreaPerches: string;
+  areResidentsMovedTemp: boolean;
+  section20Observation: boolean | null;
+  section21SecretaryReport: boolean | null;
+  section22SecretaryRecommendation: string;
+  section23ValuationRecommendation: string;
+  section24DecisionRemarks: boolean | null;
+  section25AdditionalConditions: string;
+  section26FinalRecommendation: boolean | null;
+  approvalDate: string;
   startDate: string;
   estimatedCompletion: string;
   totalBudget: string;
@@ -125,7 +140,10 @@ type ProjectForm = {
 };
 
 const EMPTY_FORM: ProjectForm = {
+  title: '',
   name: '',
+  institution: '',
+  institutionAddress: '',
   ministry: '',
   department: '',
   projectType: '',
@@ -133,6 +151,18 @@ const EMPTY_FORM: ProjectForm = {
   district: '',
   division: '',
   purpose: '',
+  landAreaAcers: '',
+  landAreaRoods: '',
+  landAreaPerches: '',
+  areResidentsMovedTemp: false,
+  section20Observation: null,
+  section21SecretaryReport: null,
+  section22SecretaryRecommendation: '',
+  section23ValuationRecommendation: '',
+  section24DecisionRemarks: null,
+  section25AdditionalConditions: '',
+  section26FinalRecommendation: null,
+  approvalDate: '',
   startDate: '',
   estimatedCompletion: '',
   totalBudget: '',
@@ -268,20 +298,39 @@ export default function AddProject() {
           setOriginalProjectId(data.projectId);
           setOriginalStatus(data.status);
           setForm({
+            title: data.title || '',
             name: data.name,
-            ministry: data.ministry,
-            department: data.department,
-            projectType: data.projectType,
-            acquisitionAct: data.acquisitionAct,
-            district: data.district,
-            division: data.division,
+            institution: data.institution || '',
+            institutionAddress: data.institutionAddress || '',
+            ministry: data.ministry || '',
+            department: data.department || '',
+            projectType: data.projectType || '',
+            acquisitionAct: data.acquisitionAct || '',
+            district: data.district || '',
+            division: data.division || '',
             purpose: data.purpose,
-            startDate: data.startDate,
-            estimatedCompletion: data.estimatedCompletion,
-            totalBudget: String(data.budget),
-            projectManager: data.projectManager,
-            managerContact: data.contact,
-            managerEmail: data.email,
+            landAreaAcers: String(data.landAreaAcers ?? ''),
+            landAreaRoods: String(data.landAreaRoods ?? ''),
+            landAreaPerches: String(data.landAreaPerches ?? ''),
+            areResidentsMovedTemp: !!data.areResidentsMovedTemp,
+            section20Observation: data.section20Observation ?? null,
+            section21SecretaryReport: data.section21SecretaryReport ?? null,
+            section22SecretaryRecommendation:
+              data.section22SecretaryRecommendation || '',
+            section23ValuationRecommendation:
+              data.section23ValuationRecommendation || '',
+            section24DecisionRemarks: data.section24DecisionRemarks ?? null,
+            section25AdditionalConditions:
+              data.section25AdditionalConditions || '',
+            section26FinalRecommendation:
+              data.section26FinalRecommendation ?? null,
+            approvalDate: data.approvalDate || '',
+            startDate: data.startDate || '',
+            estimatedCompletion: data.estimatedCompletion || '',
+            totalBudget: String(data.budget || ''),
+            projectManager: data.projectManager || '',
+            managerContact: data.contact || '',
+            managerEmail: data.email || '',
             remarks: data.remarks || '',
           });
 
@@ -479,7 +528,7 @@ export default function AddProject() {
   // Total extent (numeric sum of acres)
   const totalExtent = useMemo(() => {
     const sum = selectedParcels.reduce((acc, p) => {
-      const val = parseFloat(p.extent_acers) || 0;
+      const val = parseFloat(p.extent_acers || '') || 0;
 
       return acc + val;
     }, 0);
@@ -562,9 +611,17 @@ export default function AddProject() {
     if (validate()) {
       try {
         setLoadingProject(true);
+        const acers = parseFloat(form.landAreaAcers) || 0;
+        const roods = parseFloat(form.landAreaRoods) || 0;
+        const perches = parseFloat(form.landAreaPerches) || 0;
+        const fullArea = acers * 160 + roods * 40 + perches;
+
         const payload = {
           projectId: editId ? originalProjectId : generateProjectId(),
-          name: form.name,
+          title: form.title || form.name,
+          name: form.name || form.title,
+          institution: form.institution || form.ministry || 'N/A',
+          institutionAddress: form.institutionAddress || 'N/A',
           ministry: form.ministry,
           department: form.department,
           projectType: form.projectType,
@@ -572,6 +629,22 @@ export default function AddProject() {
           district: form.district,
           division: form.division,
           purpose: form.purpose,
+          landAreaAcers: acers,
+          landAreaRoods: roods,
+          landAreaPerches: perches,
+          fullLandArea: fullArea,
+          areResidentsMovedTemp: form.areResidentsMovedTemp,
+          section20Observation: form.section20Observation,
+          section21SecretaryReport: form.section21SecretaryReport,
+          section22SecretaryRecommendation:
+            form.section22SecretaryRecommendation || null,
+          section23ValuationRecommendation:
+            form.section23ValuationRecommendation || null,
+          section24DecisionRemarks: form.section24DecisionRemarks,
+          section25AdditionalConditions:
+            form.section25AdditionalConditions || null,
+          section26FinalRecommendation: form.section26FinalRecommendation,
+          approvalDate: form.approvalDate || null,
           startDate: form.startDate,
           estimatedCompletion: form.estimatedCompletion,
           budget: Number(form.totalBudget) || 0,
@@ -677,17 +750,93 @@ export default function AddProject() {
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="lg:col-span-3">
-              <Field label="Project Name" required>
+            <div className="lg:col-span-2">
+              <Field label="Project Title / Name" required>
                 <input
                   className={inputCls}
                   placeholder="e.g. Southern Highway Expansion Phase 3"
-                  value={form.name}
-                  onChange={set('name')}
+                  value={form.name || form.title}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      name: e.target.value,
+                      title: e.target.value,
+                    }));
+                  }}
                 />
                 {errors.name && <span className={errCls}>{errors.name}</span>}
               </Field>
             </div>
+
+            <Field label="Requesting Institution">
+              <input
+                className={inputCls}
+                placeholder="e.g. Chief Ministry / Road Development Authority"
+                value={form.institution}
+                onChange={set('institution')}
+              />
+            </Field>
+
+            <div className="lg:col-span-3">
+              <Field label="Institution Address">
+                <input
+                  className={inputCls}
+                  placeholder="Official address of requesting institution"
+                  value={form.institutionAddress}
+                  onChange={set('institutionAddress')}
+                />
+              </Field>
+            </div>
+
+            <Field label="Acquiring Land Area — Acres">
+              <input
+                className={inputCls}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={form.landAreaAcers}
+                onChange={set('landAreaAcers')}
+              />
+            </Field>
+
+            <Field label="Acquiring Land Area — Roods">
+              <input
+                className={inputCls}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={form.landAreaRoods}
+                onChange={set('landAreaRoods')}
+              />
+            </Field>
+
+            <Field label="Acquiring Land Area — Perches">
+              <input
+                className={inputCls}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={form.landAreaPerches}
+                onChange={set('landAreaPerches')}
+              />
+            </Field>
+
+            <Field label="Full Acquiring Land Size (Perches)">
+              <input
+                className={`${inputCls} bg-muted/30 cursor-not-allowed font-medium`}
+                type="text"
+                readOnly
+                placeholder="0.00"
+                value={(
+                  (parseFloat(form.landAreaAcers) || 0) * 160 +
+                  (parseFloat(form.landAreaRoods) || 0) * 40 +
+                  (parseFloat(form.landAreaPerches) || 0)
+                ).toFixed(2)}
+              />
+            </Field>
 
             <Field label="Ministry" required>
               <select
@@ -970,18 +1119,12 @@ export default function AddProject() {
                             <Square className="text-muted-foreground h-5 w-5" />
                           )}
                         </div>
-                        <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 md:grid-cols-5">
+                        <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 md:grid-cols-4">
                           <div>
                             <p className="text-muted-foreground text-xs">
                               Parcel ID
                             </p>
                             <p className="font-medium">{parcel.parcel_id}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-xs">
-                              Lot No
-                            </p>
-                            <p>{parcel.lot_no}</p>
                           </div>
                           <div>
                             <p className="text-muted-foreground text-xs">
@@ -1025,7 +1168,7 @@ export default function AddProject() {
                         key={p.id}
                         className="bg-primary/10 text-primary inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
                       >
-                        {p.parcel_id} · Lot {p.lot_no}
+                        {p.parcel_id}
                         <button
                           type="button"
                           onClick={() => removeParcel(p.id)}

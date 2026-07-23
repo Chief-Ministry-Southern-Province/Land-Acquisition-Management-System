@@ -4,13 +4,22 @@ import type { Document } from './projectsManagementService';
 export const uploadDocument = async (
   file: File,
   userId: string,
-  projectId: string,
+  projectId: string | null,
   category: string,
+  landParcelId: string | null = null,
 ): Promise<Document> => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('user_id', userId);
-  formData.append('project_id', projectId);
+
+  if (projectId) {
+    formData.append('project_id', projectId);
+  }
+
+  if (landParcelId) {
+    formData.append('land_parcel_id', landParcelId);
+  }
+
   formData.append('document_category', category);
 
   const response = await api.post('/api/documents', formData, {
