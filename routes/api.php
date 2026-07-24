@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AOApprovalController;
+use App\Http\Controllers\ASApprovalController;
 use App\Http\Controllers\AuditLogsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompensationController;
@@ -10,6 +12,8 @@ use App\Http\Controllers\LandParcelController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\PropertyOwnerController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SASApprovalController;
+use App\Http\Controllers\SECApprovalController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +55,35 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/hob/approvals/{type}/{id}/approve', [HOBApprovalController::class, 'approve']);
         Route::post('/hob/approvals/{type}/{id}/query', [HOBApprovalController::class, 'query']);
         Route::post('/hob/approvals/{type}/{id}/reject', [HOBApprovalController::class, 'reject']);
+    });
+
+    // ─── Administrative Officer Routes ───────────────────────────────────────
+    Route::middleware('check.role:AO')->group(function () {
+        Route::get('/ao/pending-approvals', [AOApprovalController::class, 'index']);
+        Route::post('/ao/approvals/{type}/{id}/approve', [AOApprovalController::class, 'approve']);
+        Route::post('/ao/approvals/{type}/{id}/query', [AOApprovalController::class, 'query']);
+        Route::post('/ao/approvals/{type}/{id}/reject', [AOApprovalController::class, 'reject']);
+    });
+
+    // ─── Assistant Secretary Routes ───────────────────────────────────────
+    Route::middleware('check.role:AS')->group(function () {
+        Route::get('/as/pending-approvals', [ASApprovalController::class, 'index']);
+        Route::post('/as/approvals/{type}/{id}/approve', [ASApprovalController::class, 'approve']);
+        Route::post('/as/approvals/{type}/{id}/reject', [ASApprovalController::class, 'reject']);
+    });
+
+    // ─── Senior Assistant Secretary Routes ──────────────────────────────────
+    Route::middleware('check.role:SAS')->group(function () {
+        Route::get('/sas/pending-approvals', [SASApprovalController::class, 'index']);
+        Route::post('/sas/approvals/{type}/{id}/approve', [SASApprovalController::class, 'approve']);
+        Route::post('/sas/approvals/{type}/{id}/reject', [SASApprovalController::class, 'reject']);
+    });
+
+    // ─── Secretary Routes ──────────────────────────────────────────────────
+    Route::middleware('check.role:SEC')->group(function () {
+        Route::get('/sec/pending-approvals', [SECApprovalController::class, 'index']);
+        Route::post('/sec/approvals/{type}/{id}/approve', [SECApprovalController::class, 'approve']);
+        Route::post('/sec/approvals/{type}/{id}/reject', [SECApprovalController::class, 'reject']);
     });
 
     // ─── Admin Only Routes ───────────────────────────────────────────

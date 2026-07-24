@@ -40,6 +40,21 @@ Route::middleware('auth:sanctum')->group(function () {
         return inertia('Dashboard');
     })->name('dashboard');
 
+    Route::get('/pending-approvals', function (Request $request) {
+        $user = $request->user();
+        if ($user && $user->role) {
+            return match ($user->role->role_name) {
+                'HOB' => inertia('headOfBranch/HOBApprovals'),
+                'AO' => inertia('administrativeOfficer/AOApprovals'),
+                'AS' => inertia('assistantSecretary/ASApprovals'),
+                'SAS' => inertia('seniorAssistantSecretary/SASApprovals'),
+                'SEC' => inertia('secretary/SecretaryApprovals'),
+                default => abort(403),
+            };
+        }
+        abort(403);
+    })->name('pending-approvals');
+
     Route::get('/settings', function (Request $request) {
         $user = $request->user();
         if ($user && $user->role && $user->role->role_name === 'Admin') {
@@ -108,9 +123,7 @@ Route::middleware(['auth:sanctum', 'check.role:DO'])->group(function () {
 
 // HEAD OF BRANCH ROUTES
 Route::middleware(['auth:sanctum', 'check.role:HOB'])->group(function () {
-    Route::get('/pending-approvals', function () {
-        return inertia('headOfBranch/HOBApprovals');
-    })->name('hob.pending-approvals');
+    //
 });
 
 // ADMINISTRATIVE OFFICER ROUTES
