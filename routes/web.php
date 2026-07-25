@@ -74,6 +74,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/land-parcels/{id}', function ($id) {
         return inertia('land_parcels/LandParcelDetails', ['id' => $id]);
     })->name('land-parcel-details');
+    Route::get('/land-parcels/{id}/edit', function ($id) {
+        return inertia('land_parcels/EditLandParcel', ['id' => $id]);
+    })->name('land-parcel-edit');
 
     // Land Owners routes
     Route::inertia('/land-owners', 'land_owners/LandOwnerList')->name('land-owners');

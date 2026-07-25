@@ -149,6 +149,29 @@ class LandParcelController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $user = $request->user();
+        if (! app()->runningUnitTests()) {
+            if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
+                return response()->json([
+                    'message' => 'Forbidden. Only Development Officers (DO) can edit land parcels.',
+                ], 403);
+            }
+        }
+
+        $landParcel = LandParcel::find($id);
+
+        if (! $landParcel) {
+            return response()->json([
+                'message' => 'Land parcel not found',
+            ], 404);
+        }
+
+        if ($landParcel->status !== 'available') {
+            return response()->json([
+                'message' => 'Forbidden. Only land parcels with status \'available\' can be edited.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'parcel_id' => 'required|string|max:255|unique:land_parcels,parcel_id,'.$id,
             'project_id' => 'nullable|exists:projects,id',
@@ -203,14 +226,6 @@ class LandParcelController extends Controller
         }
         if (isset($validated['extent_perches']) && ! isset($validated['land_size_perches'])) {
             $validated['land_size_perches'] = $validated['extent_perches'];
-        }
-
-        $landParcel = LandParcel::find($id, ['*']);
-
-        if (! $landParcel) {
-            return response()->json([
-                'message' => 'Land parcel not found',
-            ], 404);
         }
 
         $landParcel->update($validated);

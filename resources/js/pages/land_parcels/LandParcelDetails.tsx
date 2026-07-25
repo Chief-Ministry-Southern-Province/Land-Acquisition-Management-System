@@ -1,5 +1,5 @@
-import { Link, router } from '@inertiajs/react';
-import { ArrowLeft, Download, MapPin } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { ArrowLeft, Download, MapPin, Pencil } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
@@ -14,6 +14,10 @@ interface Props {
 export default function LandParcelDetails({ id }: Props) {
   const [parcel, setParcel] = useState<LandParcel | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { props: pageProps } = usePage();
+  const user = (pageProps.auth as any)?.user;
+  const userRole = user?.role?.role_name || 'User';
 
   useEffect(() => {
     const fetchParcel = async () => {
@@ -141,6 +145,15 @@ export default function LandParcelDetails({ id }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {userRole === 'DO' && parcel.status === 'available' && (
+            <button
+              onClick={() => router.visit(`/land-parcels/${parcel.id}/edit`)}
+              className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
+            >
+              <Pencil className="h-4 w-4" />
+              <span>Edit Parcel</span>
+            </button>
+          )}
           <button
             onClick={() => router.visit(`/gis-maps?parcel=${parcel.id}`)}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
