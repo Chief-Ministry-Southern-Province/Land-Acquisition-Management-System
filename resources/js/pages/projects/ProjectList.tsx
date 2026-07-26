@@ -54,7 +54,7 @@ export default function ProjectList() {
       key: 'institution',
       label: 'Institution',
       sortable: true,
-      render: (_val: any, row: any) => row.institution || row.ministry || 'N/A',
+      render: (_val: any, row: any) => row.institution || 'N/A',
     },
     { key: 'purpose', label: 'Purpose', sortable: true },
     {

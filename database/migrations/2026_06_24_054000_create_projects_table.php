@@ -38,7 +38,7 @@ return new class extends Migration
             $table->date('approval_date')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users');
 
-            $table->enum('case_status', ['not_started', 'pending', 'rejected', 'completed'])->default('pending'); // active, pending, rejected, completed
+            $table->enum('case_status', ['draft', 'pending', 'rejected', 'completed'])->default('draft'); // draft, pending, rejected, completed
             $table->enum('do_status', ['draft', 'submitted'])->default('draft'); // draft, submitted
             $table->enum('hob_status', ['approved', 'pending', 'rejected'])->default('pending'); // approved, pending, rejected
             $table->enum('ao_status', ['approved', 'pending', 'rejected'])->default('pending'); // approved, pending, rejected

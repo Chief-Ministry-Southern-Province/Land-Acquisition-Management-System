@@ -57,7 +57,7 @@ class SASApprovalController extends Controller
                 '[System]: Approved by Senior Assistant Secretary. Total value ('.
                 number_format($totalEstimatedValue, 2).' LKR) exceeds 20M LKR threshold. Escalated to Secretary for final approval.';
         } else {
-            $project->case_status = 'active'; // Marks the project case as active (fully approved)
+            $project->case_status = 'completed'; // Marks the project case as completed (fully approved)
             $project->sec_status = 'approved'; // Mark Secretary status as approved/bypassed
             $project->remarks = ($project->remarks ? $project->remarks."\n" : '').
                 '[System]: Approved by Senior Assistant Secretary. Total value ('.

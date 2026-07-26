@@ -46,7 +46,7 @@ class SECApprovalController extends Controller
         }
 
         $project->sec_status = 'approved';
-        $project->case_status = 'active'; // Marks the project case as active (fully approved)
+        $project->case_status = 'completed'; // Marks the project case as completed (fully approved)
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[System]: Approved by Secretary';
         $project->save();
 

@@ -294,7 +294,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
           <div>
             <div className="mb-1 flex items-center gap-3">
               <h1>{project.title || project.name}</h1>
-              <StatusBadge status={project.status.toLowerCase()} />
+              <StatusBadge status={(project.status || 'draft').toLowerCase()} />
             </div>
             <p className="text-muted-foreground">
               Project ID: {project.projectId}
@@ -349,7 +349,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Institution:</dt>
-                <dd>{project.institution || project.ministry || 'N/A'}</dd>
+                <dd>{project.institution || 'N/A'}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Institution Address:</dt>
