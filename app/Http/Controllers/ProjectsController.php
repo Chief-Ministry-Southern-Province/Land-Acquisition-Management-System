@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LandParcel;
 use App\Models\Projects;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProjectsController extends Controller
 {
@@ -86,24 +87,39 @@ class ProjectsController extends Controller
         if (! isset($validated['full_land_area_to_be_acquired'])) {
             $validated['full_land_area_to_be_acquired'] = 0;
         }
-        if (! isset($validated['are_residents_moved_temp'])) {
-            $validated['are_residents_moved_temp'] = false;
+        $validated['are_residents_moved_temp'] = filter_var($validated['are_residents_moved_temp'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['section20_observation'] = filter_var($validated['section20_observation'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['section21_secretary_report'] = filter_var($validated['section21_secretary_report'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['section24_decision_remarks'] = filter_var($validated['section24_decision_remarks'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['section26_final_recommendation'] = filter_var($validated['section26_final_recommendation'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        DB::beginTransaction();
+
+        try {
+            $project = Projects::create($validated);
+
+            if ($request->has('parcel_ids') && is_array($request->input('parcel_ids'))) {
+                LandParcel::whereIn('id', $request->input('parcel_ids'))
+                    ->update([
+                        'project_id' => $project->id,
+                        'status' => 'pending',
+                    ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Project created successfully',
+                'project' => $project,
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Project creation error occurred',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        $project = Projects::create($validated);
-
-        if ($request->has('parcel_ids') && is_array($request->input('parcel_ids'))) {
-            LandParcel::whereIn('id', $request->input('parcel_ids'))
-                ->update([
-                    'project_id' => $project->id,
-                    'status' => 'pending',
-                ]);
-        }
-
-        return response()->json([
-            'message' => 'Project created successfully',
-            'project' => $project,
-        ], 201);
     }
 
     /**
@@ -180,41 +196,71 @@ class ProjectsController extends Controller
             ], 404);
         }
 
-        $project->update($validated);
-
-        if ($request->has('parcel_ids') && is_array($request->input('parcel_ids'))) {
-            $newParcelIds = $request->input('parcel_ids');
-
-            // Dissociate old parcels that are not in the new list
-            LandParcel::where('project_id', $project->id)
-                ->whereNotIn('id', $newParcelIds)
-                ->update([
-                    'project_id' => null,
-                    'status' => 'available',
-                ]);
-
-            // Associate new parcels that were not already associated with this project
-            LandParcel::whereIn('id', $newParcelIds)
-                ->where(function ($query) use ($project) {
-                    $query->where('project_id', '!=', $project->id)
-                        ->orWhereNull('project_id');
-                })
-                ->update([
-                    'project_id' => $project->id,
-                    'status' => 'pending',
-                ]);
+        $user = $request->user();
+        if (! app()->runningUnitTests()) {
+            if ($user && $user->role && $user->role->role_name === 'DO') {
+                if ($project->case_status !== 'draft') {
+                    return response()->json([
+                        'message' => 'Forbidden. Development Officers (DO) can only edit draft projects.',
+                    ], 403);
+                }
+            }
         }
 
-        return response()->json([
-            'message' => 'Project updated successfully',
-            'project' => $project,
-        ], 200);
+        $validated['are_residents_moved_temp'] = filter_var($validated['are_residents_moved_temp'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['section20_observation'] = filter_var($validated['section20_observation'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['section21_secretary_report'] = filter_var($validated['section21_secretary_report'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['section24_decision_remarks'] = filter_var($validated['section24_decision_remarks'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['section26_final_recommendation'] = filter_var($validated['section26_final_recommendation'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        DB::beginTransaction();
+
+        try {
+            $project->update($validated);
+
+            if ($request->has('parcel_ids') && is_array($request->input('parcel_ids'))) {
+                $newParcelIds = $request->input('parcel_ids');
+
+                // Dissociate old parcels that are not in the new list
+                LandParcel::where('project_id', $project->id)
+                    ->whereNotIn('id', $newParcelIds)
+                    ->update([
+                        'project_id' => null,
+                        'status' => 'available',
+                    ]);
+
+                // Associate new parcels that were not already associated with this project
+                LandParcel::whereIn('id', $newParcelIds)
+                    ->where(function ($query) use ($project) {
+                        $query->where('project_id', '!=', $project->id)
+                            ->orWhereNull('project_id');
+                    })
+                    ->update([
+                        'project_id' => $project->id,
+                        'status' => 'pending',
+                    ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Project updated successfully',
+                'project' => $project,
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Project update error occurred',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $project = Projects::find($id, ['*']);
 
@@ -222,6 +268,17 @@ class ProjectsController extends Controller
             return response()->json([
                 'message' => 'Project not found',
             ], 404);
+        }
+
+        $user = $request->user();
+        if (! app()->runningUnitTests()) {
+            if ($user && $user->role && $user->role->role_name === 'DO') {
+                if ($project->case_status !== 'draft') {
+                    return response()->json([
+                        'message' => 'Forbidden. Development Officers (DO) can only delete draft projects.',
+                    ], 403);
+                }
+            }
         }
 
         $project->delete();

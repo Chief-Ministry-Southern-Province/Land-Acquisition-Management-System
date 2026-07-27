@@ -33,7 +33,6 @@ import {
 } from '@/services/projectsManagementService';
 import type { Document } from '@/services/projectsManagementService';
 
-
 // ── Form types ──────────────────────────────────────────────────────────────
 
 type ProjectForm = {
@@ -201,6 +200,20 @@ export default function AddProject() {
         try {
           setLoadingProject(true);
           const data = await getProject(editId);
+          const userRole = user?.role?.role_name || 'User';
+
+          if (
+            userRole === 'DO' &&
+            (data.caseStatus || data.status || '').toLowerCase() !== 'draft'
+          ) {
+            alert(
+              'Forbidden. Development Officers (DO) can only edit draft projects.',
+            );
+            router.visit(`/projects/${editId}`);
+
+            return;
+          }
+
           setOriginalProjectId(data.projectId);
           setOriginalStatus(
             (data.status as 'draft' | 'pending' | 'rejected' | 'completed') ||
@@ -629,7 +642,7 @@ export default function AddProject() {
               </Field>
             </div>
 
-            <div className="lg:col-span-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-3 lg:grid-cols-4">
               <Field label="Acquiring Land Area — Acres">
                 <input
                   className={inputCls}
@@ -681,8 +694,6 @@ export default function AddProject() {
               </Field>
             </div>
 
-
-
             <div className="lg:col-span-3">
               <Field label="Purpose / Description" required>
                 <textarea
@@ -698,8 +709,8 @@ export default function AddProject() {
               </Field>
             </div>
 
-            <div className="lg:col-span-3 py-1">
-              <label className="flex cursor-pointer select-none items-start gap-3 rounded-lg border border-border p-4 bg-muted/10 hover:bg-muted/20 transition-colors">
+            <div className="py-1 lg:col-span-3">
+              <label className="border-border bg-muted/10 hover:bg-muted/20 flex cursor-pointer select-none items-start gap-3 rounded-lg border p-4 transition-colors">
                 <input
                   type="checkbox"
                   className="hidden"
@@ -723,7 +734,8 @@ export default function AddProject() {
                     Are residents moved to temporary habitat?
                   </span>
                   <p className="text-muted-foreground text-xs leading-relaxed">
-                    Check this option if residents affected by the project have been relocated to temporary housing.
+                    Check this option if residents affected by the project have
+                    been relocated to temporary housing.
                   </p>
                 </div>
               </label>
@@ -975,6 +987,169 @@ export default function AddProject() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* ── Section: Recommendations & Decisions (Sections 20 - 26) ── */}
+        <div className="bg-card border-border rounded-xl border p-6">
+          <SectionHeader
+            icon={CheckSquare}
+            title="Recommendations & Decisions"
+            subtitle="Reports, recommendations, and decisions"
+          />
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Section 20 */}
+            <div className="flex items-center md:col-span-2">
+              <label className="border-border bg-muted/10 hover:bg-muted/20 flex w-full cursor-pointer select-none items-center gap-3 rounded-lg border p-4 transition-colors">
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={!!form.section20Observation}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      section20Observation: e.target.checked,
+                    }));
+                  }}
+                />
+                <div className="shrink-0">
+                  {form.section20Observation ? (
+                    <CheckSquare className="text-primary h-5 w-5" />
+                  ) : (
+                    <Square className="text-muted-foreground h-5 w-5" />
+                  )}
+                </div>
+                <span className="text-foreground text-sm font-medium">
+                  Whether the proposed land is a land allocated to land owners
+                  under statutory notifications under the Land Reform Act
+                </span>
+              </label>
+            </div>
+
+            {/* Section 21 */}
+            <div className="flex items-center md:col-span-2">
+              <label className="border-border bg-muted/10 hover:bg-muted/20 flex w-full cursor-pointer select-none items-center gap-3 rounded-lg border p-4 transition-colors">
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={!!form.section21SecretaryReport}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      section21SecretaryReport: e.target.checked,
+                    }));
+                  }}
+                />
+                <div className="shrink-0">
+                  {form.section21SecretaryReport ? (
+                    <CheckSquare className="text-primary h-5 w-5" />
+                  ) : (
+                    <Square className="text-muted-foreground h-5 w-5" />
+                  )}
+                </div>
+                <span className="text-foreground text-sm font-medium">
+                  Whether there are alternative State lands or lands belonging
+                  to the Land Reform Commission that can be utilized for the
+                  proposed public purpose? (If so, details such as the location,
+                  terrain nature, etc. of the land should be mentioned.)
+                </span>
+              </label>
+            </div>
+
+            {/* Section 22 */}
+            <div className="md:col-span-2">
+              <Field label="Name and designation of the officer who selected this land as suitable for the proposed public purpose">
+                <input
+                  className={inputCls}
+                  placeholder="Enter Name and designation of the officer who selected this land as suitable for the proposed public purpose"
+                  value={form.section22SecretaryRecommendation}
+                  onChange={set('section22SecretaryRecommendation')}
+                />
+              </Field>
+            </div>
+
+            {/* Section 23 */}
+            <div className="md:col-span-2">
+              <Field label="Name and designation of the officer who recommended that this land is suitable to be acquired for the proposed public purpose">
+                <input
+                  className={inputCls}
+                  placeholder="Enter Name and designation of the officer who recommended that this land is suitable to be acquired for the proposed public purpose"
+                  value={form.section23ValuationRecommendation}
+                  onChange={set('section23ValuationRecommendation')}
+                />
+              </Field>
+            </div>
+
+            {/* Section 24 */}
+            <div className="flex items-center md:col-span-2">
+              <label className="border-border bg-muted/10 hover:bg-muted/20 flex w-full cursor-pointer select-none items-center gap-3 rounded-lg border p-4 transition-colors">
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={!!form.section24DecisionRemarks}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      section24DecisionRemarks: e.target.checked,
+                    }));
+                  }}
+                />
+                <div className="shrink-0">
+                  {form.section24DecisionRemarks ? (
+                    <CheckSquare className="text-primary h-5 w-5" />
+                  ) : (
+                    <Square className="text-muted-foreground h-5 w-5" />
+                  )}
+                </div>
+                <span className="text-foreground text-sm font-medium">
+                  Whether it was inquired if there are other suitable State or
+                  private lands in this area for this purpose
+                </span>
+              </label>
+            </div>
+
+            {/* Section 25 */}
+            <div className="md:col-span-2">
+              <Field label="Clearly specify the source of funds allocated to bear the acquisition, compensation, and other necessary expenses">
+                <input
+                  className={inputCls}
+                  placeholder="Enter Clearly specify the source of funds allocated to bear the acquisition, compensation, and other necessary expenses"
+                  value={form.section25AdditionalConditions}
+                  onChange={set('section25AdditionalConditions')}
+                />
+              </Field>
+            </div>
+
+            {/* Section 26 */}
+            <div className="flex items-center md:col-span-2">
+              <label className="border-border bg-muted/10 hover:bg-muted/20 flex w-full cursor-pointer select-none items-center gap-3 rounded-lg border p-4 transition-colors">
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={!!form.section26FinalRecommendation}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      section26FinalRecommendation: e.target.checked,
+                    }));
+                  }}
+                />
+                <div className="shrink-0">
+                  {form.section26FinalRecommendation ? (
+                    <CheckSquare className="text-primary h-5 w-5" />
+                  ) : (
+                    <Square className="text-muted-foreground h-5 w-5" />
+                  )}
+                </div>
+                <span className="text-foreground text-sm font-medium">
+                  Whether the selection of the proposed land for public purpose
+                  complies with the general development plan of the area, and
+                  whether agreement/consent was obtained from the relevant Local
+                  Authority / Urban Development Department or relevant institute
+                </span>
+              </label>
+            </div>
+          </div>
         </div>
 
         {/* ── Section 4: Project Documents ── */}

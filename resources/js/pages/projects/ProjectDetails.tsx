@@ -25,6 +25,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
   const userId = user?.id;
+  const userRole = user?.role?.role_name || 'User';
 
   const fetchProjectDetails = useCallback(async () => {
     try {
@@ -306,13 +307,18 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             <Download className="h-4 w-4" />
             <span>Export</span>
           </button>
-          <button
-            onClick={() => router.visit(`/projects/new?edit=${project.id}`)}
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
-          >
-            <Edit className="h-4 w-4" />
-            <span>Edit Project</span>
-          </button>
+          {project &&
+            (userRole !== 'DO' ||
+              (project.caseStatus || project.status || '').toLowerCase() ===
+                'draft') && (
+              <button
+                onClick={() => router.visit(`/projects/new?edit=${project.id}`)}
+                className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
+              >
+                <Edit className="h-4 w-4" />
+                <span>Edit Project</span>
+              </button>
+            )}
         </div>
       </div>
 

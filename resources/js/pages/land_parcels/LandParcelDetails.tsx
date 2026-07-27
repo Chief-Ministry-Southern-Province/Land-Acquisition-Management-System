@@ -93,13 +93,16 @@ export default function LandParcelDetails({ id }: Props) {
 
   const documents =
     parcel?.documents && parcel.documents.length > 0
-      ? parcel.documents.map((d) => ({
-          name: d.original_filename,
-          type: d.file_type
-            ? d.file_type.toUpperCase().replace('.', '')
-            : 'N/A',
-          date: d.upload_date || 'N/A',
-        }))
+      ? parcel.documents.map((d: any) => {
+          const fileTypeStr = d.fileType || d.file_type || 'N/A';
+
+          return {
+            name:
+              d.originalFilename || d.original_filename || 'Unnamed Document',
+            type: fileTypeStr.toUpperCase().replace('.', ''),
+            date: d.uploadDate || d.upload_date || 'N/A',
+          };
+        })
       : [
           { name: 'Survey Plan', type: 'PDF', date: '2024-03-10' },
           { name: 'Valuation Report', type: 'PDF', date: '2024-04-20' },

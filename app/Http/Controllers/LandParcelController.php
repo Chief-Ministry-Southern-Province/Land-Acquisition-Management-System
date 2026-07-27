@@ -59,8 +59,9 @@ class LandParcelController extends Controller
             'boundaries_west' => 'nullable|string|max:255',
             'has_residential_houses' => 'nullable|boolean',
             'is_resident_owner' => 'nullable|boolean',
+            'is_cultivated' => 'nullable|boolean',
             'cultivation' => 'nullable|string|max:255',
-            'cultivation_status' => 'nullable|string|in:fertile,mid,infertile',
+            'cultivation_status' => 'nullable|string|in:fertile,mid,infertile,unspecified',
             'annual_income' => 'nullable|numeric',
             'land_type' => 'nullable|string|max:255',
             'estimated_value' => 'nullable|numeric',
@@ -89,40 +90,61 @@ class LandParcelController extends Controller
         $validated['parcel_numbers'] = $validated['parcel_numbers'] ?? [];
         $validated['has_residential_houses'] = $validated['has_residential_houses'] ?? false;
         $validated['is_resident_owner'] = $validated['is_resident_owner'] ?? false;
-        $validated['cultivation'] = $validated['cultivation'] ?? 'N/A';
-        $validated['cultivation_status'] = $validated['cultivation_status'] ?? 'fertile';
-        $validated['annual_income'] = $validated['annual_income'] ?? 0;
+        if (empty($validated['is_cultivated'])) {
+            $validated['is_cultivated'] = false;
+            $validated['cultivation'] = null;
+            $validated['cultivation_status'] = null;
+            $validated['annual_income'] = 0;
+        } else {
+            $validated['is_cultivated'] = true;
+            $validated['cultivation'] = $validated['cultivation'] ?? 'N/A';
+            $validated['cultivation_status'] = $validated['cultivation_status'] ?? 'unspecified';
+            $validated['annual_income'] = $validated['annual_income'] ?? 0;
+        }
         $validated['land_type'] = $validated['land_type'] ?? 'Standard';
         $validated['estimated_value'] = $validated['estimated_value'] ?? 0;
-
         $validated['status'] = 'available';
-        $landParcel = LandParcel::create($validated);
-        if ($request->has('property_owner_ids') && is_array($request->input('property_owner_ids'))) {
-            $landParcel->owners()->attach($request->input('property_owner_ids'));
-        } elseif ($request->has('property_owner_id') && $request->input('property_owner_id')) {
-            $landParcel->owners()->attach($request->input('property_owner_id'));
-        }
 
-        if ($request->has('residents') && is_array($request->input('residents'))) {
-            foreach ($request->input('residents') as $res) {
-                if (! empty($res['name'])) {
-                    $landParcel->residents()->create([
-                        'name' => $res['name'],
-                        'address' => $res['address'] ?? null,
-                        'nic' => $res['nic'] ?? null,
-                        'contact' => $res['contact'] ?? null,
-                        'relationship' => $res['relationship'] ?? 'owner',
-                    ]);
+        DB::beginTransaction();
+
+        try {
+            $landParcel = LandParcel::create($validated);
+            if ($request->has('property_owner_ids') && is_array($request->input('property_owner_ids'))) {
+                $landParcel->owners()->attach($request->input('property_owner_ids'));
+            } elseif ($request->has('property_owner_id') && $request->input('property_owner_id')) {
+                $landParcel->owners()->attach($request->input('property_owner_id'));
+            }
+
+            if ($request->has('residents') && is_array($request->input('residents'))) {
+                foreach ($request->input('residents') as $res) {
+                    if (! empty($res['name'])) {
+                        $landParcel->residents()->create([
+                            'name' => $res['name'],
+                            'address' => $res['address'] ?? null,
+                            'nic' => $res['nic'] ?? null,
+                            'contact' => $res['contact'] ?? null,
+                            'relationship' => $res['relationship'] ?? 'owner',
+                        ]);
+                    }
                 }
             }
+
+            DB::commit();
+
+            $landParcel->load(['owners', 'project', 'residents', 'documents']);
+
+            return response()->json([
+                'message' => 'Land parcel created successfully',
+                'land_parcel' => $landParcel,
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Failed to create land parcel',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        $landParcel->load(['owners', 'project', 'residents', 'documents']);
-
-        return response()->json([
-            'message' => 'Land parcel created successfully',
-            'land_parcel' => $landParcel,
-        ], 201);
     }
 
     /**
@@ -200,8 +222,9 @@ class LandParcelController extends Controller
             'boundaries_west' => 'nullable|string|max:255',
             'has_residential_houses' => 'nullable|boolean',
             'is_resident_owner' => 'nullable|boolean',
+            'is_cultivated' => 'nullable|boolean',
             'cultivation' => 'nullable|string|max:255',
-            'cultivation_status' => 'nullable|string|in:fertile,mid,infertile',
+            'cultivation_status' => 'nullable|string|in:fertile,mid,infertile,unspecified',
             'annual_income' => 'nullable|numeric',
             'land_type' => 'nullable|string|max:255',
             'estimated_value' => 'nullable|numeric',
@@ -226,6 +249,15 @@ class LandParcelController extends Controller
         }
         if (isset($validated['extent_perches']) && ! isset($validated['land_size_perches'])) {
             $validated['land_size_perches'] = $validated['extent_perches'];
+        }
+
+        if (empty($validated['is_cultivated'])) {
+            $validated['is_cultivated'] = false;
+            $validated['cultivation'] = null;
+            $validated['cultivation_status'] = null;
+            $validated['annual_income'] = 0;
+        } else {
+            $validated['is_cultivated'] = true;
         }
 
         $landParcel->update($validated);

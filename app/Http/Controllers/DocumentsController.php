@@ -35,7 +35,7 @@ class DocumentsController extends Controller
             ]);
 
             $fileUploadService = new FileUploadService;
-            $storagePath = $validated['project_id']
+            $storagePath = ($validated['project_id'] ?? null)
                 ? 'projects/'.$validated['project_id']
                 : 'general';
             $uploadResult = $fileUploadService->upload(

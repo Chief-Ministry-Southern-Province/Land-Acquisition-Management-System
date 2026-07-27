@@ -12,17 +12,23 @@ import {
   Users,
   FolderKanban,
   Upload,
+  Download,
+  Trash2,
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
-import { uploadDocument } from '@/services/documentManagementService';
+import {
+  uploadDocument,
+  deleteDocument,
+  downloadDocument,
+} from '@/services/documentManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 import {
   getLandParcel,
   updateLandParcel,
 } from '@/services/landParcelManagementService';
 import { getProjects } from '@/services/projectsManagementService';
-import type { Project } from '@/services/projectsManagementService';
+import type { Project, Document } from '@/services/projectsManagementService';
 import {
   createPropertyOwner,
   getPropertyOwners,
@@ -258,6 +264,7 @@ export default function EditLandParcel({ id }: { id: string }) {
   const [queuedFiles, setQueuedFiles] = useState<
     { id: string; file: File; category: string }[]
   >([]);
+  const [parcelDocuments, setParcelDocuments] = useState<Document[]>([]);
 
   // Google Map refs
   const mapRef = useRef<any>(null);
@@ -286,6 +293,52 @@ export default function EditLandParcel({ id }: { id: string }) {
 
   const handleRemoveQueuedFile = (tempId: string) => {
     setQueuedFiles((prev) => prev.filter((item) => item.id !== tempId));
+  };
+
+  const refreshDocuments = async () => {
+    try {
+      const data = await getLandParcel(id);
+
+      if (data.documents) {
+        setParcelDocuments(data.documents);
+      }
+    } catch (error) {
+      console.error('Failed to refresh documents:', error);
+    }
+  };
+
+  const handleDownload = async (docId: string, filename: string) => {
+    try {
+      await downloadDocument(docId, filename);
+    } catch (error) {
+      console.error('Failed to download document:', error);
+      alert('Failed to download document.');
+    }
+  };
+
+  const handleDelete = async (docId: string, isQueued: boolean) => {
+    if (isQueued) {
+      handleRemoveQueuedFile(docId);
+
+      return;
+    }
+
+    if (
+      !confirm('Are you sure you want to delete this document permanently?')
+    ) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await deleteDocument(docId);
+      await refreshDocuments();
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      alert('Failed to delete document.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Property owners selection state
@@ -386,6 +439,10 @@ export default function EditLandParcel({ id }: { id: string }) {
         setProjects(projData);
         setExistingOwners(ownerData);
         setParcel(parcelData);
+
+        if (parcelData.documents) {
+          setParcelDocuments(parcelData.documents);
+        }
 
         // Map values into form state
         setForm({
@@ -866,6 +923,7 @@ export default function EditLandParcel({ id }: { id: string }) {
 
       if (error.response?.data?.errors) {
         const backendErrors: Record<string, string> = {};
+        const errorMessages: string[] = [];
         Object.entries(error.response.data.errors).forEach(([key, val]) => {
           let fieldName = key;
 
@@ -891,15 +949,22 @@ export default function EditLandParcel({ id }: { id: string }) {
 
           if (Array.isArray(val) && val.length > 0) {
             backendErrors[fieldName] = val[0];
+            const readableKey = key.replace(/_/g, ' ').toUpperCase();
+            errorMessages.push(`• ${readableKey}: ${val[0]}`);
           }
         });
         setErrors(backendErrors);
+        alert(`Validation Error:\n\n${errorMessages.join('\n')}`);
       } else if (error.response?.data?.message) {
         setErrors({ landNumber: error.response.data.message });
+        alert(`Error: ${error.response.data.message}`);
       } else {
         setErrors({
           landNumber: 'An error occurred while saving the land parcel.',
         });
+        alert(
+          'An error occurred while saving the land parcel. Please verify your inputs.',
+        );
       }
     } finally {
       setSubmitting(false);
@@ -1909,6 +1974,20 @@ export default function EditLandParcel({ id }: { id: string }) {
             return `${val.toFixed(precision)} ${units[pow]}`;
           };
 
+          const savedDocs = parcelDocuments.map((doc: any) => ({
+            id: doc.id,
+            name: doc.originalFilename || doc.original_filename,
+            type: doc.fileType
+              ? doc.fileType.replace('.', '').toUpperCase()
+              : doc.file_type
+                ? doc.file_type.replace('.', '').toUpperCase()
+                : 'UNKNOWN',
+            category: doc.documentCategory || doc.document_category,
+            uploadDate: doc.uploadDate || doc.upload_date,
+            size: doc.fileSize || doc.file_size,
+            isQueued: false,
+          }));
+
           const queuedDocs = queuedFiles.map((q) => ({
             id: q.id,
             name: q.file.name,
@@ -1918,6 +1997,8 @@ export default function EditLandParcel({ id }: { id: string }) {
             size: formatBytes(q.file.size),
             isQueued: true,
           }));
+
+          const allDisplayDocs = [...savedDocs, ...queuedDocs];
 
           return (
             <div className="bg-card border-border overflow-hidden rounded-xl border">
@@ -1951,7 +2032,7 @@ export default function EditLandParcel({ id }: { id: string }) {
                 </div>
               </div>
 
-              {queuedDocs.length === 0 ? (
+              {allDisplayDocs.length === 0 ? (
                 <div className="px-6 py-12 text-center">
                   <div className="bg-muted mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
                     <FolderKanban className="text-muted-foreground h-5 w-5" />
@@ -1962,7 +2043,7 @@ export default function EditLandParcel({ id }: { id: string }) {
                 </div>
               ) : (
                 <div className="divide-border divide-y">
-                  {queuedDocs.map((doc) => (
+                  {allDisplayDocs.map((doc) => (
                     <div
                       key={doc.id}
                       className="hover:bg-muted/10 flex items-center justify-between px-6 py-4 transition-colors"
@@ -1976,9 +2057,11 @@ export default function EditLandParcel({ id }: { id: string }) {
                             <p className="truncate text-sm font-medium">
                               {doc.name}
                             </p>
-                            <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
-                              Queued
-                            </span>
+                            {doc.isQueued && (
+                              <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
+                                Queued
+                              </span>
+                            )}
                           </div>
                           <p className="text-muted-foreground mt-0.5 text-xs">
                             Category: {doc.category} • Size: {doc.size} • Date:{' '}
@@ -1986,14 +2069,30 @@ export default function EditLandParcel({ id }: { id: string }) {
                           </p>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveQueuedFile(doc.id)}
-                        className="text-muted-foreground hover:text-destructive p-1 transition-colors"
-                        title="Remove from queue"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                      <div className="flex gap-2">
+                        {!doc.isQueued && (
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(doc.id, doc.name)}
+                            className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+                            title="Download"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(doc.id, doc.isQueued)}
+                          className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                          title={
+                            doc.isQueued
+                              ? 'Remove from queue'
+                              : 'Delete permanently'
+                          }
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -774,6 +774,7 @@ export default function AddLandParcel() {
 
       if (error.response?.data?.errors) {
         const backendErrors: Record<string, string> = {};
+        const errorMessages: string[] = [];
         Object.entries(error.response.data.errors).forEach(([key, val]) => {
           let fieldName = key;
 
@@ -799,15 +800,22 @@ export default function AddLandParcel() {
 
           if (Array.isArray(val) && val.length > 0) {
             backendErrors[fieldName] = val[0];
+            const readableKey = key.replace(/_/g, ' ').toUpperCase();
+            errorMessages.push(`• ${readableKey}: ${val[0]}`);
           }
         });
         setErrors(backendErrors);
+        alert(`Validation Error:\n\n${errorMessages.join('\n')}`);
       } else if (error.response?.data?.message) {
         setErrors({ landNumber: error.response.data.message });
+        alert(`Error: ${error.response.data.message}`);
       } else {
         setErrors({
           landNumber: 'An error occurred while saving the land parcel.',
         });
+        alert(
+          'An error occurred while saving the land parcel. Please verify your inputs.',
+        );
       }
     } finally {
       setSubmitting(false);
@@ -1519,7 +1527,7 @@ export default function AddLandParcel() {
                   }
                 />
                 <span className="text-foreground text-sm font-medium">
-                  Is land has residential houses
+                  Is land has residential houses?
                 </span>
               </label>
             </div>
@@ -1538,7 +1546,7 @@ export default function AddLandParcel() {
                   }
                 />
                 <span className="text-foreground text-sm font-medium">
-                  Are resident is owner
+                  Is resident is owner?
                 </span>
               </label>
             </div>
