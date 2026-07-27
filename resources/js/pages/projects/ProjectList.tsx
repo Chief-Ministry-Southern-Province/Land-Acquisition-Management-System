@@ -108,7 +108,8 @@ export default function ProjectList() {
 
   const actions = (row: any) => {
     const isDraft =
-      (row.caseStatus || row.status || '').toLowerCase() === 'draft';
+      (row.caseStatus || row.status || '').toLowerCase() === 'draft' ||
+      (row.doStatus || '').toLowerCase() === 'draft';
     const canModify = userRole !== 'DO' || isDraft;
 
     return (

@@ -1,9 +1,14 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Download, MapPin, Pencil } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowLeft, Download, MapPin, Pencil, Trash2 } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import { getAuditLogs } from '@/services/auditLogService';
+import {
+  deleteDocument,
+  downloadDocument,
+} from '@/services/documentManagementService';
 import { getLandParcel } from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 
@@ -14,26 +19,102 @@ interface Props {
 export default function LandParcelDetails({ id }: Props) {
   const [parcel, setParcel] = useState<LandParcel | null>(null);
   const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useState<any[]>([]);
 
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
   const userRole = user?.role?.role_name || 'User';
 
+  const fetchParcelDetails = useCallback(async () => {
+    try {
+      const data = await getLandParcel(id);
+      setParcel(data);
+
+      try {
+        const logs = await getAuditLogs({ module: 'Land Parcels' });
+        const filtered = logs.filter((log) =>
+          log.details.includes(data.parcel_id),
+        );
+        const mapped = filtered.map((log) => {
+          let formattedDate = 'N/A';
+
+          if (log.timestamp) {
+            try {
+              formattedDate = new Date(log.timestamp)
+                .toISOString()
+                .split('T')[0];
+            } catch {
+              formattedDate = log.timestamp;
+            }
+          }
+
+          return {
+            date: formattedDate,
+            event: log.details,
+            user: log.user,
+          };
+        });
+        setHistory(mapped);
+      } catch (err) {
+        console.error('Failed to fetch audit logs for land parcel:', err);
+      }
+    } catch (error) {
+      console.error('Failed to fetch land parcel:', error);
+    }
+  }, [id]);
+
   useEffect(() => {
-    const fetchParcel = async () => {
+    const initialFetch = async () => {
       try {
         setLoading(true);
-        const data = await getLandParcel(id);
-        setParcel(data);
-      } catch (error) {
-        console.error('Failed to fetch land parcel:', error);
+        await fetchParcelDetails();
       } finally {
         setLoading(false);
       }
     };
 
-    fetchParcel();
-  }, [id]);
+    if (id) {
+      initialFetch();
+    }
+  }, [id, fetchParcelDetails]);
+
+  const handleDownload = async (docId: string, filename: string) => {
+    if (!docId || docId.startsWith('mock-')) {
+      alert('This is a placeholder document and cannot be downloaded.');
+
+      return;
+    }
+
+    try {
+      await downloadDocument(docId, filename);
+    } catch (error) {
+      console.error('Failed to download document:', error);
+      alert('Failed to download document.');
+    }
+  };
+
+  const handleDelete = async (docId: string) => {
+    if (!docId || docId.startsWith('mock-')) {
+      alert('This is a placeholder document and cannot be deleted.');
+
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this document?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await deleteDocument(docId);
+      await fetchParcelDetails();
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      alert('Failed to delete document.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Keep other tables mock/placeholder since their services are not implemented
   const owners =
@@ -46,50 +127,33 @@ export default function LandParcelDetails({ id }: Props) {
         }))
       : [];
 
-  const structures = [
-    {
-      type: 'Residential Building',
-      area: '1,200 sq ft',
-      condition: 'Good',
-      value: '₨ 5,000,000',
-    },
-    {
-      type: 'Boundary Wall',
-      length: '150 ft',
-      condition: 'Fair',
-      value: '₨ 300,000',
-    },
-  ];
+  // const structures = [
+  //   {
+  //     type: 'Residential Building',
+  //     area: '1,200 sq ft',
+  //     condition: 'Good',
+  //     value: '₨ 5,000,000',
+  //   },
+  //   {
+  //     type: 'Boundary Wall',
+  //     length: '150 ft',
+  //     condition: 'Fair',
+  //     value: '₨ 300,000',
+  //   },
+  // ];
 
-  const crops = [
-    {
-      type: 'Coconut Trees',
-      quantity: 25,
-      age: '15 years',
-      value: '₨ 250,000',
-    },
-    { type: 'Mango Trees', quantity: 12, age: '8 years', value: '₨ 120,000' },
-    { type: 'Banana Plants', quantity: 50, age: '2 years', value: '₨ 50,000' },
-  ];
+  // const crops = [
+  //   {
+  //     type: 'Coconut Trees',
+  //     quantity: 25,
+  //     age: '15 years',
+  //     value: '₨ 250,000',
+  //   },
+  //   { type: 'Mango Trees', quantity: 12, age: '8 years', value: '₨ 120,000' },
+  //   { type: 'Banana Plants', quantity: 50, age: '2 years', value: '₨ 50,000' },
+  // ];
 
-  const history = [
-    {
-      date: '2024-05-15',
-      event: 'Status changed to Acquired',
-      user: 'Land Officer',
-    },
-    {
-      date: '2024-04-20',
-      event: 'Valuation completed',
-      user: 'Valuation Officer',
-    },
-    { date: '2024-03-10', event: 'Survey completed', user: 'Survey Officer' },
-    {
-      date: '2024-02-05',
-      event: 'Parcel registered',
-      user: 'Data Entry Operator',
-    },
-  ];
+  // Real history logs are fetched from backend and stored in state
 
   const documents =
     parcel?.documents && parcel.documents.length > 0
@@ -97,6 +161,7 @@ export default function LandParcelDetails({ id }: Props) {
           const fileTypeStr = d.fileType || d.file_type || 'N/A';
 
           return {
+            id: d.id,
             name:
               d.originalFilename || d.original_filename || 'Unnamed Document',
             type: fileTypeStr.toUpperCase().replace('.', ''),
@@ -104,10 +169,30 @@ export default function LandParcelDetails({ id }: Props) {
           };
         })
       : [
-          { name: 'Survey Plan', type: 'PDF', date: '2024-03-10' },
-          { name: 'Valuation Report', type: 'PDF', date: '2024-04-20' },
-          { name: 'Ownership Certificate', type: 'PDF', date: '2024-02-05' },
-          { name: 'Site Photographs', type: 'ZIP', date: '2024-03-10' },
+          {
+            id: 'mock-1',
+            name: 'Survey Plan',
+            type: 'PDF',
+            date: '2024-03-10',
+          },
+          {
+            id: 'mock-2',
+            name: 'Valuation Report',
+            type: 'PDF',
+            date: '2024-04-20',
+          },
+          {
+            id: 'mock-3',
+            name: 'Ownership Certificate',
+            type: 'PDF',
+            date: '2024-02-05',
+          },
+          {
+            id: 'mock-4',
+            name: 'Site Photographs',
+            type: 'ZIP',
+            date: '2024-03-10',
+          },
         ];
 
   if (loading) {
@@ -313,7 +398,7 @@ export default function LandParcelDetails({ id }: Props) {
           />
         </div>
 
-        <div className="bg-card border-border rounded-lg border p-6">
+        {/* <div className="bg-card border-border rounded-lg border p-6">
           <h3 className="mb-4">Structures</h3>
           <DataTable
             columns={[
@@ -343,7 +428,7 @@ export default function LandParcelDetails({ id }: Props) {
             filterable={false}
             exportable={false}
           />
-        </div>
+        </div> */}
 
         <div className="bg-card border-border rounded-lg border p-6 lg:col-span-2">
           <h3 className="mb-4">Documents</h3>
@@ -352,6 +437,37 @@ export default function LandParcelDetails({ id }: Props) {
               { key: 'name', label: 'Document Name' },
               { key: 'type', label: 'Type' },
               { key: 'date', label: 'Date' },
+              {
+                key: 'actions',
+                label: 'Actions',
+                render: (_val: any, row: any) => {
+                  const isAvailable = parcel?.status === 'available';
+
+                  return (
+                    <div
+                      className="flex items-center justify-end gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => handleDownload(row.id, row.name)}
+                        className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+                        title="Download"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
+                      {isAvailable && (
+                        <button
+                          onClick={() => handleDelete(row.id)}
+                          className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                },
+              },
             ]}
             data={documents}
             searchable={false}

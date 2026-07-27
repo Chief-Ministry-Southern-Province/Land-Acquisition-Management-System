@@ -213,3 +213,9 @@ export const updateProject = async (
 export const deleteProject = async (id: string): Promise<void> => {
   await api.delete(`/api/projects/${id}`);
 };
+
+export const submitProject = async (id: string): Promise<Project> => {
+  const response = await api.post(`/api/projects/${id}/submit`);
+
+  return mapFromBackend(response.data.project);
+};

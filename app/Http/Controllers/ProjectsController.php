@@ -199,7 +199,7 @@ class ProjectsController extends Controller
         $user = $request->user();
         if (! app()->runningUnitTests()) {
             if ($user && $user->role && $user->role->role_name === 'DO') {
-                if ($project->case_status !== 'draft') {
+                if ($project->case_status !== 'draft' && $project->do_status !== 'draft') {
                     return response()->json([
                         'message' => 'Forbidden. Development Officers (DO) can only edit draft projects.',
                     ], 403);
@@ -273,7 +273,7 @@ class ProjectsController extends Controller
         $user = $request->user();
         if (! app()->runningUnitTests()) {
             if ($user && $user->role && $user->role->role_name === 'DO') {
-                if ($project->case_status !== 'draft') {
+                if ($project->case_status !== 'draft' && $project->do_status !== 'draft') {
                     return response()->json([
                         'message' => 'Forbidden. Development Officers (DO) can only delete draft projects.',
                     ], 403);
@@ -286,5 +286,37 @@ class ProjectsController extends Controller
         return response()->json([
             'message' => 'Project deleted successfully',
         ], 204);
+    }
+
+    /**
+     * Submit the specified project (DO submits draft to pending).
+     */
+    public function submit(Request $request, string $id)
+    {
+        $project = Projects::find($id);
+
+        if (! $project) {
+            return response()->json([
+                'message' => 'Project not found',
+            ], 404);
+        }
+
+        $user = $request->user();
+        if ($user && $user->role && $user->role->role_name === 'DO') {
+            if ($project->do_status !== 'draft') {
+                return response()->json([
+                    'message' => 'Forbidden. Development Officers (DO) can only submit draft projects.',
+                ], 403);
+            }
+        }
+
+        $project->do_status = 'submitted';
+        $project->case_status = 'pending';
+        $project->save();
+
+        return response()->json([
+            'message' => 'Project submitted successfully',
+            'project' => $project,
+        ], 200);
     }
 }

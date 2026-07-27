@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Download, Edit, Trash2, Upload } from 'lucide-react';
+import { ArrowLeft, Download, Edit, Send, Trash2, Upload } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
@@ -10,7 +10,10 @@ import {
   deleteDocument,
   downloadDocument,
 } from '@/services/documentManagementService';
-import { getProject } from '@/services/projectsManagementService';
+import {
+  getProject,
+  submitProject,
+} from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
 interface ProjectDetailsProps {
@@ -120,6 +123,31 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     } catch (error) {
       console.error('Failed to delete document:', error);
       alert('Failed to delete document.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitProject = async () => {
+    if (!project) {
+      return;
+    }
+
+    if (
+      !confirm(
+        'Are you sure you want to submit this project? This will change status to Pending.',
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await submitProject(project.id);
+      await fetchProjectDetails();
+    } catch (error) {
+      console.error('Failed to submit project:', error);
+      alert('Failed to submit project.');
     } finally {
       setLoading(false);
     }
@@ -310,13 +338,25 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
           {project &&
             (userRole !== 'DO' ||
               (project.caseStatus || project.status || '').toLowerCase() ===
-                'draft') && (
+                'draft' ||
+              (project.doStatus || '').toLowerCase() === 'draft') && (
               <button
                 onClick={() => router.visit(`/projects/new?edit=${project.id}`)}
                 className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
               >
                 <Edit className="h-4 w-4" />
                 <span>Edit Project</span>
+              </button>
+            )}
+          {project &&
+            project.doStatus === 'draft' &&
+            (userRole === 'DO' || userRole === 'Admin') && (
+              <button
+                onClick={handleSubmitProject}
+                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
+              >
+                <Send className="h-4 w-4" />
+                <span>Submit Project</span>
               </button>
             )}
         </div>

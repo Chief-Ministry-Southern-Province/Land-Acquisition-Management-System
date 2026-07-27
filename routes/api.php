@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 // ─── Protected Routes (Authenticated) ─────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
     // Resource Routes
+    Route::post('projects/{id}/submit', [ProjectsController::class, 'submit']);
     Route::apiResource('projects', ProjectsController::class);
     Route::get('land-parcels/export', [LandParcelController::class, 'export']);
     Route::post('land-parcels/import', [LandParcelController::class, 'import']);

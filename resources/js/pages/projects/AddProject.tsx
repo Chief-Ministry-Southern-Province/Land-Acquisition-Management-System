@@ -204,7 +204,8 @@ export default function AddProject() {
 
           if (
             userRole === 'DO' &&
-            (data.caseStatus || data.status || '').toLowerCase() !== 'draft'
+            (data.caseStatus || data.status || '').toLowerCase() !== 'draft' &&
+            (data.doStatus || '').toLowerCase() !== 'draft'
           ) {
             alert(
               'Forbidden. Development Officers (DO) can only edit draft projects.',
@@ -259,7 +260,7 @@ export default function AddProject() {
       };
       fetchProject();
     }
-  }, [editId]);
+  }, [editId, user?.role?.role_name]);
 
   const refreshDocuments = async () => {
     if (editId) {
