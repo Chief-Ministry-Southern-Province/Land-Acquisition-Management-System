@@ -20,4 +20,9 @@ class Compensation extends Model
     {
         return $this->belongsTo(LandParcel::class, 'land_parcel_id');
     }
+
+    public function owner()
+    {
+        return $this->belongsTo(PropertyOwner::class, 'owner_id');
+    }
 }

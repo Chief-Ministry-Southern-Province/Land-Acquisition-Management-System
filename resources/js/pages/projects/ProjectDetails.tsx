@@ -1,6 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Download, Edit, Trash2, Upload } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowLeft, Download, Edit, Send, Trash2, Upload } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import WorkflowTimeline from '@/components/ui/WorkflowTimeline';
@@ -10,7 +10,10 @@ import {
   deleteDocument,
   downloadDocument,
 } from '@/services/documentManagementService';
-import { getProject } from '@/services/projectsManagementService';
+import {
+  getProject,
+  submitProject,
+} from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
 interface ProjectDetailsProps {
@@ -25,15 +28,16 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
   const userId = user?.id;
+  const userRole = user?.role?.role_name || 'User';
 
-  const fetchProjectDetails = async () => {
+  const fetchProjectDetails = useCallback(async () => {
     try {
       const data = await getProject(id);
       setProject(data);
     } catch (error) {
       console.error('Failed to fetch project details:', error);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     const initialFetch = async () => {
@@ -48,7 +52,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     if (id) {
       initialFetch();
     }
-  }, [id]);
+  }, [id, fetchProjectDetails]);
 
   const getCategoryFromModule = () => {
     if (typeof window !== 'undefined') {
@@ -124,6 +128,31 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     }
   };
 
+  const handleSubmitProject = async () => {
+    if (!project) {
+      return;
+    }
+
+    if (
+      !confirm(
+        'Are you sure you want to submit this project? This will change status to Pending.',
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await submitProject(project.id);
+      await fetchProjectDetails();
+    } catch (error) {
+      console.error('Failed to submit project:', error);
+      alert('Failed to submit project.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const documentActions = (row: any) => (
     <div
       className="flex justify-end gap-2"
@@ -150,7 +179,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     ? project.landParcels.map((p) => ({
         id: p.id,
         parcelId: p.parcel_id,
-        surveyNo: p.parcel_id,
+        landNo: p.parcel_id,
         village: p.village,
         extent: `${p.extent_acers} acres, ${p.extent_perches} perches`,
         status: p.status,
@@ -293,8 +322,8 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
           </Link>
           <div>
             <div className="mb-1 flex items-center gap-3">
-              <h1>{project.name}</h1>
-              <StatusBadge status={project.status.toLowerCase()} />
+              <h1>{project.title || project.name}</h1>
+              <StatusBadge status={(project.status || 'draft').toLowerCase()} />
             </div>
             <p className="text-muted-foreground">
               Project ID: {project.projectId}
@@ -306,13 +335,30 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             <Download className="h-4 w-4" />
             <span>Export</span>
           </button>
-          <button
-            onClick={() => router.visit(`/projects/new?edit=${project.id}`)}
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
-          >
-            <Edit className="h-4 w-4" />
-            <span>Edit Project</span>
-          </button>
+          {project &&
+            (userRole !== 'DO' ||
+              (project.caseStatus || project.status || '').toLowerCase() ===
+                'draft' ||
+              (project.doStatus || '').toLowerCase() === 'draft') && (
+              <button
+                onClick={() => router.visit(`/projects/new?edit=${project.id}`)}
+                className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
+              >
+                <Edit className="h-4 w-4" />
+                <span>Edit Project</span>
+              </button>
+            )}
+          {project &&
+            project.doStatus === 'draft' &&
+            (userRole === 'DO' || userRole === 'Admin') && (
+              <button
+                onClick={handleSubmitProject}
+                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
+              >
+                <Send className="h-4 w-4" />
+                <span>Submit Project</span>
+              </button>
+            )}
         </div>
       </div>
 
@@ -339,57 +385,118 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       {activeTab === 'general' && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="bg-card border-border rounded-lg border p-6">
-            <h3 className="mb-4">Project Details</h3>
-            <dl className="space-y-3">
+            <h3 className="mb-4">Project Overview</h3>
+            <dl className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Ministry:</dt>
-                <dd>{project.ministry}</dd>
+                <dt className="text-muted-foreground">Project Title:</dt>
+                <dd className="font-semibold">
+                  {project.title || project.name}
+                </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">District:</dt>
-                <dd>{project.district}</dd>
+                <dt className="text-muted-foreground">Institution:</dt>
+                <dd>{project.institution || 'N/A'}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Division:</dt>
-                <dd>{project.division}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Type:</dt>
-                <dd>{project.projectType}</dd>
+                <dt className="text-muted-foreground">Institution Address:</dt>
+                <dd className="text-right">
+                  {project.institutionAddress || 'N/A'}
+                </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Purpose:</dt>
                 <dd className="text-right">{project.purpose}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Budget:</dt>
-                <dd>₨ {project.budget.toLocaleString()}</dd>
+                <dt className="text-muted-foreground">Land Area Breakdown:</dt>
+                <dd className="font-mono">
+                  {project.landAreaAcers ?? 0} A, {project.landAreaRoods ?? 0}{' '}
+                  R, {project.landAreaPerches ?? 0} P
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Total Acquired Area:</dt>
+                <dd className="font-semibold">
+                  {project.fullLandArea ?? 0} Perches
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Temporary Relocation:</dt>
+                <dd>{project.areResidentsMovedTemp ? 'Yes' : 'No'}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Approval Date:</dt>
+                <dd>{project.approvalDate || 'N/A'}</dd>
               </div>
             </dl>
           </div>
 
           <div className="bg-card border-border rounded-lg border p-6">
-            <h3 className="mb-4">Timeline & Contact</h3>
-            <dl className="space-y-3">
+            <h3 className="mb-4">Legal Sections (Items 20 - 26)</h3>
+            <dl className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Start Date:</dt>
-                <dd>{project.startDate}</dd>
+                <dt className="text-muted-foreground">Sec 20 Observation:</dt>
+                <dd>
+                  {project.section20Observation !== null
+                    ? project.section20Observation
+                      ? 'Passed'
+                      : 'Pending'
+                    : 'N/A'}
+                </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Est. Completion:</dt>
-                <dd>{project.estimatedCompletion}</dd>
+                <dt className="text-muted-foreground">
+                  Sec 21 Secretary Report:
+                </dt>
+                <dd>
+                  {project.section21SecretaryReport !== null
+                    ? project.section21SecretaryReport
+                      ? 'Completed'
+                      : 'Pending'
+                    : 'N/A'}
+                </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Project Manager:</dt>
-                <dd>{project.projectManager}</dd>
+                <dt className="text-muted-foreground">
+                  Sec 22 Recommendation:
+                </dt>
+                <dd className="text-right">
+                  {project.section22SecretaryRecommendation || 'N/A'}
+                </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Contact:</dt>
-                <dd>{project.contact}</dd>
+                <dt className="text-muted-foreground">Sec 23 Valuation Rec:</dt>
+                <dd className="text-right">
+                  {project.section23ValuationRecommendation || 'N/A'}
+                </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Email:</dt>
-                <dd>{project.email}</dd>
+                <dt className="text-muted-foreground">
+                  Sec 24 Decision Remarks:
+                </dt>
+                <dd>
+                  {project.section24DecisionRemarks !== null
+                    ? project.section24DecisionRemarks
+                      ? 'Approved'
+                      : 'Pending'
+                    : 'N/A'}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Sec 25 Conditions:</dt>
+                <dd className="text-right">
+                  {project.section25AdditionalConditions || 'N/A'}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Sec 26 Final Rec:</dt>
+                <dd>
+                  {project.section26FinalRecommendation !== null
+                    ? project.section26FinalRecommendation
+                      ? 'Approved'
+                      : 'Pending'
+                    : 'N/A'}
+                </dd>
               </div>
             </dl>
           </div>
@@ -407,7 +514,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
         <DataTable
           columns={[
             { key: 'parcelId', label: 'Parcel ID', sortable: true },
-            { key: 'surveyNo', label: 'Survey No', sortable: true },
+            { key: 'landNo', label: 'Land No', sortable: true },
             { key: 'village', label: 'Village', sortable: true },
             { key: 'extent', label: 'Extent', sortable: true },
             {

@@ -13,7 +13,8 @@ class ProjectsObserver
     public function created(Projects $projects): void
     {
         if ($user = auth()->user()) {
-            AuditLogService::log($user->id, $user->name, 'Create', 'Projects', "Created project {$projects->name}");
+            $name = $projects->title ?? ($projects->name ?? '');
+            AuditLogService::log($user->id, $user->name, 'Create', 'Projects', "Created project {$name}");
         }
     }
 
@@ -23,7 +24,8 @@ class ProjectsObserver
     public function updated(Projects $projects): void
     {
         if ($user = auth()->user()) {
-            AuditLogService::log($user->id, $user->name, 'Update', 'Projects', "Updated project {$projects->name}");
+            $name = $projects->title ?? ($projects->name ?? '');
+            AuditLogService::log($user->id, $user->name, 'Update', 'Projects', "Updated project {$name}");
         }
     }
 
@@ -33,7 +35,8 @@ class ProjectsObserver
     public function deleted(Projects $projects): void
     {
         if ($user = auth()->user()) {
-            AuditLogService::log($user->id, $user->name, 'Delete', 'Projects', "Deleted project {$projects->name}");
+            $name = $projects->title ?? ($projects->name ?? '');
+            AuditLogService::log($user->id, $user->name, 'Delete', 'Projects', "Deleted project {$name}");
         }
     }
 }

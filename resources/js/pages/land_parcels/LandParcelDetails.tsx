@@ -1,9 +1,14 @@
-import { Link, router } from '@inertiajs/react';
-import { ArrowLeft, Download, MapPin } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { ArrowLeft, Download, MapPin, Pencil, Trash2 } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import { getAuditLogs } from '@/services/auditLogService';
+import {
+  deleteDocument,
+  downloadDocument,
+} from '@/services/documentManagementService';
 import { getLandParcel } from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 
@@ -14,22 +19,102 @@ interface Props {
 export default function LandParcelDetails({ id }: Props) {
   const [parcel, setParcel] = useState<LandParcel | null>(null);
   const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useState<any[]>([]);
+
+  const { props: pageProps } = usePage();
+  const user = (pageProps.auth as any)?.user;
+  const userRole = user?.role?.role_name || 'User';
+
+  const fetchParcelDetails = useCallback(async () => {
+    try {
+      const data = await getLandParcel(id);
+      setParcel(data);
+
+      try {
+        const logs = await getAuditLogs({ module: 'Land Parcels' });
+        const filtered = logs.filter((log) =>
+          log.details.includes(data.parcel_id),
+        );
+        const mapped = filtered.map((log) => {
+          let formattedDate = 'N/A';
+
+          if (log.timestamp) {
+            try {
+              formattedDate = new Date(log.timestamp)
+                .toISOString()
+                .split('T')[0];
+            } catch {
+              formattedDate = log.timestamp;
+            }
+          }
+
+          return {
+            date: formattedDate,
+            event: log.details,
+            user: log.user,
+          };
+        });
+        setHistory(mapped);
+      } catch (err) {
+        console.error('Failed to fetch audit logs for land parcel:', err);
+      }
+    } catch (error) {
+      console.error('Failed to fetch land parcel:', error);
+    }
+  }, [id]);
 
   useEffect(() => {
-    const fetchParcel = async () => {
+    const initialFetch = async () => {
       try {
         setLoading(true);
-        const data = await getLandParcel(id);
-        setParcel(data);
-      } catch (error) {
-        console.error('Failed to fetch land parcel:', error);
+        await fetchParcelDetails();
       } finally {
         setLoading(false);
       }
     };
 
-    fetchParcel();
-  }, [id]);
+    if (id) {
+      initialFetch();
+    }
+  }, [id, fetchParcelDetails]);
+
+  const handleDownload = async (docId: string, filename: string) => {
+    if (!docId || docId.startsWith('mock-')) {
+      alert('This is a placeholder document and cannot be downloaded.');
+
+      return;
+    }
+
+    try {
+      await downloadDocument(docId, filename);
+    } catch (error) {
+      console.error('Failed to download document:', error);
+      alert('Failed to download document.');
+    }
+  };
+
+  const handleDelete = async (docId: string) => {
+    if (!docId || docId.startsWith('mock-')) {
+      alert('This is a placeholder document and cannot be deleted.');
+
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this document?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await deleteDocument(docId);
+      await fetchParcelDetails();
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      alert('Failed to delete document.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Keep other tables mock/placeholder since their services are not implemented
   const owners =
@@ -42,57 +127,73 @@ export default function LandParcelDetails({ id }: Props) {
         }))
       : [];
 
-  const structures = [
-    {
-      type: 'Residential Building',
-      area: '1,200 sq ft',
-      condition: 'Good',
-      value: '₨ 5,000,000',
-    },
-    {
-      type: 'Boundary Wall',
-      length: '150 ft',
-      condition: 'Fair',
-      value: '₨ 300,000',
-    },
-  ];
+  // const structures = [
+  //   {
+  //     type: 'Residential Building',
+  //     area: '1,200 sq ft',
+  //     condition: 'Good',
+  //     value: '₨ 5,000,000',
+  //   },
+  //   {
+  //     type: 'Boundary Wall',
+  //     length: '150 ft',
+  //     condition: 'Fair',
+  //     value: '₨ 300,000',
+  //   },
+  // ];
 
-  const crops = [
-    {
-      type: 'Coconut Trees',
-      quantity: 25,
-      age: '15 years',
-      value: '₨ 250,000',
-    },
-    { type: 'Mango Trees', quantity: 12, age: '8 years', value: '₨ 120,000' },
-    { type: 'Banana Plants', quantity: 50, age: '2 years', value: '₨ 50,000' },
-  ];
+  // const crops = [
+  //   {
+  //     type: 'Coconut Trees',
+  //     quantity: 25,
+  //     age: '15 years',
+  //     value: '₨ 250,000',
+  //   },
+  //   { type: 'Mango Trees', quantity: 12, age: '8 years', value: '₨ 120,000' },
+  //   { type: 'Banana Plants', quantity: 50, age: '2 years', value: '₨ 50,000' },
+  // ];
 
-  const history = [
-    {
-      date: '2024-05-15',
-      event: 'Status changed to Acquired',
-      user: 'Land Officer',
-    },
-    {
-      date: '2024-04-20',
-      event: 'Valuation completed',
-      user: 'Valuation Officer',
-    },
-    { date: '2024-03-10', event: 'Survey completed', user: 'Survey Officer' },
-    {
-      date: '2024-02-05',
-      event: 'Parcel registered',
-      user: 'Data Entry Operator',
-    },
-  ];
+  // Real history logs are fetched from backend and stored in state
 
-  const documents = [
-    { name: 'Survey Plan', type: 'PDF', date: '2024-03-10' },
-    { name: 'Valuation Report', type: 'PDF', date: '2024-04-20' },
-    { name: 'Ownership Certificate', type: 'PDF', date: '2024-02-05' },
-    { name: 'Site Photographs', type: 'ZIP', date: '2024-03-10' },
-  ];
+  const documents =
+    parcel?.documents && parcel.documents.length > 0
+      ? parcel.documents.map((d: any) => {
+          const fileTypeStr = d.fileType || d.file_type || 'N/A';
+
+          return {
+            id: d.id,
+            name:
+              d.originalFilename || d.original_filename || 'Unnamed Document',
+            type: fileTypeStr.toUpperCase().replace('.', ''),
+            date: d.uploadDate || d.upload_date || 'N/A',
+          };
+        })
+      : [
+          {
+            id: 'mock-1',
+            name: 'Survey Plan',
+            type: 'PDF',
+            date: '2024-03-10',
+          },
+          {
+            id: 'mock-2',
+            name: 'Valuation Report',
+            type: 'PDF',
+            date: '2024-04-20',
+          },
+          {
+            id: 'mock-3',
+            name: 'Ownership Certificate',
+            type: 'PDF',
+            date: '2024-02-05',
+          },
+          {
+            id: 'mock-4',
+            name: 'Site Photographs',
+            type: 'ZIP',
+            date: '2024-03-10',
+          },
+        ];
 
   if (loading) {
     return (
@@ -125,13 +226,22 @@ export default function LandParcelDetails({ id }: Props) {
           </Link>
           <div>
             <div className="mb-1 flex items-center gap-3">
-              <h1>Parcel {parcel.parcel_id}</h1>
+              <h1>Land Number: {parcel.parcel_id}</h1>
               <StatusBadge status={parcel.status} />
             </div>
-            <p className="text-muted-foreground">Lot No: {parcel.lot_no}</p>
+            <p className="text-muted-foreground">{parcel.land_name || ''}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {userRole === 'DO' && parcel.status === 'available' && (
+            <button
+              onClick={() => router.visit(`/land-parcels/${parcel.id}/edit`)}
+              className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
+            >
+              <Pencil className="h-4 w-4" />
+              <span>Edit Parcel</span>
+            </button>
+          )}
           <button
             onClick={() => router.visit(`/gis-maps?parcel=${parcel.id}`)}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
@@ -149,22 +259,90 @@ export default function LandParcelDetails({ id }: Props) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="bg-card border-border rounded-lg border p-6">
           <h3 className="mb-4">Parcel Information</h3>
-          <dl className="space-y-3">
+          <dl className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">District:</dt>
-              <dd>{parcel.district}</dd>
+              <dt className="text-muted-foreground">Land Name:</dt>
+              <dd className="font-medium">{parcel.land_name || 'N/A'}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Division:</dt>
-              <dd>{parcel.division}</dd>
+              <dt className="text-muted-foreground">Province / District:</dt>
+              <dd>
+                {parcel.province || 'Southern'} / {parcel.district}
+              </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Village:</dt>
+              <dt className="text-muted-foreground">Divisional Secretariat:</dt>
+              <dd>
+                {parcel.divisional_secretariat || parcel.division || 'N/A'}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">
+                Grama Niladhari Division:
+              </dt>
+              <dd>{parcel.grama_niladari_division || 'N/A'}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Village / Town:</dt>
               <dd>{parcel.village}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Extent:</dt>
-              <dd>{`${parcel.extent_acers} acres, ${parcel.extent_perches} perches`}</dd>
+              <dt className="text-muted-foreground">Extent Breakdown:</dt>
+              <dd className="font-mono">
+                {parcel.land_size_acers ?? parcel.extent_acers ?? 0} A,{' '}
+                {parcel.land_size_roods ?? 0} R,{' '}
+                {parcel.land_size_perches ?? parcel.extent_perches ?? 0} P
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Total Land Size:</dt>
+              <dd className="font-medium">
+                {parcel.full_land_size ?? 0} Perches
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Plan Status / No:</dt>
+              <dd>
+                {parcel.has_plan ? parcel.plan_number || 'Yes' : 'No Plan'}
+              </dd>
+            </div>
+            {parcel.parcel_numbers && parcel.parcel_numbers.length > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Parcel Numbers:</dt>
+                <dd className="font-mono">
+                  {parcel.parcel_numbers.join(', ')}
+                </dd>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Cultivation & Status:</dt>
+              <dd>
+                {parcel.cultivation || 'N/A'} (
+                {parcel.cultivation_status || 'fertile'})
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Annual Income:</dt>
+              <dd>₨ {Number(parcel.annual_income || 0).toLocaleString()}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Land Type:</dt>
+              <dd>{parcel.land_type || 'Standard'}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Estimated Value:</dt>
+              <dd className="font-medium">
+                ₨ {Number(parcel.estimated_value || 0).toLocaleString()}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">
+                Residential / Owner Living:
+              </dt>
+              <dd>
+                {parcel.has_residential_houses ? 'Yes' : 'No'} /{' '}
+                {parcel.is_resident_owner ? 'Yes' : 'No'}
+              </dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Associated Project:</dt>
@@ -174,7 +352,7 @@ export default function LandParcelDetails({ id }: Props) {
                     href={`/projects/${parcel.project.id}`}
                     className="text-primary font-medium hover:underline"
                   >
-                    {parcel.project.name}
+                    {parcel.project.title || parcel.project.name}
                   </Link>
                 ) : (
                   'None'
@@ -220,7 +398,7 @@ export default function LandParcelDetails({ id }: Props) {
           />
         </div>
 
-        <div className="bg-card border-border rounded-lg border p-6">
+        {/* <div className="bg-card border-border rounded-lg border p-6">
           <h3 className="mb-4">Structures</h3>
           <DataTable
             columns={[
@@ -250,7 +428,7 @@ export default function LandParcelDetails({ id }: Props) {
             filterable={false}
             exportable={false}
           />
-        </div>
+        </div> */}
 
         <div className="bg-card border-border rounded-lg border p-6 lg:col-span-2">
           <h3 className="mb-4">Documents</h3>
@@ -259,6 +437,37 @@ export default function LandParcelDetails({ id }: Props) {
               { key: 'name', label: 'Document Name' },
               { key: 'type', label: 'Type' },
               { key: 'date', label: 'Date' },
+              {
+                key: 'actions',
+                label: 'Actions',
+                render: (_val: any, row: any) => {
+                  const isAvailable = parcel?.status === 'available';
+
+                  return (
+                    <div
+                      className="flex items-center justify-end gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => handleDownload(row.id, row.name)}
+                        className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+                        title="Download"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
+                      {isAvailable && (
+                        <button
+                          onClick={() => handleDelete(row.id)}
+                          className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                },
+              },
             ]}
             data={documents}
             searchable={false}

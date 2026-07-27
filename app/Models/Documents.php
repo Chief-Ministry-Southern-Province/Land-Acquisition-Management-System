@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable([
     'user_id',
     'project_id',
+    'land_parcel_id',
     'original_filename',
     'stored_filename',
     'file_type',
@@ -21,6 +22,11 @@ class Documents extends Model
     public function project()
     {
         return $this->belongsTo(Projects::class, 'project_id');
+    }
+
+    public function landParcel()
+    {
+        return $this->belongsTo(LandParcel::class, 'land_parcel_id');
     }
 
     public function user()

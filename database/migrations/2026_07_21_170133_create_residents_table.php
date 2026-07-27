@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('property_owners', function (Blueprint $table) {
+        Schema::create('residents', function (Blueprint $table) {
             $table->id();
-            $table->string('owner_id');
+            $table->foreignId('land_parcel_id')->constrained('land_parcels')->cascadeOnDelete();
             $table->string('name');
+            $table->text('address')->nullable();
             $table->string('nic')->nullable();
-            $table->string('address');
             $table->string('contact')->nullable();
+            $table->enum('relationship', ['owner', 'tenant', 'family_member'])->default('owner');
             $table->timestamps();
         });
     }
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('property_owners');
+        Schema::dropIfExists('residents');
     }
 };

@@ -32,6 +32,8 @@ export default function MainLayout({ children, sidebarItems }: Props) {
       documents: 'Documents',
       'gis-maps': 'GIS / Maps',
       'approval-workflow': 'Approvals',
+      'head-of-branch': 'Head of Branch',
+      'pending-approvals': 'Pending Approvals',
       reports: 'Reports',
       'user-management': 'User Management',
       'audit-log': 'Audit Log',

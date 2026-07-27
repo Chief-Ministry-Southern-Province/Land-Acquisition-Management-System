@@ -33,112 +33,47 @@ import {
 } from '@/services/projectsManagementService';
 import type { Document } from '@/services/projectsManagementService';
 
-const DISTRICTS = [
-  'Colombo',
-  'Gampaha',
-  'Kalutara',
-  'Kandy',
-  'Matale',
-  'Nuwara Eliya',
-  'Galle',
-  'Matara',
-  'Hambantota',
-  'Jaffna',
-  'Kilinochchi',
-  'Mannar',
-  'Vavuniya',
-  'Mullaitivu',
-  'Batticaloa',
-  'Ampara',
-  'Trincomalee',
-  'Kurunegala',
-  'Puttalam',
-  'Anuradhapura',
-  'Polonnaruwa',
-  'Badulla',
-  'Monaragala',
-  'Ratnapura',
-  'Kegalle',
-];
-
-const MINISTRIES = [
-  'Ministry of Highways',
-  'Ministry of Transport',
-  'Ministry of Aviation',
-  'Ministry of Ports',
-  'Ministry of Urban Development',
-  'Ministry of Agriculture',
-  'Ministry of Industry',
-  'Ministry of Cultural Affairs',
-  'Ministry of Irrigation',
-  'Ministry of Power & Energy',
-  'Ministry of Health',
-  'Ministry of Education',
-  'Ministry of Defence',
-  'Ministry of Finance',
-];
-
-const PROJECT_TYPES = [
-  'Highway',
-  'Railway',
-  'Airport',
-  'Port',
-  'Irrigation',
-  'Urban Development',
-  'Industrial',
-  'Heritage',
-  'Power Plant',
-  'Water Supply',
-  'Housing',
-  'Health',
-  'Education',
-  'Other',
-];
-
-const ACQUISITION_ACTS = [
-  'Land Acquisition Act No. 9 of 1950',
-  'State Land Ordinance',
-  'Land Reform Law No. 1 of 1972',
-  'Urban Development Authority Act',
-  'National Environmental Act',
-  'Other',
-];
-
 // ── Form types ──────────────────────────────────────────────────────────────
 
 type ProjectForm = {
+  title: string;
   name: string;
-  ministry: string;
-  department: string;
-  projectType: string;
-  acquisitionAct: string;
-  district: string;
-  division: string;
+  institution: string;
+  institutionAddress: string;
   purpose: string;
-  startDate: string;
-  estimatedCompletion: string;
-  totalBudget: string;
-  projectManager: string;
-  managerContact: string;
-  managerEmail: string;
+  landAreaAcers: string;
+  landAreaRoods: string;
+  landAreaPerches: string;
+  areResidentsMovedTemp: boolean;
+  section20Observation: boolean | null;
+  section21SecretaryReport: boolean | null;
+  section22SecretaryRecommendation: string;
+  section23ValuationRecommendation: string;
+  section24DecisionRemarks: boolean | null;
+  section25AdditionalConditions: string;
+  section26FinalRecommendation: boolean | null;
+  approvalDate: string;
   remarks: string;
 };
 
 const EMPTY_FORM: ProjectForm = {
+  title: '',
   name: '',
-  ministry: '',
-  department: '',
-  projectType: '',
-  acquisitionAct: '',
-  district: '',
-  division: '',
+  institution: '',
+  institutionAddress: '',
   purpose: '',
-  startDate: '',
-  estimatedCompletion: '',
-  totalBudget: '',
-  projectManager: '',
-  managerContact: '',
-  managerEmail: '',
+  landAreaAcers: '',
+  landAreaRoods: '',
+  landAreaPerches: '',
+  areResidentsMovedTemp: false,
+  section20Observation: null,
+  section21SecretaryReport: null,
+  section22SecretaryRecommendation: '',
+  section23ValuationRecommendation: '',
+  section24DecisionRemarks: null,
+  section25AdditionalConditions: '',
+  section26FinalRecommendation: null,
+  approvalDate: '',
   remarks: '',
 };
 
@@ -230,8 +165,8 @@ export default function AddProject() {
   });
   const [originalProjectId, setOriginalProjectId] = useState<string>('');
   const [originalStatus, setOriginalStatus] = useState<
-    'active' | 'pending' | 'completed'
-  >('pending');
+    'draft' | 'pending' | 'rejected' | 'completed'
+  >('draft');
   const [loadingProject, setLoadingProject] = useState(false);
   const [projectDocuments, setProjectDocuments] = useState<Document[]>([]);
   const [queuedFiles, setQueuedFiles] = useState<
@@ -265,23 +200,48 @@ export default function AddProject() {
         try {
           setLoadingProject(true);
           const data = await getProject(editId);
+          const userRole = user?.role?.role_name || 'User';
+
+          if (
+            userRole === 'DO' &&
+            (data.caseStatus || data.status || '').toLowerCase() !== 'draft' &&
+            (data.doStatus || '').toLowerCase() !== 'draft'
+          ) {
+            alert(
+              'Forbidden. Development Officers (DO) can only edit draft projects.',
+            );
+            router.visit(`/projects/${editId}`);
+
+            return;
+          }
+
           setOriginalProjectId(data.projectId);
-          setOriginalStatus(data.status);
+          setOriginalStatus(
+            (data.status as 'draft' | 'pending' | 'rejected' | 'completed') ||
+              'draft',
+          );
           setForm({
+            title: data.title || '',
             name: data.name,
-            ministry: data.ministry,
-            department: data.department,
-            projectType: data.projectType,
-            acquisitionAct: data.acquisitionAct,
-            district: data.district,
-            division: data.division,
+            institution: data.institution || '',
+            institutionAddress: data.institutionAddress || '',
             purpose: data.purpose,
-            startDate: data.startDate,
-            estimatedCompletion: data.estimatedCompletion,
-            totalBudget: String(data.budget),
-            projectManager: data.projectManager,
-            managerContact: data.contact,
-            managerEmail: data.email,
+            landAreaAcers: String(data.landAreaAcers ?? ''),
+            landAreaRoods: String(data.landAreaRoods ?? ''),
+            landAreaPerches: String(data.landAreaPerches ?? ''),
+            areResidentsMovedTemp: !!data.areResidentsMovedTemp,
+            section20Observation: data.section20Observation ?? null,
+            section21SecretaryReport: data.section21SecretaryReport ?? null,
+            section22SecretaryRecommendation:
+              data.section22SecretaryRecommendation || '',
+            section23ValuationRecommendation:
+              data.section23ValuationRecommendation || '',
+            section24DecisionRemarks: data.section24DecisionRemarks ?? null,
+            section25AdditionalConditions:
+              data.section25AdditionalConditions || '',
+            section26FinalRecommendation:
+              data.section26FinalRecommendation ?? null,
+            approvalDate: data.approvalDate || '',
             remarks: data.remarks || '',
           });
 
@@ -300,7 +260,7 @@ export default function AddProject() {
       };
       fetchProject();
     }
-  }, [editId]);
+  }, [editId, user?.role?.role_name]);
 
   const refreshDocuments = async () => {
     if (editId) {
@@ -479,7 +439,7 @@ export default function AddProject() {
   // Total extent (numeric sum of acres)
   const totalExtent = useMemo(() => {
     const sum = selectedParcels.reduce((acc, p) => {
-      const val = parseFloat(p.extent_acers) || 0;
+      const val = parseFloat(p.extent_acers || '') || 0;
 
       return acc + val;
     }, 0);
@@ -501,55 +461,11 @@ export default function AddProject() {
       errs.name = 'Project name is required';
     }
 
-    if (!form.ministry) {
-      errs.ministry = 'Ministry is required';
-    }
-
-    if (!form.department.trim()) {
-      errs.department = 'Department is required';
-    }
-
-    if (!form.projectType) {
-      errs.projectType = 'Project type is required';
-    }
-
-    if (!form.acquisitionAct) {
-      errs.acquisitionAct = 'Acquisition Act is required';
-    }
-
-    if (!form.district) {
-      errs.district = 'District is required';
-    }
-
-    if (!form.division.trim()) {
-      errs.division = 'Divisional Secretariat is required';
-    }
-
     if (!form.purpose.trim()) {
       errs.purpose = 'Purpose / description is required';
     }
 
-    if (!form.startDate) {
-      errs.startDate = 'Start date is required';
-    }
-
-    if (!form.estimatedCompletion) {
-      errs.estimatedCompletion = 'Estimated completion date is required';
-    }
-
-    if (!form.projectManager.trim()) {
-      errs.projectManager = 'Project manager name is required';
-    }
-
-    if (!form.managerContact.trim()) {
-      errs.managerContact = 'Manager contact is required';
-    }
-
-    if (!form.managerEmail.trim()) {
-      errs.managerEmail = 'Manager email is required';
-    } else if (!/\S+@\S+\.\S+/.test(form.managerEmail)) {
-      errs.managerEmail = 'Manager email is invalid';
-    }
+    // Removed Start Date, Estimated Completion, Project Manager, Manager Contact, Manager Email validation.
 
     setErrors(errs);
 
@@ -562,23 +478,35 @@ export default function AddProject() {
     if (validate()) {
       try {
         setLoadingProject(true);
+        const acers = parseFloat(form.landAreaAcers) || 0;
+        const roods = parseFloat(form.landAreaRoods) || 0;
+        const perches = parseFloat(form.landAreaPerches) || 0;
+        const fullArea = acers * 160 + roods * 40 + perches;
+
         const payload = {
           projectId: editId ? originalProjectId : generateProjectId(),
-          name: form.name,
-          ministry: form.ministry,
-          department: form.department,
-          projectType: form.projectType,
-          acquisitionAct: form.acquisitionAct,
-          district: form.district,
-          division: form.division,
+          title: form.title || form.name,
+          name: form.name || form.title,
+          institution: form.institution || 'N/A',
+          institutionAddress: form.institutionAddress || 'N/A',
           purpose: form.purpose,
-          startDate: form.startDate,
-          estimatedCompletion: form.estimatedCompletion,
-          budget: Number(form.totalBudget) || 0,
-          status: editId ? originalStatus : ('pending' as const),
-          projectManager: form.projectManager,
-          contact: form.managerContact,
-          email: form.managerEmail,
+          landAreaAcers: acers,
+          landAreaRoods: roods,
+          landAreaPerches: perches,
+          fullLandArea: fullArea,
+          areResidentsMovedTemp: form.areResidentsMovedTemp,
+          section20Observation: form.section20Observation,
+          section21SecretaryReport: form.section21SecretaryReport,
+          section22SecretaryRecommendation:
+            form.section22SecretaryRecommendation || null,
+          section23ValuationRecommendation:
+            form.section23ValuationRecommendation || null,
+          section24DecisionRemarks: form.section24DecisionRemarks,
+          section25AdditionalConditions:
+            form.section25AdditionalConditions || null,
+          section26FinalRecommendation: form.section26FinalRecommendation,
+          approvalDate: form.approvalDate || null,
+          status: editId ? originalStatus : ('draft' as const),
           remarks: form.remarks || null,
           parcel_ids: Array.from(selectedParcelIds),
         };
@@ -677,113 +605,95 @@ export default function AddProject() {
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="lg:col-span-3">
-              <Field label="Project Name" required>
+            <div className="lg:col-span-2">
+              <Field label="Project Title / Name" required>
                 <input
                   className={inputCls}
                   placeholder="e.g. Southern Highway Expansion Phase 3"
-                  value={form.name}
-                  onChange={set('name')}
+                  value={form.name || form.title}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      name: e.target.value,
+                      title: e.target.value,
+                    }));
+                  }}
                 />
                 {errors.name && <span className={errCls}>{errors.name}</span>}
               </Field>
             </div>
 
-            <Field label="Ministry" required>
-              <select
-                className={inputCls}
-                value={form.ministry}
-                onChange={set('ministry')}
-              >
-                <option value="">Select Ministry</option>
-                {MINISTRIES.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-              {errors.ministry && (
-                <span className={errCls}>{errors.ministry}</span>
-              )}
-            </Field>
-
-            <Field label="Department / Authority" required>
+            <Field label="Requesting Institution">
               <input
                 className={inputCls}
-                placeholder="e.g. Road Development Authority"
-                value={form.department}
-                onChange={set('department')}
+                placeholder="e.g. Chief Ministry / Road Development Authority"
+                value={form.institution}
+                onChange={set('institution')}
               />
-              {errors.department && (
-                <span className={errCls}>{errors.department}</span>
-              )}
             </Field>
 
-            <Field label="Project Type" required>
-              <select
-                className={inputCls}
-                value={form.projectType}
-                onChange={set('projectType')}
-              >
-                <option value="">Select Type</option>
-                {PROJECT_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-              {errors.projectType && (
-                <span className={errCls}>{errors.projectType}</span>
-              )}
-            </Field>
+            <div className="lg:col-span-3">
+              <Field label="Institution Address">
+                <input
+                  className={inputCls}
+                  placeholder="Official address of requesting institution"
+                  value={form.institutionAddress}
+                  onChange={set('institutionAddress')}
+                />
+              </Field>
+            </div>
 
-            <Field label="District" required>
-              <select
-                className={inputCls}
-                value={form.district}
-                onChange={set('district')}
-              >
-                <option value="">Select District</option>
-                {DISTRICTS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-              {errors.district && (
-                <span className={errCls}>{errors.district}</span>
-              )}
-            </Field>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-3 lg:grid-cols-4">
+              <Field label="Acquiring Land Area — Acres">
+                <input
+                  className={inputCls}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={form.landAreaAcers}
+                  onChange={set('landAreaAcers')}
+                />
+              </Field>
 
-            <Field label="Divisional Secretariat" required>
-              <input
-                className={inputCls}
-                placeholder="e.g. Galle Four Gravets"
-                value={form.division}
-                onChange={set('division')}
-              />
-              {errors.division && (
-                <span className={errCls}>{errors.division}</span>
-              )}
-            </Field>
+              <Field label="Acquiring Land Area — Roods">
+                <input
+                  className={inputCls}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={form.landAreaRoods}
+                  onChange={set('landAreaRoods')}
+                />
+              </Field>
 
-            <Field label="Acquisition Act" required>
-              <select
-                className={inputCls}
-                value={form.acquisitionAct}
-                onChange={set('acquisitionAct')}
-              >
-                <option value="">Select Act</option>
-                {ACQUISITION_ACTS.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-              {errors.acquisitionAct && (
-                <span className={errCls}>{errors.acquisitionAct}</span>
-              )}
-            </Field>
+              <Field label="Acquiring Land Area — Perches">
+                <input
+                  className={inputCls}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={form.landAreaPerches}
+                  onChange={set('landAreaPerches')}
+                />
+              </Field>
+
+              <Field label="Full Acquiring Land Size (Perches)">
+                <input
+                  className={`${inputCls} bg-muted/30 cursor-not-allowed font-medium`}
+                  type="text"
+                  readOnly
+                  placeholder="0.00"
+                  value={(
+                    (parseFloat(form.landAreaAcers) || 0) * 160 +
+                    (parseFloat(form.landAreaRoods) || 0) * 40 +
+                    (parseFloat(form.landAreaPerches) || 0)
+                  ).toFixed(2)}
+                />
+              </Field>
+            </div>
 
             <div className="lg:col-span-3">
               <Field label="Purpose / Description" required>
@@ -800,79 +710,39 @@ export default function AddProject() {
               </Field>
             </div>
 
-            <Field label="Start Date" required>
-              <input
-                type="date"
-                className={inputCls}
-                value={form.startDate}
-                onChange={set('startDate')}
-              />
-              {errors.startDate && (
-                <span className={errCls}>{errors.startDate}</span>
-              )}
-            </Field>
+            <div className="py-1 lg:col-span-3">
+              <label className="border-border bg-muted/10 hover:bg-muted/20 flex cursor-pointer select-none items-start gap-3 rounded-lg border p-4 transition-colors">
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={form.areResidentsMovedTemp}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      areResidentsMovedTemp: e.target.checked,
+                    }));
+                  }}
+                />
+                <div className="mt-0.5 shrink-0">
+                  {form.areResidentsMovedTemp ? (
+                    <CheckSquare className="text-primary h-5 w-5" />
+                  ) : (
+                    <Square className="text-muted-foreground h-5 w-5" />
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <span className="text-foreground text-sm font-medium">
+                    Are residents moved to temporary habitat?
+                  </span>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    Check this option if residents affected by the project have
+                    been relocated to temporary housing.
+                  </p>
+                </div>
+              </label>
+            </div>
 
-            <Field label="Estimated Completion" required>
-              <input
-                type="date"
-                className={inputCls}
-                value={form.estimatedCompletion}
-                onChange={set('estimatedCompletion')}
-              />
-              {errors.estimatedCompletion && (
-                <span className={errCls}>{errors.estimatedCompletion}</span>
-              )}
-            </Field>
-
-            <Field
-              label="Total Budget (₨)"
-              hint="Estimated total budget in Sri Lankan Rupees"
-            >
-              <input
-                className={inputCls}
-                placeholder="e.g. 2500000000"
-                value={form.totalBudget}
-                onChange={set('totalBudget')}
-              />
-            </Field>
-
-            <Field label="Project Manager" required>
-              <input
-                className={inputCls}
-                placeholder="Full name"
-                value={form.projectManager}
-                onChange={set('projectManager')}
-              />
-              {errors.projectManager && (
-                <span className={errCls}>{errors.projectManager}</span>
-              )}
-            </Field>
-
-            <Field label="Manager Contact" required>
-              <input
-                className={inputCls}
-                type="tel"
-                placeholder="+94 77 123 4567"
-                value={form.managerContact}
-                onChange={set('managerContact')}
-              />
-              {errors.managerContact && (
-                <span className={errCls}>{errors.managerContact}</span>
-              )}
-            </Field>
-
-            <Field label="Manager Email" required>
-              <input
-                className={inputCls}
-                type="email"
-                placeholder="email@gov.lk"
-                value={form.managerEmail}
-                onChange={set('managerEmail')}
-              />
-              {errors.managerEmail && (
-                <span className={errCls}>{errors.managerEmail}</span>
-              )}
-            </Field>
+            {/* Removed Start Date, Estimated Completion, Total Budget, Project Manager, Manager Contact, Manager Email since they are not in the database table */}
 
             <div className="lg:col-span-3">
               <Field label="Remarks">
@@ -970,18 +840,12 @@ export default function AddProject() {
                             <Square className="text-muted-foreground h-5 w-5" />
                           )}
                         </div>
-                        <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 md:grid-cols-5">
+                        <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 md:grid-cols-4">
                           <div>
                             <p className="text-muted-foreground text-xs">
                               Parcel ID
                             </p>
                             <p className="font-medium">{parcel.parcel_id}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-xs">
-                              Lot No
-                            </p>
-                            <p>{parcel.lot_no}</p>
                           </div>
                           <div>
                             <p className="text-muted-foreground text-xs">
@@ -1025,7 +889,7 @@ export default function AddProject() {
                         key={p.id}
                         className="bg-primary/10 text-primary inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
                       >
-                        {p.parcel_id} · Lot {p.lot_no}
+                        {p.parcel_id}
                         <button
                           type="button"
                           onClick={() => removeParcel(p.id)}
@@ -1124,6 +988,169 @@ export default function AddProject() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* ── Section: Recommendations & Decisions (Sections 20 - 26) ── */}
+        <div className="bg-card border-border rounded-xl border p-6">
+          <SectionHeader
+            icon={CheckSquare}
+            title="Recommendations & Decisions"
+            subtitle="Reports, recommendations, and decisions"
+          />
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Section 20 */}
+            <div className="flex items-center md:col-span-2">
+              <label className="border-border bg-muted/10 hover:bg-muted/20 flex w-full cursor-pointer select-none items-center gap-3 rounded-lg border p-4 transition-colors">
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={!!form.section20Observation}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      section20Observation: e.target.checked,
+                    }));
+                  }}
+                />
+                <div className="shrink-0">
+                  {form.section20Observation ? (
+                    <CheckSquare className="text-primary h-5 w-5" />
+                  ) : (
+                    <Square className="text-muted-foreground h-5 w-5" />
+                  )}
+                </div>
+                <span className="text-foreground text-sm font-medium">
+                  Whether the proposed land is a land allocated to land owners
+                  under statutory notifications under the Land Reform Act
+                </span>
+              </label>
+            </div>
+
+            {/* Section 21 */}
+            <div className="flex items-center md:col-span-2">
+              <label className="border-border bg-muted/10 hover:bg-muted/20 flex w-full cursor-pointer select-none items-center gap-3 rounded-lg border p-4 transition-colors">
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={!!form.section21SecretaryReport}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      section21SecretaryReport: e.target.checked,
+                    }));
+                  }}
+                />
+                <div className="shrink-0">
+                  {form.section21SecretaryReport ? (
+                    <CheckSquare className="text-primary h-5 w-5" />
+                  ) : (
+                    <Square className="text-muted-foreground h-5 w-5" />
+                  )}
+                </div>
+                <span className="text-foreground text-sm font-medium">
+                  Whether there are alternative State lands or lands belonging
+                  to the Land Reform Commission that can be utilized for the
+                  proposed public purpose? (If so, details such as the location,
+                  terrain nature, etc. of the land should be mentioned.)
+                </span>
+              </label>
+            </div>
+
+            {/* Section 22 */}
+            <div className="md:col-span-2">
+              <Field label="Name and designation of the officer who selected this land as suitable for the proposed public purpose">
+                <input
+                  className={inputCls}
+                  placeholder="Enter Name and designation of the officer who selected this land as suitable for the proposed public purpose"
+                  value={form.section22SecretaryRecommendation}
+                  onChange={set('section22SecretaryRecommendation')}
+                />
+              </Field>
+            </div>
+
+            {/* Section 23 */}
+            <div className="md:col-span-2">
+              <Field label="Name and designation of the officer who recommended that this land is suitable to be acquired for the proposed public purpose">
+                <input
+                  className={inputCls}
+                  placeholder="Enter Name and designation of the officer who recommended that this land is suitable to be acquired for the proposed public purpose"
+                  value={form.section23ValuationRecommendation}
+                  onChange={set('section23ValuationRecommendation')}
+                />
+              </Field>
+            </div>
+
+            {/* Section 24 */}
+            <div className="flex items-center md:col-span-2">
+              <label className="border-border bg-muted/10 hover:bg-muted/20 flex w-full cursor-pointer select-none items-center gap-3 rounded-lg border p-4 transition-colors">
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={!!form.section24DecisionRemarks}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      section24DecisionRemarks: e.target.checked,
+                    }));
+                  }}
+                />
+                <div className="shrink-0">
+                  {form.section24DecisionRemarks ? (
+                    <CheckSquare className="text-primary h-5 w-5" />
+                  ) : (
+                    <Square className="text-muted-foreground h-5 w-5" />
+                  )}
+                </div>
+                <span className="text-foreground text-sm font-medium">
+                  Whether it was inquired if there are other suitable State or
+                  private lands in this area for this purpose
+                </span>
+              </label>
+            </div>
+
+            {/* Section 25 */}
+            <div className="md:col-span-2">
+              <Field label="Clearly specify the source of funds allocated to bear the acquisition, compensation, and other necessary expenses">
+                <input
+                  className={inputCls}
+                  placeholder="Enter Clearly specify the source of funds allocated to bear the acquisition, compensation, and other necessary expenses"
+                  value={form.section25AdditionalConditions}
+                  onChange={set('section25AdditionalConditions')}
+                />
+              </Field>
+            </div>
+
+            {/* Section 26 */}
+            <div className="flex items-center md:col-span-2">
+              <label className="border-border bg-muted/10 hover:bg-muted/20 flex w-full cursor-pointer select-none items-center gap-3 rounded-lg border p-4 transition-colors">
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={!!form.section26FinalRecommendation}
+                  onChange={(e) => {
+                    setForm((f) => ({
+                      ...f,
+                      section26FinalRecommendation: e.target.checked,
+                    }));
+                  }}
+                />
+                <div className="shrink-0">
+                  {form.section26FinalRecommendation ? (
+                    <CheckSquare className="text-primary h-5 w-5" />
+                  ) : (
+                    <Square className="text-muted-foreground h-5 w-5" />
+                  )}
+                </div>
+                <span className="text-foreground text-sm font-medium">
+                  Whether the selection of the proposed land for public purpose
+                  complies with the general development plan of the area, and
+                  whether agreement/consent was obtained from the relevant Local
+                  Authority / Urban Development Department or relevant institute
+                </span>
+              </label>
+            </div>
+          </div>
         </div>
 
         {/* ── Section 4: Project Documents ── */}

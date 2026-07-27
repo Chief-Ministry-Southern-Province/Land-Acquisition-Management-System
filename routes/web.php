@@ -40,6 +40,21 @@ Route::middleware('auth:sanctum')->group(function () {
         return inertia('Dashboard');
     })->name('dashboard');
 
+    Route::get('/pending-approvals', function (Request $request) {
+        $user = $request->user();
+        if ($user && $user->role) {
+            return match ($user->role->role_name) {
+                'HOB' => inertia('headOfBranch/HOBApprovals'),
+                'AO' => inertia('administrativeOfficer/AOApprovals'),
+                'AS' => inertia('assistantSecretary/ASApprovals'),
+                'SAS' => inertia('seniorAssistantSecretary/SASApprovals'),
+                'SEC' => inertia('secretary/SecretaryApprovals'),
+                default => abort(403),
+            };
+        }
+        abort(403);
+    })->name('pending-approvals');
+
     Route::get('/settings', function (Request $request) {
         $user = $request->user();
         if ($user && $user->role && $user->role->role_name === 'Admin') {
@@ -59,6 +74,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/land-parcels/{id}', function ($id) {
         return inertia('land_parcels/LandParcelDetails', ['id' => $id]);
     })->name('land-parcel-details');
+    Route::get('/land-parcels/{id}/edit', function ($id) {
+        return inertia('land_parcels/EditLandParcel', ['id' => $id]);
+    })->name('land-parcel-edit');
 
     // Land Owners routes
     Route::inertia('/land-owners', 'land_owners/LandOwnerList')->name('land-owners');

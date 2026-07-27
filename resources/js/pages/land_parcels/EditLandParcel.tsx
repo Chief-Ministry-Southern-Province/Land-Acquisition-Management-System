@@ -1,4 +1,4 @@
-import { router, usePage } from '@inertiajs/react';
+import { router, usePage, Link } from '@inertiajs/react';
 import {
   ArrowLeft,
   FileText,
@@ -12,13 +12,23 @@ import {
   Users,
   FolderKanban,
   Upload,
+  Download,
+  Trash2,
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
-import { uploadDocument } from '@/services/documentManagementService';
-import { createLandParcel } from '@/services/landParcelManagementService';
+import {
+  uploadDocument,
+  deleteDocument,
+  downloadDocument,
+} from '@/services/documentManagementService';
+import type { LandParcel } from '@/services/landParcelManagementService';
+import {
+  getLandParcel,
+  updateLandParcel,
+} from '@/services/landParcelManagementService';
 import { getProjects } from '@/services/projectsManagementService';
-import type { Project } from '@/services/projectsManagementService';
+import type { Project, Document } from '@/services/projectsManagementService';
 import {
   createPropertyOwner,
   getPropertyOwners,
@@ -238,8 +248,12 @@ function Field({
 const inputCls =
   'w-full px-3 py-2 border border-border rounded-lg bg-input-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors';
 
-export default function AddLandParcel() {
+export default function EditLandParcel({ id }: { id: string }) {
   const [form, setForm] = useState<FormData>(EMPTY);
+  const [parcel, setParcel] = useState<LandParcel | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
+  const [statusError, setStatusError] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
     {},
@@ -250,6 +264,7 @@ export default function AddLandParcel() {
   const [queuedFiles, setQueuedFiles] = useState<
     { id: string; file: File; category: string }[]
   >([]);
+  const [parcelDocuments, setParcelDocuments] = useState<Document[]>([]);
 
   // Google Map refs
   const mapRef = useRef<any>(null);
@@ -258,6 +273,7 @@ export default function AddLandParcel() {
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
   const userId = user?.id;
+  const userRole = user?.role?.role_name || 'User';
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -277,6 +293,52 @@ export default function AddLandParcel() {
 
   const handleRemoveQueuedFile = (tempId: string) => {
     setQueuedFiles((prev) => prev.filter((item) => item.id !== tempId));
+  };
+
+  const refreshDocuments = async () => {
+    try {
+      const data = await getLandParcel(id);
+
+      if (data.documents) {
+        setParcelDocuments(data.documents);
+      }
+    } catch (error) {
+      console.error('Failed to refresh documents:', error);
+    }
+  };
+
+  const handleDownload = async (docId: string, filename: string) => {
+    try {
+      await downloadDocument(docId, filename);
+    } catch (error) {
+      console.error('Failed to download document:', error);
+      alert('Failed to download document.');
+    }
+  };
+
+  const handleDelete = async (docId: string, isQueued: boolean) => {
+    if (isQueued) {
+      handleRemoveQueuedFile(docId);
+
+      return;
+    }
+
+    if (
+      !confirm('Are you sure you want to delete this document permanently?')
+    ) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await deleteDocument(docId);
+      await refreshDocuments();
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      alert('Failed to delete document.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Property owners selection state
@@ -346,39 +408,126 @@ export default function AddLandParcel() {
     setSelectedResidents((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Fetch projects and property owners
+  // Fetch projects, property owners, and land parcel details
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [projData, ownerData] = await Promise.all([
+        setLoading(true);
+        setUnauthorized(false);
+        setStatusError(false);
+
+        const [projData, ownerData, parcelData] = await Promise.all([
           getProjects(),
           getPropertyOwners(),
+          getLandParcel(id),
         ]);
+
+        if (userRole !== 'DO') {
+          setUnauthorized(true);
+          setLoading(false);
+
+          return;
+        }
+
+        if (parcelData.status !== 'available') {
+          setStatusError(true);
+          setLoading(false);
+
+          return;
+        }
+
         setProjects(projData);
         setExistingOwners(ownerData);
+        setParcel(parcelData);
+
+        if (parcelData.documents) {
+          setParcelDocuments(parcelData.documents);
+        }
+
+        // Map values into form state
+        setForm({
+          landName: parcelData.land_name || '',
+          landNumber: parcelData.parcel_id || '',
+          province: parcelData.province || 'Southern',
+          district: parcelData.district || '',
+          divisionalSecretariat:
+            parcelData.divisional_secretariat || parcelData.division || '',
+          gramaNiladhari: parcelData.grama_niladari_division || '',
+          village: parcelData.village || '',
+          extentAcres:
+            parcelData.land_size_acers || parcelData.extent_acers || '',
+          extentRoods: parcelData.land_size_roods || '0',
+          extentPerches:
+            parcelData.land_size_perches || parcelData.extent_perches || '',
+          hasPlan: Boolean(parcelData.has_plan),
+          planNumber: parcelData.plan_number || '',
+          parcelNumbers: parcelData.parcel_numbers
+            ? parcelData.parcel_numbers.join(', ')
+            : '',
+          boundariesNorth: parcelData.boundaries_north || '',
+          boundariesSouth: parcelData.boundaries_south || '',
+          boundariesEast: parcelData.boundaries_east || '',
+          boundariesWest: parcelData.boundaries_west || '',
+          hasResidentialHouses: Boolean(parcelData.has_residential_houses),
+          isResidentOwner: Boolean(parcelData.is_resident_owner),
+          isCultivated: Boolean(
+            parcelData.is_cultivated ||
+            (parcelData.cultivation && parcelData.cultivation !== 'N/A'),
+          ),
+          cultivation: parcelData.cultivation || '',
+          cultivationStatus: parcelData.cultivation_status || 'unspecified',
+          annualIncome: parcelData.annual_income
+            ? String(parcelData.annual_income)
+            : '',
+          landType: parcelData.land_type || '',
+          estimatedValue: parcelData.estimated_value
+            ? String(parcelData.estimated_value)
+            : '',
+          landUseType: parcelData.land_type || 'Standard',
+          tenureType: 'Freehold',
+          projectId: parcelData.project_id ? String(parcelData.project_id) : '',
+          acquisitionSection: '',
+          remarks: parcelData.remarks || '',
+          latitude: parcelData.latitude ? String(parcelData.latitude) : '',
+          longitude: parcelData.longitude ? String(parcelData.longitude) : '',
+        });
+
+        setSelectedOwners(parcelData.owners || []);
+        setSelectedResidents(parcelData.residents || []);
       } catch (error) {
         console.error('Failed to fetch initial data:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [id, userRole]);
 
   // Store initial form coordinates in a ref to prevent re-running map loader effect
   const initialCoords = useRef({
-    latitude: form.latitude,
-    longitude: form.longitude,
+    latitude: '',
+    longitude: '',
   });
 
   // Load Google Maps API and initialize map
   useEffect(() => {
+    if (loading || !parcel || unauthorized || statusError) {
+      return;
+    }
+
+    initialCoords.current = {
+      latitude: form.latitude,
+      longitude: form.longitude,
+    };
+
     const apiKey = (import.meta as any).env.VITE_GOOGLE_MAP_API_KEY || '';
-    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initAddLandParcelMapCallback`;
+    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initEditLandParcelMapCallback`;
 
     // Default center in Galle, Sri Lanka (Southern Province)
     const defaultLat = 6.0535;
     const defaultLng = 80.221;
 
-    (window as any).initAddLandParcelMapCallback = () => {
+    (window as any).initEditLandParcelMapCallback = () => {
       const mapContainer = document.getElementById('google-map-picker');
 
       if (!mapContainer) {
@@ -448,21 +597,22 @@ export default function AddLandParcel() {
         document.head.appendChild(script);
       } else {
         if (
-          typeof (window as any).initAddLandParcelMapCallback === 'function' &&
+          typeof (window as any).initEditLandParcelMapCallback === 'function' &&
           (window as any).google &&
           (window as any).google.maps
         ) {
-          (window as any).initAddLandParcelMapCallback();
+          (window as any).initEditLandParcelMapCallback();
         }
       }
     } else {
-      (window as any).initAddLandParcelMapCallback();
+      (window as any).initEditLandParcelMapCallback();
     }
 
     return () => {
-      delete (window as any).initAddLandParcelMapCallback;
+      delete (window as any).initEditLandParcelMapCallback;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   // Update marker position and center map when latitude/longitude change manually
   useEffect(() => {
@@ -751,11 +901,10 @@ export default function AddLandParcel() {
         residents: selectedResidents,
       };
 
-      const createdParcel = await createLandParcel(payload);
-      const createdParcelId = createdParcel?.id ?? null;
+      await updateLandParcel(id, payload);
 
-      // Upload documents after the land parcel is created, so we can link them
-      if (queuedFiles.length > 0 && createdParcelId) {
+      // Upload documents after the land parcel is updated, so we can link them
+      if (queuedFiles.length > 0) {
         for (let i = 0; i < queuedFiles.length; i++) {
           const item = queuedFiles[i];
           await uploadDocument(
@@ -763,14 +912,14 @@ export default function AddLandParcel() {
             String(userId || ''),
             form.projectId ? String(form.projectId) : null,
             item.category,
-            String(createdParcelId),
+            String(id),
           );
         }
       }
 
-      router.visit('/land-parcels');
+      router.visit(`/land-parcels/${id}`);
     } catch (error: any) {
-      console.error('Failed to create land parcel:', error);
+      console.error('Failed to update land parcel:', error);
 
       if (error.response?.data?.errors) {
         const backendErrors: Record<string, string> = {};
@@ -827,22 +976,82 @@ export default function AddLandParcel() {
       <span className="text-destructive mt-0.5 text-xs">{errors[field]}</span>
     ) : null;
 
+  if (loading) {
+    return (
+      <div className="text-muted-foreground flex h-96 items-center justify-center">
+        Loading parcel details...
+      </div>
+    );
+  }
+
+  if (unauthorized) {
+    return (
+      <div className="bg-destructive/10 border-destructive/30 text-destructive flex h-96 flex-col items-center justify-center gap-4 rounded-xl border p-6">
+        <p className="text-lg font-semibold">Access Denied</p>
+        <p className="text-sm">
+          Only Divisional/Development Officers (DO) can edit land parcel
+          information.
+        </p>
+        <Link
+          href={`/land-parcels/${id}`}
+          className="text-primary font-medium hover:underline"
+        >
+          Back to Details
+        </Link>
+      </div>
+    );
+  }
+
+  if (statusError) {
+    return (
+      <div className="bg-destructive/10 border-destructive/30 text-destructive flex h-96 flex-col items-center justify-center gap-4 rounded-xl border p-6">
+        <p className="text-lg font-semibold">Editing Restricted</p>
+        <p className="text-sm">
+          Only land parcels with status "available" can be edited.
+        </p>
+        <Link
+          href={`/land-parcels/${id}`}
+          className="text-primary font-medium hover:underline"
+        >
+          Back to Details
+        </Link>
+      </div>
+    );
+  }
+
+  if (!parcel && !loading && !unauthorized && !statusError) {
+    return (
+      <div className="bg-destructive/10 border-destructive/30 text-destructive flex h-96 flex-col items-center justify-center gap-4 rounded-xl border p-6">
+        <p className="text-lg font-semibold">Error Loading Parcel</p>
+        <p className="text-sm">
+          Failed to retrieve land parcel details. Please try again later.
+        </p>
+        <Link
+          href={`/land-parcels/${id}`}
+          className="text-primary font-medium hover:underline"
+        >
+          Back to Details
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.visit('/land-parcels')}
+            onClick={() => router.visit(`/land-parcels/${id}`)}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
-            title="Back to Land Parcels"
+            title="Back to Details"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1>Add Land Parcel</h1>
+            <h1>Edit Land Parcel</h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Register a new land parcel into the system
+              Update details for land parcel #{form.landNumber}
             </p>
           </div>
         </div>
@@ -850,7 +1059,7 @@ export default function AddLandParcel() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => router.visit('/land-parcels')}
+            onClick={() => router.visit(`/land-parcels/${id}`)}
             disabled={submitting}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:opacity-50"
           >
@@ -859,18 +1068,18 @@ export default function AddLandParcel() {
           </button>
           <button
             type="submit"
-            form="add-parcel-form"
+            form="edit-parcel-form"
             disabled={submitting}
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {submitting ? 'Saving...' : 'Save Parcel'}
+            {submitting ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
 
       <form
-        id="add-parcel-form"
+        id="edit-parcel-form"
         onSubmit={handleSubmit}
         noValidate
         className="space-y-6"
@@ -1527,7 +1736,7 @@ export default function AddLandParcel() {
                   }
                 />
                 <span className="text-foreground text-sm font-medium">
-                  Is land has residential houses?
+                  Is land has residential houses
                 </span>
               </label>
             </div>
@@ -1546,7 +1755,7 @@ export default function AddLandParcel() {
                   }
                 />
                 <span className="text-foreground text-sm font-medium">
-                  Is resident is owner?
+                  Are resident is owner
                 </span>
               </label>
             </div>
@@ -1765,6 +1974,20 @@ export default function AddLandParcel() {
             return `${val.toFixed(precision)} ${units[pow]}`;
           };
 
+          const savedDocs = parcelDocuments.map((doc: any) => ({
+            id: doc.id,
+            name: doc.originalFilename || doc.original_filename,
+            type: doc.fileType
+              ? doc.fileType.replace('.', '').toUpperCase()
+              : doc.file_type
+                ? doc.file_type.replace('.', '').toUpperCase()
+                : 'UNKNOWN',
+            category: doc.documentCategory || doc.document_category,
+            uploadDate: doc.uploadDate || doc.upload_date,
+            size: doc.fileSize || doc.file_size,
+            isQueued: false,
+          }));
+
           const queuedDocs = queuedFiles.map((q) => ({
             id: q.id,
             name: q.file.name,
@@ -1774,6 +1997,8 @@ export default function AddLandParcel() {
             size: formatBytes(q.file.size),
             isQueued: true,
           }));
+
+          const allDisplayDocs = [...savedDocs, ...queuedDocs];
 
           return (
             <div className="bg-card border-border overflow-hidden rounded-xl border">
@@ -1807,7 +2032,7 @@ export default function AddLandParcel() {
                 </div>
               </div>
 
-              {queuedDocs.length === 0 ? (
+              {allDisplayDocs.length === 0 ? (
                 <div className="px-6 py-12 text-center">
                   <div className="bg-muted mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
                     <FolderKanban className="text-muted-foreground h-5 w-5" />
@@ -1818,7 +2043,7 @@ export default function AddLandParcel() {
                 </div>
               ) : (
                 <div className="divide-border divide-y">
-                  {queuedDocs.map((doc) => (
+                  {allDisplayDocs.map((doc) => (
                     <div
                       key={doc.id}
                       className="hover:bg-muted/10 flex items-center justify-between px-6 py-4 transition-colors"
@@ -1832,9 +2057,11 @@ export default function AddLandParcel() {
                             <p className="truncate text-sm font-medium">
                               {doc.name}
                             </p>
-                            <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
-                              Queued
-                            </span>
+                            {doc.isQueued && (
+                              <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
+                                Queued
+                              </span>
+                            )}
                           </div>
                           <p className="text-muted-foreground mt-0.5 text-xs">
                             Category: {doc.category} • Size: {doc.size} • Date:{' '}
@@ -1842,14 +2069,30 @@ export default function AddLandParcel() {
                           </p>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveQueuedFile(doc.id)}
-                        className="text-muted-foreground hover:text-destructive p-1 transition-colors"
-                        title="Remove from queue"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                      <div className="flex gap-2">
+                        {!doc.isQueued && (
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(doc.id, doc.name)}
+                            className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+                            title="Download"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(doc.id, doc.isQueued)}
+                          className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                          title={
+                            doc.isQueued
+                              ? 'Remove from queue'
+                              : 'Delete permanently'
+                          }
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1904,7 +2147,7 @@ export default function AddLandParcel() {
         <div className="flex justify-end gap-3 pb-6 pt-2">
           <button
             type="button"
-            onClick={() => router.visit('/land-parcels')}
+            onClick={() => router.visit(`/land-parcels/${id}`)}
             disabled={submitting}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors disabled:opacity-50"
           >
@@ -1917,7 +2160,7 @@ export default function AddLandParcel() {
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm text-white transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {submitting ? 'Saving...' : 'Save Parcel'}
+            {submitting ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </form>
@@ -1925,6 +2168,6 @@ export default function AddLandParcel() {
   );
 }
 
-AddLandParcel.layout = (page: React.ReactNode) => (
+EditLandParcel.layout = (page: React.ReactNode) => (
   <MainLayout>{page}</MainLayout>
 );

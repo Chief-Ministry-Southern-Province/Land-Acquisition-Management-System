@@ -29,8 +29,18 @@ export default function LandOwnerList() {
   const columns = [
     { key: 'ownerId', label: 'Owner ID', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
-    { key: 'nic', label: 'NIC', sortable: true },
-    { key: 'contact', label: 'Contact Number', sortable: true },
+    {
+      key: 'nic',
+      label: 'NIC',
+      sortable: true,
+      render: (value: string | null) => value || 'N/A',
+    },
+    {
+      key: 'contact',
+      label: 'Contact Number',
+      sortable: true,
+      render: (value: string | null) => value || 'N/A',
+    },
     { key: 'address', label: 'Address', sortable: true },
     {
       key: 'parcelsCount',
