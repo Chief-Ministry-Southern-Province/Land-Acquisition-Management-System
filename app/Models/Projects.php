@@ -25,7 +25,13 @@ use Illuminate\Database\Eloquent\Model;
     'section26_final_recommendation',
     'approval_date',
     'approved_by',
-    'status',
+    'case_status',
+    'do_status',
+    'hob_status',
+    'ao_status',
+    'as_status',
+    'sas_status',
+    'sec_status',
     'remarks',
 ])]
 class Projects extends Model

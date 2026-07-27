@@ -82,6 +82,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
       { path: '/settings', icon: Settings, label: t('settings') },
     ],
     HOB: [
+      { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
       { path: '/compensation', icon: DollarSign, label: t('compensation') },
       {
         path: '/acquisition-workflow',
@@ -91,16 +92,44 @@ export default function SideBar({ items }: SideBarProps = {}) {
       { path: '/documents', icon: FolderOpen, label: t('documents') },
       { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
       {
-        path: '/approval-workflow',
+        path: '/pending-approvals',
         icon: CheckSquare,
         label: t('approvals'),
       },
       { path: '/reports', icon: BarChart3, label: t('reports') },
     ],
-    AO: [],
-    AS: [],
-    SAS: [],
-    SEC: [],
+    AO: [
+      { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+      {
+        path: '/pending-approvals',
+        icon: CheckSquare,
+        label: t('approvals'),
+      },
+    ],
+    AS: [
+      { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+      {
+        path: '/pending-approvals',
+        icon: CheckSquare,
+        label: t('approvals'),
+      },
+    ],
+    SAS: [
+      { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+      {
+        path: '/pending-approvals',
+        icon: CheckSquare,
+        label: t('approvals'),
+      },
+    ],
+    SEC: [
+      { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+      {
+        path: '/pending-approvals',
+        icon: CheckSquare,
+        label: t('approvals'),
+      },
+    ],
   };
 
   const defaultItems = navItemByRole[userRole] || navItemByRole['DO'];

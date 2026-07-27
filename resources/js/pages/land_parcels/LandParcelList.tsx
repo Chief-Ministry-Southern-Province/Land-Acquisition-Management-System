@@ -1,5 +1,5 @@
-import { router } from '@inertiajs/react';
-import { Eye, MapPin, Plus, Upload } from 'lucide-react';
+import { router, usePage } from '@inertiajs/react';
+import { Eye, MapPin, Plus, Upload, Pencil } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
@@ -20,6 +20,10 @@ export default function LandParcelList() {
     text: string;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { props: pageProps } = usePage();
+  const user = (pageProps.auth as any)?.user;
+  const userRole = user?.role?.role_name || 'User';
 
   useEffect(() => {
     const fetchParcels = async () => {
@@ -201,6 +205,18 @@ export default function LandParcelList() {
 
   const actions = (row: any) => (
     <div className="flex items-center justify-end gap-2">
+      {userRole === 'DO' && row.status === 'available' && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            router.visit(`/land-parcels/${row.id}/edit`);
+          }}
+          className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+          title="Edit Land Parcel"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+      )}
       <button
         onClick={(e) => {
           e.stopPropagation();

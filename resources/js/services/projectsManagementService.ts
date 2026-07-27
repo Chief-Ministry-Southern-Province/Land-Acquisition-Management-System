@@ -8,12 +8,6 @@ export interface Project {
   name: string;
   institution?: string;
   institutionAddress?: string;
-  ministry?: string;
-  department?: string;
-  projectType?: string;
-  acquisitionAct?: string;
-  district?: string;
-  division?: string;
   purpose: string;
   landAreaAcers?: number;
   landAreaRoods?: number;
@@ -29,13 +23,14 @@ export interface Project {
   section26FinalRecommendation?: boolean | null;
   approvalDate?: string | null;
   approvedBy?: number | null;
-  startDate?: string;
-  estimatedCompletion?: string;
-  budget?: number;
-  status: 'active' | 'pending' | 'completed';
-  projectManager?: string;
-  contact?: string;
-  email?: string;
+  caseStatus?: 'draft' | 'pending' | 'rejected' | 'completed';
+  status?: 'draft' | 'pending' | 'rejected' | 'completed' | string;
+  doStatus?: 'draft' | 'submitted';
+  hobStatus?: 'approved' | 'pending' | 'rejected';
+  aoStatus?: 'approved' | 'pending' | 'rejected';
+  asStatus?: 'approved' | 'pending' | 'rejected';
+  sasStatus?: 'approved' | 'pending' | 'rejected';
+  secStatus?: 'approved' | 'pending' | 'rejected';
   remarks: string | null;
   created_at?: string;
   updated_at?: string;
@@ -66,12 +61,6 @@ const mapFromBackend = (data: any): Project => ({
   name: data.title || data.name || '',
   institution: data.institution || '',
   institutionAddress: data.institution_address || '',
-  ministry: data.ministry || data.institution || '',
-  department: data.department || '',
-  projectType: data.project_type || '',
-  acquisitionAct: data.acquisition_act || '',
-  district: data.district || '',
-  division: data.division || '',
   purpose: data.purpose || '',
   landAreaAcers: Number(data.land_area_to_be_acquired_acers) || 0,
   landAreaRoods: Number(data.land_area_to_be_acquired_roods) || 0,
@@ -89,13 +78,14 @@ const mapFromBackend = (data: any): Project => ({
   section26FinalRecommendation: data.section26_final_recommendation ?? null,
   approvalDate: data.approval_date || null,
   approvedBy: data.approved_by || null,
-  startDate: data.start_date || '',
-  estimatedCompletion: data.estimated_completion || '',
-  budget: Number(data.budget_im_mn) || 0,
-  status: data.status || 'pending',
-  projectManager: data.project_manager || '',
-  contact: data.contact || '',
-  email: data.email || '',
+  status: data.case_status || data.status || 'draft',
+  caseStatus: data.case_status || 'draft',
+  doStatus: data.do_status || 'draft',
+  hobStatus: data.hob_status || 'pending',
+  aoStatus: data.ao_status || 'pending',
+  asStatus: data.as_status || 'pending',
+  sasStatus: data.sas_status || 'pending',
+  secStatus: data.sec_status || 'pending',
   remarks: data.remarks || null,
   created_at: data.created_at,
   updated_at: data.updated_at,
@@ -156,7 +146,7 @@ const mapToBackend = (
   title: data.title || data.name,
   name: data.name || data.title,
   purpose: data.purpose,
-  institution: data.institution || data.ministry || 'N/A',
+  institution: data.institution || 'N/A',
   institution_address: data.institutionAddress || 'N/A',
   land_area_to_be_acquired_acers: data.landAreaAcers ?? 0,
   land_area_to_be_acquired_roods: data.landAreaRoods ?? 0,
@@ -174,6 +164,13 @@ const mapToBackend = (
   section26_final_recommendation: data.section26FinalRecommendation ?? null,
   approval_date: data.approvalDate || null,
   approved_by: data.approvedBy || null,
+  case_status: data.caseStatus || data.status,
+  do_status: data.doStatus,
+  hob_status: data.hobStatus,
+  ao_status: data.aoStatus,
+  as_status: data.asStatus,
+  sas_status: data.sasStatus,
+  sec_status: data.secStatus,
   status: data.status,
   remarks: data.remarks,
   parcel_ids: data.parcel_ids,
@@ -215,4 +212,10 @@ export const updateProject = async (
 
 export const deleteProject = async (id: string): Promise<void> => {
   await api.delete(`/api/projects/${id}`);
+};
+
+export const submitProject = async (id: string): Promise<Project> => {
+  const response = await api.post(`/api/projects/${id}/submit`);
+
+  return mapFromBackend(response.data.project);
 };

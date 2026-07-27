@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
@@ -13,6 +13,10 @@ import type { Project } from '@/services/projectsManagementService';
 export default function ProjectList() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const { props: pageProps } = usePage();
+  const user = (pageProps.auth as any)?.user;
+  const userRole = user?.role?.role_name || 'User';
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -54,7 +58,7 @@ export default function ProjectList() {
       key: 'institution',
       label: 'Institution',
       sortable: true,
-      render: (_val: any, row: any) => row.institution || row.ministry || 'N/A',
+      render: (_val: any, row: any) => row.institution || 'N/A',
     },
     { key: 'purpose', label: 'Purpose', sortable: true },
     {
@@ -102,40 +106,51 @@ export default function ProjectList() {
     router.visit(`/projects/${row.id}`);
   };
 
-  const actions = (row: any) => (
-    <div className="flex items-center justify-end gap-2">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          router.visit(`/projects/${row.id}`);
-        }}
-        className="hover:bg-muted rounded p-1.5 transition-colors"
-        title="View"
-      >
-        <Eye className="h-4 w-4" />
-      </button>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          router.visit(`/projects/new?edit=${row.id}`);
-        }}
-        className="hover:bg-muted rounded p-1.5 transition-colors"
-        title="Edit"
-      >
-        <Edit className="h-4 w-4" />
-      </button>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          handleDelete(row.id, row.name);
-        }}
-        className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
-        title="Delete"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
-    </div>
-  );
+  const actions = (row: any) => {
+    const isDraft =
+      (row.caseStatus || row.status || '').toLowerCase() === 'draft' ||
+      (row.doStatus || '').toLowerCase() === 'draft';
+    const canModify = userRole !== 'DO' || isDraft;
+
+    return (
+      <div className="flex items-center justify-end gap-2">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            router.visit(`/projects/${row.id}`);
+          }}
+          className="hover:bg-muted rounded p-1.5 transition-colors"
+          title="View"
+        >
+          <Eye className="h-4 w-4" />
+        </button>
+        {canModify && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.visit(`/projects/new?edit=${row.id}`);
+            }}
+            className="hover:bg-muted rounded p-1.5 transition-colors"
+            title="Edit"
+          >
+            <Edit className="h-4 w-4" />
+          </button>
+        )}
+        {canModify && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(row.id, row.name);
+            }}
+            className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">

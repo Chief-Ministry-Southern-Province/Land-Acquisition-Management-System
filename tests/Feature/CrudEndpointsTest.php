@@ -723,3 +723,79 @@ test('land parcel status transitions on creation and project association', funct
         'project_id' => $projectId,
     ]);
 });
+
+test('project submission by DO and Admin', function () {
+    $doRole = Roles::create(['role_name' => 'DO', 'description' => 'Development Officer Role']);
+    $doUser = User::create([
+        'name' => 'DO User',
+        'email' => 'do@test.com',
+        'password' => bcrypt('password'),
+        'department_id' => $this->department->id,
+        'role_id' => $doRole->id,
+    ]);
+
+    $project = Projects::create([
+        'project_id' => 'PRJ-SUBMIT-TEST',
+        'title' => 'Submit Test Project',
+        'purpose' => 'Testing project submission flow',
+        'do_status' => 'draft',
+        'case_status' => 'draft',
+    ]);
+
+    // 1. Submit project using DO user
+    $response = $this->actingAs($doUser, 'sanctum')->postJson("/api/projects/{$project->id}/submit");
+    $response->assertStatus(200);
+    $response->assertJsonPath('project.do_status', 'submitted');
+    $response->assertJsonPath('project.case_status', 'pending');
+
+    // 2. Attempting to submit again should fail for DO
+    $responseError = $this->actingAs($doUser, 'sanctum')->postJson("/api/projects/{$project->id}/submit");
+    $responseError->assertStatus(403);
+
+    // 3. Creating a new project, submit it using Admin user (should be allowed)
+    $project2 = Projects::create([
+        'project_id' => 'PRJ-SUBMIT-TEST-2',
+        'title' => 'Submit Test Project 2',
+        'purpose' => 'Testing admin project submission',
+        'do_status' => 'draft',
+        'case_status' => 'draft',
+    ]);
+
+    $responseAdmin = $this->actingAs($this->user, 'sanctum')->postJson("/api/projects/{$project2->id}/submit");
+    $responseAdmin->assertStatus(200);
+    $responseAdmin->assertJsonPath('project.do_status', 'submitted');
+    $responseAdmin->assertJsonPath('project.case_status', 'pending');
+});
+
+test('DO can edit and delete a queried project', function () {
+    $doRole = Roles::create(['role_name' => 'DO', 'description' => 'Development Officer Role']);
+    $doUser = User::create([
+        'name' => 'DO User',
+        'email' => 'do_edit@test.com',
+        'password' => bcrypt('password'),
+        'department_id' => $this->department->id,
+        'role_id' => $doRole->id,
+    ]);
+
+    // A queried project has do_status = draft and case_status = pending
+    $project = Projects::create([
+        'project_id' => 'PRJ-QUERY-TEST',
+        'title' => 'Queried Project',
+        'purpose' => 'Testing edit permissions on queried project',
+        'do_status' => 'draft',
+        'case_status' => 'pending',
+    ]);
+
+    // 1. DO should be allowed to update it
+    $responseUpdate = $this->actingAs($doUser, 'sanctum')->putJson("/api/projects/{$project->id}", [
+        'project_id' => 'PRJ-QUERY-TEST',
+        'title' => 'Updated Queried Project',
+        'purpose' => 'Testing edit permissions on queried project',
+    ]);
+    $responseUpdate->assertStatus(200);
+    $responseUpdate->assertJsonPath('project.title', 'Updated Queried Project');
+
+    // 2. DO should be allowed to delete it
+    $responseDelete = $this->actingAs($doUser, 'sanctum')->deleteJson("/api/projects/{$project->id}");
+    $responseDelete->assertStatus(204);
+});
