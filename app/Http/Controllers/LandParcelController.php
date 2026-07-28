@@ -318,18 +318,27 @@ class LandParcelController extends Controller
     public function export(Request $request, ExportService $exportService)
     {
         $format = $request->query('format', 'pdf');
-        $records = LandParcel::with(['owners', 'project'])->get();
+        $id = $request->query('id');
 
-        $filename = 'land_parcels_'.date('Ymd_His');
+        $query = LandParcel::with(['owners', 'project']);
+        if ($id) {
+            $query->where('id', $id);
+        }
+        $records = $query->get();
+
+        $filename = $id ? 'land_parcel_'.($records->first()?->parcel_id ?? $id).'_'.date('Ymd_His') : 'land_parcels_'.date('Ymd_His');
 
         if ($format === 'pdf') {
+            $pdfView = $id ? 'pdf.land_parcel_form' : 'pdf.land_parcels';
+            $pdfData = $id ? ['parcel' => $records->first()] : ['parcels' => $records];
+
             return $exportService->export(
                 data: collect([]),
                 headings: [],
                 filename: $filename,
                 format: $format,
-                pdfView: 'pdf.land_parcels',
-                pdfData: ['parcels' => $records]
+                pdfView: $pdfView,
+                pdfData: $pdfData
             );
         }
 

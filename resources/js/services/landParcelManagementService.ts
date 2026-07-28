@@ -206,8 +206,12 @@ export const deleteLandParcel = async (id: string): Promise<void> => {
 
 export const exportLandParcels = async (
   format: 'pdf' | 'excel' | 'csv',
+  id?: string,
 ): Promise<void> => {
-  const response = await api.get(`/api/land-parcels/export?format=${format}`, {
+  const requestUrl = id
+    ? `/api/land-parcels/export?format=${format}&id=${id}`
+    : `/api/land-parcels/export?format=${format}`;
+  const response = await api.get(requestUrl, {
     responseType: 'blob',
   });
 

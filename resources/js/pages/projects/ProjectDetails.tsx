@@ -15,6 +15,7 @@ import {
   submitProject,
 } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
+import api from '@/services/api';
 
 interface ProjectDetailsProps {
   id: string;
@@ -23,6 +24,7 @@ interface ProjectDetailsProps {
 export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const [activeTab, setActiveTab] = useState('general');
   const [project, setProject] = useState<Project | null>(null);
+  const [dbCompensations, setDbCompensations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const { props: pageProps } = usePage();
@@ -34,6 +36,12 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     try {
       const data = await getProject(id);
       setProject(data);
+      try {
+        const compResponse = await api.get('/api/compensation');
+        setDbCompensations(compResponse.data.compensations || []);
+      } catch (err) {
+        console.error('Failed to fetch compensations for project details:', err);
+      }
     } catch (error) {
       console.error('Failed to fetch project details:', error);
     }
@@ -503,10 +511,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
         </div>
       )}
 
-      {activeTab === 'workflow' && (
+      {activeTab === 'workflow' && project && (
         <WorkflowTimeline
-          projectId={project.projectId}
-          projectName={project.name}
+          project={project}
+          compensations={dbCompensations}
         />
       )}
 

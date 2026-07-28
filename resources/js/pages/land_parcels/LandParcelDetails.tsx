@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Download, MapPin, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, Download, MapPin, Pencil, Trash2, X } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
@@ -9,7 +9,10 @@ import {
   deleteDocument,
   downloadDocument,
 } from '@/services/documentManagementService';
-import { getLandParcel } from '@/services/landParcelManagementService';
+import {
+  getLandParcel,
+  exportLandParcels,
+} from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 
 interface Props {
@@ -20,6 +23,18 @@ export default function LandParcelDetails({ id }: Props) {
   const [parcel, setParcel] = useState<LandParcel | null>(null);
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<any[]>([]);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const handleExportPdf = async () => {
+    try {
+      setLoading(true);
+      await exportLandParcels('pdf', id);
+    } catch (error) {
+      console.error('Failed to export land parcel as PDF:', error);
+      alert('Failed to export land parcel.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
@@ -243,15 +258,19 @@ export default function LandParcelDetails({ id }: Props) {
             </button>
           )}
           <button
-            onClick={() => router.visit(`/gis-maps?parcel=${parcel.id}`)}
+            onClick={() => setIsMapModalOpen(true)}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
           >
             <MapPin className="h-4 w-4" />
             <span>View on Map</span>
           </button>
-          <button className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors">
+          <button
+            onClick={handleExportPdf}
+            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
+            title="Export Land Acquisition Application Form (PDF)"
+          >
             <Download className="h-4 w-4" />
-            <span>Export</span>
+            <span>Export Form (PDF)</span>
           </button>
         </div>
       </div>
@@ -490,6 +509,81 @@ export default function LandParcelDetails({ id }: Props) {
           />
         </div>
       </div>
+
+      {/* Google Maps Location Popup Dialog */}
+      {isMapModalOpen && (
+        <div className="backdrop-blur-xs fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card border-border animate-in fade-in zoom-in w-full max-w-2xl overflow-hidden rounded-xl border shadow-xl duration-200">
+            <div className="border-border bg-muted/20 flex items-center justify-between border-b px-6 py-4">
+              <h3 className="text-foreground flex items-center gap-2 text-lg font-bold">
+                <MapPin className="h-5 w-5 text-[#2E7D32]" />
+                Map Location: {parcel.land_name || 'Parcel GPS Location'}
+              </h3>
+              <button
+                onClick={() => setIsMapModalOpen(false)}
+                className="text-muted-foreground hover:text-foreground rounded-lg p-1.5 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4 p-6">
+              <div className="border-border relative h-96 w-full overflow-hidden rounded-lg border bg-[#cce4f2]">
+                {parcel.latitude && parcel.longitude ? (
+                  <iframe
+                    title={`Google Map for ${parcel.parcel_id}`}
+                    src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAP_API_KEY || ''}&q=${Number(parcel.latitude)},${Number(parcel.longitude)}&zoom=16`}
+                    className="absolute inset-0 h-full w-full border-0"
+                    allowFullScreen
+                    loading="lazy"
+                  ></iframe>
+                ) : (
+                  <div className="bg-linear-to-br absolute inset-0 flex items-center justify-center from-[#4a9f8f]/90 to-[#2d6b5f]/95 p-6 text-center text-white">
+                    <div className="max-w-sm">
+                      <MapPin className="mx-auto mb-3 h-12 w-12 animate-bounce text-white/90" />
+                      <p className="mb-1 text-lg font-bold">
+                        No GPS Coordinates Set
+                      </p>
+                      <p className="text-xs text-white/80">
+                        This land parcel does not have latitude and longitude
+                        details.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="text-muted-foreground flex items-center justify-between text-xs">
+                <span>
+                  Coordinates:{' '}
+                  {parcel.latitude && parcel.longitude
+                    ? `${Number(parcel.latitude).toFixed(6)}, ${Number(parcel.longitude).toFixed(6)}`
+                    : 'None'}
+                </span>
+                {parcel.latitude && parcel.longitude && (
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://www.google.com/maps/search/?api=1&query=${parcel.latitude},${parcel.longitude}`,
+                        '_blank',
+                      )
+                    }
+                    className="flex items-center gap-1 font-bold text-[#2E7D32] hover:underline"
+                  >
+                    Open in Google Maps
+                  </button>
+                )}
+              </div>
+              <div className="border-border flex justify-end border-t pt-4">
+                <button
+                  onClick={() => setIsMapModalOpen(false)}
+                  className="rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
