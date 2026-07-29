@@ -59,6 +59,16 @@ return new class extends Migration
 
             $table->string('land_type')->nullable(); // Lands under litigation, donated lands
 
+            // land under litigation
+            $table->boolean('is_casehold')->default(false)->nullable();
+            $table->string('case_number')->nullable();
+            $table->date('case_start_date')->nullable();
+            $table->date('case_end_date')->nullable();
+            $table->string('case_status')->nullable();
+
+            // donated lands
+            $table->boolean('is_donated')->default(false)->nullable();
+
             // value
             $table->decimal('estimated_value', 12, 2)->default(0);
 

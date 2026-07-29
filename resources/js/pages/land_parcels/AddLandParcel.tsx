@@ -152,6 +152,12 @@ type FormData = {
   cultivationStatus: 'fertile' | 'mid' | 'infertile' | 'unspecified';
   annualIncome: string;
   landType: string;
+  isCasehold: boolean;
+  caseNumber: string;
+  caseStartDate: string;
+  caseEndDate: string;
+  caseStatus: string;
+  isDonated: boolean;
   estimatedValue: string;
   landUseType: string;
   tenureType: string;
@@ -187,6 +193,12 @@ const EMPTY: FormData = {
   cultivationStatus: 'unspecified',
   annualIncome: '',
   landType: '',
+  isCasehold: false,
+  caseNumber: '',
+  caseStartDate: '',
+  caseEndDate: '',
+  caseStatus: '',
+  isDonated: false,
   estimatedValue: '',
   landUseType: '',
   tenureType: '',
@@ -741,6 +753,12 @@ export default function AddLandParcel() {
           : 'unspecified',
         annual_income: form.isCultivated ? Number(form.annualIncome) || 0 : 0,
         land_type: form.landType || form.landUseType || 'Standard',
+        is_casehold: form.isCasehold,
+        case_number: form.isCasehold ? form.caseNumber || null : null,
+        case_start_date: form.isCasehold ? form.caseStartDate || null : null,
+        case_end_date: form.isCasehold ? form.caseEndDate || null : null,
+        case_status: form.isCasehold ? form.caseStatus || null : null,
+        is_donated: form.isDonated,
         estimated_value: Number(form.estimatedValue) || 0,
         remarks: form.remarks || null,
         status: 'available' as const,
@@ -1226,6 +1244,83 @@ export default function AddLandParcel() {
               </select>
               {errMsg('tenureType')}
             </Field>
+
+            <div className="flex items-center gap-2 py-2 md:col-span-2 lg:col-span-4">
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
+                  checked={form.isCasehold}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, isCasehold: e.target.checked }))
+                  }
+                />
+                <span className="text-foreground text-sm font-medium">
+                  Land under litigation (Case Hold)
+                </span>
+              </label>
+            </div>
+
+            {form.isCasehold && (
+              <>
+                <Field label="Case Number">
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. CASE/2026/001"
+                    value={form.caseNumber}
+                    onChange={set('caseNumber')}
+                  />
+                </Field>
+
+                <Field label="Case Start Date">
+                  <input
+                    className={inputCls}
+                    type="date"
+                    value={form.caseStartDate}
+                    onChange={set('caseStartDate')}
+                  />
+                </Field>
+
+                <Field label="Case End Date">
+                  <input
+                    className={inputCls}
+                    type="date"
+                    value={form.caseEndDate}
+                    onChange={set('caseEndDate')}
+                  />
+                </Field>
+
+                <Field label="Case Status">
+                  <select
+                    className={inputCls}
+                    value={form.caseStatus}
+                    onChange={set('caseStatus')}
+                  >
+                    <option value="">Select Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="dismissed">Dismissed</option>
+                  </select>
+                </Field>
+              </>
+            )}
+
+            <div className="flex items-center gap-2 py-2 md:col-span-2 lg:col-span-4">
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
+                  checked={form.isDonated}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, isDonated: e.target.checked }))
+                  }
+                />
+                <span className="text-foreground text-sm font-medium">
+                  Donated Land
+                </span>
+              </label>
+            </div>
           </div>
         </div>
 
