@@ -10,8 +10,6 @@ import {
   DollarSign,
   User,
   Calendar,
-  AlertCircle,
-  ChevronRight,
   TrendingUp,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -57,9 +55,6 @@ export default function AcquisitionWorkflow() {
   // Fetch project details when project selection changes
   useEffect(() => {
     if (!selectedProjId) {
-      setCurrentProject(null);
-      setCompensations([]);
-
       return;
     }
 
@@ -445,7 +440,15 @@ export default function AcquisitionWorkflow() {
                 title="Select Acquisition Project"
                 className="bg-input-background border-border w-full rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors focus:border-[#2E7D32] focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                 value={selectedProjId}
-                onChange={(e) => setSelectedProjId(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedProjId(val);
+
+                  if (!val) {
+                    setCurrentProject(null);
+                    setCompensations([]);
+                  }
+                }}
               >
                 <option value="">-- Choose a Project --</option>
                 {projectsList.map((proj) => (

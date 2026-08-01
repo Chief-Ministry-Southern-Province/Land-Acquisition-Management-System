@@ -5,6 +5,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import WorkflowTimeline from '@/components/ui/WorkflowTimeline';
 import MainLayout from '@/layouts/MainLayout';
+import api from '@/services/api';
 import {
   uploadDocument,
   deleteDocument,
@@ -15,7 +16,6 @@ import {
   submitProject,
 } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
-import api from '@/services/api';
 
 interface ProjectDetailsProps {
   id: string;
@@ -36,11 +36,15 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     try {
       const data = await getProject(id);
       setProject(data);
+
       try {
         const compResponse = await api.get('/api/compensation');
         setDbCompensations(compResponse.data.compensations || []);
       } catch (err) {
-        console.error('Failed to fetch compensations for project details:', err);
+        console.error(
+          'Failed to fetch compensations for project details:',
+          err,
+        );
       }
     } catch (error) {
       console.error('Failed to fetch project details:', error);
@@ -512,10 +516,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       )}
 
       {activeTab === 'workflow' && project && (
-        <WorkflowTimeline
-          project={project}
-          compensations={dbCompensations}
-        />
+        <WorkflowTimeline project={project} compensations={dbCompensations} />
       )}
 
       {activeTab === 'parcels' && (

@@ -12,12 +12,10 @@ import {
   Building,
   MapPin,
   Calendar,
-  Layers,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { SyncLoader } from 'react-spinners';
 import { DataTable } from '@/components/ui/DataTable';
-import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
 import {
   getDocuments,
@@ -90,7 +88,23 @@ export default function DocumentList() {
   };
 
   useEffect(() => {
-    loadPageData();
+    const init = async () => {
+      try {
+        const [docsData, projsData, parcelsData] = await Promise.all([
+          getDocuments(),
+          getProjects(),
+          getLandParcels(),
+        ]);
+        setDocuments(docsData);
+        setProjects(projsData);
+        setLandParcels(parcelsData);
+      } catch (error) {
+        console.error('Failed to load document list page data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
   }, []);
 
   // Normalizer to classify category into folders
