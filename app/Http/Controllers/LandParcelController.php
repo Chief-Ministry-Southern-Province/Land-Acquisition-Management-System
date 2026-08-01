@@ -356,7 +356,15 @@ class LandParcelController extends Controller
         }
         $records = $query->get();
 
-        $filename = $id ? 'land_parcel_'.($records->first()?->parcel_id ?? $id).'_'.date('Ymd_His') : 'land_parcels_'.date('Ymd_His');
+        if ($id && $records->isEmpty()) {
+            return response()->json([
+                'message' => 'Land parcel not found',
+            ], 404);
+        }
+
+        $filename = $id
+            ? 'land_parcel_'.$records->first()->parcel_id.'_'.date('Ymd_His')
+            : 'land_parcels_'.date('Ymd_His');
 
         if ($format === 'pdf') {
             $pdfView = $id ? 'pdf.land_parcel_form' : 'pdf.land_parcels';
