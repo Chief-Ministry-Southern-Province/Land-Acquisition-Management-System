@@ -64,6 +64,12 @@ class LandParcelController extends Controller
             'cultivation_status' => 'nullable|string|in:fertile,mid,infertile,unspecified',
             'annual_income' => 'nullable|numeric',
             'land_type' => 'nullable|string|max:255',
+            'is_casehold' => 'nullable|boolean',
+            'case_number' => 'nullable|string|max:255',
+            'case_start_date' => 'nullable|date',
+            'case_end_date' => 'nullable|date',
+            'case_status' => 'nullable|string|max:255',
+            'is_donated' => 'nullable|boolean',
             'estimated_value' => 'nullable|numeric',
             'remarks' => 'nullable|string',
             'status' => 'nullable|string|in:available,pending,acquired',
@@ -102,6 +108,15 @@ class LandParcelController extends Controller
             $validated['annual_income'] = $validated['annual_income'] ?? 0;
         }
         $validated['land_type'] = $validated['land_type'] ?? 'Standard';
+        $validated['is_casehold'] = $validated['is_casehold'] ?? false;
+        if (empty($validated['is_casehold'])) {
+            $validated['is_casehold'] = false;
+            $validated['case_number'] = null;
+            $validated['case_start_date'] = null;
+            $validated['case_end_date'] = null;
+            $validated['case_status'] = null;
+        }
+        $validated['is_donated'] = $validated['is_donated'] ?? false;
         $validated['estimated_value'] = $validated['estimated_value'] ?? 0;
         $validated['status'] = 'available';
 
@@ -227,6 +242,12 @@ class LandParcelController extends Controller
             'cultivation_status' => 'nullable|string|in:fertile,mid,infertile,unspecified',
             'annual_income' => 'nullable|numeric',
             'land_type' => 'nullable|string|max:255',
+            'is_casehold' => 'nullable|boolean',
+            'case_number' => 'nullable|string|max:255',
+            'case_start_date' => 'nullable|date',
+            'case_end_date' => 'nullable|date',
+            'case_status' => 'nullable|string|max:255',
+            'is_donated' => 'nullable|boolean',
             'estimated_value' => 'nullable|numeric',
             'remarks' => 'nullable|string',
             'status' => 'required|string|in:available,pending,acquired',
@@ -259,6 +280,15 @@ class LandParcelController extends Controller
         } else {
             $validated['is_cultivated'] = true;
         }
+
+        if (empty($validated['is_casehold'])) {
+            $validated['is_casehold'] = false;
+            $validated['case_number'] = null;
+            $validated['case_start_date'] = null;
+            $validated['case_end_date'] = null;
+            $validated['case_status'] = null;
+        }
+        $validated['is_donated'] = $validated['is_donated'] ?? false;
 
         $landParcel->update($validated);
         if ($request->has('property_owner_ids') && is_array($request->input('property_owner_ids'))) {
@@ -318,18 +348,35 @@ class LandParcelController extends Controller
     public function export(Request $request, ExportService $exportService)
     {
         $format = $request->query('format', 'pdf');
-        $records = LandParcel::with(['owners', 'project'])->get();
+        $id = $request->query('id');
 
-        $filename = 'land_parcels_'.date('Ymd_His');
+        $query = LandParcel::with(['owners', 'project']);
+        if ($id) {
+            $query->where('id', $id);
+        }
+        $records = $query->get();
+
+        if ($id && $records->isEmpty()) {
+            return response()->json([
+                'message' => 'Land parcel not found',
+            ], 404);
+        }
+
+        $filename = $id
+            ? 'land_parcel_'.$records->first()->parcel_id.'_'.date('Ymd_His')
+            : 'land_parcels_'.date('Ymd_His');
 
         if ($format === 'pdf') {
+            $pdfView = $id ? 'pdf.land_parcel_form' : 'pdf.land_parcels';
+            $pdfData = $id ? ['parcel' => $records->first()] : ['parcels' => $records];
+
             return $exportService->export(
                 data: collect([]),
                 headings: [],
                 filename: $filename,
                 format: $format,
-                pdfView: 'pdf.land_parcels',
-                pdfData: ['parcels' => $records]
+                pdfView: $pdfView,
+                pdfData: $pdfData
             );
         }
 

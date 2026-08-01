@@ -5,6 +5,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import WorkflowTimeline from '@/components/ui/WorkflowTimeline';
 import MainLayout from '@/layouts/MainLayout';
+import api from '@/services/api';
 import {
   uploadDocument,
   deleteDocument,
@@ -23,6 +24,7 @@ interface ProjectDetailsProps {
 export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const [activeTab, setActiveTab] = useState('general');
   const [project, setProject] = useState<Project | null>(null);
+  const [dbCompensations, setDbCompensations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const { props: pageProps } = usePage();
@@ -34,6 +36,16 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     try {
       const data = await getProject(id);
       setProject(data);
+
+      try {
+        const compResponse = await api.get('/api/compensation');
+        setDbCompensations(compResponse.data.compensations || []);
+      } catch (err) {
+        console.error(
+          'Failed to fetch compensations for project details:',
+          err,
+        );
+      }
     } catch (error) {
       console.error('Failed to fetch project details:', error);
     }
@@ -503,11 +515,8 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
         </div>
       )}
 
-      {activeTab === 'workflow' && (
-        <WorkflowTimeline
-          projectId={project.projectId}
-          projectName={project.name}
-        />
+      {activeTab === 'workflow' && project && (
+        <WorkflowTimeline project={project} compensations={dbCompensations} />
       )}
 
       {activeTab === 'parcels' && (
