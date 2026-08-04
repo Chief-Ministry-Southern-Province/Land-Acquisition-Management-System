@@ -56,7 +56,8 @@ class ExportService
             abort(500, 'PDF view not specified');
         }
 
-        $pdf = Pdf::loadView($view, $data)->setPaper('a4', 'portrait');
+        $paperOrientation = $view === 'pdf.land_parcels' ? 'landscape' : 'portrait';
+        $pdf = Pdf::loadView($view, $data)->setPaper('a4', $paperOrientation);
 
         return $pdf->download("$filename.pdf");
     }

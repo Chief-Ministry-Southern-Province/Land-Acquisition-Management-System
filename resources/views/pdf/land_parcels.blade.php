@@ -67,7 +67,7 @@
             display: inline-block;
             padding: 3px 6px;
             border-radius: 4px;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: bold;
             text-transform: uppercase;
         }
@@ -82,6 +82,18 @@
         .status-acquired {
             background-color: #e1effe;
             color: #1e40af;
+        }
+        .badge-yes {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .badge-no {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        .badge-donated {
+            background-color: #def7ec;
+            color: #03543f;
         }
 
         .footer {
@@ -124,24 +136,28 @@
     <table class="table">
         <thead>
             <tr>
-                <th style="width: 12%;">Parcel Number</th>
-                <th style="width: 15%;">Associated Project</th>
-                <th style="width: 12%;">Land Name</th>
-                <th style="width: 25%;">Location (District, Division, Village)</th>
-                <th style="width: 16%;">Owner(s)</th>
+                <th style="width: 8%;">Land No</th>
+                <th style="width: 8%;">Land Name</th>
+                <th style="width: 18%;">Location (District &gt; DS &gt; GN &gt; Village)</th>
+                <th style="width: 8%;">Land Type</th>
+                <th style="width: 12%;">Owner(s)</th>
                 <th style="width: 10%;">Extent</th>
-                <th style="width: 10%;">Status</th>
+                <th style="width: 10%;">Est. Value</th>
+                <th style="width: 6%;">Casehold</th>
+                <th style="width: 6%;">Donated</th>
+                <th style="width: 8%;">Project</th>
+                <th style="width: 6%;">Status</th>
             </tr>
         </thead>
         <tbody>
             @foreach($parcels as $parcel)
                 <tr>
                     <td style="font-weight: bold; color: #2d3748;">{{ $parcel->parcel_id }}</td>
-                    <td>{{ $parcel->project->title ?? ($parcel->project->name ?? 'N/A') }}</td>
                     <td>{{ $parcel->land_name ?? 'N/A' }}</td>
                     <td>
-                        {{ $parcel->district }} &gt; {{ $parcel->divisional_secretariat ?? ($parcel->division ?? 'N/A') }} &gt; {{ $parcel->village }}
+                        {{ $parcel->district }} &gt; {{ $parcel->divisional_secretariat ?? ($parcel->division ?? 'N/A') }} &gt; {{ $parcel->grama_niladari_division ?? 'N/A' }} &gt; {{ $parcel->village }}
                     </td>
+                    <td>{{ $parcel->land_type ?? 'Standard' }}</td>
                     <td>
                         @if($parcel->owners && count($parcel->owners) > 0)
                             {{ implode(', ', $parcel->owners->pluck('name')->toArray()) }}
@@ -149,7 +165,24 @@
                             N/A
                         @endif
                     </td>
-                    <td>{{ $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0) }} ac, {{ $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0) }} per</td>
+                    <td>
+                        {{ $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0) }} ac, 
+                        {{ $parcel->land_size_roods ?? 0 }} rd, 
+                        {{ $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0) }} per
+                    </td>
+                    <!-- <td>₨ {{ number_format($parcel->estimated_value ?? 0, 2) }}</td> -->
+                    <td>{{ $parcel->estimated_value ? 'Rs. ' . number_format($parcel->estimated_value, 2) : 'N/A' }}</td>
+                    <td>
+                        <span class="badge {{ $parcel->is_casehold ? 'badge-yes' : 'badge-no' }}">
+                            {{ $parcel->is_casehold ? 'Yes' : 'No' }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge {{ $parcel->is_donated ? 'badge-donated' : 'badge-no' }}">
+                            {{ $parcel->is_donated ? 'Yes' : 'No' }}
+                        </span>
+                    </td>
+                    <td>{{ $parcel->project->title ?? ($parcel->project->name ?? 'N/A') }}</td>
                     <td>
                         @php
                             $statusClass = 'status-' . strtolower($parcel->status);

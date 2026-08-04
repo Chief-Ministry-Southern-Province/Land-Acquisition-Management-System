@@ -320,18 +320,56 @@ export default function LandParcelDetails({ id }: Props) {
               </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Plan Status / No:</dt>
-              <dd>
-                {parcel.has_plan ? parcel.plan_number || 'Yes' : 'No Plan'}
-              </dd>
+              <dt className="text-muted-foreground">Plan Status:</dt>
+              <dd>{parcel.has_plan ? 'Has Plan' : 'No Plan'}</dd>
             </div>
-            {parcel.parcel_numbers && parcel.parcel_numbers.length > 0 && (
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Parcel Numbers:</dt>
-                <dd className="font-mono">
-                  {parcel.parcel_numbers.join(', ')}
-                </dd>
-              </div>
+            {parcel.has_plan ? (
+              <>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Plan Number:</dt>
+                  <dd>{parcel.plan_number || 'N/A'}</dd>
+                </div>
+                {parcel.parcel_numbers && parcel.parcel_numbers.length > 0 && (
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Parcel Numbers:</dt>
+                    <dd className="font-mono">
+                      {parcel.parcel_numbers.join(', ')}
+                    </dd>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="border-border my-2 flex items-center justify-between border-t pt-2">
+                  <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                    Plan Boundaries
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">North Boundary:</dt>
+                  <dd className="text-right">
+                    {parcel.boundaries_north || 'N/A'}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">South Boundary:</dt>
+                  <dd className="text-right">
+                    {parcel.boundaries_south || 'N/A'}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">East Boundary:</dt>
+                  <dd className="text-right">
+                    {parcel.boundaries_east || 'N/A'}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">West Boundary:</dt>
+                  <dd className="text-right">
+                    {parcel.boundaries_west || 'N/A'}
+                  </dd>
+                </div>
+              </>
             )}
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Cultivation & Status:</dt>
@@ -364,6 +402,62 @@ export default function LandParcelDetails({ id }: Props) {
               </dd>
             </div>
             <div className="flex justify-between">
+              <dt className="text-muted-foreground">Donated Status:</dt>
+              <dd
+                className={
+                  parcel.is_donated
+                    ? 'font-medium text-green-600 dark:text-green-400'
+                    : ''
+                }
+              >
+                {parcel.is_donated ? 'Yes (Donated)' : 'No'}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Litigation / Casehold:</dt>
+              <dd
+                className={
+                  parcel.is_casehold
+                    ? 'font-medium text-amber-600 dark:text-amber-400'
+                    : ''
+                }
+              >
+                {parcel.is_casehold ? 'Yes (Under Litigation)' : 'No'}
+              </dd>
+            </div>
+            {parcel.is_casehold && (
+              <>
+                <div className="flex justify-between border-l border-amber-200 pl-4">
+                  <dt className="text-muted-foreground text-xs">
+                    Case Number:
+                  </dt>
+                  <dd className="font-mono text-xs">
+                    {parcel.case_number || 'N/A'}
+                  </dd>
+                </div>
+                <div className="flex justify-between border-l border-amber-200 pl-4">
+                  <dt className="text-muted-foreground text-xs">
+                    Case Status:
+                  </dt>
+                  <dd className="text-xs">{parcel.case_status || 'N/A'}</dd>
+                </div>
+                <div className="flex justify-between border-l border-amber-200 pl-4">
+                  <dt className="text-muted-foreground text-xs">
+                    Case Period:
+                  </dt>
+                  <dd className="text-xs">
+                    {parcel.case_start_date
+                      ? new Date(parcel.case_start_date).toLocaleDateString()
+                      : 'N/A'}{' '}
+                    -{' '}
+                    {parcel.case_end_date
+                      ? new Date(parcel.case_end_date).toLocaleDateString()
+                      : 'Active'}
+                  </dd>
+                </div>
+              </>
+            )}
+            <div className="flex justify-between">
               <dt className="text-muted-foreground">Associated Project:</dt>
               <dd>
                 {parcel.project ? (
@@ -376,6 +470,15 @@ export default function LandParcelDetails({ id }: Props) {
                 ) : (
                   'None'
                 )}
+              </dd>
+            </div>
+            <div className="border-border my-2 flex items-center justify-between border-t pt-2" />
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">GPS Location:</dt>
+              <dd className="font-mono text-xs">
+                {parcel.latitude && parcel.longitude
+                  ? `${Number(parcel.latitude).toFixed(6)}, ${Number(parcel.longitude).toFixed(6)}`
+                  : 'N/A'}
               </dd>
             </div>
             <div className="flex justify-between">
