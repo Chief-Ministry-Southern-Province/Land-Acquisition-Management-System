@@ -250,39 +250,70 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       }))
     : [];
 
-  const valuations = [
-    {
-      id: 'VAL-5678',
-      parcel: 'PCL-8934',
-      marketValue: '₨ 12,500,000',
-      assessed: '₨ 15,000,000',
-      status: 'approved',
-    },
-    {
-      id: 'VAL-5679',
-      parcel: 'PCL-8935',
-      marketValue: '₨ 9,000,000',
-      assessed: '₨ 10,800,000',
-      status: 'pending',
-    },
-  ];
+  const valuations =
+    project?.landParcels?.flatMap(
+      (p) =>
+        p.valuations?.map((v: any) => ({
+          id: `VAL-${v.id}`,
+          parcel: p.parcel_id,
+          marketValue: `₨ ${Number(v.land_value).toLocaleString()}`,
+          assessed: `₨ ${Number(v.total_valuation).toLocaleString()}`,
+          status: v.status,
+        })) || [],
+    ) || [];
 
-  const compensations = [
-    {
-      id: 'COMP-3456',
-      owner: 'W.A. Perera',
-      amount: '₨ 15,000,000',
-      approved: '2024-05-10',
-      status: 'paid',
-    },
-    {
-      id: 'COMP-3457',
-      owner: 'S.M. Fernando',
-      amount: '₨ 10,800,000',
-      approved: '2024-05-15',
-      status: 'pending',
-    },
-  ];
+  const compensations =
+    project?.landParcels?.flatMap(
+      (p) =>
+        p.compensations?.map((c: any) => ({
+          id: `COMP-${c.id}`,
+          owner: c.owner?.name || 'N/A',
+          amount: `₨ ${Number(c.amount).toLocaleString()}`,
+          approved: c.approved_date ? c.approved_date.split('T')[0] : 'N/A',
+          status: c.status,
+        })) || [],
+    ) || [];
+
+  const totalEstimatedValue =
+    project?.landParcels?.reduce(
+      (sum, p) => sum + Number(p.estimated_value || 0),
+      0,
+    ) || 0;
+  const totalValuationAssessed =
+    project?.landParcels?.reduce((sum, p) => {
+      return (
+        sum +
+        (p.valuations?.reduce(
+          (s: number, v: any) => s + Number(v.total_valuation || 0),
+          0,
+        ) || 0)
+      );
+    }, 0) || 0;
+  const totalCompensationCalculated =
+    project?.landParcels?.reduce((sum, p) => {
+      return (
+        sum +
+        (p.compensations?.reduce(
+          (s: number, c: any) => s + Number(c.amount || 0),
+          0,
+        ) || 0)
+      );
+    }, 0) || 0;
+  const totalDisbursedPayments =
+    project?.landParcels?.reduce((sum, p) => {
+      return (
+        sum +
+        (p.compensations?.reduce((s: number, c: any) => {
+          return (
+            s +
+            (c.payments?.reduce(
+              (sp: number, pay: any) => sp + Number(pay.amount_paid || 0),
+              0,
+            ) || 0)
+          );
+        }, 0) || 0)
+      );
+    }, 0) || 0;
 
   const documents = project?.documents
     ? project.documents.map((doc) => ({
@@ -427,199 +458,245 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
 
       {/* Tab Content */}
       {activeTab === 'general' && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="bg-card border-border rounded-lg border p-6">
-            <h3 className="mb-4">Project Overview</h3>
-            <dl className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Project Title:</dt>
-                <dd className="font-semibold">
-                  {project.title || project.name}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Institution:</dt>
-                <dd>{project.institution || 'N/A'}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Institution Address:</dt>
-                <dd className="text-right">
-                  {project.institutionAddress || 'N/A'}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Purpose:</dt>
-                <dd className="text-right">{project.purpose}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Land Area Breakdown:</dt>
-                <dd className="font-mono">
-                  {project.landAreaAcers ?? 0} A, {project.landAreaRoods ?? 0}{' '}
-                  R, {project.landAreaPerches ?? 0} P
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Total Acquired Area:</dt>
-                <dd className="font-semibold">
-                  {project.fullLandArea ?? 0} Perches
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Temporary Relocation:</dt>
-                <dd>{project.areResidentsMovedTemp ? 'Yes' : 'No'}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Approval Date:</dt>
-                <dd>{formatDate(project.approvalDate)}</dd>
-              </div>
-            </dl>
+        <div className="space-y-6">
+          {/* Financial Aggregations Cards */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-card border-border shadow-xs flex flex-col justify-between rounded-lg border p-5">
+              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                Total Estimated Value
+              </span>
+              <span className="text-foreground mt-2 font-mono text-xl font-bold">
+                ₨ {totalEstimatedValue.toLocaleString()}
+              </span>
+            </div>
+            <div className="bg-card border-border shadow-xs flex flex-col justify-between rounded-lg border p-5">
+              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                Total Valuation Assessed
+              </span>
+              <span className="mt-2 font-mono text-xl font-bold text-emerald-600">
+                ₨ {totalValuationAssessed.toLocaleString()}
+              </span>
+            </div>
+            <div className="bg-card border-border shadow-xs flex flex-col justify-between rounded-lg border p-5">
+              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                Total Compensation Calculated
+              </span>
+              <span className="text-primary mt-2 font-mono text-xl font-bold">
+                ₨ {totalCompensationCalculated.toLocaleString()}
+              </span>
+            </div>
+            <div className="bg-card border-border shadow-xs flex flex-col justify-between rounded-lg border p-5">
+              <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                Total Disbursed Payments
+              </span>
+              <span className="mt-2 font-mono text-xl font-bold text-emerald-700">
+                ₨ {totalDisbursedPayments.toLocaleString()}
+              </span>
+            </div>
           </div>
 
-          <div className="bg-card border-border rounded-lg border p-6">
-            <h3 className="mb-4">Statutory Compliance Details</h3>
-            <div className="space-y-4">
-              {/* Section 20 */}
-              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Whether the proposed land is a land allocated to land
-                      owners under statutory notifications under the Land Reform
-                      Act:
-                    </p>
-                  </div>
-                  <div className="mt-1 shrink-0">
-                    {project.section20Observation !== null ? (
-                      project.section20Observation ? (
-                        <Badge variant="success">Yes</Badge>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="bg-card border-border rounded-lg border p-6">
+              <h3 className="mb-4">Project Overview</h3>
+              <dl className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Project Title:</dt>
+                  <dd className="font-semibold">
+                    {project.title || project.name}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Institution:</dt>
+                  <dd>{project.institution || 'N/A'}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">
+                    Institution Address:
+                  </dt>
+                  <dd className="text-right">
+                    {project.institutionAddress || 'N/A'}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Purpose:</dt>
+                  <dd className="text-right">{project.purpose}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">
+                    Land Area Breakdown:
+                  </dt>
+                  <dd className="font-mono">
+                    {project.landAreaAcers ?? 0} A, {project.landAreaRoods ?? 0}{' '}
+                    R, {project.landAreaPerches ?? 0} P
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">
+                    Total Acquired Area:
+                  </dt>
+                  <dd className="font-semibold">
+                    {project.fullLandArea ?? 0} Perches
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">
+                    Temporary Relocation:
+                  </dt>
+                  <dd>{project.areResidentsMovedTemp ? 'Yes' : 'No'}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Approval Date:</dt>
+                  <dd>{formatDate(project.approvalDate)}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div className="bg-card border-border rounded-lg border p-6">
+              <h3 className="mb-4">Statutory Compliance Details</h3>
+              <div className="space-y-4">
+                {/* Section 20 */}
+                <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        Whether the proposed land is a land allocated to land
+                        owners under statutory notifications under the Land
+                        Reform Act:
+                      </p>
+                    </div>
+                    <div className="mt-1 shrink-0">
+                      {project.section20Observation !== null ? (
+                        project.section20Observation ? (
+                          <Badge variant="success">Yes</Badge>
+                        ) : (
+                          <Badge variant="danger">No</Badge>
+                        )
                       ) : (
-                        <Badge variant="danger">No</Badge>
-                      )
-                    ) : (
-                      <Badge variant="default">N/A</Badge>
-                    )}
+                        <Badge variant="default">N/A</Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Section 21 */}
-              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Whether there are alternative State lands or lands
-                      belonging to the Land Reform Commission that can be
-                      utilized for the proposed public purpose?
-                    </p>
-                  </div>
-                  <div className="mt-1 shrink-0">
-                    {project.section21SecretaryReport !== null ? (
-                      project.section21SecretaryReport ? (
-                        <Badge variant="success">Yes</Badge>
+                {/* Section 21 */}
+                <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        Whether there are alternative State lands or lands
+                        belonging to the Land Reform Commission that can be
+                        utilized for the proposed public purpose?
+                      </p>
+                    </div>
+                    <div className="mt-1 shrink-0">
+                      {project.section21SecretaryReport !== null ? (
+                        project.section21SecretaryReport ? (
+                          <Badge variant="success">Yes</Badge>
+                        ) : (
+                          <Badge variant="danger">No</Badge>
+                        )
                       ) : (
-                        <Badge variant="danger">No</Badge>
-                      )
-                    ) : (
-                      <Badge variant="default">N/A</Badge>
-                    )}
+                        <Badge variant="default">N/A</Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Section 22 */}
-              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
-                <div className="space-y-2">
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Name and designation of the officer who selected this land
-                    as suitable for the proposed public purpose:
-                  </p>
-                  <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
-                    <User className="text-muted-foreground h-4 w-4 shrink-0" />
-                    <span className="text-foreground font-semibold">
-                      {project.section22SecretaryRecommendation || 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 23 */}
-              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
-                <div className="space-y-2">
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Name and designation of the officer who recommended that
-                    this land is suitable to be acquired for the proposed public
-                    purpose:
-                  </p>
-                  <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
-                    <User className="text-muted-foreground h-4 w-4 shrink-0" />
-                    <span className="text-foreground font-semibold">
-                      {project.section23ValuationRecommendation || 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 24 */}
-              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
+                {/* Section 22 */}
+                <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                  <div className="space-y-2">
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Whether it was inquired if there are other suitable State
-                      or private lands in this area for this purpose:
+                      Name and designation of the officer who selected this land
+                      as suitable for the proposed public purpose:
                     </p>
-                  </div>
-                  <div className="mt-1 shrink-0">
-                    {project.section24DecisionRemarks !== null ? (
-                      project.section24DecisionRemarks ? (
-                        <Badge variant="success">Yes</Badge>
-                      ) : (
-                        <Badge variant="danger">No</Badge>
-                      )
-                    ) : (
-                      <Badge variant="default">N/A</Badge>
-                    )}
+                    <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
+                      <User className="text-muted-foreground h-4 w-4 shrink-0" />
+                      <span className="text-foreground font-semibold">
+                        {project.section22SecretaryRecommendation || 'N/A'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Section 25 */}
-              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
-                <div className="space-y-2">
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Clearly specify the source of funds allocated to bear the
-                    acquisition, compensation, and other necessary expenses:
-                  </p>
-                  <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
-                    <DollarSign className="text-muted-foreground h-4 w-4 shrink-0" />
-                    <span className="text-foreground font-semibold">
-                      {project.section25AdditionalConditions || 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 26 */}
-              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
+                {/* Section 23 */}
+                <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                  <div className="space-y-2">
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Whether the selection of the proposed land for public
-                      purpose complies with the general development plan of the
-                      area, and whether agreement/consent was obtained from the
-                      relevant Local Authority / Urban Development Department or
-                      relevant institute:
+                      Name and designation of the officer who recommended that
+                      this land is suitable to be acquired for the proposed
+                      public purpose:
                     </p>
+                    <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
+                      <User className="text-muted-foreground h-4 w-4 shrink-0" />
+                      <span className="text-foreground font-semibold">
+                        {project.section23ValuationRecommendation || 'N/A'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="mt-1 shrink-0">
-                    {project.section26FinalRecommendation !== null ? (
-                      project.section26FinalRecommendation ? (
-                        <Badge variant="success">Yes</Badge>
+                </div>
+
+                {/* Section 24 */}
+                <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        Whether it was inquired if there are other suitable
+                        State or private lands in this area for this purpose:
+                      </p>
+                    </div>
+                    <div className="mt-1 shrink-0">
+                      {project.section24DecisionRemarks !== null ? (
+                        project.section24DecisionRemarks ? (
+                          <Badge variant="success">Yes</Badge>
+                        ) : (
+                          <Badge variant="danger">No</Badge>
+                        )
                       ) : (
-                        <Badge variant="danger">No</Badge>
-                      )
-                    ) : (
-                      <Badge variant="default">N/A</Badge>
-                    )}
+                        <Badge variant="default">N/A</Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 25 */}
+                <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Clearly specify the source of funds allocated to bear the
+                      acquisition, compensation, and other necessary expenses:
+                    </p>
+                    <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
+                      <DollarSign className="text-muted-foreground h-4 w-4 shrink-0" />
+                      <span className="text-foreground font-semibold">
+                        {project.section25AdditionalConditions || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 26 */}
+                <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        Whether the selection of the proposed land for public
+                        purpose complies with the general development plan of
+                        the area, and whether agreement/consent was obtained
+                        from the relevant Local Authority / Urban Development
+                        Department or relevant institute:
+                      </p>
+                    </div>
+                    <div className="mt-1 shrink-0">
+                      {project.section26FinalRecommendation !== null ? (
+                        project.section26FinalRecommendation ? (
+                          <Badge variant="success">Yes</Badge>
+                        ) : (
+                          <Badge variant="danger">No</Badge>
+                        )
+                      ) : (
+                        <Badge variant="default">N/A</Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -629,7 +706,137 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       )}
 
       {activeTab === 'workflow' && project && (
-        <WorkflowTimeline project={project} compensations={dbCompensations} />
+        <div className="space-y-6">
+          <WorkflowTimeline project={project} compensations={dbCompensations} />
+
+          <div className="bg-card border-border space-y-4 rounded-lg border p-6">
+            <div>
+              <h3 className="text-foreground text-base font-bold">
+                Parcel Workflow Progress Checklist
+              </h3>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Milestone tracking mapping the data logging progress of each
+                land parcel under this project.
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left text-sm">
+                <thead>
+                  <tr className="bg-muted text-muted-foreground border-border border-b text-xs font-bold uppercase">
+                    <th className="px-4 py-3">Parcel ID</th>
+                    <th className="px-4 py-3">Name / Location</th>
+                    <th className="px-4 py-3 text-center">Land Registered</th>
+                    <th className="px-4 py-3 text-center">Survey Plan</th>
+                    <th className="px-4 py-3 text-center">Valuation Report</th>
+                    <th className="px-4 py-3 text-center">
+                      Compensation Setup
+                    </th>
+                    <th className="px-4 py-3">Payment Progress</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-border divide-y text-xs">
+                  {project.landParcels?.map((p: any) => {
+                    const hasSurvey = p.surveys && p.surveys.length > 0;
+                    const hasValuation =
+                      p.valuations && p.valuations.length > 0;
+                    const hasComp =
+                      p.compensations && p.compensations.length > 0;
+
+                    // Payment progress
+                    let paymentProgressText = 'Pending (0%)';
+
+                    if (hasComp) {
+                      const totalComp = p.compensations.reduce(
+                        (sum: number, c: any) => sum + Number(c.amount || 0),
+                        0,
+                      );
+                      const totalPaid = p.compensations.reduce(
+                        (sum: number, c: any) => {
+                          return (
+                            sum +
+                            (c.payments?.reduce(
+                              (s: number, pay: any) =>
+                                s + Number(pay.amount_paid || 0),
+                              0,
+                            ) || 0)
+                          );
+                        },
+                        0,
+                      );
+
+                      if (totalComp === 0) {
+                        paymentProgressText = 'Fully Paid (100%)';
+                      } else {
+                        const pct = Math.round((totalPaid / totalComp) * 100);
+
+                        if (pct >= 100) {
+                          paymentProgressText = 'Fully Paid (100%)';
+                        } else if (pct === 0) {
+                          paymentProgressText = 'Pending (0%)';
+                        } else {
+                          paymentProgressText = `In Progress (${pct}%)`;
+                        }
+                      }
+                    }
+
+                    return (
+                      <tr
+                        key={p.id}
+                        className="hover:bg-muted/10 cursor-pointer"
+                        onClick={() => router.visit(`/land-parcels/${p.id}`)}
+                      >
+                        <td className="text-primary px-4 py-3 font-semibold">
+                          {p.parcel_id}
+                        </td>
+                        <td className="px-4 py-3">
+                          {p.land_name || 'N/A'}
+                          <span className="text-muted-foreground block text-[10px]">
+                            {p.village}, {p.district}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center font-bold text-emerald-600">
+                          ✅
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {hasSurvey ? '✅' : '❌'}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {hasValuation ? '✅' : '❌'}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {hasComp ? '✅' : '❌'}
+                        </td>
+                        <td className="px-4 py-3 font-medium">
+                          <span
+                            className={
+                              paymentProgressText.startsWith('Fully')
+                                ? 'font-bold text-green-600'
+                                : 'text-amber-600'
+                            }
+                          >
+                            {paymentProgressText}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {(!project.landParcels ||
+                    project.landParcels.length === 0) && (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="text-muted-foreground px-4 py-6 text-center"
+                      >
+                        No land parcels registered under this project.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
 
       {activeTab === 'parcels' && (

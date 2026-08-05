@@ -128,7 +128,7 @@ class ProjectsController extends Controller
      */
     public function show(string $id)
     {
-        $project = Projects::with(['landParcels.owners', 'documents'])->find($id);
+        $project = Projects::with(['landParcels.owners', 'landParcels.surveys.document', 'landParcels.valuations.document', 'landParcels.compensations.payments.document', 'documents'])->find($id);
 
         if ($project) {
             return response()->json([

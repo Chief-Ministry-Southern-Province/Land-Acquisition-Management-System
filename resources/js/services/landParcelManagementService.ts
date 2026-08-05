@@ -53,6 +53,9 @@ export interface LandParcel {
   property_owner_id?: string | null;
   property_owner_ids?: string[] | null;
   project?: any;
+  surveys?: any[];
+  valuations?: any[];
+  compensations?: any[];
 }
 
 // Map backend land parcel to frontend
@@ -130,6 +133,9 @@ const mapFromBackend = (data: any): LandParcel => ({
         updated_at: o.updated_at,
       }))
     : [],
+  surveys: data.surveys || [],
+  valuations: data.valuations || [],
+  compensations: data.compensations || [],
 });
 
 // Map frontend land parcel to backend
