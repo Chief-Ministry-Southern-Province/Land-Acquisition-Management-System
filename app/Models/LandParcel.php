@@ -87,4 +87,20 @@ class LandParcel extends Model
     {
         return $this->hasMany(Resident::class);
     }
+
+    public function surveys()
+    {
+        return $this->hasMany(LandSurvey::class, 'land_parcel_id');
+    }
+
+    public function valuations()
+    {
+        return $this->hasMany(LandValuation::class, 'land_parcel_id');
+    }
+
+    public function compensations()
+    {
+        return $this->hasMany(Compensation::class, 'land_parcel_id');
+    }
 }
+

@@ -1,21 +1,53 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Download, Edit, Send, Trash2, Upload } from 'lucide-react';
-import { useEffect, useState, useCallback } from 'react';
+import {
+  ArrowLeft,
+  DollarSign,
+  Download,
+  Edit,
+  Send,
+  Trash2,
+  Upload,
+  User,
+} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/Badge';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import WorkflowTimeline from '@/components/ui/WorkflowTimeline';
 import MainLayout from '@/layouts/MainLayout';
 import api from '@/services/api';
 import {
-  uploadDocument,
   deleteDocument,
   downloadDocument,
+  uploadDocument,
 } from '@/services/documentManagementService';
 import {
   getProject,
   submitProject,
 } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
+
+const formatDate = (dateStr?: string | null) => {
+  if (!dateStr) {
+    return 'N/A';
+  }
+
+  try {
+    const date = new Date(dateStr);
+
+    if (isNaN(date.getTime())) {
+      return dateStr;
+    }
+
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
+};
 
 interface ProjectDetailsProps {
   id: string;
@@ -258,7 +290,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
         name: doc.original_filename,
         type: doc.file_type.replace('.', '').toUpperCase(),
         category: doc.document_category,
-        uploadDate: doc.upload_date,
+        uploadDate: formatDate(doc.upload_date),
         size: doc.file_size,
       }))
     : [];
@@ -438,79 +470,160 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Approval Date:</dt>
-                <dd>{project.approvalDate || 'N/A'}</dd>
+                <dd>{formatDate(project.approvalDate)}</dd>
               </div>
             </dl>
           </div>
 
           <div className="bg-card border-border rounded-lg border p-6">
-            <h3 className="mb-4">Legal Sections (Items 20 - 26)</h3>
-            <dl className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Sec 20 Observation:</dt>
-                <dd>
-                  {project.section20Observation !== null
-                    ? project.section20Observation
-                      ? 'Passed'
-                      : 'Pending'
-                    : 'N/A'}
-                </dd>
+            <h3 className="mb-4">Statutory Compliance Details</h3>
+            <div className="space-y-4">
+              {/* Section 20 */}
+              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Whether the proposed land is a land allocated to land
+                      owners under statutory notifications under the Land Reform
+                      Act:
+                    </p>
+                  </div>
+                  <div className="mt-1 shrink-0">
+                    {project.section20Observation !== null ? (
+                      project.section20Observation ? (
+                        <Badge variant="success">Yes</Badge>
+                      ) : (
+                        <Badge variant="danger">No</Badge>
+                      )
+                    ) : (
+                      <Badge variant="default">N/A</Badge>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">
-                  Sec 21 Secretary Report:
-                </dt>
-                <dd>
-                  {project.section21SecretaryReport !== null
-                    ? project.section21SecretaryReport
-                      ? 'Completed'
-                      : 'Pending'
-                    : 'N/A'}
-                </dd>
+
+              {/* Section 21 */}
+              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Whether there are alternative State lands or lands
+                      belonging to the Land Reform Commission that can be
+                      utilized for the proposed public purpose?
+                    </p>
+                  </div>
+                  <div className="mt-1 shrink-0">
+                    {project.section21SecretaryReport !== null ? (
+                      project.section21SecretaryReport ? (
+                        <Badge variant="success">Yes</Badge>
+                      ) : (
+                        <Badge variant="danger">No</Badge>
+                      )
+                    ) : (
+                      <Badge variant="default">N/A</Badge>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">
-                  Sec 22 Recommendation:
-                </dt>
-                <dd className="text-right">
-                  {project.section22SecretaryRecommendation || 'N/A'}
-                </dd>
+
+              {/* Section 22 */}
+              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                <div className="space-y-2">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Name and designation of the officer who selected this land
+                    as suitable for the proposed public purpose:
+                  </p>
+                  <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
+                    <User className="text-muted-foreground h-4 w-4 shrink-0" />
+                    <span className="text-foreground font-semibold">
+                      {project.section22SecretaryRecommendation || 'N/A'}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Sec 23 Valuation Rec:</dt>
-                <dd className="text-right">
-                  {project.section23ValuationRecommendation || 'N/A'}
-                </dd>
+
+              {/* Section 23 */}
+              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                <div className="space-y-2">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Name and designation of the officer who recommended that
+                    this land is suitable to be acquired for the proposed public
+                    purpose:
+                  </p>
+                  <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
+                    <User className="text-muted-foreground h-4 w-4 shrink-0" />
+                    <span className="text-foreground font-semibold">
+                      {project.section23ValuationRecommendation || 'N/A'}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">
-                  Sec 24 Decision Remarks:
-                </dt>
-                <dd>
-                  {project.section24DecisionRemarks !== null
-                    ? project.section24DecisionRemarks
-                      ? 'Approved'
-                      : 'Pending'
-                    : 'N/A'}
-                </dd>
+
+              {/* Section 24 */}
+              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Whether it was inquired if there are other suitable State
+                      or private lands in this area for this purpose:
+                    </p>
+                  </div>
+                  <div className="mt-1 shrink-0">
+                    {project.section24DecisionRemarks !== null ? (
+                      project.section24DecisionRemarks ? (
+                        <Badge variant="success">Yes</Badge>
+                      ) : (
+                        <Badge variant="danger">No</Badge>
+                      )
+                    ) : (
+                      <Badge variant="default">N/A</Badge>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Sec 25 Conditions:</dt>
-                <dd className="text-right">
-                  {project.section25AdditionalConditions || 'N/A'}
-                </dd>
+
+              {/* Section 25 */}
+              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                <div className="space-y-2">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Clearly specify the source of funds allocated to bear the
+                    acquisition, compensation, and other necessary expenses:
+                  </p>
+                  <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
+                    <DollarSign className="text-muted-foreground h-4 w-4 shrink-0" />
+                    <span className="text-foreground font-semibold">
+                      {project.section25AdditionalConditions || 'N/A'}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Sec 26 Final Rec:</dt>
-                <dd>
-                  {project.section26FinalRecommendation !== null
-                    ? project.section26FinalRecommendation
-                      ? 'Approved'
-                      : 'Pending'
-                    : 'N/A'}
-                </dd>
+
+              {/* Section 26 */}
+              <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Whether the selection of the proposed land for public
+                      purpose complies with the general development plan of the
+                      area, and whether agreement/consent was obtained from the
+                      relevant Local Authority / Urban Development Department or
+                      relevant institute:
+                    </p>
+                  </div>
+                  <div className="mt-1 shrink-0">
+                    {project.section26FinalRecommendation !== null ? (
+                      project.section26FinalRecommendation ? (
+                        <Badge variant="success">Yes</Badge>
+                      ) : (
+                        <Badge variant="danger">No</Badge>
+                      )
+                    ) : (
+                      <Badge variant="default">N/A</Badge>
+                    )}
+                  </div>
+                </div>
               </div>
-            </dl>
+            </div>
           </div>
         </div>
       )}

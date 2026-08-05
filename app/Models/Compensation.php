@@ -25,4 +25,9 @@ class Compensation extends Model
     {
         return $this->belongsTo(PropertyOwner::class, 'owner_id');
     }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'compensation_id');
+    }
 }
