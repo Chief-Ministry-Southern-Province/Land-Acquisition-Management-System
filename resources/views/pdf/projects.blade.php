@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Land Parcels Report</title>
+    <title>Projects Report</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -71,17 +71,21 @@
             font-weight: bold;
             text-transform: uppercase;
         }
-        .status-available {
-            background-color: #def7ec;
-            color: #03543f;
+        .status-draft {
+            background-color: #f3f4f6;
+            color: #4b5563;
         }
         .status-pending {
             background-color: #fef3c7;
             color: #92400e;
         }
-        .status-acquired {
-            background-color: #e1effe;
-            color: #1e40af;
+        .status-rejected {
+            background-color: #fde8e8;
+            color: #9b1c1c;
+        }
+        .status-completed {
+            background-color: #def7ec;
+            color: #03543f;
         }
         .badge-yes {
             background-color: #fef3c7;
@@ -90,10 +94,6 @@
         .badge-no {
             background-color: #f3f4f6;
             color: #4b5563;
-        }
-        .badge-donated {
-            background-color: #def7ec;
-            color: #03543f;
         }
 
         .footer {
@@ -116,7 +116,7 @@
         <table>
             <tr>
                 <td>
-                    <h1>Land Parcels Report</h1>
+                    <h1>Projects Report</h1>
                     <p>Southern Province Land Acquisition Management System</p>
                 </td>
                 <td style="text-align: right; vertical-align: bottom;">
@@ -128,67 +128,53 @@
 
     <table class="meta-table">
         <tr>
-            <td style="width: 15%; font-weight: bold;">Total Parcels:</td>
-            <td>{{ count($parcels) }}</td>
+            <td style="width: 15%; font-weight: bold;">Total Projects:</td>
+            <td>{{ count($projects) }}</td>
         </tr>
     </table>
 
     <table class="table">
         <thead>
             <tr>
-                <th style="width: 8%;">Land No</th>
-                <th style="width: 8%;">Land Name</th>
-                <th style="width: 18%;">Location (District &gt; DS &gt; GN &gt; Village)</th>
-                <th style="width: 8%;">Land Type</th>
-                <th style="width: 12%;">Owner(s)</th>
-                <th style="width: 10%;">Extent</th>
-                <th style="width: 10%;">Est. Value</th>
-                <th style="width: 6%;">Casehold</th>
-                <th style="width: 6%;">Donated</th>
-                <th style="width: 8%;">Project</th>
-                <th style="width: 6%;">Status</th>
+                <th style="width: 10%;">Project ID</th>
+                <th style="width: 18%;">Title</th>
+                <th style="width: 15%;">Purpose</th>
+                <th style="width: 15%;">Institution</th>
+                <th style="width: 12%;">Acquired Area</th>
+                <th style="width: 8%;">Relocation</th>
+                <th style="width: 10%;">Approval Date</th>
+                <th style="width: 12%;">Status</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($parcels as $parcel)
+            @foreach($projects as $project)
                 <tr>
-                    <td style="font-weight: bold; color: #2d3748;">{{ $parcel->parcel_id }}</td>
-                    <td>{{ $parcel->land_name ?? 'N/A' }}</td>
+                    <td><strong>{{ $project->project_id }}</strong></td>
+                    <td>{{ $project->title }}</td>
+                    <td>{{ $project->purpose }}</td>
                     <td>
-                        {{ $parcel->district }} &gt; {{ $parcel->divisional_secretariat ?? ($parcel->division ?? 'N/A') }} &gt; {{ $parcel->grama_niladari_division ?? 'N/A' }} &gt; {{ $parcel->village }}
-                    </td>
-                    <td>{{ $parcel->land_type ?? 'Standard' }}</td>
-                    <td>
-                        @if($parcel->owners && count($parcel->owners) > 0)
-                            {{ implode(', ', $parcel->owners->pluck('name')->toArray()) }}
-                        @else
-                            N/A
+                        {{ $project->institution ?? 'N/A' }}
+                        @if($project->institution_address)
+                            <div style="font-size: 9px; color: #718096; margin-top: 2px;">{{ $project->institution_address }}</div>
                         @endif
                     </td>
                     <td>
-                        {{ $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0) }} ac, 
-                        {{ $parcel->land_size_roods ?? 0 }} rd, 
-                        {{ $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0) }} per
-                    </td>
-                    <!-- <td>₨ {{ number_format($parcel->estimated_value ?? 0, 2) }}</td> -->
-                    <td>{{ $parcel->estimated_value ? 'Rs. ' . number_format($parcel->estimated_value, 2) : 'N/A' }}</td>
-                    <td>
-                        <span class="badge {{ $parcel->is_casehold ? 'badge-yes' : 'badge-no' }}">
-                            {{ $parcel->is_casehold ? 'Yes' : 'No' }}
-                        </span>
+                        {{ $project->land_area_to_be_acquired_acers ?? 0 }} A, 
+                        {{ $project->land_area_to_be_acquired_roods ?? 0 }} R, 
+                        {{ $project->land_area_to_be_acquired_perches ?? 0 }} P
+                        <div style="font-size: 9px; color: #718096; margin-top: 2px;">Total: {{ $project->full_land_area_to_be_acquired ?? 0 }} Perches</div>
                     </td>
                     <td>
-                        <span class="badge {{ $parcel->is_donated ? 'badge-donated' : 'badge-no' }}">
-                            {{ $parcel->is_donated ? 'Yes' : 'No' }}
-                        </span>
+                        @if($project->are_residents_moved_temp)
+                            <span class="badge badge-yes">Yes</span>
+                        @else
+                            <span class="badge badge-no">No</span>
+                        @endif
                     </td>
-                    <td>{{ $parcel->project->title ?? ($parcel->project->name ?? 'N/A') }}</td>
+                    <td>{{ $project->approval_date ? $project->approval_date->format('Y-m-d') : 'N/A' }}</td>
                     <td>
-                        @php
-                            $statusClass = 'status-' . strtolower($parcel->status);
-                        @endphp
-                        <span class="badge {{ $statusClass }}">
-                            {{ $parcel->status }}
+                        <span class="badge status-{{ strtolower($project->case_status ?: 'draft') }}">
+                            {{ $project->case_status ?: 'Draft' }}
                         </span>
                     </td>
                 </tr>
@@ -197,7 +183,7 @@
     </table>
 
     <div class="footer">
-        Page 1 of 1 &mdash; Southern Province Land Acquisition Management System &copy; {{ date('Y') }}
+        Page 1
     </div>
 
 </body>

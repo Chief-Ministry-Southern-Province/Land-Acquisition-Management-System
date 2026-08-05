@@ -109,4 +109,10 @@ return [
     'recent_activities' => 'Recent Activities',
     'pending_tasks' => 'Pending Tasks',
     'upcoming_deadlines' => 'Upcoming Deadlines',
+
+    // DO Dashboard Specific
+    'welcome_back_do' => 'Welcome Back, ',
+    'do_dashboard_subtitle' => 'Development Officer Dashboard • Southern Province Land Acquisition Management System',
+    'my_draft_projects' => 'My Draft Projects',
+    'in_flight_projects' => 'Active Approval Tracking',
 ];

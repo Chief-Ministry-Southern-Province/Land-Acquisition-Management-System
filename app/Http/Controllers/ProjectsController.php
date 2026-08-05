@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LandParcel;
 use App\Models\Projects;
+use App\Services\ExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -318,5 +319,84 @@ class ProjectsController extends Controller
             'message' => 'Project submitted successfully',
             'project' => $project,
         ], 200);
+    }
+
+    public function export(Request $request, ExportService $exportService)
+    {
+        $format = $request->query('format', 'excel');
+        $id = $request->query('id');
+
+        $query = Projects::query();
+        if ($id) {
+            $query->where('id', $id);
+        }
+        $records = $query->get();
+
+        if ($id && $records->isEmpty()) {
+            return response()->json([
+                'message' => 'Project not found',
+            ], 404);
+        }
+
+        $filename = $id
+            ? 'project_'.$records->first()->project_id.'_'.date('Ymd_His')
+            : 'projects_'.date('Ymd_His');
+
+        if ($format === 'pdf') {
+            $pdfView = $id ? 'pdf.project_form' : 'pdf.projects';
+            $pdfData = $id ? ['project' => $records->first()] : ['projects' => $records];
+
+            return $exportService->export(
+                data: collect([]),
+                headings: [],
+                filename: $filename,
+                format: $format,
+                pdfView: $pdfView,
+                pdfData: $pdfData
+            );
+        }
+
+        $headings = [
+            'Project ID',
+            'Title',
+            'Purpose',
+            'Institution',
+            'Institution Address',
+            'Acres',
+            'Roods',
+            'Perches',
+            'Full Land Area (Perches)',
+            'Temporary Relocation Required',
+            'Approval Date',
+            'Status',
+            'Remarks',
+            'Created At',
+        ];
+
+        $data = $records->map(function ($project) {
+            return [
+                'project_id' => $project->project_id,
+                'title' => $project->title,
+                'purpose' => $project->purpose,
+                'institution' => $project->institution ?? 'N/A',
+                'institution_address' => $project->institution_address ?? 'N/A',
+                'land_area_to_be_acquired_acers' => $project->land_area_to_be_acquired_acers ?? 0,
+                'land_area_to_be_acquired_roods' => $project->land_area_to_be_acquired_roods ?? 0,
+                'land_area_to_be_acquired_perches' => $project->land_area_to_be_acquired_perches ?? 0,
+                'full_land_area_to_be_acquired' => $project->full_land_area_to_be_acquired ?? 0,
+                'are_residents_moved_temp' => $project->are_residents_moved_temp ? 'Yes' : 'No',
+                'approval_date' => $project->approval_date ? $project->approval_date->format('Y-m-d') : 'N/A',
+                'case_status' => ucfirst($project->case_status),
+                'remarks' => $project->remarks ?? 'N/A',
+                'created_at' => $project->created_at ? $project->created_at->format('Y-m-d H:i:s') : 'N/A',
+            ];
+        });
+
+        return $exportService->export(
+            data: $data,
+            headings: $headings,
+            filename: $filename,
+            format: $format
+        );
     }
 }

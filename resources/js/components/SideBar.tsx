@@ -78,6 +78,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
       { path: '/projects', icon: FolderKanban, label: t('projects') },
       { path: '/land-parcels', icon: Map, label: t('land_parcels') },
       { path: '/land-owners', icon: Users, label: t('land_owners') },
+      { path: '/documents', icon: FolderOpen, label: t('documents') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
       { path: '/settings', icon: Settings, label: t('settings') },
     ],

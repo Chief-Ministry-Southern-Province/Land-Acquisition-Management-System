@@ -109,4 +109,10 @@ return [
     'recent_activities' => 'මෑත කාලීන ක්‍රියාකාරකම්',
     'pending_tasks' => 'අපේක්ෂිත කාර්යයන්',
     'upcoming_deadlines' => 'ඉදිරියේ ඇති අවසන් දිනයන්',
+
+    // DO Dashboard Specific
+    'welcome_back_do' => 'නැවත සාදරයෙන් පිළිගනිමු, ',
+    'do_dashboard_subtitle' => 'සංවර්ධන නිලධාරී ප්‍රධාන පුවරුව • දකුණු පළාත් ඉඩම් අත්පත් කරගැනීමේ කළමනාකරණ පද්ධතිය',
+    'my_draft_projects' => 'මගේ කෙටුම්පත් ව්‍යාපෘති',
+    'in_flight_projects' => 'සක්‍රීය අනුමැතිය ලුහුබැඳීම',
 ];

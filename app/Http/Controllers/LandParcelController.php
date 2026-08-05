@@ -382,13 +382,19 @@ class LandParcelController extends Controller
 
         $headings = [
             'Land Number',
-            'Associated Project',
             'Land Name',
             'District',
             'Divisional Secretariat',
+            'GN Division',
             'Village',
+            'Land Type',
             'Owner Name',
             'Extent',
+            'Cultivation',
+            'Estimated Value',
+            'Associated Project',
+            'Casehold',
+            'Donated',
             'Remarks',
             'Current Status',
             'Created At',
@@ -399,17 +405,25 @@ class LandParcelController extends Controller
             $projectName = $parcel->project?->title ?? ($parcel->project?->name ?? 'N/A');
             $divSec = $parcel->divisional_secretariat ?? ($parcel->division ?? 'N/A');
             $acers = $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0);
+            $roods = $parcel->land_size_roods ?? 0;
             $perches = $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0);
+            $cultivation = $parcel->cultivation ? "{$parcel->cultivation} (".($parcel->cultivation_status ?? 'unspecified').')' : 'N/A';
 
             return [
                 'parcel_id' => $parcel->parcel_id,
-                'project' => $projectName,
                 'land_name' => $parcel->land_name ?? 'N/A',
                 'district' => $parcel->district,
                 'division' => $divSec,
+                'grama_niladari_division' => $parcel->grama_niladari_division ?? 'N/A',
                 'village' => $parcel->village,
+                'land_type' => $parcel->land_type ?? 'Standard',
                 'owners' => $ownersList ?: 'N/A',
-                'extent' => "{$acers} ac, {$perches} per",
+                'extent' => "{$acers} ac, {$roods} rd, {$perches} per",
+                'cultivation' => $cultivation,
+                'estimated_value' => '₨ '.number_format($parcel->estimated_value ?? 0, 2),
+                'project' => $projectName,
+                'is_casehold' => $parcel->is_casehold ? 'Yes' : 'No',
+                'is_donated' => $parcel->is_donated ? 'Yes' : 'No',
                 'remarks' => $parcel->remarks ?? 'N/A',
                 'status' => ucfirst($parcel->status),
                 'created_at' => $parcel->created_at ? $parcel->created_at->format('Y-m-d H:i:s') : 'N/A',
@@ -435,9 +449,14 @@ class LandParcelController extends Controller
             'land_name' => 'Land Name',
             'district' => 'District',
             'divisional_secretariat' => 'Division',
+            'grama_niladari_division' => 'GN Division',
             'village' => 'Village',
+            'land_type' => 'Land Type',
             'remarks' => 'Remarks',
             'status' => 'Current Status',
+            'estimated_value' => 'Estimated Value',
+            'is_casehold' => 'Casehold',
+            'is_donated' => 'Donated',
         ];
 
         $validationRules = [
@@ -445,6 +464,11 @@ class LandParcelController extends Controller
             'district' => 'required|string|max:255',
             'village' => 'required|string|max:255',
             'status' => 'nullable|string|in:available,pending,acquired,Available,Pending,Acquired,AVAILABLE,PENDING,ACQUIRED',
+            'grama_niladari_division' => 'nullable|string|max:255',
+            'land_type' => 'nullable|string|max:255',
+            'estimated_value' => 'nullable|string|max:255',
+            'is_casehold' => 'nullable|string|max:255',
+            'is_donated' => 'nullable|string|max:255',
         ];
 
         $normalizeFields = [
@@ -472,6 +496,7 @@ class LandParcelController extends Controller
 
                 // 2. Parse extent
                 $acers = 0;
+                $roods = 0;
                 $perches = 0;
 
                 // Try combined Extent column first
@@ -483,6 +508,9 @@ class LandParcelController extends Controller
                 if ($extentField) {
                     if (preg_match('/([\d\.]+)\s*(?:ac|acer|acres?)/i', $extentField, $matches)) {
                         $acers = (float) $matches[1];
+                    }
+                    if (preg_match('/([\d\.]+)\s*(?:rd|rood|roods?)/i', $extentField, $matches)) {
+                        $roods = (float) $matches[1];
                     }
                     if (preg_match('/([\d\.]+)\s*(?:per|perch|perches?)/i', $extentField, $matches)) {
                         $perches = (float) $matches[1];
@@ -498,6 +526,12 @@ class LandParcelController extends Controller
                     $acers = (float) $row['land_size_acers'];
                 }
 
+                if (isset($row['extent_roods'])) {
+                    $roods = (float) $row['extent_roods'];
+                } elseif (isset($row['land_size_roods'])) {
+                    $roods = (float) $row['land_size_roods'];
+                }
+
                 if (isset($row['extent_perches'])) {
                     $perches = (float) $row['extent_perches'];
                 } elseif (isset($row['land_size_perches'])) {
@@ -507,11 +541,78 @@ class LandParcelController extends Controller
                 $mappedData['land_name'] = $mappedData['land_name'] ?? ('Land Parcel '.$mappedData['parcel_id']);
                 $mappedData['province'] = $mappedData['province'] ?? 'Southern';
                 $mappedData['divisional_secretariat'] = $mappedData['divisional_secretariat'] ?? ($row['division'] ?? 'N/A');
-                $mappedData['grama_niladari_division'] = $mappedData['grama_niladari_division'] ?? 'N/A';
+
+                // GN Division
+                $mappedData['grama_niladari_division'] = $mappedData['grama_niladari_division'] ?? ($row['gn_division'] ?? ($row['grama_niladhari_division'] ?? 'N/A'));
+                if (empty($mappedData['grama_niladari_division']) || $mappedData['grama_niladari_division'] === 'N/A') {
+                    $mappedData['grama_niladari_division'] = 'N/A';
+                }
+
+                // Land Type
+                $mappedData['land_type'] = $mappedData['land_type'] ?? ($row['land_type'] ?? 'Standard');
+                if (empty($mappedData['land_type'])) {
+                    $mappedData['land_type'] = 'Standard';
+                }
+
+                // Estimated Value
+                $estValue = $mappedData['estimated_value'] ?? ($row['estimated_value'] ?? 0);
+                if ($estValue !== null && $estValue !== '') {
+                    $cleanVal = preg_replace('/[^\d\.]/', '', $estValue);
+                    $mappedData['estimated_value'] = (float) $cleanVal;
+                } else {
+                    $mappedData['estimated_value'] = 0;
+                }
+
+                // Casehold
+                $isCasehold = $mappedData['is_casehold'] ?? ($row['is_casehold'] ?? ($row['casehold'] ?? false));
+                if ($isCasehold !== null && $isCasehold !== '') {
+                    if (is_bool($isCasehold)) {
+                        $mappedData['is_casehold'] = $isCasehold;
+                    } else {
+                        $val = strtolower(trim($isCasehold));
+                        $mappedData['is_casehold'] = ($val === 'yes' || $val === '1' || $val === 'true');
+                    }
+                } else {
+                    $mappedData['is_casehold'] = false;
+                }
+
+                // Casehold details
+                $mappedData['case_number'] = null;
+                $mappedData['case_status'] = null;
+                $mappedData['case_start_date'] = null;
+                $mappedData['case_end_date'] = null;
+                if ($mappedData['is_casehold']) {
+                    if (isset($row['case_number'])) {
+                        $mappedData['case_number'] = trim($row['case_number']);
+                    }
+                    if (isset($row['case_status'])) {
+                        $mappedData['case_status'] = trim($row['case_status']);
+                    }
+                    if (isset($row['case_start_date'])) {
+                        $mappedData['case_start_date'] = trim($row['case_start_date']);
+                    }
+                    if (isset($row['case_end_date'])) {
+                        $mappedData['case_end_date'] = trim($row['case_end_date']);
+                    }
+                }
+
+                // Donated
+                $isDonated = $mappedData['is_donated'] ?? ($row['is_donated'] ?? ($row['donated'] ?? false));
+                if ($isDonated !== null && $isDonated !== '') {
+                    if (is_bool($isDonated)) {
+                        $mappedData['is_donated'] = $isDonated;
+                    } else {
+                        $val = strtolower(trim($isDonated));
+                        $mappedData['is_donated'] = ($val === 'yes' || $val === '1' || $val === 'true');
+                    }
+                } else {
+                    $mappedData['is_donated'] = false;
+                }
+
                 $mappedData['land_size_acers'] = $acers;
-                $mappedData['land_size_roods'] = 0;
+                $mappedData['land_size_roods'] = $roods;
                 $mappedData['land_size_perches'] = $perches;
-                $mappedData['full_land_size'] = ($acers * 160) + $perches;
+                $mappedData['full_land_size'] = ($acers * 160) + ($roods * 40) + $perches;
                 $mappedData['has_plan'] = false;
                 $mappedData['parcel_numbers'] = [];
                 $mappedData['has_residential_houses'] = false;
@@ -519,8 +620,6 @@ class LandParcelController extends Controller
                 $mappedData['cultivation'] = 'N/A';
                 $mappedData['cultivation_status'] = 'fertile';
                 $mappedData['annual_income'] = 0;
-                $mappedData['land_type'] = 'Standard';
-                $mappedData['estimated_value'] = 0;
 
                 // 3. Handle default status
                 if (empty($mappedData['status'])) {
