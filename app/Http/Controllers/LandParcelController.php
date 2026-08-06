@@ -167,7 +167,7 @@ class LandParcelController extends Controller
      */
     public function show(string $id)
     {
-        $landParcel = LandParcel::with(['owners', 'project', 'residents', 'documents'])->find($id);
+        $landParcel = LandParcel::with(['owners', 'project', 'residents', 'documents', 'surveys.document', 'valuations.document', 'compensations.payments.document'])->find($id);
 
         if ($landParcel) {
             return response()->json([

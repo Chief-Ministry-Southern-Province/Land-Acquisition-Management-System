@@ -9,6 +9,9 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentsController;
 use App\Http\Controllers\HOBApprovalController;
 use App\Http\Controllers\LandParcelController;
+use App\Http\Controllers\LandSurveyController;
+use App\Http\Controllers\LandValuationController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\PropertyOwnerController;
 use App\Http\Controllers\RoleController;
@@ -50,6 +53,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('compensation', CompensationController::class);
     Route::get('documents/{id}/download', [DocumentsController::class, 'download']);
     Route::apiResource('documents', DocumentsController::class);
+
+    // ─── Land Acquisition Workflow Routes ───────────────────────────────
+    // DO & Admin can write data
+    Route::middleware('check.role:DO')->group(function () {
+        Route::post('land-surveys', [LandSurveyController::class, 'store']);
+        Route::put('land-surveys/{id}', [LandSurveyController::class, 'update']);
+        Route::delete('land-surveys/{id}', [LandSurveyController::class, 'destroy']);
+        
+        Route::post('land-valuations', [LandValuationController::class, 'store']);
+        Route::put('land-valuations/{id}', [LandValuationController::class, 'update']);
+        Route::delete('land-valuations/{id}', [LandValuationController::class, 'destroy']);
+        
+        Route::post('payments', [PaymentController::class, 'store']);
+        Route::put('payments/{id}', [PaymentController::class, 'update']);
+        Route::delete('payments/{id}', [PaymentController::class, 'destroy']);
+    });
+
+    // Read-only endpoints for all authenticated users
+    Route::get('land-surveys', [LandSurveyController::class, 'index']);
+    Route::get('land-surveys/{id}', [LandSurveyController::class, 'show']);
+    Route::get('land-valuations', [LandValuationController::class, 'index']);
+    Route::get('land-valuations/{id}', [LandValuationController::class, 'show']);
+    Route::get('payments', [PaymentController::class, 'index']);
+    Route::get('payments/{id}', [PaymentController::class, 'show']);
 
     // ─── Head of Branch Routes ───────────────────────────────────────
     Route::middleware('check.role:HOB')->group(function () {
