@@ -115,4 +115,13 @@ return [
     'do_dashboard_subtitle' => 'Development Officer Dashboard • Southern Province Land Acquisition Management System',
     'my_draft_projects' => 'My Draft Projects',
     'in_flight_projects' => 'Active Approval Tracking',
+
+    // Acquisition case form
+    'section_20'=> 'Whether the proposed land is a land allocated to land owners under statutory notifications under the Land Reform Act',
+    'section_21'=> 'Whether there are alternative State lands or lands belonging to the Land Reform Commission that can be utilized for the proposed public purpose? (If so, details such as the location, terrain nature, etc. of the land should be mentioned.)',
+    'section_22'=> 'Name and designation of the officer who selected this land as suitable for the proposed public purpose',
+    'section_23'=> 'Name and designation of the officer who recommended that this land is suitable to be acquired for the proposed public purpose',
+    'section_24'=> 'Whether it was inquired if there are other suitable State or private lands in this area for this purpose',
+    'section_25'=> 'Clearly specify the source of funds allocated to bear the acquisition, compensation, and other necessary expenses',
+    'section_26'=> 'Whether the selection of the proposed land for public purpose complies with the general development plan of the area, and whether agreement/consent was obtained from the relevant Local Authority / Urban Development Department or relevant institute',
 ];
