@@ -19,6 +19,8 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import { getDepartments } from '@/services/departmentManagementService';
+import type { Department } from '@/services/departmentManagementService';
 import {
   uploadDocument,
   deleteDocument,
@@ -152,6 +154,7 @@ export default function AddProject() {
   // Dynamic parcels state
   const [allParcels, setAllParcels] = useState<LandParcel[]>([]);
   const [loadingParcels, setLoadingParcels] = useState(true);
+  const [departments, setDepartments] = useState<Department[]>([]);
 
   // Edit states
   const [editId] = useState<string | null>(() => {
@@ -177,20 +180,24 @@ export default function AddProject() {
   const user = (pageProps.auth as any)?.user;
   const userId = user?.id;
 
-  // Fetch all parcels
+  // Fetch all parcels and departments
   useEffect(() => {
-    const fetchParcels = async () => {
+    const init = async () => {
       try {
         setLoadingParcels(true);
-        const data = await getLandParcels();
-        setAllParcels(data);
+        const [parcelsData, deptsData] = await Promise.all([
+          getLandParcels(),
+          getDepartments(),
+        ]);
+        setAllParcels(parcelsData);
+        setDepartments(deptsData);
       } catch (error) {
-        console.error('Failed to fetch land parcels:', error);
+        console.error('Failed to fetch land parcels or departments:', error);
       } finally {
         setLoadingParcels(false);
       }
     };
-    fetchParcels();
+    init();
   }, []);
 
   // Fetch project details (for edit mode)
@@ -624,12 +631,30 @@ export default function AddProject() {
             </div>
 
             <Field label="Requesting Institution">
-              <input
+              <select
                 className={inputCls}
-                placeholder="e.g. Chief Ministry / Road Development Authority"
+                title="Select Requesting Institution"
                 value={form.institution}
-                onChange={set('institution')}
-              />
+                onChange={(e) => {
+                  const selectedName = e.target.value;
+                  const dept = departments.find((d) => d.name === selectedName);
+                  setForm((f) => ({
+                    ...f,
+                    institution: selectedName,
+                    institutionAddress: dept?.address || '',
+                  }));
+                }}
+              >
+                <option value="">-- Select Department --</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.name}>
+                    {dept.name}
+                  </option>
+                ))}
+                {form.institution && !departments.some((d) => d.name === form.institution) && (
+                  <option value={form.institution}>{form.institution}</option>
+                )}
+              </select>
             </Field>
 
             <div className="lg:col-span-3">
