@@ -30,6 +30,7 @@ class DocumentsController extends Controller
                 'user_id' => 'required|exists:users,id',
                 'project_id' => 'nullable|exists:projects,id',
                 'land_parcel_id' => 'nullable|exists:land_parcels,id',
+                'property_owner_id' => 'nullable|exists:property_owners,id',
                 'document_category' => 'required|string|max:255',
                 'file' => 'required|file|max:51200', // 50MB max
             ]);
@@ -52,6 +53,7 @@ class DocumentsController extends Controller
                 'user_id' => $validated['user_id'],
                 'project_id' => $validated['project_id'] ?? null,
                 'land_parcel_id' => $validated['land_parcel_id'] ?? null,
+                'property_owner_id' => $validated['property_owner_id'] ?? null,
                 'original_filename' => $uploadResult['original_filename'],
                 'stored_filename' => $uploadResult['stored_filename'],
                 'file_type' => $extension,
@@ -65,6 +67,7 @@ class DocumentsController extends Controller
                 'user_id' => 'required|exists:users,id',
                 'project_id' => 'nullable|exists:projects,id',
                 'land_parcel_id' => 'nullable|exists:land_parcels,id',
+                'property_owner_id' => 'nullable|exists:property_owners,id',
                 'original_filename' => 'required|string|max:255',
                 'stored_filename' => 'required|string|max:255',
                 'file_type' => 'required|string|max:255',

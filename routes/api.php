@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('land-parcels/export', [LandParcelController::class, 'export']);
     Route::post('land-parcels/import', [LandParcelController::class, 'import']);
     Route::apiResource('land-parcels', LandParcelController::class);
+    Route::get('property-owners/export', [PropertyOwnerController::class, 'export']);
     Route::apiResource('property-owners', PropertyOwnerController::class);
     Route::apiResource('compensation', CompensationController::class);
     Route::get('documents/{id}/download', [DocumentsController::class, 'download']);

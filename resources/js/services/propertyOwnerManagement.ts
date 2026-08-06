@@ -1,5 +1,20 @@
 import api from './api';
 import type { LandParcel } from './landParcelManagementService';
+import type { Document } from './projectsManagementService';
+
+export interface Compensation {
+  id: string;
+  owner_id: string;
+  land_parcel_id: string;
+  compensation_id: string;
+  amount: number;
+  approved_date: string | null;
+  payment_date: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  landParcel?: LandParcel;
+}
 
 export interface PropertyOwner {
   id: string;
@@ -14,7 +29,8 @@ export interface PropertyOwner {
   created_at: string;
   updated_at: string;
   landParcels?: LandParcel[];
-  compensations?: any[];
+  compensations?: Compensation[];
+  documents?: Document[];
 }
 
 // Map backend property owner model to frontend PropertyOwner type
@@ -75,13 +91,38 @@ const mapFromBackend = (data: any): PropertyOwner => ({
           : undefined,
       }))
     : [],
+  documents: data.documents
+    ? data.documents.map((d: any) => ({
+        id: String(d.id),
+        user_id: String(d.user_id),
+        project_id: d.project_id ? String(d.project_id) : null,
+        land_parcel_id: d.land_parcel_id ? String(d.land_parcel_id) : null,
+        property_owner_id: d.property_owner_id
+          ? String(d.property_owner_id)
+          : null,
+        original_filename: d.original_filename,
+        stored_filename: d.stored_filename,
+        file_type: d.file_type,
+        file_path: d.file_path,
+        file_size: d.file_size,
+        document_category: d.document_category,
+        upload_date: d.upload_date,
+        created_at: d.created_at,
+        updated_at: d.updated_at,
+      }))
+    : [],
 });
 
 // Map frontend PropertyOwner data to backend format
 const mapToBackend = (
   data: Omit<
     PropertyOwner,
-    'id' | 'created_at' | 'updated_at' | 'landParcels' | 'compensations'
+    | 'id'
+    | 'created_at'
+    | 'updated_at'
+    | 'landParcels'
+    | 'compensations'
+    | 'documents'
   >,
 ) => ({
   owner_id: data.ownerId,
@@ -126,4 +167,44 @@ export const updatePropertyOwner = async (
 
 export const deletePropertyOwner = async (id: string): Promise<void> => {
   await api.delete(`/api/property-owners/${id}`);
+};
+
+export const exportPropertyOwners = async (
+  format: 'pdf' | 'excel' | 'csv',
+  id?: string,
+): Promise<void> => {
+  const requestUrl = id
+    ? `/api/property-owners/export?format=${format}&id=${id}`
+    : `/api/property-owners/export?format=${format}`;
+  const response = await api.get(requestUrl, {
+    responseType: 'blob',
+  });
+
+  const contentType = response.headers['content-type'];
+  const blob = new Blob([response.data], {
+    type:
+      typeof contentType === 'string'
+        ? contentType
+        : 'application/octet-stream',
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = `property_owners_export.${format === 'excel' ? 'xlsx' : format}`;
+
+  if (typeof contentDisposition === 'string') {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+
+    if (match && match[1]) {
+      filename = match[1];
+    }
+  }
+
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
 };

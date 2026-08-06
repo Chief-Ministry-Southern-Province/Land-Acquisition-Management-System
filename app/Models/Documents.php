@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
     'user_id',
     'project_id',
     'land_parcel_id',
+    'property_owner_id',
     'original_filename',
     'stored_filename',
     'file_type',
@@ -27,6 +28,11 @@ class Documents extends Model
     public function landParcel()
     {
         return $this->belongsTo(LandParcel::class, 'land_parcel_id');
+    }
+
+    public function propertyOwner()
+    {
+        return $this->belongsTo(PropertyOwner::class, 'property_owner_id');
     }
 
     public function user()
