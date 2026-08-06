@@ -14,6 +14,8 @@ import {
   Upload,
   Download,
   Trash2,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
@@ -259,6 +261,7 @@ export default function EditLandParcel({ id }: { id: string }) {
     {},
   );
   const [submitting, setSubmitting] = useState(false);
+  const [planFile, setPlanFile] = useState<File | null>(null);
 
   // Document upload state
   const [queuedFiles, setQueuedFiles] = useState<
@@ -815,6 +818,30 @@ export default function EditLandParcel({ id }: { id: string }) {
       return false;
     }
 
+    const existingPlanDoc = parcel?.documents?.find(
+      (d: any) =>
+        (d.documentCategory || d.document_category) === 'survey' ||
+        (d.documentCategory || d.document_category) === 'plan',
+    );
+
+    const existingSketchDoc = parcel?.documents?.find(
+      (d: any) => (d.documentCategory || d.document_category) === 'sketch',
+    );
+
+    if (form.hasPlan) {
+      if (!planFile && !existingPlanDoc) {
+        alert('You must upload a copy of the land parcel plan.');
+
+        return false;
+      }
+    } else {
+      if (!planFile && !existingSketchDoc) {
+        alert('You must upload a simple sketch of the land parcel.');
+
+        return false;
+      }
+    }
+
     setErrors(errs);
 
     return Object.keys(errs).length === 0;
@@ -902,6 +929,17 @@ export default function EditLandParcel({ id }: { id: string }) {
       };
 
       await updateLandParcel(id, payload);
+
+      // Upload the plan/sketch document
+      if (planFile) {
+        await uploadDocument(
+          planFile,
+          String(userId || ''),
+          form.projectId ? String(form.projectId) : null,
+          form.hasPlan ? 'survey' : 'sketch',
+          String(id),
+        );
+      }
 
       // Upload documents after the land parcel is updated, so we can link them
       if (queuedFiles.length > 0) {
@@ -1267,14 +1305,119 @@ export default function EditLandParcel({ id }: { id: string }) {
                   type="checkbox"
                   className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.hasPlan}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, hasPlan: e.target.checked }))
-                  }
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, hasPlan: e.target.checked }));
+                    setPlanFile(null);
+                  }}
                 />
                 <span className="text-foreground text-sm font-medium">
                   Does land parcel has a plan
                 </span>
               </label>
+            </div>
+
+            {/* Plan / Sketch file attachment section */}
+            <div className="bg-muted/20 border-border/80 rounded-lg border p-4 md:col-span-2 lg:col-span-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-foreground text-sm font-semibold">
+                  {form.hasPlan
+                    ? 'Attach Copy of Plan *'
+                    : 'Attach Simple Sketch of Land Parcel *'}
+                </label>
+                <p className="text-muted-foreground text-xs">
+                  {form.hasPlan
+                    ? 'A copy of the land parcel plan is required. Supported formats: PDF, JPG, PNG, DOCX.'
+                    : 'A simple sketch of the land parcel is required. Supported formats: PDF, JPG, PNG, DOCX.'}
+                </p>
+                <div className="mt-2 flex flex-col gap-3">
+                  <div className="flex items-center gap-4">
+                    <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold text-white transition-colors">
+                      <Upload className="h-4 w-4" />
+                      <span>Choose File</span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept=".pdf,.jpg,.jpeg,.png,.docx"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+
+                          if (file) {
+                            setPlanFile(file);
+                          }
+                        }}
+                      />
+                    </label>
+                    {planFile ? (
+                      <div className="flex items-center gap-2 text-sm font-medium text-green-600">
+                        <CheckCircle className="h-4 w-4" />
+                        <span>
+                          Attached: <strong>{planFile.name}</strong> (
+                          {(planFile.size / 1024).toFixed(1)} KB)
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                        <span>No new file chosen.</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Show existing document if available */}
+                  {(() => {
+                    const existingPlanDoc = parcel?.documents?.find(
+                      (d: any) =>
+                        (d.documentCategory || d.document_category) ===
+                          'survey' ||
+                        (d.documentCategory || d.document_category) === 'plan',
+                    );
+                    const existingSketchDoc = parcel?.documents?.find(
+                      (d: any) =>
+                        (d.documentCategory || d.document_category) ===
+                        'sketch',
+                    );
+
+                    const currentDoc = form.hasPlan
+                      ? existingPlanDoc
+                      : existingSketchDoc;
+
+                    if (currentDoc) {
+                      return (
+                        <div className="bg-card border-border flex items-center justify-between rounded-lg border px-4 py-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <FileText className="text-primary h-4 w-4" />
+                            <span className="text-foreground font-medium">
+                              Current File: {currentDoc.original_filename}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDownload(
+                                String(currentDoc.id),
+                                currentDoc.original_filename,
+                              )
+                            }
+                            className="text-primary hover:text-primary/80 flex items-center gap-1 font-semibold"
+                          >
+                            <Download className="h-4 w-4" />
+                            <span>Download Current</span>
+                          </button>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div className="flex items-center gap-2 text-xs text-red-500">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>
+                            No existing copy has been uploaded yet. Upload is
+                            required.
+                          </span>
+                        </div>
+                      );
+                    }
+                  })()}
+                </div>
+              </div>
             </div>
 
             {form.hasPlan ? (

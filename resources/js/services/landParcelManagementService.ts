@@ -36,6 +36,12 @@ export interface LandParcel {
   cultivation_status?: 'fertile' | 'mid' | 'infertile' | 'unspecified';
   annual_income?: number;
   land_type?: string;
+  is_casehold?: boolean;
+  case_number?: string | null;
+  case_start_date?: string | null;
+  case_end_date?: string | null;
+  case_status?: string | null;
+  is_donated?: boolean;
   estimated_value?: number;
   remarks: string | null;
   status: 'available' | 'pending' | 'acquired';
@@ -47,6 +53,9 @@ export interface LandParcel {
   property_owner_id?: string | null;
   property_owner_ids?: string[] | null;
   project?: any;
+  surveys?: any[];
+  valuations?: any[];
+  compensations?: any[];
 }
 
 // Map backend land parcel to frontend
@@ -84,6 +93,12 @@ const mapFromBackend = (data: any): LandParcel => ({
   cultivation_status: data.cultivation_status || 'unspecified',
   annual_income: Number(data.annual_income) || 0,
   land_type: data.land_type || 'Standard',
+  is_casehold: Boolean(data.is_casehold),
+  case_number: data.case_number || null,
+  case_start_date: data.case_start_date || null,
+  case_end_date: data.case_end_date || null,
+  case_status: data.case_status || null,
+  is_donated: Boolean(data.is_donated),
   estimated_value: Number(data.estimated_value) || 0,
   remarks: data.remarks || null,
   status: data.status,
@@ -118,6 +133,9 @@ const mapFromBackend = (data: any): LandParcel => ({
         updated_at: o.updated_at,
       }))
     : [],
+  surveys: data.surveys || [],
+  valuations: data.valuations || [],
+  compensations: data.compensations || [],
 });
 
 // Map frontend land parcel to backend
@@ -158,6 +176,12 @@ const mapToBackend = (
   cultivation_status: data.cultivation_status || 'unspecified',
   annual_income: data.annual_income ?? 0,
   land_type: data.land_type || 'Standard',
+  is_casehold: Boolean(data.is_casehold),
+  case_number: data.is_casehold ? data.case_number || null : null,
+  case_start_date: data.is_casehold ? data.case_start_date || null : null,
+  case_end_date: data.is_casehold ? data.case_end_date || null : null,
+  case_status: data.is_casehold ? data.case_status || null : null,
+  is_donated: Boolean(data.is_donated),
   estimated_value: data.estimated_value ?? 0,
   remarks: data.remarks,
   status: data.status,
@@ -206,8 +230,12 @@ export const deleteLandParcel = async (id: string): Promise<void> => {
 
 export const exportLandParcels = async (
   format: 'pdf' | 'excel' | 'csv',
+  id?: string,
 ): Promise<void> => {
-  const response = await api.get(`/api/land-parcels/export?format=${format}`, {
+  const requestUrl = id
+    ? `/api/land-parcels/export?format=${format}&id=${id}`
+    : `/api/land-parcels/export?format=${format}`;
+  const response = await api.get(requestUrl, {
     responseType: 'blob',
   });
 

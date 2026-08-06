@@ -140,13 +140,6 @@ export default function LandParcelList() {
       sortable: true,
       render: (value: string | null) => value || 'N/A',
     },
-    {
-      key: 'project',
-      label: 'Associated Project',
-      sortable: true,
-      render: (_val: any, row: any) =>
-        row.project?.title || row.project?.name || 'N/A',
-    },
     { key: 'district', label: 'District', sortable: true },
     {
       key: 'divisional_secretariat',
@@ -155,7 +148,19 @@ export default function LandParcelList() {
       render: (_val: any, row: any) =>
         row.divisional_secretariat || row.division || 'N/A',
     },
+    {
+      key: 'grama_niladari_division',
+      label: 'GN Division',
+      sortable: true,
+      render: (value: string | null) => value || 'N/A',
+    },
     { key: 'village', label: 'Village', sortable: true },
+    {
+      key: 'land_type',
+      label: 'Land Type',
+      sortable: true,
+      render: (value: string | null) => value || 'Standard',
+    },
     {
       key: 'owners',
       label: 'Owner Name',
@@ -173,13 +178,61 @@ export default function LandParcelList() {
       label: 'Extent',
       sortable: true,
       render: (_val: any, row: any) =>
-        `${row.land_size_acers ?? row.extent_acers ?? 0} ac, ${row.land_size_perches ?? row.extent_perches ?? 0} per`,
+        `${row.land_size_acers ?? row.extent_acers ?? 0} ac, ${row.land_size_roods ?? 0} rd, ${row.land_size_perches ?? row.extent_perches ?? 0} per`,
     },
     {
       key: 'cultivation_status',
       label: 'Cultivation',
       sortable: true,
       render: (value: string | null) => value || 'N/A',
+    },
+    {
+      key: 'estimated_value',
+      label: 'Estimated Value',
+      sortable: true,
+      render: (value: number | null) =>
+        value !== undefined && value !== null
+          ? `₨ ${Number(value).toLocaleString()}`
+          : '₨ 0',
+    },
+    {
+      key: 'project',
+      label: 'Associated Project',
+      sortable: true,
+      render: (_val: any, row: any) =>
+        row.project?.title || row.project?.name || 'N/A',
+    },
+    {
+      key: 'is_casehold',
+      label: 'Casehold',
+      sortable: true,
+      render: (value: boolean | null) => (
+        <span
+          className={
+            value
+              ? 'font-medium text-amber-600 dark:text-amber-400'
+              : 'text-muted-foreground'
+          }
+        >
+          {value ? 'Yes' : 'No'}
+        </span>
+      ),
+    },
+    {
+      key: 'is_donated',
+      label: 'Donated',
+      sortable: true,
+      render: (value: boolean | null) => (
+        <span
+          className={
+            value
+              ? 'font-medium text-green-600 dark:text-green-400'
+              : 'text-muted-foreground'
+          }
+        >
+          {value ? 'Yes' : 'No'}
+        </span>
+      ),
     },
     {
       key: 'status',

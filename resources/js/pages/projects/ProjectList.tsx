@@ -7,6 +7,7 @@ import MainLayout from '@/layouts/MainLayout';
 import {
   getProjects,
   deleteProject,
+  exportProjects,
 } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
@@ -34,6 +35,14 @@ export default function ProjectList() {
     fetchProjects();
   }, []);
 
+  const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
+    try {
+      await exportProjects(format);
+    } catch (error) {
+      console.error(`Failed to export projects as ${format}:`, error);
+    }
+  };
+
   const handleDelete = async (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete project "${name}"?`)) {
       try {
@@ -58,21 +67,47 @@ export default function ProjectList() {
       key: 'institution',
       label: 'Institution',
       sortable: true,
-      render: (_val: any, row: any) => row.institution || 'N/A',
+      render: (_val: any, row: any) => (
+        <div className="flex flex-col">
+          <span className="text-foreground font-medium">
+            {row.institution || 'N/A'}
+          </span>
+          {row.institutionAddress && (
+            <span
+              className="text-muted-foreground mt-0.5 max-w-[200px] truncate text-xs"
+              title={row.institutionAddress}
+            >
+              {row.institutionAddress}
+            </span>
+          )}
+        </div>
+      ),
     },
     { key: 'purpose', label: 'Purpose', sortable: true },
     {
       key: 'landArea',
       label: 'Land Area (A-R-P)',
       sortable: true,
-      render: (_val: any, row: any) =>
-        `${row.landAreaAcers ?? 0} A, ${row.landAreaRoods ?? 0} R, ${row.landAreaPerches ?? 0} P`,
+      render: (_val: any, row: any) => (
+        <div className="flex flex-col">
+          <span className="text-foreground font-medium">
+            {row.landAreaAcers ?? 0} A, {row.landAreaRoods ?? 0} R,{' '}
+            {row.landAreaPerches ?? 0} P
+          </span>
+          {row.fullLandArea !== undefined && row.fullLandArea !== null && (
+            <span className="text-muted-foreground mt-0.5 text-xs">
+              Total: {row.fullLandArea} Perches
+            </span>
+          )}
+        </div>
+      ),
     },
     {
       key: 'approvalDate',
       label: 'Approval Date',
       sortable: true,
-      render: (value: string | null) => value || 'N/A',
+      render: (value: string | null) =>
+        value ? new Date(value).toLocaleDateString() : 'N/A',
     },
     {
       key: 'remarks',
@@ -181,6 +216,7 @@ export default function ProjectList() {
           columns={columns}
           data={projects}
           onRowClick={handleRowClick}
+          onExport={handleExport}
           actions={actions}
         />
       )}

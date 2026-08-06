@@ -35,6 +35,12 @@ use Illuminate\Database\Eloquent\Model;
     'cultivation_status',
     'annual_income',
     'land_type',
+    'is_casehold',
+    'case_number',
+    'case_start_date',
+    'case_end_date',
+    'case_status',
+    'is_donated',
     'estimated_value',
     'remarks',
     'status',
@@ -46,6 +52,10 @@ class LandParcel extends Model
         'has_residential_houses' => 'boolean',
         'is_resident_owner' => 'boolean',
         'is_cultivated' => 'boolean',
+        'is_casehold' => 'boolean',
+        'is_donated' => 'boolean',
+        'case_start_date' => 'date',
+        'case_end_date' => 'date',
         'parcel_numbers' => 'array',
         'boundary_geojson' => 'array',
         'land_size_acers' => 'decimal:2',
@@ -77,4 +87,20 @@ class LandParcel extends Model
     {
         return $this->hasMany(Resident::class);
     }
+
+    public function surveys()
+    {
+        return $this->hasMany(LandSurvey::class, 'land_parcel_id');
+    }
+
+    public function valuations()
+    {
+        return $this->hasMany(LandValuation::class, 'land_parcel_id');
+    }
+
+    public function compensations()
+    {
+        return $this->hasMany(Compensation::class, 'land_parcel_id');
+    }
 }
+

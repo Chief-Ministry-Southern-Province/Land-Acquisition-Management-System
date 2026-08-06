@@ -12,6 +12,8 @@ import {
   Users,
   FolderKanban,
   Upload,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
@@ -152,6 +154,12 @@ type FormData = {
   cultivationStatus: 'fertile' | 'mid' | 'infertile' | 'unspecified';
   annualIncome: string;
   landType: string;
+  isCasehold: boolean;
+  caseNumber: string;
+  caseStartDate: string;
+  caseEndDate: string;
+  caseStatus: string;
+  isDonated: boolean;
   estimatedValue: string;
   landUseType: string;
   tenureType: string;
@@ -187,6 +195,12 @@ const EMPTY: FormData = {
   cultivationStatus: 'unspecified',
   annualIncome: '',
   landType: '',
+  isCasehold: false,
+  caseNumber: '',
+  caseStartDate: '',
+  caseEndDate: '',
+  caseStatus: '',
+  isDonated: false,
   estimatedValue: '',
   landUseType: '',
   tenureType: '',
@@ -245,6 +259,7 @@ export default function AddLandParcel() {
     {},
   );
   const [submitting, setSubmitting] = useState(false);
+  const [planFile, setPlanFile] = useState<File | null>(null);
 
   // Document upload state
   const [queuedFiles, setQueuedFiles] = useState<
@@ -665,6 +680,16 @@ export default function AddLandParcel() {
       return false;
     }
 
+    if (!planFile) {
+      alert(
+        form.hasPlan
+          ? 'You must upload a copy of the land parcel plan.'
+          : 'You must upload a simple sketch of the land parcel.',
+      );
+
+      return false;
+    }
+
     setErrors(errs);
 
     return Object.keys(errs).length === 0;
@@ -741,6 +766,12 @@ export default function AddLandParcel() {
           : 'unspecified',
         annual_income: form.isCultivated ? Number(form.annualIncome) || 0 : 0,
         land_type: form.landType || form.landUseType || 'Standard',
+        is_casehold: form.isCasehold,
+        case_number: form.isCasehold ? form.caseNumber || null : null,
+        case_start_date: form.isCasehold ? form.caseStartDate || null : null,
+        case_end_date: form.isCasehold ? form.caseEndDate || null : null,
+        case_status: form.isCasehold ? form.caseStatus || null : null,
+        is_donated: form.isDonated,
         estimated_value: Number(form.estimatedValue) || 0,
         remarks: form.remarks || null,
         status: 'available' as const,
@@ -753,6 +784,17 @@ export default function AddLandParcel() {
 
       const createdParcel = await createLandParcel(payload);
       const createdParcelId = createdParcel?.id ?? null;
+
+      // Upload the plan/sketch document
+      if (planFile && createdParcelId) {
+        await uploadDocument(
+          planFile,
+          String(userId || ''),
+          form.projectId ? String(form.projectId) : null,
+          form.hasPlan ? 'survey' : 'sketch',
+          String(createdParcelId),
+        );
+      }
 
       // Upload documents after the land parcel is created, so we can link them
       if (queuedFiles.length > 0 && createdParcelId) {
@@ -1058,14 +1100,62 @@ export default function AddLandParcel() {
                   type="checkbox"
                   className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.hasPlan}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, hasPlan: e.target.checked }))
-                  }
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, hasPlan: e.target.checked }));
+                    setPlanFile(null);
+                  }}
                 />
                 <span className="text-foreground text-sm font-medium">
                   Does land parcel has a plan
                 </span>
               </label>
+            </div>
+
+            <div className="bg-muted/20 border-border/80 rounded-lg border p-4 md:col-span-2 lg:col-span-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-foreground text-sm font-semibold">
+                  {form.hasPlan
+                    ? 'Attach Copy of Plan *'
+                    : 'Attach Simple Sketch of Land Parcel *'}
+                </label>
+                <p className="text-muted-foreground text-xs">
+                  {form.hasPlan
+                    ? 'A copy of the land parcel plan is required. Supported formats: PDF, JPG, PNG, DOCX.'
+                    : 'A simple sketch of the land parcel is required. Supported formats: PDF, JPG, PNG, DOCX.'}
+                </p>
+                <div className="mt-2 flex items-center gap-4">
+                  <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold text-white transition-colors">
+                    <Upload className="h-4 w-4" />
+                    <span>Choose File</span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.jpg,.jpeg,.png,.docx"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+
+                        if (file) {
+                          setPlanFile(file);
+                        }
+                      }}
+                    />
+                  </label>
+                  {planFile ? (
+                    <div className="flex items-center gap-2 text-sm font-medium text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <span>
+                        Attached: <strong>{planFile.name}</strong> (
+                        {(planFile.size / 1024).toFixed(1)} KB)
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-red-500">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>No file attached. This is required.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {form.hasPlan ? (
@@ -1226,6 +1316,83 @@ export default function AddLandParcel() {
               </select>
               {errMsg('tenureType')}
             </Field>
+
+            <div className="flex items-center gap-2 py-2 md:col-span-2 lg:col-span-4">
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
+                  checked={form.isCasehold}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, isCasehold: e.target.checked }))
+                  }
+                />
+                <span className="text-foreground text-sm font-medium">
+                  Land under litigation (Case Hold)
+                </span>
+              </label>
+            </div>
+
+            {form.isCasehold && (
+              <>
+                <Field label="Case Number">
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. CASE/2026/001"
+                    value={form.caseNumber}
+                    onChange={set('caseNumber')}
+                  />
+                </Field>
+
+                <Field label="Case Start Date">
+                  <input
+                    className={inputCls}
+                    type="date"
+                    value={form.caseStartDate}
+                    onChange={set('caseStartDate')}
+                  />
+                </Field>
+
+                <Field label="Case End Date">
+                  <input
+                    className={inputCls}
+                    type="date"
+                    value={form.caseEndDate}
+                    onChange={set('caseEndDate')}
+                  />
+                </Field>
+
+                <Field label="Case Status">
+                  <select
+                    className={inputCls}
+                    value={form.caseStatus}
+                    onChange={set('caseStatus')}
+                  >
+                    <option value="">Select Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="dismissed">Dismissed</option>
+                  </select>
+                </Field>
+              </>
+            )}
+
+            <div className="flex items-center gap-2 py-2 md:col-span-2 lg:col-span-4">
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
+                  checked={form.isDonated}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, isDonated: e.target.checked }))
+                  }
+                />
+                <span className="text-foreground text-sm font-medium">
+                  Donated Land
+                </span>
+              </label>
+            </div>
           </div>
         </div>
 
