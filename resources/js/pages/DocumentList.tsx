@@ -98,12 +98,13 @@ export default function DocumentList() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [docsData, projsData, parcelsData, ownersData] = await Promise.all([
-          getDocuments(),
-          getProjects(),
-          getLandParcels(),
-          getPropertyOwners(),
-        ]);
+        const [docsData, projsData, parcelsData, ownersData] =
+          await Promise.all([
+            getDocuments(),
+            getProjects(),
+            getLandParcels(),
+            getPropertyOwners(),
+          ]);
         setDocuments(docsData);
         setProjects(projsData);
         setLandParcels(parcelsData);
@@ -404,7 +405,9 @@ export default function DocumentList() {
           return <span className="text-muted-foreground text-xs">—</span>;
         }
 
-        const owner = propertyOwners.find((po) => String(po.id) === String(value));
+        const owner = propertyOwners.find(
+          (po) => String(po.id) === String(value),
+        );
 
         return (
           <div

@@ -9,7 +9,10 @@ import {
   deleteDocument,
   downloadDocument,
 } from '@/services/documentManagementService';
-import { getPropertyOwner, exportPropertyOwners } from '@/services/propertyOwnerManagement';
+import {
+  getPropertyOwner,
+  exportPropertyOwners,
+} from '@/services/propertyOwnerManagement';
 import type { PropertyOwner } from '@/services/propertyOwnerManagement';
 
 interface Props {
@@ -52,7 +55,10 @@ export default function LandOwnerDetails({ id }: Props) {
       setLoading(true);
       await exportPropertyOwners(format, id);
     } catch (error) {
-      console.error(`Failed to export property owner profile as ${format}:`, error);
+      console.error(
+        `Failed to export property owner profile as ${format}:`,
+        error,
+      );
       alert(`Failed to export property owner profile.`);
     } finally {
       setLoading(false);
@@ -189,19 +195,19 @@ export default function LandOwnerDetails({ id }: Props) {
         <div className="relative">
           <button
             onClick={() => setShowExportDropdown(!showExportDropdown)}
-            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors text-sm font-medium"
+            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
           >
             <Download className="h-4 w-4" />
             <span>Export Profile</span>
           </button>
           {showExportDropdown && (
-            <div className="absolute right-0 mt-2 w-36 bg-card border border-border rounded-lg shadow-lg z-50 py-1">
+            <div className="bg-card border-border absolute right-0 z-50 mt-2 w-36 rounded-lg border py-1 shadow-lg">
               <button
                 onClick={() => {
                   handleExport('pdf');
                   setShowExportDropdown(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors font-medium"
+                className="text-foreground hover:bg-muted w-full px-4 py-2 text-left text-sm font-medium transition-colors"
               >
                 Export PDF
               </button>
@@ -210,7 +216,7 @@ export default function LandOwnerDetails({ id }: Props) {
                   handleExport('excel');
                   setShowExportDropdown(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors font-medium"
+                className="text-foreground hover:bg-muted w-full px-4 py-2 text-left text-sm font-medium transition-colors"
               >
                 Export Excel
               </button>
@@ -219,7 +225,7 @@ export default function LandOwnerDetails({ id }: Props) {
                   handleExport('csv');
                   setShowExportDropdown(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors font-medium"
+                className="text-foreground hover:bg-muted w-full px-4 py-2 text-left text-sm font-medium transition-colors"
               >
                 Export CSV
               </button>
