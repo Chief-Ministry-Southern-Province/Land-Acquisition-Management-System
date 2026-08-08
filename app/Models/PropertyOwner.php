@@ -23,4 +23,9 @@ class PropertyOwner extends Model
     {
         return $this->hasMany(Compensation::class, 'owner_id');
     }
+
+    public function documents()
+    {
+        return $this->hasMany(Documents::class, 'property_owner_id');
+    }
 }

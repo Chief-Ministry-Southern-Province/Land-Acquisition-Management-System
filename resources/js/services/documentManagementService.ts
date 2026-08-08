@@ -7,6 +7,7 @@ export const uploadDocument = async (
   projectId: string | null,
   category: string,
   landParcelId: string | null = null,
+  propertyOwnerId: string | null = null,
 ): Promise<Document> => {
   const formData = new FormData();
   formData.append('file', file);
@@ -18,6 +19,10 @@ export const uploadDocument = async (
 
   if (landParcelId) {
     formData.append('land_parcel_id', landParcelId);
+  }
+
+  if (propertyOwnerId) {
+    formData.append('property_owner_id', propertyOwnerId);
   }
 
   formData.append('document_category', category);

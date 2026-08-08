@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('department_name')->unique();
             $table->string('dep_code')->unique();
+            $table->string('dep_address')->nullable();
             $table->string('dep_head');
             $table->string('email')->unique();
             $table->string('phone')->unique();

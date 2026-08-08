@@ -49,10 +49,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('land-parcels/export', [LandParcelController::class, 'export']);
     Route::post('land-parcels/import', [LandParcelController::class, 'import']);
     Route::apiResource('land-parcels', LandParcelController::class);
+    Route::get('property-owners/export', [PropertyOwnerController::class, 'export']);
     Route::apiResource('property-owners', PropertyOwnerController::class);
     Route::apiResource('compensation', CompensationController::class);
     Route::get('documents/{id}/download', [DocumentsController::class, 'download']);
     Route::apiResource('documents', DocumentsController::class);
+    Route::get('departments', [DepartmentController::class, 'index']);
+    Route::get('departments/{id}', [DepartmentController::class, 'show']);
 
     // ─── Land Acquisition Workflow Routes ───────────────────────────────
     // DO & Admin can write data
@@ -121,7 +124,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{id}', [UserController::class, 'updateUser']);
         Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
 
-        Route::apiResource('departments', DepartmentController::class);
+        Route::post('departments', [DepartmentController::class, 'store']);
+        Route::put('departments/{id}', [DepartmentController::class, 'update']);
+        Route::delete('departments/{id}', [DepartmentController::class, 'destroy']);
         Route::apiResource('roles', RoleController::class);
         Route::apiResource('audit-logs', AuditLogsController::class);
     });

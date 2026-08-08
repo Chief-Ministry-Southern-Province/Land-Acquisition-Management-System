@@ -1,7 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import {
   ArrowLeft,
-  FileText,
   Layers,
   MapPin,
   Save,
@@ -19,8 +18,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
 import { uploadDocument } from '@/services/documentManagementService';
 import { createLandParcel } from '@/services/landParcelManagementService';
-import { getProjects } from '@/services/projectsManagementService';
-import type { Project } from '@/services/projectsManagementService';
+
 import {
   createPropertyOwner,
   getPropertyOwners,
@@ -254,7 +252,7 @@ const inputCls =
 
 export default function AddLandParcel() {
   const [form, setForm] = useState<FormData>(EMPTY);
-  const [projects, setProjects] = useState<Project[]>([]);
+
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
     {},
   );
@@ -361,15 +359,11 @@ export default function AddLandParcel() {
     setSelectedResidents((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Fetch projects and property owners
+  // Fetch property owners
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [projData, ownerData] = await Promise.all([
-          getProjects(),
-          getPropertyOwners(),
-        ]);
-        setProjects(projData);
+        const ownerData = await getPropertyOwners();
         setExistingOwners(ownerData);
       } catch (error) {
         console.error('Failed to fetch initial data:', error);
@@ -2026,7 +2020,7 @@ export default function AddLandParcel() {
         })()}
 
         {/* Acquisition Info */}
-        <div className="bg-card border-border rounded-xl border p-6">
+        {/* <div className="bg-card border-border rounded-xl border p-6">
           <SectionHeader icon={FileText} title="Acquisition Information" />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label="Associated Project">
@@ -2065,7 +2059,7 @@ export default function AddLandParcel() {
               </Field>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Sticky bottom bar (mobile convenience) */}
         <div className="flex justify-end gap-3 pb-6 pt-2">

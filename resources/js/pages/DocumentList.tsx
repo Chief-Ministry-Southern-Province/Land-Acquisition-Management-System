@@ -12,6 +12,7 @@ import {
   Building,
   MapPin,
   Calendar,
+  User,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { SyncLoader } from 'react-spinners';
@@ -27,6 +28,8 @@ import { getLandParcels } from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 import type { Project } from '@/services/projectsManagementService';
 import { getProjects } from '@/services/projectsManagementService';
+import { getPropertyOwners } from '@/services/propertyOwnerManagement';
+import type { PropertyOwner } from '@/services/propertyOwnerManagement';
 
 export default function DocumentList() {
   const { props: pageProps } = usePage();
@@ -37,11 +40,13 @@ export default function DocumentList() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [landParcels, setLandParcels] = useState<LandParcel[]>([]);
+  const [propertyOwners, setPropertyOwners] = useState<PropertyOwner[]>([]);
 
   // Filter/Search states
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [projectFilter, setProjectFilter] = useState<string>('');
   const [parcelFilter, setParcelFilter] = useState<string>('');
+  const [ownerFilter, setOwnerFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // UI States
@@ -55,6 +60,7 @@ export default function DocumentList() {
   const [customCategory, setCustomCategory] = useState<string>('');
   const [uploadProjectId, setUploadProjectId] = useState<string>('');
   const [uploadParcelId, setUploadParcelId] = useState<string>('');
+  const [uploadOwnerId, setUploadOwnerId] = useState<string>('');
 
   // Available categories
   const categoriesList = [
@@ -72,14 +78,16 @@ export default function DocumentList() {
   const loadPageData = async () => {
     try {
       setLoading(true);
-      const [docsData, projsData, parcelsData] = await Promise.all([
+      const [docsData, projsData, parcelsData, ownersData] = await Promise.all([
         getDocuments(),
         getProjects(),
         getLandParcels(),
+        getPropertyOwners(),
       ]);
       setDocuments(docsData);
       setProjects(projsData);
       setLandParcels(parcelsData);
+      setPropertyOwners(ownersData);
     } catch (error) {
       console.error('Failed to load document list page data:', error);
     } finally {
@@ -90,14 +98,17 @@ export default function DocumentList() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [docsData, projsData, parcelsData] = await Promise.all([
-          getDocuments(),
-          getProjects(),
-          getLandParcels(),
-        ]);
+        const [docsData, projsData, parcelsData, ownersData] =
+          await Promise.all([
+            getDocuments(),
+            getProjects(),
+            getLandParcels(),
+            getPropertyOwners(),
+          ]);
         setDocuments(docsData);
         setProjects(projsData);
         setLandParcels(parcelsData);
+        setPropertyOwners(ownersData);
       } catch (error) {
         console.error('Failed to load document list page data:', error);
       } finally {
@@ -229,12 +240,14 @@ export default function DocumentList() {
         uploadProjectId || null,
         finalCategory,
         uploadParcelId || null,
+        uploadOwnerId || null,
       );
 
       // Reset form states
       setSelectedFile(null);
       setUploadProjectId('');
       setUploadParcelId('');
+      setUploadOwnerId('');
       setCustomCategory('');
       setUploadCategory('Approvals');
       setIsUploadModalOpen(false);
@@ -280,6 +293,11 @@ export default function DocumentList() {
 
     // 3. Land Parcel Filter
     if (parcelFilter && String(doc.land_parcel_id) !== String(parcelFilter)) {
+      return false;
+    }
+
+    // 3.5. Property Owner Filter
+    if (ownerFilter && String(doc.property_owner_id) !== String(ownerFilter)) {
       return false;
     }
 
@@ -373,6 +391,32 @@ export default function DocumentList() {
             <MapPin className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
             <span className="max-w-[120px] truncate">
               {parcel?.land_name || parcel?.parcel_id || `ID: ${value}`}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'property_owner_id',
+      label: 'Property Owner Link',
+      sortable: true,
+      render: (value: any) => {
+        if (!value) {
+          return <span className="text-muted-foreground text-xs">—</span>;
+        }
+
+        const owner = propertyOwners.find(
+          (po) => String(po.id) === String(value),
+        );
+
+        return (
+          <div
+            className="text-foreground flex items-center gap-1 text-xs font-medium"
+            title={owner?.name}
+          >
+            <User className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+            <span className="max-w-[120px] truncate font-medium">
+              {owner?.name || `ID: ${value}`}
             </span>
           </div>
         );
@@ -491,12 +535,30 @@ export default function DocumentList() {
             </select>
           </div>
 
+          {/* Property Owner filter */}
+          <div>
+            <select
+              title="Filter by Property Owner"
+              className="bg-input-background border-border w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+              value={ownerFilter}
+              onChange={(e) => setOwnerFilter(e.target.value)}
+            >
+              <option value="">-- All Property Owners --</option>
+              {propertyOwners.map((po) => (
+                <option key={po.id} value={po.id}>
+                  {po.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Clear filters */}
-          {(projectFilter || parcelFilter || searchQuery) && (
+          {(projectFilter || parcelFilter || ownerFilter || searchQuery) && (
             <button
               onClick={() => {
                 setProjectFilter('');
                 setParcelFilter('');
+                setOwnerFilter('');
                 setSearchQuery('');
               }}
               className="border-border hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors"
@@ -686,6 +748,26 @@ export default function DocumentList() {
                 </select>
               </div>
 
+              {/* Property Owner picker */}
+              <div>
+                <label className="text-muted-foreground mb-1.5 block text-xs font-semibold uppercase tracking-wider">
+                  Associate with Property Owner (Optional)
+                </label>
+                <select
+                  title="Property Owner Association"
+                  className="bg-input-background border-border w-full rounded-lg border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  value={uploadOwnerId}
+                  onChange={(e) => setUploadOwnerId(e.target.value)}
+                >
+                  <option value="">-- No Property Owner Association --</option>
+                  {propertyOwners.map((owner) => (
+                    <option key={owner.id} value={owner.id}>
+                      {owner.name} ({owner.ownerId})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Buttons */}
               <div className="border-border mt-6 flex items-center justify-end gap-3 border-t pt-4">
                 <button
@@ -695,6 +777,7 @@ export default function DocumentList() {
                     setSelectedFile(null);
                     setUploadProjectId('');
                     setUploadParcelId('');
+                    setUploadOwnerId('');
                     setCustomCategory('');
                   }}
                   className="border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg border px-4 py-2 text-sm font-semibold transition-colors"

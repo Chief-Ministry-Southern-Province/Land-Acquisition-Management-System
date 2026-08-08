@@ -56,11 +56,17 @@ export default function ProjectList() {
   };
 
   const columns = [
-    { key: 'projectId', label: 'Project ID', sortable: true },
+    {
+      key: 'projectId',
+      label: 'Project ID',
+      sortable: true,
+      filterable: false,
+    },
     {
       key: 'title',
       label: 'Project Title',
       sortable: true,
+      filterable: false,
       render: (_val: any, row: any) => row.title || row.name || 'N/A',
     },
     {
@@ -88,6 +94,7 @@ export default function ProjectList() {
       key: 'landArea',
       label: 'Land Area (A-R-P)',
       sortable: true,
+      filterable: false,
       render: (_val: any, row: any) => (
         <div className="flex flex-col">
           <span className="text-foreground font-medium">
@@ -106,6 +113,7 @@ export default function ProjectList() {
       key: 'approvalDate',
       label: 'Approval Date',
       sortable: true,
+      filterable: false,
       render: (value: string | null) =>
         value ? new Date(value).toLocaleDateString() : 'N/A',
     },
@@ -113,6 +121,7 @@ export default function ProjectList() {
       key: 'remarks',
       label: 'Remarks',
       sortable: true,
+      filterable: false,
       render: (value: string | null) => value || 'N/A',
     },
     {
@@ -125,6 +134,7 @@ export default function ProjectList() {
       key: 'created_at',
       label: 'Created At',
       sortable: true,
+      filterable: false,
       render: (value: string) =>
         value ? new Date(value).toLocaleDateString() : 'N/A',
     },
@@ -132,6 +142,7 @@ export default function ProjectList() {
       key: 'updated_at',
       label: 'Updated At',
       sortable: true,
+      filterable: false,
       render: (value: string) =>
         value ? new Date(value).toLocaleDateString() : 'N/A',
     },

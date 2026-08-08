@@ -32,7 +32,7 @@ class PropertyOwnerController extends Controller
         ]);
 
         $propertyOwner = PropertyOwner::create($validated);
-        $propertyOwner->load(['landParcels', 'compensations.landParcel']);
+        $propertyOwner->load(['landParcels', 'compensations.landParcel', 'documents']);
 
         return response()->json([
             'message' => 'Property owner created successfully',
@@ -45,7 +45,7 @@ class PropertyOwnerController extends Controller
      */
     public function show(string $id)
     {
-        $propertyOwner = PropertyOwner::with(['landParcels', 'compensations.landParcel'])->find($id);
+        $propertyOwner = PropertyOwner::with(['landParcels', 'compensations.landParcel', 'documents'])->find($id);
 
         if ($propertyOwner) {
             return response()->json([
@@ -81,7 +81,7 @@ class PropertyOwnerController extends Controller
         }
 
         $propertyOwner->update($validated);
-        $propertyOwner->load(['landParcels', 'compensations.landParcel']);
+        $propertyOwner->load(['landParcels', 'compensations.landParcel', 'documents']);
 
         return response()->json([
             'message' => 'Property owner updated successfully',
@@ -107,5 +107,83 @@ class PropertyOwnerController extends Controller
         return response()->json([
             'message' => 'Property owner deleted successfully',
         ], 204);
+    }
+
+    /**
+     * Export property owner details.
+     */
+    public function export(Request $request, \App\Services\ExportService $exportService)
+    {
+        $format = $request->query('format', 'excel');
+        $id = $request->query('id');
+
+        $query = PropertyOwner::with(['landParcels', 'compensations.landParcel', 'documents']);
+        if ($id) {
+            $query->where('id', $id);
+        }
+        $records = $query->get();
+
+        if ($id && $records->isEmpty()) {
+            return response()->json([
+                'message' => 'Property owner not found',
+            ], 404);
+        }
+
+        $filename = $id
+            ? 'property_owner_'.$records->first()->owner_id.'_'.date('Ymd_His')
+            : 'property_owners_'.date('Ymd_His');
+
+        if ($format === 'pdf') {
+            $pdfView = $id ? 'pdf.property_owner_form' : 'pdf.property_owners';
+            $pdfData = $id ? ['owner' => $records->first()] : ['owners' => $records];
+
+            return $exportService->export(
+                data: collect([]),
+                headings: [],
+                filename: $filename,
+                format: $format,
+                pdfView: $pdfView,
+                pdfData: $pdfData
+            );
+        }
+
+        $headings = [
+            'Owner ID',
+            'Full Name',
+            'NIC',
+            'Address',
+            'Contact Number',
+            'Date of Birth',
+            'Occupation',
+            'Email',
+            'Owned Parcels Count',
+            'Total Compensation Amount',
+            'Created At',
+        ];
+
+        $data = $records->map(function ($owner) {
+            $totalCompensation = $owner->compensations->sum('amount');
+
+            return [
+                'owner_id' => $owner->owner_id,
+                'name' => $owner->name,
+                'nic' => $owner->nic ?? 'N/A',
+                'address' => $owner->address,
+                'contact' => $owner->contact ?? 'N/A',
+                'date_of_birth' => $owner->date_of_birth ?? 'N/A',
+                'occupation' => $owner->occupation ?? 'N/A',
+                'email' => $owner->email ?? 'N/A',
+                'parcels_count' => $owner->landParcels->count(),
+                'total_compensation' => '₨ '.number_format($totalCompensation, 2),
+                'created_at' => $owner->created_at ? $owner->created_at->format('Y-m-d H:i:s') : 'N/A',
+            ];
+        });
+
+        return $exportService->export(
+            data: $data,
+            headings: $headings,
+            filename: $filename,
+            format: $format
+        );
     }
 }
