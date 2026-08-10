@@ -2544,7 +2544,7 @@ export default function LandParcelDetails({ id }: Props) {
                               className="bg-primary hover:bg-primary/95 mx-auto flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors"
                             >
                               <Plus className="h-3 w-3" />
-                              <span>Record Full Payment</span>
+                              <span>Record Payment</span>
                             </button>
                           )}
                         </div>

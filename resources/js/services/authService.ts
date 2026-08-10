@@ -21,6 +21,37 @@ export interface RegisterResponse {
   user?: any;
 }
 
+export interface UserResponse {
+  message?: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    department_id: number;
+    role_id: number;
+    role?: {
+      id: number;
+      role_name: string;
+      description: string;
+    };
+    department?: {
+      id: number;
+      department_name: string;
+      code: string;
+    };
+  };
+}
+
+export interface ChangePasswordData {
+  current_password: string;
+  new_password: string;
+  new_password_confirmation: string;
+}
+
+export interface ChangePasswordResponse {
+  message?: string;
+}
+
 /**
  * Sends a login request to the API using the axios instance.
  *
@@ -50,6 +81,29 @@ export const register = async (
   data: RegisterData,
 ): Promise<RegisterResponse> => {
   const response = await api.post<RegisterResponse>('/api/auth/register', data);
+
+  return response.data;
+};
+
+/**
+ * Gets the current logged-in user's details.
+ */
+export const getCurrentUser = async (): Promise<UserResponse> => {
+  const response = await api.get<UserResponse>('/api/auth/user');
+
+  return response.data;
+};
+
+/**
+ * Changes the current logged-in user's password.
+ */
+export const changePassword = async (
+  data: ChangePasswordData,
+): Promise<ChangePasswordResponse> => {
+  const response = await api.post<ChangePasswordResponse>(
+    '/api/auth/change-password',
+    data,
+  );
 
   return response.data;
 };
