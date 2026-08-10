@@ -17,6 +17,7 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import api from '@/services/api';
 import { getAuditLogs } from '@/services/auditLogService';
@@ -51,6 +52,7 @@ interface Props {
 }
 
 export default function LandParcelDetails({ id }: Props) {
+  const { locale } = useTranslation();
   const [parcel, setParcel] = useState<LandParcel | null>(null);
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<any[]>([]);
@@ -182,7 +184,7 @@ export default function LandParcelDetails({ id }: Props) {
   const handleExportPdf = async () => {
     try {
       setLoading(true);
-      await exportLandParcels('pdf', id);
+      await exportLandParcels('pdf', id, locale);
     } catch (error) {
       console.error('Failed to export land parcel as PDF:', error);
       alert('Failed to export land parcel.');

@@ -3,6 +3,7 @@ import { ArrowLeft, Download, Upload } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import {
   uploadDocument,
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function LandOwnerDetails({ id }: Props) {
+  const { locale } = useTranslation();
   const [owner, setOwner] = useState<PropertyOwner | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploadCategory, setUploadCategory] = useState(
@@ -53,7 +55,7 @@ export default function LandOwnerDetails({ id }: Props) {
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     try {
       setLoading(true);
-      await exportPropertyOwners(format, id);
+      await exportPropertyOwners(format, id, locale);
     } catch (error) {
       console.error(
         `Failed to export property owner profile as ${format}:`,

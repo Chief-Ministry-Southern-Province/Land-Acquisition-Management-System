@@ -3,6 +3,7 @@ import { Eye, MapPin, Plus, Upload, Pencil } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import {
   getLandParcels,
@@ -12,6 +13,7 @@ import {
 import type { LandParcel } from '@/services/landParcelManagementService';
 
 export default function LandParcelList() {
+  const { locale } = useTranslation();
   const [parcels, setParcels] = useState<LandParcel[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
@@ -43,7 +45,7 @@ export default function LandParcelList() {
 
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     try {
-      await exportLandParcels(format);
+      await exportLandParcels(format, undefined, locale);
     } catch (error) {
       console.error(`Failed to export land parcels as ${format}:`, error);
     }

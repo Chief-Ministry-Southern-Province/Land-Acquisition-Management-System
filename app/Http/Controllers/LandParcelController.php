@@ -381,52 +381,56 @@ class LandParcelController extends Controller
         }
 
         $headings = [
-            'Land Number',
-            'Land Name',
-            'District',
-            'Divisional Secretariat',
-            'GN Division',
-            'Village',
-            'Land Type',
-            'Owner Name',
-            'Extent',
-            'Cultivation',
-            'Estimated Value',
-            'Associated Project',
-            'Casehold',
-            'Donated',
-            'Remarks',
-            'Current Status',
-            'Created At',
+            __('messages.land_number'),
+            __('messages.land_name'),
+            __('messages.district'),
+            __('messages.divisional_secretariat'),
+            __('messages.gn_division'),
+            __('messages.village'),
+            __('messages.land_type'),
+            __('messages.owner_name'),
+            __('messages.extent'),
+            __('messages.cultivation'),
+            __('messages.estimated_value'),
+            __('messages.associated_project'),
+            __('messages.casehold'),
+            __('messages.donated'),
+            __('messages.remarks'),
+            __('messages.current_status'),
+            __('messages.created_at'),
         ];
 
         $data = $records->map(function ($parcel) {
             $ownersList = $parcel->owners->pluck('name')->implode(', ');
-            $projectName = $parcel->project?->title ?? ($parcel->project?->name ?? 'N/A');
-            $divSec = $parcel->divisional_secretariat ?? ($parcel->division ?? 'N/A');
+            $projectName = $parcel->project?->title ?? ($parcel->project?->name ?? __('messages.n_a'));
+            $divSec = $parcel->divisional_secretariat ?? ($parcel->division ?? __('messages.n_a'));
             $acers = $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0);
             $roods = $parcel->land_size_roods ?? 0;
             $perches = $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0);
-            $cultivation = $parcel->cultivation ? "{$parcel->cultivation} (".($parcel->cultivation_status ?? 'unspecified').')' : 'N/A';
+            $extentText = "{$acers} ac, {$roods} rd, {$perches} per";
+
+            $cultStatus = $parcel->cultivation_status ?? 'unspecified';
+            $cultStatusTrans = in_array(strtolower($cultStatus), ['completed', 'pending', 'active']) ? __('messages.'.strtolower($cultStatus)) : $cultStatus;
+            $cultivation = $parcel->cultivation ? "{$parcel->cultivation} ({$cultStatusTrans})" : __('messages.n_a');
 
             return [
                 'parcel_id' => $parcel->parcel_id,
-                'land_name' => $parcel->land_name ?? 'N/A',
+                'land_name' => $parcel->land_name ?? __('messages.n_a'),
                 'district' => $parcel->district,
                 'division' => $divSec,
-                'grama_niladari_division' => $parcel->grama_niladari_division ?? 'N/A',
+                'grama_niladari_division' => $parcel->grama_niladari_division ?? __('messages.n_a'),
                 'village' => $parcel->village,
                 'land_type' => $parcel->land_type ?? 'Standard',
-                'owners' => $ownersList ?: 'N/A',
-                'extent' => "{$acers} ac, {$roods} rd, {$perches} per",
+                'owners' => $ownersList ?: __('messages.n_a'),
+                'extent' => $extentText,
                 'cultivation' => $cultivation,
                 'estimated_value' => '₨ '.number_format($parcel->estimated_value ?? 0, 2),
                 'project' => $projectName,
-                'is_casehold' => $parcel->is_casehold ? 'Yes' : 'No',
-                'is_donated' => $parcel->is_donated ? 'Yes' : 'No',
-                'remarks' => $parcel->remarks ?? 'N/A',
-                'status' => ucfirst($parcel->status),
-                'created_at' => $parcel->created_at ? $parcel->created_at->format('Y-m-d H:i:s') : 'N/A',
+                'is_casehold' => $parcel->is_casehold ? __('messages.yes') : __('messages.no'),
+                'is_donated' => $parcel->is_donated ? __('messages.yes') : __('messages.no'),
+                'remarks' => $parcel->remarks ?? __('messages.n_a'),
+                'status' => __('messages.'.strtolower($parcel->status ?: 'draft')),
+                'created_at' => $parcel->created_at ? $parcel->created_at->format('Y-m-d H:i:s') : __('messages.n_a'),
             ];
         });
 

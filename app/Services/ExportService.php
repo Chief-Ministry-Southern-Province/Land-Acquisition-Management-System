@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Exports\GenericExport;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel;
+use Mpdf\Config\ConfigVariables;
+use Mpdf\Config\FontVariables;
+use Mpdf\Mpdf;
 
 class ExportService
 {
@@ -57,8 +59,39 @@ class ExportService
         }
 
         $paperOrientation = ($view === 'pdf.land_parcels' || $view === 'pdf.projects') ? 'landscape' : 'portrait';
-        $pdf = Pdf::loadView($view, $data)->setPaper('a4', $paperOrientation);
+        $html = view($view, $data)->render();
 
-        return $pdf->download("$filename.pdf");
+        $defaultConfig = (new ConfigVariables)->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new FontVariables)->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => $paperOrientation === 'landscape' ? 'L' : 'P',
+            'fontDir' => array_merge($fontDirs, [
+                storage_path('fonts'),
+            ]),
+            'fontdata' => $fontData + [
+                'notosanssinhala' => [
+                    'R' => 'AbhayaLibre-Regular.ttf',
+                    'B' => 'AbhayaLibre-Bold.ttf',
+                    'useOTL' => 0xFF,
+                ],
+            ],
+            'tempDir' => storage_path('framework'),
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        return response()->streamDownload(
+            fn () => print ($mpdf->Output('', 'S')),
+            "$filename.pdf",
+            [
+                'Content-Type' => 'application/pdf',
+            ]
+        );
     }
 }

@@ -2,8 +2,18 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Property Owner Profile - {{ $owner->owner_id }}</title>
+    <title>{{ __('messages.property_owner_details') }} - {{ $owner->owner_id }}</title>
     <style>
+        @if(app()->getLocale() === 'si')
+        body {
+            font-family: 'notosanssinhala', sans-serif;
+            color: #333333;
+            font-size: 11px;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        @else
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #333333;
@@ -12,6 +22,7 @@
             margin: 0;
             padding: 20px;
         }
+        @endif
         .header {
             margin-bottom: 25px;
             border-bottom: 2px solid #1a365d;
@@ -106,56 +117,56 @@
         <table>
             <tr>
                 <td>
-                    <h1>Property Owner Profile</h1>
-                    <p>Owner ID: {{ $owner->owner_id }}</p>
+                    <h1>{{ __('messages.property_owner_details') }}</h1>
+                    <p>{{ __('messages.owner_id') }}: {{ $owner->owner_id }}</p>
                 </td>
                 <td style="text-align: right;">
-                    <p>Export Date: {{ date('Y-m-d H:i:s') }}</p>
+                    <p>{{ __('messages.generated_on') }}: {{ date('Y-m-d H:i:s') }}</p>
                 </td>
             </tr>
         </table>
     </div>
 
-    <div class="section-title">Personal Information</div>
+    <div class="section-title">{{ __('messages.personal_information') }}</div>
     <table class="info-grid">
         <tr>
-            <td class="label">Full Name</td>
+            <td class="label">{{ __('messages.full_name') }}</td>
             <td>{{ $owner->name }}</td>
-            <td class="label">NIC</td>
-            <td>{{ $owner->nic ?? 'N/A' }}</td>
+            <td class="label">{{ __('messages.nic') }}</td>
+            <td>{{ $owner->nic ?? __('messages.n_a') }}</td>
         </tr>
         <tr>
-            <td class="label">Date of Birth</td>
-            <td>{{ $owner->date_of_birth ?? 'N/A' }}</td>
-            <td class="label">Occupation</td>
-            <td>{{ $owner->occupation ?? 'N/A' }}</td>
+            <td class="label">{{ __('messages.date_of_birth') }}</td>
+            <td>{{ $owner->date_of_birth ?? __('messages.n_a') }}</td>
+            <td class="label">{{ __('messages.occupation') }}</td>
+            <td>{{ $owner->occupation ?? __('messages.n_a') }}</td>
         </tr>
     </table>
 
-    <div class="section-title">Contact Details</div>
+    <div class="section-title">{{ __('messages.contact_number') }}</div>
     <table class="info-grid">
         <tr>
-            <td class="label">Contact Number</td>
-            <td>{{ $owner->contact ?? 'N/A' }}</td>
-            <td class="label">Email</td>
-            <td>{{ $owner->email ?? 'N/A' }}</td>
+            <td class="label">{{ __('messages.contact_number') }}</td>
+            <td>{{ $owner->contact ?? __('messages.n_a') }}</td>
+            <td class="label">{{ __('messages.email') }}</td>
+            <td>{{ $owner->email ?? __('messages.n_a') }}</td>
         </tr>
         <tr>
-            <td class="label">Address</td>
+            <td class="label">{{ __('messages.address') }}</td>
             <td colspan="3">{{ $owner->address }}</td>
         </tr>
     </table>
 
-    <div class="section-title">Owned Land Parcels</div>
+    <div class="section-title">{{ __('messages.land_parcels') }}</div>
     <table class="table">
         <thead>
             <tr>
-                <th>Parcel ID</th>
-                <th>District</th>
-                <th>Division</th>
-                <th>Village</th>
-                <th>Extent</th>
-                <th>Status</th>
+                <th>{{ __('messages.land_number') }}</th>
+                <th>{{ __('messages.district') }}</th>
+                <th>{{ __('messages.divisional_secretariat') }}</th>
+                <th>{{ __('messages.village') }}</th>
+                <th>{{ __('messages.extent') }}</th>
+                <th>{{ __('messages.status') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -163,56 +174,37 @@
                 <tr>
                     <td>{{ $parcel->parcel_id }}</td>
                     <td>{{ $parcel->district }}</td>
-                    <td>{{ $parcel->divisional_secretariat ?? ($parcel->division ?? 'N/A') }}</td>
+                    <td>{{ $parcel->divisional_secretariat ?? ($parcel->division ?? __('messages.n_a')) }}</td>
                     <td>{{ $parcel->village }}</td>
-                    <td>{{ $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0) }} ac, {{ $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0) }} per</td>
-                    <td><span class="badge status-badge">{{ ucfirst($parcel->status) }}</span></td>
+                    <td>{{ $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0) }} {{ __('messages.acres') }}, {{ $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0) }} {{ __('messages.perches') }}</td>
+                    <td><span class="badge status-badge">{{ __('messages.' . strtolower($parcel->status ?: 'draft')) }}</span></td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" style="text-align: center; color: #718096;">No land parcels assigned to this owner.</td>
+                    <td colspan="6" style="text-align: center; color: #718096;">{{ __('messages.n_a') }}</td>
                 </tr>
             @endforelse
         </tbody>
     </table>
 
-    <div class="section-title">Compensation History</div>
+    <div class="section-title">{{ __('messages.compensation_details') }}</div>
     <table class="table">
         <thead>
             <tr>
-                <th>Compensation ID</th>
-                <th>Land Parcel</th>
-                <th>Amount</th>
-                <th>Approved Date</th>
-                <th>Payment Date</th>
-                <th>Status</th>
+                <th>{{ __('messages.compensation') }} ID</th>
+                <th>{{ __('messages.land_number') }}</th>
+                <th>{{ __('messages.compensation_amount') }}</th>
+                <th>{{ __('messages.approval_date') }}</th>
+                <th>{{ __('messages.payment_date') }}</th>
+                <th>{{ __('messages.payment_status') }}</th>
             </tr>
         </thead>
         <tbody>
             @forelse($owner->compensations as $compensation)
                 <tr>
                     <td>{{ $compensation->compensation_id }}</td>
-                    <td>{{ $compensation->landParcel?->parcel_id ?? 'N/A' }}</td>
+                    <td>{{ $compensation->landParcel?->parcel_id ?? __('messages.n_a') }}</td>
                     <td>₨ {{ number_format($compensation->amount, 2) }}</td>
-                    <td>{{ $compensation->approved_date ?? 'N/A' }}</td>
-                    <td>{{ $compensation->payment_date ?? 'N/A' }}</td>
-                    <td><span class="badge status-badge">{{ ucfirst($compensation->status) }}</span></td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" style="text-align: center; color: #718096;">No compensation records found.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    <!-- <div class="section-title">Uploaded Documents</div>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Document Name</th>
-                <th>Category</th>
-                <th>Type</th>
                 <th>Upload Date</th>
                 <th>Size</th>
             </tr>

@@ -59,7 +59,7 @@ class PaymentController extends Controller
     {
         $payment = Payment::with(['compensation', 'document'])->find($id);
 
-        if (!$payment) {
+        if (! $payment) {
             return response()->json([
                 'message' => 'Payment not found',
             ], 404);
@@ -78,7 +78,7 @@ class PaymentController extends Controller
     {
         $payment = Payment::find($id);
 
-        if (!$payment) {
+        if (! $payment) {
             return response()->json([
                 'message' => 'Payment not found',
             ], 404);
@@ -86,7 +86,7 @@ class PaymentController extends Controller
 
         $validated = $request->validate([
             'compensation_id' => 'required|exists:compensation,id',
-            'payment_reference' => 'required|string|unique:payments,payment_reference,' . $id,
+            'payment_reference' => 'required|string|unique:payments,payment_reference,'.$id,
             'amount_paid' => 'required|numeric|min:0',
             'payment_date' => 'required|date',
             'payment_method' => 'required|string|max:255',
@@ -112,7 +112,7 @@ class PaymentController extends Controller
     {
         $payment = Payment::find($id);
 
-        if (!$payment) {
+        if (! $payment) {
             return response()->json([
                 'message' => 'Payment not found',
             ], 404);

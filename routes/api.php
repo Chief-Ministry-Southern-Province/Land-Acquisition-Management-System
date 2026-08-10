@@ -64,11 +64,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('land-surveys', [LandSurveyController::class, 'store']);
         Route::put('land-surveys/{id}', [LandSurveyController::class, 'update']);
         Route::delete('land-surveys/{id}', [LandSurveyController::class, 'destroy']);
-        
+
         Route::post('land-valuations', [LandValuationController::class, 'store']);
         Route::put('land-valuations/{id}', [LandValuationController::class, 'update']);
         Route::delete('land-valuations/{id}', [LandValuationController::class, 'destroy']);
-        
+
         Route::post('payments', [PaymentController::class, 'store']);
         Route::put('payments/{id}', [PaymentController::class, 'update']);
         Route::delete('payments/{id}', [PaymentController::class, 'destroy']);

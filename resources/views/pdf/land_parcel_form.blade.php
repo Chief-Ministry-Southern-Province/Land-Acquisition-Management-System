@@ -2,20 +2,31 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Land Acquisition Application Form - {{ $parcel->parcel_id }}</title>
+    <title>{{ __('messages.land_parcel_details') }} &mdash; {{ $parcel->parcel_id }}</title>
     <style>
         @page {
-            margin: 60px 45px 70px 45px;
+            margin: 45px 36px 55px 36px;
         }
 
+        @if(app()->getLocale() === 'si')
         body {
-            font-family: 'Times New Roman', 'Noto Serif', Georgia, serif;
+            font-family: 'notosanssinhala', sans-serif;
             color: #1a1a1a;
-            font-size: 11px;
-            line-height: 1.5;
+            font-size: 8.5px;
+            line-height: 1.4;
             margin: 0;
             padding: 0;
         }
+        @else
+        body {
+            font-family: 'Times New Roman', 'Noto Serif', Georgia, serif;
+            color: #1a1a1a;
+            font-size: 8.5px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
+        }
+        @endif
 
         .page-frame {
             border: 3px double #2d2d2d;
@@ -278,7 +289,7 @@
     <div class="page-frame">
         <div class="inner-frame">
 
-            <div class="confidential-banner">Official Document &mdash; For Administrative Use Only</div>
+            <div class="confidential-banner">{{ __('messages.confidential_document') }}</div>
 
             <!-- Header -->
             <div class="form-header">
@@ -286,18 +297,18 @@
                     <tr>
                         <td style="width: 74px; vertical-align: middle;">
                             <div class="emblem-box">
-                                GOVT.<br>OF SRI<br>LANKA
+                                {!! app()->getLocale() === 'si' ? "ශ්‍රී ලංකා<br>රජය" : "GOVT.<br>OF SRI<br>LANKA" !!}
                             </div>
                         </td>
                         <td style="vertical-align: top; padding-left: 15px;">
-                            <p class="gov-title">Democratic Socialist Republic of Sri Lanka</p>
-                            <p class="ministry-title">Chief Ministry of Southern Province</p>
-                            <p class="form-title">Land Acquisition Application Form</p>
+                            <p class="gov-title">{{ __('messages.republic_sri_lanka') }}</p>
+                            <p class="ministry-title">{{ __('messages.provincial_council') }}</p>
+                            <p class="form-title">{{ __('messages.land_parcel_details') }}</p>
                             <p class="form-subtitle">Issued under the Land Acquisition Management System (LAMS) &mdash; Form LA-01</p>
                         </td>
                         <td style="text-align: right; vertical-align: top; width: 130px;">
                             <div class="ref-box">
-                                <strong>LAND / FILE NUMBER</strong>
+                                <strong>{{ __('messages.land_number') }}</strong>
                                 <span style="font-size: 11px; font-weight: bold; color: #2d2d2d;">{{ $parcel->parcel_id }}</span>
                             </div>
                         </td>
@@ -307,146 +318,146 @@
 
             <table class="meta-strip">
                 <tr>
-                    <td><strong>Date of Issue:</strong> {{ now()->format('Y-m-d H:i') }}</td>
-                    <td style="text-align: center;"><strong>Province:</strong> Southern Province</td>
-                    <td style="text-align: right;"><strong>Acquisition Status:</strong> <span class="status-pill">{{ $parcel->status }}</span></td>
+                    <td><strong>{{ __('messages.generated_on') }}:</strong> {{ now()->format('Y-m-d H:i') }}</td>
+                    <td style="text-align: center;"><strong>{{ __('messages.provincial_council') }}:</strong> {{ __('messages.provincial_council') }}</td>
+                    <td style="text-align: right;"><strong>{{ __('messages.status') }}:</strong> <span class="status-pill">{{ __('messages.' . strtolower($parcel->status ?: 'draft')) }}</span></td>
                 </tr>
             </table>
 
             <!-- Section 1: Identification -->
-            <div class="section-title"><span class="section-no">1.</span>Land Identification &amp; Classification</div>
+            <div class="section-title"><span class="section-no">1.</span>{{ __('messages.land_information') }}</div>
             <table class="form-table">
                 <tr>
-                    <th>Land Number (Parcel ID):</th>
+                    <th>{{ __('messages.land_number') }}:</th>
                     <td style="font-weight: bold; color: #2d2d2d;">{{ $parcel->parcel_id }}</td>
-                    <th>Land Name / Alias:</th>
-                    <td>{{ $parcel->land_name ?? 'N/A' }}</td>
+                    <th>{{ __('messages.land_name') }}:</th>
+                    <td>{{ $parcel->land_name ?? __('messages.n_a') }}</td>
                 </tr>
                 <tr>
-                    <th>Registered Plan Number:</th>
-                    <td>{{ $parcel->plan_number ?? 'No Plan Registered' }}</td>
-                    <th>Has Survey Plan:</th>
-                    <td>{{ $parcel->has_plan ? 'Yes (Verified)' : 'No / Pending Survey' }}</td>
+                    <th>{{ __('messages.plan_number') }}:</th>
+                    <td>{{ $parcel->plan_number ?? __('messages.n_a') }}</td>
+                    <th>{{ __('messages.survey_details') }}:</th>
+                    <td>{{ $parcel->has_plan ? __('messages.yes') : __('messages.no') }}</td>
                 </tr>
             </table>
 
             <!-- Section 2: Location -->
-            <div class="section-title"><span class="section-no">2.</span>Geographical &amp; Administrative Location</div>
+            <div class="section-title"><span class="section-no">2.</span>{{ __('messages.location_details') }}</div>
             <table class="form-table">
                 <tr>
-                    <th>Province:</th>
-                    <td>{{ $parcel->province ?? 'Southern' }}</td>
-                    <th>District:</th>
+                    <th>{{ __('messages.provincial_council') }}:</th>
+                    <td>{{ __('messages.provincial_council') }}</td>
+                    <th>{{ __('messages.district') }}:</th>
                     <td>{{ $parcel->district }}</td>
                 </tr>
                 <tr>
-                    <th>DS Division:</th>
-                    <td>{{ $parcel->divisional_secretariat ?? ($parcel->division ?? 'N/A') }}</td>
-                    <th>Grama Niladhari Division:</th>
-                    <td>{{ $parcel->grama_niladari_division ?? 'N/A' }}</td>
+                    <th>{{ __('messages.divisional_secretariat') }}:</th>
+                    <td>{{ $parcel->divisional_secretariat ?? ($parcel->division ?? __('messages.n_a')) }}</td>
+                    <th>{{ __('messages.gn_division') }}:</th>
+                    <td>{{ $parcel->grama_niladari_division ?? __('messages.n_a') }}</td>
                 </tr>
                 <tr>
-                    <th>Village:</th>
+                    <th>{{ __('messages.village') }}:</th>
                     <td>{{ $parcel->village }}</td>
                     <th>GPS Coordinates (Lat, Lon):</th>
                     <td>
                         @if($parcel->latitude && $parcel->longitude)
                             {{ $parcel->latitude }}, {{ $parcel->longitude }}
                         @else
-                            Not Registered
+                            {{ __('messages.n_a') }}
                         @endif
                     </td>
                 </tr>
             </table>
 
             <!-- Section 3: Extent & Dimensions -->
-            <div class="section-title"><span class="section-no">3.</span>Physical Extent &amp; Measurement</div>
+            <div class="section-title"><span class="section-no">3.</span>{{ __('messages.extent') }}</div>
             <table class="form-table">
                 <tr>
-                    <th>Extent in Acres:</th>
+                    <th>{{ __('messages.acres') }}:</th>
                     <td>{{ $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0) }} ac</td>
-                    <th>Extent in Roods:</th>
-                    <td>{{ $parcel->land_size_roods ?? 0 }} r</td>
+                    <th>{{ __('messages.roods') }}:</th>
+                    <td>{{ $parcel->land_size_roods ?? 0 }} rd</td>
                 </tr>
                 <tr>
-                    <th>Extent in Perches:</th>
+                    <th>{{ __('messages.perches') }}:</th>
                     <td>{{ $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0) }} per</td>
-                    <th>Full Size Description:</th>
-                    <td>{{ $parcel->full_land_size ?? 'N/A' }}</td>
+                    <th>{{ __('messages.full_land_area') }}:</th>
+                    <td>{{ $parcel->full_land_size ?? __('messages.n_a') }}</td>
                 </tr>
             </table>
 
             <!-- Section 4: Physical Features & Valuation -->
-            <div class="section-title"><span class="section-no">4.</span>Land Use, Structures &amp; Valuation</div>
+            <div class="section-title"><span class="section-no">4.</span>{{ __('messages.valuation_details') }}</div>
             <table class="form-table">
                 <tr>
                     <th>Residential Structures:</th>
-                    <td>{{ $parcel->has_residential_houses ? 'Yes (Structures Present)' : 'No Structures' }}</td>
+                    <td>{{ $parcel->has_residential_houses ? __('messages.yes') : __('messages.no') }}</td>
                     <th>Resident Owner Status:</th>
-                    <td>{{ $parcel->is_resident_owner ? 'Resident Owner' : 'Non-Resident Owner' }}</td>
+                    <td>{{ $parcel->is_resident_owner ? __('messages.yes') : __('messages.no') }}</td>
                 </tr>
                 <tr>
-                    <th>Agricultural Cultivation:</th>
-                    <td>{{ $parcel->is_cultivated ? 'Cultivated' : 'Uncultivated / Standard' }}</td>
-                    <th>Cultivated Crops:</th>
-                    <td>{{ $parcel->is_cultivated ? ($parcel->cultivation ?? 'N/A') : 'N/A' }}</td>
+                    <th>{{ __('messages.cultivation') }}:</th>
+                    <td>{{ $parcel->is_cultivated ? __('messages.yes') : __('messages.no') }}</td>
+                    <th>{{ __('messages.cultivation') }} (Crops):</th>
+                    <td>{{ $parcel->is_cultivated ? ($parcel->cultivation ?? __('messages.n_a')) : __('messages.n_a') }}</td>
                 </tr>
                 <tr>
                     <th>Annual Agricultural Income:</th>
                     <td>{{ number_format($parcel->annual_income ?? 0, 2) }} LKR</td>
-                    <th>Estimated Land Value:</th>
+                    <th>{{ __('messages.estimated_value') }}:</th>
                     <td style="font-weight: bold; color: #2d2d2d;">{{ number_format($parcel->estimated_value ?? 0, 2) }} LKR</td>
                 </tr>
                 <tr>
-                    <th>Land Category Type:</th>
+                    <th>{{ __('messages.land_type') }}:</th>
                     <td>{{ $parcel->land_type ?? 'Standard' }}</td>
-                    <th>Acquisition Stage Status:</th>
-                    <td style="text-transform: uppercase; font-weight: bold; color: #2d2d2d;">{{ $parcel->status }}</td>
+                    <th>{{ __('messages.status') }}:</th>
+                    <td style="text-transform: uppercase; font-weight: bold; color: #2d2d2d;">{{ __('messages.' . strtolower($parcel->status ?: 'draft')) }}</td>
                 </tr>
             </table>
 
             <!-- Section 5: Associated Project -->
-            <div class="section-title"><span class="section-no">5.</span>Public Project Association</div>
+            <div class="section-title"><span class="section-no">5.</span>{{ __('messages.associated_project') }}</div>
             @if($parcel->project)
                 <table class="form-table">
                     <tr>
-                        <th style="width: 25%;">Project Title:</th>
+                        <th style="width: 25%;">{{ __('messages.title') }}:</th>
                         <td style="width: 75%; font-weight: bold; color: #2d2d2d;">{{ $parcel->project->title }}</td>
                     </tr>
                     <tr>
-                        <th>Project Reference Code:</th>
+                        <th>{{ __('messages.project_id') }}:</th>
                         <td>{{ $parcel->project->project_id }}</td>
                     </tr>
                     <tr>
-                        <th>Declared Acquisition Purpose:</th>
-                        <td>{{ $parcel->project->purpose ?? 'N/A' }}</td>
+                        <th>{{ __('messages.purpose') }}:</th>
+                        <td>{{ $parcel->project->purpose ?? __('messages.n_a') }}</td>
                     </tr>
                 </table>
             @else
                 <div class="empty-note">
-                    No public project association registered. This land parcel is listed for future acquisition or general cataloging.
+                    {{ __('messages.n_a') }}
                 </div>
             @endif
 
             <!-- Section 6: Ownership -->
-            <div class="section-title"><span class="section-no">6.</span>Owner(s) Declarations</div>
+            <div class="section-title"><span class="section-no">6.</span>{{ __('messages.ownership_details') }}</div>
             @if($parcel->owners && count($parcel->owners) > 0)
                 @foreach($parcel->owners as $index => $owner)
                     <div class="owner-box">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
                                 <td colspan="4" style="font-size: 10px; font-weight: bold; color: #2d2d2d; padding-bottom: 4px; border-bottom: 1px solid #cccccc;">
-                                    Owner #{{ $index + 1 }}: {{ $owner->name }}
+                                    {{ __('messages.owner_name') }} #{{ $index + 1 }}: {{ $owner->name }}
                                 </td>
                             </tr>
                             <tr>
-                                <td style="width: 15%; color: #718096; font-size: 8px; padding-top: 4px;">NIC / Identity:</td>
+                                <td style="width: 15%; color: #718096; font-size: 8px; padding-top: 4px;">{{ __('messages.nic') }}:</td>
                                 <td style="width: 35%; font-weight: bold; font-size: 8px; padding-top: 4px;">{{ $owner->nic }}</td>
-                                <td style="width: 15%; color: #718096; font-size: 8px; padding-top: 4px;">Contact:</td>
+                                <td style="width: 15%; color: #718096; font-size: 8px; padding-top: 4px;">{{ __('messages.contact_number') }}:</td>
                                 <td style="width: 35%; font-weight: bold; font-size: 8px; padding-top: 4px;">{{ $owner->contact }}</td>
                             </tr>
                             <tr>
-                                <td style="color: #718096; font-size: 8px; vertical-align: top; padding-top: 2px;">Address:</td>
+                                <td style="color: #718096; font-size: 8px; vertical-align: top; padding-top: 2px;">{{ __('messages.address') }}:</td>
                                 <td colspan="3" style="font-size: 8px; padding-top: 2px;">{{ $owner->address }}</td>
                             </tr>
                         </table>
@@ -454,24 +465,28 @@
                 @endforeach
             @else
                 <div class="empty-note">
-                    No verified owners registered. Ownership details pending legal notice validation.
+                    {{ __('messages.n_a') }}
                 </div>
             @endif
 
             <!-- Section 7: Administrative Review & Declarations -->
-            <div class="section-title"><span class="section-no">7.</span>Administrative Review &amp; Declarations</div>
+            <div class="section-title"><span class="section-no">7.</span>{{ __('messages.remarks') }} &amp; {{ __('messages.reports') }}</div>
             <table class="form-table" style="margin-bottom: 6px;">
                 <tr>
-                    <th style="vertical-align: top; width: 25%;">Remarks / Exceptions:</th>
-                    <td style="height: 40px; vertical-align: top; width: 75%;">{{ $parcel->remarks ?? 'No remarks registered.' }}</td>
+                    <th style="vertical-align: top; width: 25%;">{{ __('messages.remarks') }}:</th>
+                    <td style="height: 40px; vertical-align: top; width: 75%;">{{ $parcel->remarks ?? __('messages.n_a') }}</td>
                 </tr>
             </table>
 
             <div class="declaration">
-                This document is issued in accordance with the provisions of the Land Acquisition Act and constitutes an official
-                record generated through the Land Acquisition Management System (LAMS) of the Chief Ministry of Southern Province.
-                It is certified that the particulars recorded herein are true and correct to the best of the knowledge of the
-                undersigned officers, and this form is to be retained as part of the permanent case file.
+                @if(app()->getLocale() === 'si')
+                    මෙම ලේඛනය භූමි අත්පත් කරගැනීමේ පනතේ විධිවිධානවලට අනුකූලව නිකුත් කරනු ලබන අතර දකුණු පළාත් ප්‍රධාන අමාත්‍යාංශයේ භූමි අත්පත් කරගැනීමේ කළමනාකරණ පද්ධතිය (LAMS) මඟින් ජනනය කරන ලද නිල වාර්තාවක් වේ. මෙහි සටහන් කර ඇති තොරතුරු අත්සන් කරන ලද නිලධාරීන්ගේ දැනුම පරිදි සත්‍ය සහ නිවැරදි බව සහතික කරන අතර, මෙම පෝරමය ස්ථිර නඩු ගොනුවේ කොටසක් ලෙස තබා ගත යුතුය.
+                @else
+                    This document is issued in accordance with the provisions of the Land Acquisition Act and constitutes an official
+                    record generated through the Land Acquisition Management System (LAMS) of the Chief Ministry of Southern Province.
+                    It is certified that the particulars recorded herein are true and correct to the best of the knowledge of the
+                    undersigned officers, and this form is to be retained as part of the permanent case file.
+                @endif
             </div>
 
             <!-- Signature Boxes -->
@@ -479,21 +494,21 @@
                 <tr>
                     <td>
                         <div class="signature-line"></div>
-                        <p class="signature-role">Development Officer</p>
-                        <p class="signature-meta">Date: ..... / ..... / 20.....</p>
-                        <p class="seal-note">(Official Seal)</p>
+                        <p class="signature-role">{{ app()->getLocale() === 'si' ? 'සංවර්ධන නිලධාරී' : 'Development Officer' }}</p>
+                        <p class="signature-meta">{{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....</p>
+                        <p class="seal-note">{{ app()->getLocale() === 'si' ? '(නිල මුද්‍රාව)' : '(Official Seal)' }}</p>
                     </td>
                     <td>
                         <div class="signature-line"></div>
-                        <p class="signature-role">Head of Branch (Land)</p>
-                        <p class="signature-meta">Date: ..... / ..... / 20.....</p>
-                        <p class="seal-note">(Official Seal)</p>
+                        <p class="signature-role">{{ app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී (ඉඩම්)' : 'Head of Branch (Land)' }}</p>
+                        <p class="signature-meta">{{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....</p>
+                        <p class="seal-note">{{ app()->getLocale() === 'si' ? '(නිල මුද්‍රාව)' : '(Official Seal)' }}</p>
                     </td>
                     <td>
                         <div class="signature-line"></div>
-                        <p class="signature-role">Administrative Officer</p>
-                        <p class="signature-meta">Date: ..... / ..... / 20.....</p>
-                        <p class="seal-note">(Official Seal)</p>
+                        <p class="signature-role">{{ app()->getLocale() === 'si' ? 'පාලන නිලධාරී' : 'Administrative Officer' }}</p>
+                        <p class="signature-meta">{{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....</p>
+                        <p class="seal-note">{{ app()->getLocale() === 'si' ? '(නිල මුද්‍රාව)' : '(Official Seal)' }}</p>
                     </td>
                 </tr>
             </table>
@@ -502,8 +517,8 @@
     </div>
 
     <div class="footer">
-        <div>Form LA-01 &mdash; Chief Ministry of Southern Province, Land Acquisition Management System &copy; {{ date('Y') }}</div>
-        <div class="footer-line-2">Strictly Confidential &mdash; Government of Sri Lanka</div>
+        <div>Form LA-01 &mdash; {{ __('messages.Land_Acquisition_Management_System') }} &copy; {{ date('Y') }}</div>
+        <div class="footer-line-2">{{ app()->getLocale() === 'si' ? 'අතිශය රහස්‍යයි - ශ්‍රී ලංකා රජය' : 'Strictly Confidential - Government of Sri Lanka' }}</div>
     </div>
 
 </body>

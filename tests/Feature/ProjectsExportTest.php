@@ -68,3 +68,11 @@ test('can export projects as pdf', function () {
     $response->assertStatus(200);
     $response->assertHeader('Content-Type', 'application/pdf');
 });
+
+test('can export projects as pdf in sinhala', function () {
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get('/api/projects/export?format=pdf&locale=si');
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/pdf');
+});
