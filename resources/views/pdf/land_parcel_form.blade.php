@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>{{ __('messages.land_parcel_details') }} &mdash; {{ $parcel->parcel_id }}</title>
@@ -8,8 +9,7 @@
             margin: 45px 36px 55px 36px;
         }
 
-        @if(app()->getLocale() === 'si')
-        body {
+        @if(app()->getLocale()==='si') body {
             font-family: 'notosanssinhala', sans-serif;
             color: #1a1a1a;
             font-size: 8.5px;
@@ -17,8 +17,8 @@
             margin: 0;
             padding: 0;
         }
-        @else
-        body {
+
+        @else body {
             font-family: 'Times New Roman', 'Noto Serif', Georgia, serif;
             color: #1a1a1a;
             font-size: 8.5px;
@@ -26,9 +26,8 @@
             margin: 0;
             padding: 0;
         }
-        @endif
 
-        .page-frame {
+        @endif .page-frame {
             border: 3px double #2d2d2d;
             padding: 14px;
         }
@@ -70,7 +69,9 @@
             font-size: 7.5px;
             line-height: 1.2;
             padding-top: 18px;
-            font-family: 'Times New Roman', serif;
+            @if(app()->getLocale()==='si') font-family: 'notosanssinhala', sans-serif;
+            @else font-family: 'Times New Roman', serif;
+            @endif
         }
 
         .gov-title {
@@ -113,14 +114,18 @@
             border: 1px solid #2d2d2d;
             padding: 6px;
             background-color: #f5f5f5;
-            font-family: 'Courier New', monospace;
+            @if(app()->getLocale()==='si') font-family: 'notosanssinhala', sans-serif;
+            @else font-family: 'Courier New', monospace;
+            @endif
             font-size: 9px;
             text-align: center;
         }
 
         .ref-box strong {
             display: block;
-            font-family: 'Times New Roman', serif;
+            @if(app()->getLocale()==='si') font-family: 'notosanssinhala', sans-serif;
+            @else font-family: 'Times New Roman', serif;
+            @endif
             font-size: 7.5px;
             letter-spacing: 0.5px;
             color: #2d2d2d;
@@ -284,6 +289,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="page-frame">
@@ -362,9 +368,9 @@
                     <th>GPS Coordinates (Lat, Lon):</th>
                     <td>
                         @if($parcel->latitude && $parcel->longitude)
-                            {{ $parcel->latitude }}, {{ $parcel->longitude }}
+                        {{ $parcel->latitude }}, {{ $parcel->longitude }}
                         @else
-                            {{ __('messages.n_a') }}
+                        {{ __('messages.n_a') }}
                         @endif
                     </td>
                 </tr>
@@ -419,54 +425,54 @@
             <!-- Section 5: Associated Project -->
             <div class="section-title"><span class="section-no">5.</span>{{ __('messages.associated_project') }}</div>
             @if($parcel->project)
-                <table class="form-table">
-                    <tr>
-                        <th style="width: 25%;">{{ __('messages.title') }}:</th>
-                        <td style="width: 75%; font-weight: bold; color: #2d2d2d;">{{ $parcel->project->title }}</td>
-                    </tr>
-                    <tr>
-                        <th>{{ __('messages.project_id') }}:</th>
-                        <td>{{ $parcel->project->project_id }}</td>
-                    </tr>
-                    <tr>
-                        <th>{{ __('messages.purpose') }}:</th>
-                        <td>{{ $parcel->project->purpose ?? __('messages.n_a') }}</td>
-                    </tr>
-                </table>
+            <table class="form-table">
+                <tr>
+                    <th style="width: 25%;">{{ __('messages.title') }}:</th>
+                    <td style="width: 75%; font-weight: bold; color: #2d2d2d;">{{ $parcel->project->title }}</td>
+                </tr>
+                <tr>
+                    <th>{{ __('messages.project_id') }}:</th>
+                    <td>{{ $parcel->project->project_id }}</td>
+                </tr>
+                <tr>
+                    <th>{{ __('messages.purpose') }}:</th>
+                    <td>{{ $parcel->project->purpose ?? __('messages.n_a') }}</td>
+                </tr>
+            </table>
             @else
-                <div class="empty-note">
-                    {{ __('messages.n_a') }}
-                </div>
+            <div class="empty-note">
+                {{ __('messages.n_a') }}
+            </div>
             @endif
 
             <!-- Section 6: Ownership -->
             <div class="section-title"><span class="section-no">6.</span>{{ __('messages.ownership_details') }}</div>
             @if($parcel->owners && count($parcel->owners) > 0)
-                @foreach($parcel->owners as $index => $owner)
-                    <div class="owner-box">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td colspan="4" style="font-size: 10px; font-weight: bold; color: #2d2d2d; padding-bottom: 4px; border-bottom: 1px solid #cccccc;">
-                                    {{ __('messages.owner_name') }} #{{ $index + 1 }}: {{ $owner->name }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="width: 15%; color: #718096; font-size: 8px; padding-top: 4px;">{{ __('messages.nic') }}:</td>
-                                <td style="width: 35%; font-weight: bold; font-size: 8px; padding-top: 4px;">{{ $owner->nic }}</td>
-                                <td style="width: 15%; color: #718096; font-size: 8px; padding-top: 4px;">{{ __('messages.contact_number') }}:</td>
-                                <td style="width: 35%; font-weight: bold; font-size: 8px; padding-top: 4px;">{{ $owner->contact }}</td>
-                            </tr>
-                            <tr>
-                                <td style="color: #718096; font-size: 8px; vertical-align: top; padding-top: 2px;">{{ __('messages.address') }}:</td>
-                                <td colspan="3" style="font-size: 8px; padding-top: 2px;">{{ $owner->address }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                @endforeach
+            @foreach($parcel->owners as $index => $owner)
+            <div class="owner-box">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td colspan="4" style="font-size: 10px; font-weight: bold; color: #2d2d2d; padding-bottom: 4px; border-bottom: 1px solid #cccccc;">
+                            {{ __('messages.owner_name') }} #{{ $index + 1 }}: {{ $owner->name }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 15%; color: #718096; font-size: 8px; padding-top: 4px;">{{ __('messages.nic') }}:</td>
+                        <td style="width: 35%; font-weight: bold; font-size: 8px; padding-top: 4px;">{{ $owner->nic }}</td>
+                        <td style="width: 15%; color: #718096; font-size: 8px; padding-top: 4px;">{{ __('messages.contact_number') }}:</td>
+                        <td style="width: 35%; font-weight: bold; font-size: 8px; padding-top: 4px;">{{ $owner->contact }}</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #718096; font-size: 8px; vertical-align: top; padding-top: 2px;">{{ __('messages.address') }}:</td>
+                        <td colspan="3" style="font-size: 8px; padding-top: 2px;">{{ $owner->address }}</td>
+                    </tr>
+                </table>
+            </div>
+            @endforeach
             @else
-                <div class="empty-note">
-                    {{ __('messages.n_a') }}
-                </div>
+            <div class="empty-note">
+                {{ __('messages.n_a') }}
+            </div>
             @endif
 
             <!-- Section 7: Administrative Review & Declarations -->
@@ -480,12 +486,12 @@
 
             <div class="declaration">
                 @if(app()->getLocale() === 'si')
-                    මෙම ලේඛනය භූමි අත්පත් කරගැනීමේ පනතේ විධිවිධානවලට අනුකූලව නිකුත් කරනු ලබන අතර දකුණු පළාත් ප්‍රධාන අමාත්‍යාංශයේ භූමි අත්පත් කරගැනීමේ කළමනාකරණ පද්ධතිය (LAMS) මඟින් ජනනය කරන ලද නිල වාර්තාවක් වේ. මෙහි සටහන් කර ඇති තොරතුරු අත්සන් කරන ලද නිලධාරීන්ගේ දැනුම පරිදි සත්‍ය සහ නිවැරදි බව සහතික කරන අතර, මෙම පෝරමය ස්ථිර නඩු ගොනුවේ කොටසක් ලෙස තබා ගත යුතුය.
+                මෙම ලේඛනය භූමි අත්පත් කරගැනීමේ පනතේ විධිවිධානවලට අනුකූලව නිකුත් කරනු ලබන අතර දකුණු පළාත් ප්‍රධාන අමාත්‍යාංශයේ භූමි අත්පත් කරගැනීමේ කළමනාකරණ පද්ධතිය (LAMS) මඟින් ජනනය කරන ලද නිල වාර්තාවක් වේ. මෙහි සටහන් කර ඇති තොරතුරු අත්සන් කරන ලද නිලධාරීන්ගේ දැනුම පරිදි සත්‍ය සහ නිවැරදි බව සහතික කරන අතර, මෙම පෝරමය ස්ථිර නඩු ගොනුවේ කොටසක් ලෙස තබා ගත යුතුය.
                 @else
-                    This document is issued in accordance with the provisions of the Land Acquisition Act and constitutes an official
-                    record generated through the Land Acquisition Management System (LAMS) of the Chief Ministry of Southern Province.
-                    It is certified that the particulars recorded herein are true and correct to the best of the knowledge of the
-                    undersigned officers, and this form is to be retained as part of the permanent case file.
+                This document is issued in accordance with the provisions of the Land Acquisition Act and constitutes an official
+                record generated through the Land Acquisition Management System (LAMS) of the Chief Ministry of Southern Province.
+                It is certified that the particulars recorded herein are true and correct to the best of the knowledge of the
+                undersigned officers, and this form is to be retained as part of the permanent case file.
                 @endif
             </div>
 
@@ -516,10 +522,11 @@
         </div>
     </div>
 
-    <div class="footer">
+    <div class="footer" style="font-family: {{ app()->getLocale() === 'si' ? 'notosanssinhala, sans-serif' : 'Times New Roman, serif' }};">
         <div>Form LA-01 &mdash; {{ __('messages.Land_Acquisition_Management_System') }} &copy; {{ date('Y') }}</div>
         <div class="footer-line-2">{{ app()->getLocale() === 'si' ? 'අතිශය රහස්‍යයි - ශ්‍රී ලංකා රජය' : 'Strictly Confidential - Government of Sri Lanka' }}</div>
     </div>
 
 </body>
+
 </html>

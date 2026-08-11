@@ -32,12 +32,12 @@ class DocumentsController extends Controller
                 'land_parcel_id' => 'nullable|exists:land_parcels,id',
                 'property_owner_id' => 'nullable|exists:property_owners,id',
                 'document_category' => 'required|string|max:255',
-                'file' => 'required|file|max:51200', // 50MB max
+                'file' => 'required|file|max:10240', // 10MB max
             ]);
 
             $fileUploadService = new FileUploadService;
             $storagePath = ($validated['project_id'] ?? null)
-                ? 'projects/'.$validated['project_id']
+                ? 'projects/' . $validated['project_id']
                 : 'general';
             $uploadResult = $fileUploadService->upload(
                 $request->file('file'),
@@ -46,7 +46,7 @@ class DocumentsController extends Controller
             );
 
             // Extension is retrieved from the uploaded file
-            $extension = '.'.strtolower($request->file('file')->guessExtension() ?? $request->file('file')->getClientOriginalExtension());
+            $extension = '.' . strtolower($request->file('file')->guessExtension() ?? $request->file('file')->getClientOriginalExtension());
             $fileSize = $this->formatBytes($uploadResult['file_size']);
 
             $document = Documents::create([
@@ -123,7 +123,7 @@ class DocumentsController extends Controller
                 'user_id' => 'required|exists:users,id',
                 'project_id' => 'required|exists:projects,id',
                 'document_category' => 'required|string|max:255',
-                'file' => 'required|file|max:51200',
+                'file' => 'required|file|max:10240', // 10MB max
             ]);
 
             $fileUploadService = new FileUploadService;
@@ -134,10 +134,10 @@ class DocumentsController extends Controller
             $uploadResult = $fileUploadService->upload(
                 $request->file('file'),
                 'acquisition_case_documents',
-                'projects/'.$validated['project_id']
+                'projects/' . $validated['project_id']
             );
 
-            $extension = '.'.strtolower($request->file('file')->guessExtension() ?? $request->file('file')->getClientOriginalExtension());
+            $extension = '.' . strtolower($request->file('file')->guessExtension() ?? $request->file('file')->getClientOriginalExtension());
             $fileSize = $this->formatBytes($uploadResult['file_size']);
 
             $document->update([
@@ -235,6 +235,6 @@ class DocumentsController extends Controller
 
         $bytes /= pow(1024, $pow);
 
-        return round($bytes, $precision).' '.$units[$pow];
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }

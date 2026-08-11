@@ -24,7 +24,7 @@ return [
     'follow_us' => 'අප අනුගමනය කරන්න',
     // -----------------------------------------------------------
     // Login Page
-    'Land_Acquisition_Management_System' => 'භූමි අත්පත් කරගැනීමේ කළමනාකරණ පද්ධතිය',
+    'Land_Acquisition_Management_System' => 'ඉඩම් අත්පත් කරගැනීමේ කළමනාකරණ පද්ධතිය',
     'government_of_sri_lanka' => 'ශ්‍රී ලංකා රජය',
     'username' => 'පරිශීලක නාමය',
     'password' => 'මුරපදය',

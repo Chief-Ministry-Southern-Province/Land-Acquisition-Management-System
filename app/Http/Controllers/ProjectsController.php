@@ -328,7 +328,11 @@ class ProjectsController extends Controller
 
         $query = Projects::query();
         if ($id) {
-            $query->where('id', $id);
+            $query->where('id', $id)->with([
+                'landParcels.owners',
+                'landParcels.valuations',
+                'landParcels.compensations.payments',
+            ]);
         }
         $records = $query->get();
 
