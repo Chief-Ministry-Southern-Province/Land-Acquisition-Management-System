@@ -134,8 +134,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/backups', [BackupController::class, 'index']);
         Route::post('/backups', [BackupController::class, 'create']);
+        Route::post('/backups/files', [BackupController::class, 'createFiles']);
         Route::get('/backups/{filename}', [BackupController::class, 'download']);
         Route::delete('/backups/{filename}', [BackupController::class, 'destroy']);
+        Route::post('/backups/{filename}/restore', [BackupController::class, 'restore']);
         Route::post('/clear-cache', [BackupController::class, 'clearCache']);
     });
 });

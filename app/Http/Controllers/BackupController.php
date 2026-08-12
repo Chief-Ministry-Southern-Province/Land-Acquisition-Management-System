@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Backup;
 use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -29,25 +30,22 @@ class BackupController extends Controller
     public function index(Request $request)
     {
         $backupDir = $this->getBackupDir();
-        $files = File::files($backupDir);
+        $dbBackups = Backup::orderBy('created_at', 'desc')->get();
 
         $backups = [];
-        foreach ($files as $file) {
-            // Only list zip or sql or sqlite files
-            $ext = strtolower($file->getExtension());
-            if (in_array($ext, ['zip', 'sql', 'sqlite'])) {
+        foreach ($dbBackups as $backup) {
+            $filePath = $backupDir.'/'.$backup->filename;
+            if (File::exists($filePath)) {
                 $backups[] = [
-                    'filename' => $file->getFilename(),
-                    'size' => $this->formatBytes($file->getSize()),
-                    'created_at' => date('Y-m-d H:i:s', $file->getMTime()),
+                    'filename' => $backup->filename,
+                    'size' => $backup->file_size,
+                    'created_at' => $backup->created_at->toDateTimeString(),
+                    'type' => $backup->backup_type,
                 ];
+            } else {
+                $backup->delete();
             }
         }
-
-        // Sort by creation time desc
-        usort($backups, function ($a, $b) {
-            return strcmp($b['created_at'], $a['created_at']);
-        });
 
         return response()->json([
             'message' => 'Backups listed successfully',
@@ -64,9 +62,9 @@ class BackupController extends Controller
         $dbConfig = config("database.connections.{$dbConnection}");
         $backupDir = $this->getBackupDir();
         $timestamp = date('Y-m-d_H-i-s');
-        $sqlFilename = "backup_{$timestamp}.sql";
+        $sqlFilename = "backup_db_{$timestamp}.sql";
         $sqlPath = $backupDir.'/'.$sqlFilename;
-        $zipFilename = "backup_{$timestamp}.zip";
+        $zipFilename = "backup_db_{$timestamp}.zip";
         $zipPath = $backupDir.'/'.$zipFilename;
 
         try {
@@ -101,12 +99,12 @@ class BackupController extends Controller
                             $zip->close();
                         } else {
                             // Fallback to copy if zip fails
-                            File::copy($dbPath, $backupDir."/backup_{$timestamp}.sqlite");
-                            $zipFilename = "backup_{$timestamp}.sqlite";
+                            File::copy($dbPath, $backupDir."/backup_db_{$timestamp}.sqlite");
+                            $zipFilename = "backup_db_{$timestamp}.sqlite";
                         }
                     } else {
-                        File::copy($dbPath, $backupDir."/backup_{$timestamp}.sqlite");
-                        $zipFilename = "backup_{$timestamp}.sqlite";
+                        File::copy($dbPath, $backupDir."/backup_db_{$timestamp}.sqlite");
+                        $zipFilename = "backup_db_{$timestamp}.sqlite";
                     }
                 }
             } else {
@@ -156,6 +154,17 @@ class BackupController extends Controller
                 }
             }
 
+            // Save to database
+            $filePath = $backupDir.'/'.$zipFilename;
+            $fileSize = File::exists($filePath) ? $this->formatBytes(File::size($filePath)) : '0 B';
+
+            Backup::create([
+                'filename' => $zipFilename,
+                'backup_type' => 'database',
+                'file_size' => $fileSize,
+                'user_id' => $request->user()->id,
+            ]);
+
             // Log action in audit logs
             AuditLogService::log(
                 $request->user()->id,
@@ -180,6 +189,90 @@ class BackupController extends Controller
                 'message' => 'Backup failed: '.$e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Generate a new files backup.
+     */
+    public function createFiles(Request $request)
+    {
+        $backupDir = $this->getBackupDir();
+        $uploadsDir = storage_path('app/acquisition_case_documents');
+        $timestamp = date('Y-m-d_H-i-s');
+        $zipFilename = "backup_files_{$timestamp}.zip";
+        $zipPath = $backupDir.'/'.$zipFilename;
+
+        try {
+            if (! File::exists($uploadsDir)) {
+                File::makeDirectory($uploadsDir, 0755, true);
+            }
+
+            if (! class_exists('ZipArchive')) {
+                return response()->json(['message' => 'PHP ZipArchive extension is not enabled'], 500);
+            }
+
+            $this->zipFolder($uploadsDir, $zipPath);
+
+            // Save to database
+            $filePath = $backupDir.'/'.$zipFilename;
+            $fileSize = File::exists($filePath) ? $this->formatBytes(File::size($filePath)) : '0 B';
+
+            Backup::create([
+                'filename' => $zipFilename,
+                'backup_type' => 'files',
+                'file_size' => $fileSize,
+                'user_id' => $request->user()->id,
+            ]);
+
+            // Log action in audit logs
+            AuditLogService::log(
+                $request->user()->id,
+                $request->user()->name,
+                'Create',
+                'Backup & Maintenance',
+                "Created uploaded files backup: {$zipFilename}"
+            );
+
+            return response()->json([
+                'message' => 'Uploaded files backup created successfully',
+                'filename' => $zipFilename,
+            ], 201);
+
+        } catch (\Exception $e) {
+            if (File::exists($zipPath)) {
+                File::delete($zipPath);
+            }
+
+            return response()->json([
+                'message' => 'Files backup failed: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Helper to zip a folder recursively.
+     */
+    protected function zipFolder(string $source, string $destination): void
+    {
+        $zip = new \ZipArchive;
+        if (! $zip->open($destination, \ZipArchive::CREATE | \ZipArchive::OVERWRITE)) {
+            throw new \Exception('Failed to create zip file');
+        }
+
+        if (File::isDirectory($source)) {
+            $files = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::LEAVES_ONLY
+            );
+
+            foreach ($files as $file) {
+                $filePath = $file->getRealPath();
+                $relativePath = substr($filePath, strlen($source) + 1);
+                $zip->addFile($filePath, $relativePath);
+            }
+        }
+
+        $zip->close();
     }
 
     /**
@@ -216,11 +309,15 @@ class BackupController extends Controller
         $filename = basename($filename);
         $filePath = $this->getBackupDir().'/'.$filename;
 
-        if (! File::exists($filePath)) {
-            return response()->json(['message' => 'Backup file not found'], 404);
+        // Delete from database
+        $backup = Backup::where('filename', $filename)->first();
+        if ($backup) {
+            $backup->delete();
         }
 
-        File::delete($filePath);
+        if (File::exists($filePath)) {
+            File::delete($filePath);
+        }
 
         // Log deletion in audit logs
         AuditLogService::log(
@@ -234,6 +331,171 @@ class BackupController extends Controller
         return response()->json([
             'message' => 'Backup file deleted successfully',
         ]);
+    }
+
+    /**
+     * Restore database from a backup file.
+     */
+    public function restore(Request $request, string $filename)
+    {
+        $filename = basename($filename);
+        $backupDir = $this->getBackupDir();
+        $filePath = $backupDir.'/'.$filename;
+
+        // Verify database backup record exists and matches
+        $backup = Backup::where('filename', $filename)->first();
+        if (! $backup) {
+            return response()->json(['message' => 'Backup record not found in database'], 404);
+        }
+
+        if ($backup->backup_type !== 'database') {
+            return response()->json(['message' => 'Only database backups can be restored'], 400);
+        }
+
+        if (! File::exists($filePath)) {
+            return response()->json(['message' => 'Physical backup file not found on server'], 404);
+        }
+
+        $dbConnection = config('database.default');
+        $dbConfig = config("database.connections.{$dbConnection}");
+        $tempDir = storage_path('app/backups/temp_restore_'.uniqid());
+
+        try {
+            $sqlFile = null;
+            $sqliteFile = null;
+
+            if (strtolower(pathinfo($filename, PATHINFO_EXTENSION)) === 'zip') {
+                if (! class_exists('ZipArchive')) {
+                    return response()->json(['message' => 'PHP ZipArchive extension is not enabled'], 500);
+                }
+
+                $extractedFiles = $this->extractZip($filePath, $tempDir);
+                foreach ($extractedFiles as $file) {
+                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                    if ($ext === 'sql') {
+                        $sqlFile = $file;
+                    } elseif ($ext === 'sqlite') {
+                        $sqliteFile = $file;
+                    }
+                }
+            } else {
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                if ($ext === 'sql') {
+                    $sqlFile = $filePath;
+                } elseif ($ext === 'sqlite') {
+                    $sqliteFile = $filePath;
+                }
+            }
+
+            if ($dbConnection === 'sqlite') {
+                $dbPath = $dbConfig['database'];
+                if ($dbPath === ':memory:') {
+                    if (! $sqlFile) {
+                        return response()->json(['message' => 'No SQL script found in backup to restore in-memory database'], 400);
+                    }
+                    $sqlContent = File::get($sqlFile);
+                    DB::unprepared($sqlContent);
+                } else {
+                    DB::disconnect();
+                    if ($sqliteFile) {
+                        File::copy($sqliteFile, $dbPath);
+                    } elseif ($sqlFile) {
+                        // Empty current database and run SQL statements
+                        File::put($dbPath, '');
+                        $sqlContent = File::get($sqlFile);
+                        DB::unprepared($sqlContent);
+                    } else {
+                        return response()->json(['message' => 'No restore source file (SQL or SQLite) found in backup'], 400);
+                    }
+                }
+            } else {
+                // MySQL restore
+                if (! $sqlFile) {
+                    return response()->json(['message' => 'No SQL dump script found in backup'], 400);
+                }
+                $this->runSqlRestore($sqlFile, $dbConfig);
+            }
+
+            // Clean up temp directory
+            if (File::exists($tempDir)) {
+                File::deleteDirectory($tempDir);
+            }
+
+            // Log action in audit logs
+            AuditLogService::log(
+                $request->user()->id,
+                $request->user()->name,
+                'Restore',
+                'Backup & Maintenance',
+                "Restored database from backup: {$filename}"
+            );
+
+            return response()->json([
+                'message' => 'Database restored successfully',
+            ], 200);
+
+        } catch (\Exception $e) {
+            if (File::exists($tempDir)) {
+                File::deleteDirectory($tempDir);
+            }
+
+            return response()->json([
+                'message' => 'Restore failed: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Extract a zip archive to a target path and return the list of files.
+     */
+    protected function extractZip(string $zipPath, string $extractTo): array
+    {
+        $extractedFiles = [];
+        $zip = new \ZipArchive;
+        if ($zip->open($zipPath) === true) {
+            if (! File::exists($extractTo)) {
+                File::makeDirectory($extractTo, 0755, true);
+            }
+            $zip->extractTo($extractTo);
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $extractedFiles[] = $extractTo.'/'.$zip->getNameIndex($i);
+            }
+            $zip->close();
+        }
+
+        return $extractedFiles;
+    }
+
+    /**
+     * Execute SQL import for database.
+     */
+    protected function runSqlRestore(string $sqlPath, array $dbConfig): void
+    {
+        $username = $dbConfig['username'] ?? '';
+        $password = $dbConfig['password'] ?? '';
+        $database = $dbConfig['database'] ?? '';
+        $host = $dbConfig['host'] ?? '127.0.0.1';
+        $port = $dbConfig['port'] ?? '3306';
+
+        $command = sprintf(
+            'mysql --user=%s --password=%s --host=%s --port=%s %s < %s 2>&1',
+            escapeshellarg($username),
+            escapeshellarg($password),
+            escapeshellarg($host),
+            escapeshellarg($port),
+            escapeshellarg($database),
+            escapeshellarg($sqlPath)
+        );
+
+        $output = [];
+        $returnVal = -1;
+        exec($command, $output, $returnVal);
+
+        if ($returnVal !== 0) {
+            // Fallback to PHP execution
+            $sqlContent = File::get($sqlPath);
+            DB::unprepared($sqlContent);
+        }
     }
 
     /**

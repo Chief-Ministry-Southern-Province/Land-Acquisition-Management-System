@@ -23,6 +23,17 @@ export const createBackup = async (): Promise<{
   return response.data;
 };
 
+export const createFilesBackup = async (): Promise<{
+  message: string;
+  filename: string;
+}> => {
+  const response = await api.post<{ message: string; filename: string }>(
+    '/api/backups/files',
+  );
+
+  return response.data;
+};
+
 export const downloadBackup = async (filename: string): Promise<void> => {
   const response = await api.get(`/api/backups/${filename}`, {
     responseType: 'blob',
@@ -51,6 +62,16 @@ export const deleteBackup = async (filename: string): Promise<void> => {
 
 export const clearCache = async (): Promise<{ message: string }> => {
   const response = await api.post<{ message: string }>('/api/clear-cache');
+
+  return response.data;
+};
+
+export const restoreBackup = async (
+  filename: string,
+): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>(
+    `/api/backups/${filename}/restore`,
+  );
 
   return response.data;
 };
