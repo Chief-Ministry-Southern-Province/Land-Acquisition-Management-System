@@ -243,6 +243,7 @@ class LandParcelController extends Controller
             'annual_income' => 'nullable|numeric',
             'land_type' => 'nullable|string|max:255',
             'is_casehold' => 'nullable|boolean',
+            'is_under_legal_obligation' => 'nullable|boolean',
             'case_number' => 'nullable|string|max:255',
             'case_start_date' => 'nullable|date',
             'case_end_date' => 'nullable|date',
