@@ -22,7 +22,11 @@ export const uploadDocument = async (
     formData.append('land_parcel_id', landParcelId);
   }
 
-  if (propertyOwnerId && propertyOwnerId !== 'null' && propertyOwnerId !== 'undefined') {
+  if (
+    propertyOwnerId &&
+    propertyOwnerId !== 'null' &&
+    propertyOwnerId !== 'undefined'
+  ) {
     formData.append('property_owner_id', propertyOwnerId);
   }
 

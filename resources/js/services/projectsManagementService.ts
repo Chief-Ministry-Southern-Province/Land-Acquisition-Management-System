@@ -228,9 +228,11 @@ export const exportProjects = async (
   let requestUrl = id
     ? `/api/projects/export?format=${format}&id=${id}`
     : `/api/projects/export?format=${format}`;
+
   if (locale) {
     requestUrl += `&locale=${locale}`;
   }
+
   const response = await api.get(requestUrl, {
     responseType: 'blob',
   });

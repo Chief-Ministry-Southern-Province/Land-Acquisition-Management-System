@@ -177,9 +177,11 @@ export const exportPropertyOwners = async (
   let requestUrl = id
     ? `/api/property-owners/export?format=${format}&id=${id}`
     : `/api/property-owners/export?format=${format}`;
+
   if (locale) {
     requestUrl += `&locale=${locale}`;
   }
+
   const response = await api.get(requestUrl, {
     responseType: 'blob',
   });

@@ -818,7 +818,7 @@ export default function LandParcelDetails({ id }: Props) {
     { id: 'survey', label: 'Survey Info' },
     { id: 'valuation', label: 'Valuation Details' },
     { id: 'compensation', label: 'Compensation & Payments' },
-    ...((parcel.is_casehold)
+    ...(parcel.is_casehold
       ? [{ id: 'legal', label: 'Legal & Obligations' }]
       : []),
   ];
@@ -2631,232 +2631,231 @@ export default function LandParcelDetails({ id }: Props) {
       )}
 
       {/* TAB CONTENT: Legal & Obligations */}
-      {activeTab === 'legal' &&
-        parcel.is_casehold && (
-          <div className="space-y-6">
-            {/* Legal Case Information Summary */}
-            <div className="bg-card border-border rounded-lg border p-6">
-              <div className="mb-4 flex items-center gap-2">
-                <Scale className="h-5 w-5 text-amber-600" />
-                <h3 className="text-base font-semibold">Legal Case Information</h3>
-              </div>
-              <div className="border-border rounded-lg border bg-amber-50/50 p-4 dark:bg-amber-950/20">
-                <dl className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-4">
-                  <div>
-                    <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                      Case Number
-                    </dt>
-                    <dd className="text-foreground font-mono font-medium">
-                      {parcel.case_number || 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                      Case Status
-                    </dt>
-                    <dd className="text-foreground font-medium">
-                      {parcel.case_status ? (
-                        <StatusBadge status={parcel.case_status} />
-                      ) : (
-                        'N/A'
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                      Case Start Date
-                    </dt>
-                    <dd className="text-foreground font-medium">
-                      {parcel.case_start_date
-                        ? new Date(parcel.case_start_date).toLocaleDateString()
-                        : 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                      Case End Date
-                    </dt>
-                    <dd className="text-foreground font-medium">
-                      {parcel.case_end_date
-                        ? new Date(parcel.case_end_date).toLocaleDateString()
-                        : 'Active / Ongoing'}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
+      {activeTab === 'legal' && parcel.is_casehold && (
+        <div className="space-y-6">
+          {/* Legal Case Information Summary */}
+          <div className="bg-card border-border rounded-lg border p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <Scale className="h-5 w-5 text-amber-600" />
+              <h3 className="text-base font-semibold">
+                Legal Case Information
+              </h3>
             </div>
-
-            {/* Legal Documents Section */}
-            <div className="bg-card border-border rounded-lg border p-6">
-              <div className="mb-4 flex items-center justify-between">
+            <div className="border-border rounded-lg border bg-amber-50/50 p-4 dark:bg-amber-950/20">
+              <dl className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <h3 className="text-base font-semibold">Legal Documents</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Upload and manage court orders, affidavits, injunction
-                    notices, clearance letters, and other legal files.
-                  </p>
+                  <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+                    Case Number
+                  </dt>
+                  <dd className="text-foreground font-mono font-medium">
+                    {parcel.case_number || 'N/A'}
+                  </dd>
                 </div>
-                {isDO && !showLegalUploadForm && (
-                  <button
-                    onClick={() => setShowLegalUploadForm(true)}
-                    className="bg-primary hover:bg-primary/95 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Upload Legal Document</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Legal Document Upload Form */}
-              {showLegalUploadForm && (
-                <div className="border-border mb-6 space-y-4 rounded-lg border bg-amber-50/30 p-5 dark:bg-amber-950/10">
-                  <div className="flex items-center justify-between border-b pb-3">
-                    <h4 className="text-foreground text-sm font-bold">
-                      Upload New Legal Document
-                    </h4>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowLegalUploadForm(false);
-                        setLegalDocTitle('');
-                        setLegalDocCategory('court_order');
-                        setLegalDocRefNumber('');
-                      }}
-                      className="text-muted-foreground hover:text-foreground rounded-lg p-1.5 transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="space-y-1">
-                      <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                        Document Title
-                      </label>
-                      <input
-                        type="text"
-                        value={legalDocTitle}
-                        onChange={(e) => setLegalDocTitle(e.target.value)}
-                        className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                        placeholder="e.g. Court Order - Case #2026/001"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                        Legal Category
-                      </label>
-                      <select
-                        value={legalDocCategory}
-                        onChange={(e) => setLegalDocCategory(e.target.value)}
-                        className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                      >
-                        <option value="court_order">Court Order</option>
-                        <option value="affidavit">Affidavit</option>
-                        <option value="injunction_notice">
-                          Injunction Notice
-                        </option>
-                        <option value="clearance_letter">
-                          Clearance Letter
-                        </option>
-                        <option value="legal_opinion">Legal Opinion</option>
-                        <option value="deed">Deed / Title Document</option>
-                        <option value="power_of_attorney">
-                          Power of Attorney
-                        </option>
-                        <option value="other">Other Legal Document</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                        Reference Number
-                      </label>
-                      <input
-                        type="text"
-                        value={legalDocRefNumber}
-                        onChange={(e) => setLegalDocRefNumber(e.target.value)}
-                        className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                        placeholder="e.g. REF/2026/LEGAL/001"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 pt-2">
-                    <label className="bg-primary hover:bg-primary/95 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-colors">
-                      <Upload className="h-4 w-4" />
-                      <span>
-                        {legalDocUploading
-                          ? 'Uploading...'
-                          : 'Choose File & Upload'}
-                      </span>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                        disabled={legalDocUploading}
-                        onChange={handleLegalDocUpload}
-                      />
-                    </label>
-                    <span className="text-muted-foreground text-xs">
-                      Accepted: PDF, DOC, DOCX, PNG, JPG
-                    </span>
-                  </div>
+                <div>
+                  <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+                    Case Status
+                  </dt>
+                  <dd className="text-foreground font-medium">
+                    {parcel.case_status ? (
+                      <StatusBadge status={parcel.case_status} />
+                    ) : (
+                      'N/A'
+                    )}
+                  </dd>
                 </div>
-              )}
-
-              {/* Legal Documents Table */}
-              {legalDocuments.length > 0 ? (
-                <DataTable
-                  columns={[
-                    { key: 'name', label: 'Document Name' },
-                    { key: 'type', label: 'Type' },
-                    { key: 'date', label: 'Upload Date' },
-                    {
-                      key: 'actions',
-                      label: 'Actions',
-                      render: (_val: any, row: any) => (
-                        <div
-                          className="flex items-center justify-end gap-2"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            onClick={() => handleDownload(row.id, row.name)}
-                            className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
-                            title="Download"
-                          >
-                            <Download className="h-4 w-4" />
-                          </button>
-                          {isDO && (
-                            <button
-                              onClick={() => handleDelete(row.id)}
-                              className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                              title="Delete"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      ),
-                    },
-                  ]}
-                  data={legalDocuments}
-                  searchable={false}
-                  filterable={false}
-                />
-              ) : (
-                <div className="text-muted-foreground flex h-36 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm">
-                  <Scale className="text-muted-foreground/60 h-8 w-8" />
-                  <span>No legal documents uploaded yet.</span>
-                  {isDO && (
-                    <p className="text-xs">
-                      Click &quot;Upload Legal Document&quot; above to attach
-                      court orders, affidavits, or other legal files.
-                    </p>
-                  )}
+                <div>
+                  <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+                    Case Start Date
+                  </dt>
+                  <dd className="text-foreground font-medium">
+                    {parcel.case_start_date
+                      ? new Date(parcel.case_start_date).toLocaleDateString()
+                      : 'N/A'}
+                  </dd>
                 </div>
-              )}
+                <div>
+                  <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+                    Case End Date
+                  </dt>
+                  <dd className="text-foreground font-medium">
+                    {parcel.case_end_date
+                      ? new Date(parcel.case_end_date).toLocaleDateString()
+                      : 'Active / Ongoing'}
+                  </dd>
+                </div>
+              </dl>
             </div>
           </div>
-        )}
+
+          {/* Legal Documents Section */}
+          <div className="bg-card border-border rounded-lg border p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold">Legal Documents</h3>
+                <p className="text-muted-foreground text-sm">
+                  Upload and manage court orders, affidavits, injunction
+                  notices, clearance letters, and other legal files.
+                </p>
+              </div>
+              {isDO && !showLegalUploadForm && (
+                <button
+                  onClick={() => setShowLegalUploadForm(true)}
+                  className="bg-primary hover:bg-primary/95 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Upload Legal Document</span>
+                </button>
+              )}
+            </div>
+
+            {/* Legal Document Upload Form */}
+            {showLegalUploadForm && (
+              <div className="border-border mb-6 space-y-4 rounded-lg border bg-amber-50/30 p-5 dark:bg-amber-950/10">
+                <div className="flex items-center justify-between border-b pb-3">
+                  <h4 className="text-foreground text-sm font-bold">
+                    Upload New Legal Document
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowLegalUploadForm(false);
+                      setLegalDocTitle('');
+                      setLegalDocCategory('court_order');
+                      setLegalDocRefNumber('');
+                    }}
+                    className="text-muted-foreground hover:text-foreground rounded-lg p-1.5 transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="space-y-1">
+                    <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                      Document Title
+                    </label>
+                    <input
+                      type="text"
+                      value={legalDocTitle}
+                      onChange={(e) => setLegalDocTitle(e.target.value)}
+                      className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
+                      placeholder="e.g. Court Order - Case #2026/001"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                      Legal Category
+                    </label>
+                    <select
+                      value={legalDocCategory}
+                      onChange={(e) => setLegalDocCategory(e.target.value)}
+                      className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
+                    >
+                      <option value="court_order">Court Order</option>
+                      <option value="affidavit">Affidavit</option>
+                      <option value="injunction_notice">
+                        Injunction Notice
+                      </option>
+                      <option value="clearance_letter">Clearance Letter</option>
+                      <option value="legal_opinion">Legal Opinion</option>
+                      <option value="deed">Deed / Title Document</option>
+                      <option value="power_of_attorney">
+                        Power of Attorney
+                      </option>
+                      <option value="other">Other Legal Document</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                      Reference Number
+                    </label>
+                    <input
+                      type="text"
+                      value={legalDocRefNumber}
+                      onChange={(e) => setLegalDocRefNumber(e.target.value)}
+                      className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
+                      placeholder="e.g. REF/2026/LEGAL/001"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 pt-2">
+                  <label className="bg-primary hover:bg-primary/95 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-colors">
+                    <Upload className="h-4 w-4" />
+                    <span>
+                      {legalDocUploading
+                        ? 'Uploading...'
+                        : 'Choose File & Upload'}
+                    </span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                      disabled={legalDocUploading}
+                      onChange={handleLegalDocUpload}
+                    />
+                  </label>
+                  <span className="text-muted-foreground text-xs">
+                    Accepted: PDF, DOC, DOCX, PNG, JPG
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Legal Documents Table */}
+            {legalDocuments.length > 0 ? (
+              <DataTable
+                columns={[
+                  { key: 'name', label: 'Document Name' },
+                  { key: 'type', label: 'Type' },
+                  { key: 'date', label: 'Upload Date' },
+                  {
+                    key: 'actions',
+                    label: 'Actions',
+                    render: (_val: any, row: any) => (
+                      <div
+                        className="flex items-center justify-end gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => handleDownload(row.id, row.name)}
+                          className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+                          title="Download"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                        {isDO && (
+                          <button
+                            onClick={() => handleDelete(row.id)}
+                            className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ),
+                  },
+                ]}
+                data={legalDocuments}
+                searchable={false}
+                filterable={false}
+              />
+            ) : (
+              <div className="text-muted-foreground flex h-36 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm">
+                <Scale className="text-muted-foreground/60 h-8 w-8" />
+                <span>No legal documents uploaded yet.</span>
+                {isDO && (
+                  <p className="text-xs">
+                    Click &quot;Upload Legal Document&quot; above to attach
+                    court orders, affidavits, or other legal files.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Google Maps Location Popup Dialog */}
       {isMapModalOpen && (

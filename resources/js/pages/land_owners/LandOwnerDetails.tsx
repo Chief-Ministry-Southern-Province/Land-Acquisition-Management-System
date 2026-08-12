@@ -381,10 +381,13 @@ export default function LandOwnerDetails({ id }: Props) {
                             if (file.size > 10 * 1024 * 1024) {
                               alert('File size exceeds the 10MB limit.');
                               e.target.value = '';
+
                               return;
                             }
+
                             setSelectedFile(file);
                           }
+
                           e.target.value = '';
                         }}
                       />
@@ -419,8 +422,12 @@ export default function LandOwnerDetails({ id }: Props) {
               {uploading && uploadProgress !== null && (
                 <div className="mt-4 space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-medium">
-                    <span className="text-muted-foreground">Uploading document...</span>
-                    <span className="text-primary font-semibold">{uploadProgress}%</span>
+                    <span className="text-muted-foreground">
+                      Uploading document...
+                    </span>
+                    <span className="text-primary font-semibold">
+                      {uploadProgress}%
+                    </span>
                   </div>
                   <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
                     <div
