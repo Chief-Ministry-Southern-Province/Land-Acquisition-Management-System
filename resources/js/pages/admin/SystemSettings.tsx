@@ -15,9 +15,22 @@ import {
   Settings,
   Shield,
   Upload,
+  Download,
+  Trash2,
+  AlertCircle,
+  X,
+  Loader2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import MainLayout from '@/layouts/MainLayout';
+import {
+  getBackups,
+  createBackup,
+  downloadBackup,
+  deleteBackup,
+  clearCache,
+} from '@/services/backupService';
+import type { BackupFile } from '@/services/backupService';
 
 /* ────────────────── Types ────────────────── */
 
@@ -174,13 +187,147 @@ export default function SystemSettings() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [auditLogRetention, setAuditLogRetention] = useState('365');
 
+  // ── Backup API states ──
+  const [backups, setBackups] = useState<BackupFile[]>([]);
+  const [loadingBackups, setLoadingBackups] = useState(false);
+  const [creatingBackup, setCreatingBackup] = useState(false);
+  const [clearingCache, setClearingCache] = useState(false);
+  const [toast, setToast] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
+  const showToast = (type: 'success' | 'error', text: string) => {
+    setToast({ type, text });
+    setTimeout(() => setToast(null), 5000);
+  };
+
+  const loadBackups = useCallback(async () => {
+    setLoadingBackups(true);
+
+    try {
+      const data = await getBackups();
+
+      setBackups(data);
+    } catch (error) {
+      console.error('Failed to load backups:', error);
+      showToast('error', 'Failed to load database backups list.');
+    } finally {
+      setLoadingBackups(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'backup') {
+      Promise.resolve().then(() => {
+        loadBackups();
+      });
+    }
+  }, [activeTab, loadBackups]);
+
+  const handleBackupNow = async () => {
+    if (creatingBackup) {
+      return;
+    }
+
+    setCreatingBackup(true);
+
+    try {
+      await createBackup();
+      showToast('success', 'Database backup created successfully.');
+      loadBackups();
+    } catch (error) {
+      console.error('Failed to create backup:', error);
+      showToast('error', 'Failed to create database backup.');
+    } finally {
+      setCreatingBackup(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    if (clearingCache) {
+      return;
+    }
+
+    setClearingCache(true);
+
+    try {
+      await clearCache();
+      showToast('success', 'System cache cleared successfully.');
+    } catch (error) {
+      console.error('Failed to clear cache:', error);
+      showToast('error', 'Failed to clear system cache.');
+    } finally {
+      setClearingCache(false);
+    }
+  };
+
+  const handleDownloadBackup = async (filename: string) => {
+    try {
+      showToast('success', `Downloading database backup: ${filename}`);
+      await downloadBackup(filename);
+    } catch (error) {
+      console.error('Failed to download backup:', error);
+      showToast('error', 'Failed to download database backup.');
+    }
+  };
+
+  const handleDeleteBackup = async (filename: string) => {
+    if (
+      !confirm(`Are you sure you want to delete the backup file "${filename}"?`)
+    ) {
+      return;
+    }
+
+    try {
+      await deleteBackup(filename);
+      showToast('success', 'Backup file deleted successfully.');
+      loadBackups();
+    } catch (error) {
+      console.error('Failed to delete backup:', error);
+      showToast('error', 'Failed to delete backup file.');
+    }
+  };
+
+  const lastBackupTime =
+    backups.length > 0
+      ? new Date(backups[0].created_at).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        })
+      : 'None';
+
   const handleSave = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* Toast Alert Banner */}
+      {toast && (
+        <div
+          className={`fixed right-6 top-6 z-50 flex items-center gap-3 rounded-lg border px-4 py-3 shadow-xl backdrop-blur-md transition-all duration-300 ${
+            toast.type === 'success'
+              ? 'border-[#2E7D32]/30 bg-[#2E7D32]/10 text-[#2E7D32]'
+              : 'bg-destructive/10 border-destructive/30 text-destructive'
+          }`}
+        >
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <span className="text-sm font-medium">{toast.text}</span>
+          <button
+            onClick={() => setToast(null)}
+            className="ml-2 hover:opacity-75"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -226,7 +373,7 @@ export default function SystemSettings() {
             <p className="text-muted-foreground text-xs uppercase tracking-wide">
               Last Backup
             </p>
-            <p className="text-sm font-semibold">Today, 02:00 AM</p>
+            <p className="text-sm font-semibold">{lastBackupTime}</p>
           </div>
         </div>
         <div className="bg-card border-border flex items-center gap-4 rounded-xl border p-4">
@@ -605,12 +752,120 @@ export default function SystemSettings() {
             description="One-time maintenance operations"
           >
             <div className="flex flex-wrap gap-3 py-5">
-              <button className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors">
-                <Upload className="h-4 w-4" /> Backup Now
+              <button
+                onClick={handleBackupNow}
+                disabled={creatingBackup}
+                className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:opacity-50"
+              >
+                {creatingBackup ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Creating
+                    Backup...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" /> Backup Now
+                  </>
+                )}
               </button>
-              <button className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors">
-                <RefreshCcw className="h-4 w-4" /> Clear Cache
+              <button
+                onClick={handleClearCache}
+                disabled={clearingCache}
+                className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:opacity-50"
+              >
+                {clearingCache ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Clearing
+                    Cache...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCcw className="h-4 w-4" /> Clear Cache
+                  </>
+                )}
               </button>
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Backup History"
+            description="Download or delete previous manual and automated database backups"
+          >
+            <div className="py-4">
+              {loadingBackups ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="text-primary h-8 w-8 animate-spin" />
+                </div>
+              ) : backups.length === 0 ? (
+                <div className="text-muted-foreground flex flex-col items-center justify-center py-8 text-center">
+                  <Database className="mb-2 h-10 w-10 opacity-40" />
+                  <p className="text-sm font-medium">
+                    No database backups found.
+                  </p>
+                  <p className="mt-1 text-xs">
+                    Click "Backup Now" to create your first system backup.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-border text-muted-foreground border-b text-xs uppercase tracking-wider">
+                        <th className="pb-3 font-semibold">File Name</th>
+                        <th className="pb-3 font-semibold">Created At</th>
+                        <th className="pb-3 font-semibold">File Size</th>
+                        <th className="pb-3 text-right font-semibold">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-border divide-y">
+                      {backups.map((bk) => (
+                        <tr key={bk.filename} className="hover:bg-muted/30">
+                          <td className="max-w-[250px] truncate py-3.5 font-medium">
+                            {bk.filename}
+                          </td>
+                          <td className="text-muted-foreground py-3.5">
+                            {new Date(
+                              bk.created_at.replace(' ', 'T'),
+                            ).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </td>
+                          <td className="text-muted-foreground py-3.5">
+                            {bk.size}
+                          </td>
+                          <td className="py-3.5 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() =>
+                                  handleDownloadBackup(bk.filename)
+                                }
+                                title="Download Backup"
+                                className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
+                              >
+                                <Download className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteBackup(bk.filename)}
+                                title="Delete Backup"
+                                className="text-muted-foreground hover:text-destructive rounded p-1 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </SectionCard>
 

@@ -4,6 +4,7 @@ use App\Http\Controllers\AOApprovalController;
 use App\Http\Controllers\ASApprovalController;
 use App\Http\Controllers\AuditLogsController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CompensationController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentsController;
@@ -130,5 +131,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('departments/{id}', [DepartmentController::class, 'destroy']);
         Route::apiResource('roles', RoleController::class);
         Route::apiResource('audit-logs', AuditLogsController::class);
+
+        Route::get('/backups', [BackupController::class, 'index']);
+        Route::post('/backups', [BackupController::class, 'create']);
+        Route::get('/backups/{filename}', [BackupController::class, 'download']);
+        Route::delete('/backups/{filename}', [BackupController::class, 'destroy']);
+        Route::post('/clear-cache', [BackupController::class, 'clearCache']);
     });
 });
