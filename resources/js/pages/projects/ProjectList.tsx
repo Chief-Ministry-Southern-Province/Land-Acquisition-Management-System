@@ -3,6 +3,7 @@ import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import {
   getProjects,
@@ -12,6 +13,7 @@ import {
 import type { Project } from '@/services/projectsManagementService';
 
 export default function ProjectList() {
+  const { locale } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +39,7 @@ export default function ProjectList() {
 
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     try {
-      await exportProjects(format);
+      await exportProjects(format, undefined, locale);
     } catch (error) {
       console.error(`Failed to export projects as ${format}:`, error);
     }

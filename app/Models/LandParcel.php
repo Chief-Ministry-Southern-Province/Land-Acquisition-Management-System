@@ -103,4 +103,3 @@ class LandParcel extends Model
         return $this->hasMany(Compensation::class, 'land_parcel_id');
     }
 }
-

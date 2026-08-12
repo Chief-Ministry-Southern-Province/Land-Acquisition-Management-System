@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/Badge';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import WorkflowTimeline from '@/components/ui/WorkflowTimeline';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import api from '@/services/api';
 import {
@@ -22,6 +23,7 @@ import {
   uploadDocument,
 } from '@/services/documentManagementService';
 import {
+  exportProjects,
   getProject,
   submitProject,
 } from '@/services/projectsManagementService';
@@ -58,6 +60,8 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [dbCompensations, setDbCompensations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const { locale } = useTranslation();
 
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
@@ -169,6 +173,15 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       alert('Failed to delete document.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
+    try {
+      await exportProjects(format, id, locale);
+    } catch (error) {
+      console.error(`Failed to export project details as ${format}:`, error);
+      alert(`Failed to export project details.`);
     }
   };
 
@@ -406,10 +419,46 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors">
-            <Download className="h-4 w-4" />
-            <span>Export</span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowExportDropdown(!showExportDropdown)}
+              className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              <span>Export</span>
+            </button>
+            {showExportDropdown && (
+              <div className="bg-card border-border absolute right-0 z-50 mt-2 w-36 rounded-lg border py-1 shadow-lg">
+                <button
+                  onClick={() => {
+                    handleExport('pdf');
+                    setShowExportDropdown(false);
+                  }}
+                  className="text-foreground hover:bg-muted w-full px-4 py-2 text-left text-sm font-medium transition-colors"
+                >
+                  Export PDF
+                </button>
+                <button
+                  onClick={() => {
+                    handleExport('excel');
+                    setShowExportDropdown(false);
+                  }}
+                  className="text-foreground hover:bg-muted w-full px-4 py-2 text-left text-sm font-medium transition-colors"
+                >
+                  Export Excel
+                </button>
+                <button
+                  onClick={() => {
+                    handleExport('csv');
+                    setShowExportDropdown(false);
+                  }}
+                  className="text-foreground hover:bg-muted w-full px-4 py-2 text-left text-sm font-medium transition-colors"
+                >
+                  Export CSV
+                </button>
+              </div>
+            )}
+          </div>
           {project &&
             (userRole !== 'DO' ||
               (project.caseStatus || project.status || '').toLowerCase() ===

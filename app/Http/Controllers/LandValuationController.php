@@ -60,7 +60,7 @@ class LandValuationController extends Controller
     {
         $valuation = LandValuation::with(['landParcel', 'document'])->find($id);
 
-        if (!$valuation) {
+        if (! $valuation) {
             return response()->json([
                 'message' => 'Land valuation not found',
             ], 404);
@@ -79,7 +79,7 @@ class LandValuationController extends Controller
     {
         $valuation = LandValuation::find($id);
 
-        if (!$valuation) {
+        if (! $valuation) {
             return response()->json([
                 'message' => 'Land valuation not found',
             ], 404);
@@ -89,7 +89,7 @@ class LandValuationController extends Controller
             'land_parcel_id' => 'required|exists:land_parcels,id',
             'valuer_name' => 'required|string|max:255',
             'valuation_date' => 'required|date',
-            'valuation_ref_number' => 'required|string|unique:land_valuations,valuation_ref_number,' . $id,
+            'valuation_ref_number' => 'required|string|unique:land_valuations,valuation_ref_number,'.$id,
             'land_value' => 'required|numeric|min:0',
             'crop_value' => 'required|numeric|min:0',
             'structure_value' => 'required|numeric|min:0',
@@ -115,7 +115,7 @@ class LandValuationController extends Controller
     {
         $valuation = LandValuation::find($id);
 
-        if (!$valuation) {
+        if (! $valuation) {
             return response()->json([
                 'message' => 'Land valuation not found',
             ], 404);

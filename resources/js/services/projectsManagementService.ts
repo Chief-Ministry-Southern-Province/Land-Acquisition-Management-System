@@ -223,10 +223,16 @@ export const submitProject = async (id: string): Promise<Project> => {
 export const exportProjects = async (
   format: 'pdf' | 'excel' | 'csv',
   id?: string,
+  locale?: string,
 ): Promise<void> => {
-  const requestUrl = id
+  let requestUrl = id
     ? `/api/projects/export?format=${format}&id=${id}`
     : `/api/projects/export?format=${format}`;
+
+  if (locale) {
+    requestUrl += `&locale=${locale}`;
+  }
+
   const response = await api.get(requestUrl, {
     responseType: 'blob',
   });

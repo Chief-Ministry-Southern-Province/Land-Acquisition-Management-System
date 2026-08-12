@@ -799,3 +799,28 @@ test('DO can edit and delete a queried project', function () {
     $responseDelete = $this->actingAs($doUser, 'sanctum')->deleteJson("/api/projects/{$project->id}");
     $responseDelete->assertStatus(204);
 });
+
+test('documents property owner file upload operations', function () {
+    Storage::fake('acquisition_case_documents');
+
+    $owner = PropertyOwner::create([
+        'owner_id' => 'OWN-DOC-TEST',
+        'name' => 'Wimal Sirisena',
+        'nic' => '199212345678',
+        'address' => 'Galle Rd, Galle',
+    ]);
+
+    $file = UploadedFile::fake()->create('nic.pdf', 800);
+
+    $uploadData = [
+        'user_id' => $this->user->id,
+        'property_owner_id' => $owner->id,
+        'document_category' => 'National Identity Card',
+        'file' => $file,
+    ];
+
+    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/documents', $uploadData);
+    $response->assertStatus(201);
+    $response->assertJsonPath('document.original_filename', 'nic.pdf');
+    $response->assertJsonPath('document.property_owner_id', $owner->id);
+});

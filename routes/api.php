@@ -4,6 +4,7 @@ use App\Http\Controllers\AOApprovalController;
 use App\Http\Controllers\ASApprovalController;
 use App\Http\Controllers\AuditLogsController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CompensationController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentsController;
@@ -64,11 +65,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('land-surveys', [LandSurveyController::class, 'store']);
         Route::put('land-surveys/{id}', [LandSurveyController::class, 'update']);
         Route::delete('land-surveys/{id}', [LandSurveyController::class, 'destroy']);
-        
+
         Route::post('land-valuations', [LandValuationController::class, 'store']);
         Route::put('land-valuations/{id}', [LandValuationController::class, 'update']);
         Route::delete('land-valuations/{id}', [LandValuationController::class, 'destroy']);
-        
+
         Route::post('payments', [PaymentController::class, 'store']);
         Route::put('payments/{id}', [PaymentController::class, 'update']);
         Route::delete('payments/{id}', [PaymentController::class, 'destroy']);
@@ -130,5 +131,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('departments/{id}', [DepartmentController::class, 'destroy']);
         Route::apiResource('roles', RoleController::class);
         Route::apiResource('audit-logs', AuditLogsController::class);
+
+        Route::get('/backups', [BackupController::class, 'index']);
+        Route::post('/backups', [BackupController::class, 'create']);
+        Route::post('/backups/files', [BackupController::class, 'createFiles']);
+        Route::get('/backups/{filename}', [BackupController::class, 'download']);
+        Route::delete('/backups/{filename}', [BackupController::class, 'destroy']);
+        Route::post('/backups/{filename}/restore', [BackupController::class, 'restore']);
+        Route::post('/clear-cache', [BackupController::class, 'clearCache']);
     });
 });

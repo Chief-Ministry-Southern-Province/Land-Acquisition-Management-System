@@ -1,8 +1,9 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Download, Upload } from 'lucide-react';
+import { ArrowLeft, Download, Upload, X } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import {
   uploadDocument,
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function LandOwnerDetails({ id }: Props) {
+  const { locale } = useTranslation();
   const [owner, setOwner] = useState<PropertyOwner | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploadCategory, setUploadCategory] = useState(
@@ -27,6 +29,7 @@ export default function LandOwnerDetails({ id }: Props) {
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   const { props: pageProps } = usePage();
@@ -53,7 +56,7 @@ export default function LandOwnerDetails({ id }: Props) {
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     try {
       setLoading(true);
-      await exportPropertyOwners(format, id);
+      await exportPropertyOwners(format, id, locale);
     } catch (error) {
       console.error(
         `Failed to export property owner profile as ${format}:`,
@@ -72,6 +75,7 @@ export default function LandOwnerDetails({ id }: Props) {
 
     try {
       setUploading(true);
+      setUploadProgress(0);
 
       const projectId =
         owner?.landParcels && owner.landParcels.length > 0
@@ -85,9 +89,18 @@ export default function LandOwnerDetails({ id }: Props) {
         uploadCategory,
         null,
         owner?.id,
+        (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total,
+            );
+            setUploadProgress(percentCompleted);
+          }
+        },
       );
 
       setSelectedFile(null);
+      setUploadProgress(null);
       alert('Document uploaded successfully!');
       await fetchOwner();
     } catch (error) {
@@ -95,6 +108,7 @@ export default function LandOwnerDetails({ id }: Props) {
       alert('Failed to upload document. Please try again.');
     } finally {
       setUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -151,7 +165,7 @@ export default function LandOwnerDetails({ id }: Props) {
         id: d.id,
         name: d.original_filename,
         category: d.document_category,
-        type: d.file_type.toUpperCase().replace('.', ''),
+        type: d.file_type ? d.file_type.toUpperCase().replace('.', '') : 'N/A',
         uploadDate: d.upload_date || '-',
         size: d.file_size,
         storedFilename: d.stored_filename,
@@ -364,14 +378,33 @@ export default function LandOwnerDetails({ id }: Props) {
                           const file = e.target.files?.[0];
 
                           if (file) {
+                            if (file.size > 10 * 1024 * 1024) {
+                              alert('File size exceeds the 10MB limit.');
+                              e.target.value = '';
+
+                              return;
+                            }
+
                             setSelectedFile(file);
                           }
+
+                          e.target.value = '';
                         }}
                       />
                     </label>
                     <span className="text-muted-foreground max-w-xs truncate text-xs">
                       {selectedFile ? selectedFile.name : 'No file selected'}
                     </span>
+                    {selectedFile && !uploading && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFile(null)}
+                        className="hover:bg-muted text-muted-foreground hover:text-destructive rounded-full p-1 transition-colors"
+                        title="Remove file"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -385,6 +418,25 @@ export default function LandOwnerDetails({ id }: Props) {
                   {uploading ? 'Uploading...' : 'Upload'}
                 </button>
               </div>
+
+              {uploading && uploadProgress !== null && (
+                <div className="mt-4 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-medium">
+                    <span className="text-muted-foreground">
+                      Uploading document...
+                    </span>
+                    <span className="text-primary font-semibold">
+                      {uploadProgress}%
+                    </span>
+                  </div>
+                  <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
+                    <div
+                      className="bg-primary h-full rounded-full transition-all duration-300 ease-out"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

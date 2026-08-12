@@ -233,6 +233,7 @@ function LoginScreen() {
                   {t('security_password')}
                 </label>
                 <button
+                  type="button"
                   onClick={() => router.visit('/forgot-password')}
                   className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
                 >

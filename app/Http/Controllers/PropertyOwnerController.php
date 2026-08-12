@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PropertyOwner;
+use App\Services\ExportService;
 use Illuminate\Http\Request;
 
 class PropertyOwnerController extends Controller
@@ -112,7 +113,7 @@ class PropertyOwnerController extends Controller
     /**
      * Export property owner details.
      */
-    public function export(Request $request, \App\Services\ExportService $exportService)
+    public function export(Request $request, ExportService $exportService)
     {
         $format = $request->query('format', 'excel');
         $id = $request->query('id');
@@ -148,17 +149,17 @@ class PropertyOwnerController extends Controller
         }
 
         $headings = [
-            'Owner ID',
-            'Full Name',
-            'NIC',
-            'Address',
-            'Contact Number',
-            'Date of Birth',
-            'Occupation',
-            'Email',
-            'Owned Parcels Count',
-            'Total Compensation Amount',
-            'Created At',
+            __('messages.owner_id'),
+            __('messages.full_name'),
+            __('messages.nic'),
+            __('messages.address'),
+            __('messages.contact_number'),
+            __('messages.date_of_birth'),
+            __('messages.occupation'),
+            __('messages.email'),
+            __('messages.owned_parcels_count'),
+            __('messages.total_compensation_amount'),
+            __('messages.created_at'),
         ];
 
         $data = $records->map(function ($owner) {
@@ -167,15 +168,15 @@ class PropertyOwnerController extends Controller
             return [
                 'owner_id' => $owner->owner_id,
                 'name' => $owner->name,
-                'nic' => $owner->nic ?? 'N/A',
+                'nic' => $owner->nic ?? __('messages.n_a'),
                 'address' => $owner->address,
-                'contact' => $owner->contact ?? 'N/A',
-                'date_of_birth' => $owner->date_of_birth ?? 'N/A',
-                'occupation' => $owner->occupation ?? 'N/A',
-                'email' => $owner->email ?? 'N/A',
+                'contact' => $owner->contact ?? __('messages.n_a'),
+                'date_of_birth' => $owner->date_of_birth ?? __('messages.n_a'),
+                'occupation' => $owner->occupation ?? __('messages.n_a'),
+                'email' => $owner->email ?? __('messages.n_a'),
                 'parcels_count' => $owner->landParcels->count(),
                 'total_compensation' => '₨ '.number_format($totalCompensation, 2),
-                'created_at' => $owner->created_at ? $owner->created_at->format('Y-m-d H:i:s') : 'N/A',
+                'created_at' => $owner->created_at ? $owner->created_at->format('Y-m-d H:i:s') : __('messages.n_a'),
             ];
         });
 

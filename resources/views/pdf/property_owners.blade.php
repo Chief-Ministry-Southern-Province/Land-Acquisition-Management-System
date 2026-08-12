@@ -2,8 +2,18 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Property Owners Report</title>
+    <title>{{ __('messages.property_owners_report') }}</title>
     <style>
+        @if(app()->getLocale() === 'si')
+        body {
+            font-family: 'notosanssinhala', sans-serif;
+            color: #333333;
+            font-size: 11px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
+        }
+        @else
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #333333;
@@ -12,6 +22,7 @@
             margin: 0;
             padding: 0;
         }
+        @endif
         .header {
             margin-bottom: 25px;
             border-bottom: 2px solid #1a365d;
@@ -73,11 +84,11 @@
         <table>
             <tr>
                 <td>
-                    <h1>Property Owners Report</h1>
-                    <p>Southern Province Land Acquisition Management System</p>
+                    <h1>{{ __('messages.property_owners_report') }}</h1>
+                    <p>{{ __('messages.Land_Acquisition_Management_System') }}</p>
                 </td>
                 <td style="text-align: right;">
-                    <p>Export Date: {{ date('Y-m-d H:i:s') }}</p>
+                    <p>{{ __('messages.generated_on') }}: {{ date('Y-m-d H:i:s') }}</p>
                 </td>
             </tr>
         </table>
@@ -86,13 +97,13 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Owner ID</th>
-                <th>Full Name</th>
-                <th>NIC</th>
-                <th>Contact</th>
-                <th>Address</th>
-                <th>Parcels</th>
-                <th>Total Comp.</th>
+                <th>{{ __('messages.owner_id') }}</th>
+                <th>{{ __('messages.full_name') }}</th>
+                <th>{{ __('messages.nic') }}</th>
+                <th>{{ __('messages.contact_number') }}</th>
+                <th>{{ __('messages.address') }}</th>
+                <th>{{ __('messages.owned_parcels_count') }}</th>
+                <th>{{ __('messages.total_compensation_amount') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -100,8 +111,8 @@
                 <tr>
                     <td>{{ $owner->owner_id }}</td>
                     <td>{{ $owner->name }}</td>
-                    <td>{{ $owner->nic ?? 'N/A' }}</td>
-                    <td>{{ $owner->contact ?? 'N/A' }}</td>
+                    <td>{{ $owner->nic ?? __('messages.n_a') }}</td>
+                    <td>{{ $owner->contact ?? __('messages.n_a') }}</td>
                     <td>{{ $owner->address }}</td>
                     <td>{{ $owner->landParcels->count() }}</td>
                     <td>₨ {{ number_format($owner->compensations->sum('amount'), 2) }}</td>
@@ -111,7 +122,7 @@
     </table>
 
     <div class="footer">
-        Page 1
+        {{ __('messages.page') }} 1
     </div>
 </body>
 </html>

@@ -13,6 +13,10 @@ import {
   MapPin,
   Calendar,
   User,
+  Scale,
+  Layers,
+  DollarSign,
+  CheckCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { SyncLoader } from 'react-spinners';
@@ -70,7 +74,6 @@ export default function DocumentList() {
     'Valuation',
     'Compensation',
     'Legal',
-    'Gazette Notice',
     'Other',
   ];
 
@@ -146,28 +149,29 @@ export default function DocumentList() {
       c.includes('legal') ||
       c.includes('court') ||
       c.includes('petition') ||
-      c.includes('ownership')
+      c.includes('ownership') ||
+      c.includes('affidavit') ||
+      c.includes('injunction') ||
+      c.includes('deed') ||
+      c.includes('attorney') ||
+      c.includes('obligation') ||
+      c.includes('clearance')
     ) {
       return 'legal';
-    }
-
-    if (c.includes('gazette') || c.includes('notice')) {
-      return 'gazette';
     }
 
     return 'other';
   };
 
   const categories = [
-    { id: 'all', name: 'All Documents' },
-    { id: 'approvals', name: 'Approvals' },
-    { id: 'reports', name: 'Reports' },
-    { id: 'survey', name: 'Survey Plans' },
-    { id: 'valuation', name: 'Valuations' },
-    { id: 'compensation', name: 'Compensation' },
-    { id: 'legal', name: 'Legal Cases' },
-    { id: 'gazette', name: 'Gazette Notices' },
-    { id: 'other', name: 'Others' },
+    { id: 'all', name: 'All Documents', icon: Folder },
+    { id: 'approvals', name: 'Approvals', icon: CheckCircle },
+    { id: 'reports', name: 'Reports', icon: FileText },
+    { id: 'survey', name: 'Survey Plans', icon: Layers },
+    { id: 'valuation', name: 'Valuations', icon: DollarSign },
+    { id: 'compensation', name: 'Compensation', icon: DollarSign },
+    { id: 'legal', name: 'Legal Cases', icon: Scale },
+    { id: 'other', name: 'Others', icon: Folder },
   ];
 
   // Dynamic counts for each folder
@@ -321,22 +325,48 @@ export default function DocumentList() {
       key: 'original_filename',
       label: 'Document Name',
       sortable: true,
-      render: (value: string, row: any) => (
-        <div className="flex items-center gap-3">
-          <FileText className="h-5 w-5 shrink-0 text-red-500" />
-          <div className="min-w-0">
-            <p
-              className="text-foreground max-w-xs truncate text-sm font-semibold md:max-w-md"
-              title={value}
-            >
-              {value}
-            </p>
-            <p className="text-muted-foreground mt-0.5 text-[10px]">
-              {row.file_size} • {row.file_type.toUpperCase()}
-            </p>
+      render: (value: string, row: any) => {
+        const catKey = getCategoryKey(row.document_category);
+        let IconComponent = FileText;
+        let iconColor = 'text-red-500';
+
+        if (catKey === 'approvals') {
+          IconComponent = CheckCircle;
+          iconColor = 'text-green-600';
+        } else if (catKey === 'reports') {
+          IconComponent = FileText;
+          iconColor = 'text-blue-500';
+        } else if (catKey === 'survey') {
+          IconComponent = Layers;
+          iconColor = 'text-indigo-500';
+        } else if (catKey === 'valuation') {
+          IconComponent = DollarSign;
+          iconColor = 'text-emerald-600';
+        } else if (catKey === 'compensation') {
+          IconComponent = DollarSign;
+          iconColor = 'text-amber-600';
+        } else if (catKey === 'legal') {
+          IconComponent = Scale;
+          iconColor = 'text-purple-600';
+        }
+
+        return (
+          <div className="flex items-center gap-3">
+            <IconComponent className={`h-5 w-5 shrink-0 ${iconColor}`} />
+            <div className="min-w-0">
+              <p
+                className="text-foreground max-w-xs truncate text-sm font-semibold md:max-w-md"
+                title={value}
+              >
+                {value}
+              </p>
+              <p className="text-muted-foreground mt-0.5 text-[10px]">
+                {row.file_size} • {row.file_type.toUpperCase()}
+              </p>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: 'document_category',
@@ -591,6 +621,7 @@ export default function DocumentList() {
             <div className="space-y-1">
               {categories.map((folder) => {
                 const isActive = selectedCategory === folder.id;
+                const IconComponent = folder.icon;
 
                 return (
                   <button
@@ -603,7 +634,7 @@ export default function DocumentList() {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <Folder
+                      <IconComponent
                         className={`h-4 w-4 ${isActive ? 'text-white' : 'text-muted-foreground'}`}
                       />
                       <span>{folder.name}</span>

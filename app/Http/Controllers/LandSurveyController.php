@@ -58,7 +58,7 @@ class LandSurveyController extends Controller
     {
         $survey = LandSurvey::with(['landParcel', 'document'])->find($id);
 
-        if (!$survey) {
+        if (! $survey) {
             return response()->json([
                 'message' => 'Land survey not found',
             ], 404);
@@ -77,7 +77,7 @@ class LandSurveyController extends Controller
     {
         $survey = LandSurvey::find($id);
 
-        if (!$survey) {
+        if (! $survey) {
             return response()->json([
                 'message' => 'Land survey not found',
             ], 404);
@@ -87,7 +87,7 @@ class LandSurveyController extends Controller
             'land_parcel_id' => 'required|exists:land_parcels,id',
             'surveyor_name' => 'required|string|max:255',
             'survey_date' => 'required|date',
-            'survey_ref_number' => 'required|string|unique:land_surveys,survey_ref_number,' . $id,
+            'survey_ref_number' => 'required|string|unique:land_surveys,survey_ref_number,'.$id,
             'survey_coordinates' => 'nullable|array',
             'surveyed_size_perches' => 'required|numeric|min:0',
             'status' => 'nullable|string|in:pending,completed',
@@ -110,7 +110,7 @@ class LandSurveyController extends Controller
     {
         $survey = LandSurvey::find($id);
 
-        if (!$survey) {
+        if (! $survey) {
             return response()->json([
                 'message' => 'Land survey not found',
             ], 404);

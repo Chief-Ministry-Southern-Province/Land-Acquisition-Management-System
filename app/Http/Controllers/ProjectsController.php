@@ -328,7 +328,11 @@ class ProjectsController extends Controller
 
         $query = Projects::query();
         if ($id) {
-            $query->where('id', $id);
+            $query->where('id', $id)->with([
+                'landParcels.owners',
+                'landParcels.valuations',
+                'landParcels.compensations.payments',
+            ]);
         }
         $records = $query->get();
 
@@ -357,20 +361,20 @@ class ProjectsController extends Controller
         }
 
         $headings = [
-            'Project ID',
-            'Title',
-            'Purpose',
-            'Institution',
-            'Institution Address',
-            'Acres',
-            'Roods',
-            'Perches',
-            'Full Land Area (Perches)',
-            'Temporary Relocation Required',
-            'Approval Date',
-            'Status',
-            'Remarks',
-            'Created At',
+            __('messages.project_id'),
+            __('messages.title'),
+            __('messages.purpose'),
+            __('messages.institution'),
+            __('messages.institution_address'),
+            __('messages.acres'),
+            __('messages.roods'),
+            __('messages.perches'),
+            __('messages.full_land_area'),
+            __('messages.temp_relocation_required'),
+            __('messages.approval_date'),
+            __('messages.status'),
+            __('messages.remarks'),
+            __('messages.created_at'),
         ];
 
         $data = $records->map(function ($project) {
@@ -378,17 +382,17 @@ class ProjectsController extends Controller
                 'project_id' => $project->project_id,
                 'title' => $project->title,
                 'purpose' => $project->purpose,
-                'institution' => $project->institution ?? 'N/A',
-                'institution_address' => $project->institution_address ?? 'N/A',
+                'institution' => $project->institution ?? __('messages.n_a'),
+                'institution_address' => $project->institution_address ?? __('messages.n_a'),
                 'land_area_to_be_acquired_acers' => $project->land_area_to_be_acquired_acers ?? 0,
                 'land_area_to_be_acquired_roods' => $project->land_area_to_be_acquired_roods ?? 0,
                 'land_area_to_be_acquired_perches' => $project->land_area_to_be_acquired_perches ?? 0,
                 'full_land_area_to_be_acquired' => $project->full_land_area_to_be_acquired ?? 0,
-                'are_residents_moved_temp' => $project->are_residents_moved_temp ? 'Yes' : 'No',
-                'approval_date' => $project->approval_date ? $project->approval_date->format('Y-m-d') : 'N/A',
-                'case_status' => ucfirst($project->case_status),
-                'remarks' => $project->remarks ?? 'N/A',
-                'created_at' => $project->created_at ? $project->created_at->format('Y-m-d H:i:s') : 'N/A',
+                'are_residents_moved_temp' => $project->are_residents_moved_temp ? __('messages.yes') : __('messages.no'),
+                'approval_date' => $project->approval_date ? $project->approval_date->format('Y-m-d') : __('messages.n_a'),
+                'case_status' => __('messages.'.strtolower($project->case_status ?: 'draft')),
+                'remarks' => $project->remarks ?? __('messages.n_a'),
+                'created_at' => $project->created_at ? $project->created_at->format('Y-m-d H:i:s') : __('messages.n_a'),
             ];
         });
 
