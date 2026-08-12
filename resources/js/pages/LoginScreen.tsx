@@ -232,12 +232,13 @@ function LoginScreen() {
                 <label className="text-muted-foreground block text-xs font-semibold uppercase tracking-wider">
                   {t('security_password')}
                 </label>
-                <a
-                  href="#"
+                <button
+                  type="button"
+                  onClick={() => router.visit('/forgot-password')}
                   className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
                 >
                   {t('forgot_password')}
-                </a>
+                </button>
               </div>
               <div className="relative">
                 <span className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">

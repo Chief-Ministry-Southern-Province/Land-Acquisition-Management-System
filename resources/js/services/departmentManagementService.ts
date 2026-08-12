@@ -4,6 +4,7 @@ export interface Department {
   id: string;
   name: string;
   code: string;
+  address?: string;
   head: string;
   email: string;
   phone: string;
@@ -16,6 +17,7 @@ const mapFromBackend = (data: any): Department => ({
   id: String(data.id),
   name: data.department_name,
   code: data.dep_code,
+  address: data.dep_address || '',
   head: data.dep_head,
   email: data.email || '',
   phone: data.phone || '',
@@ -27,6 +29,7 @@ const mapFromBackend = (data: any): Department => ({
 const mapToBackend = (data: Omit<Department, 'id'>) => ({
   department_name: data.name,
   dep_code: data.code,
+  dep_address: data.address || '',
   dep_head: data.head,
   email: data.email,
   phone: data.phone,

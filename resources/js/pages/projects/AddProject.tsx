@@ -18,7 +18,10 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { getDepartments } from '@/services/departmentManagementService';
+import type { Department } from '@/services/departmentManagementService';
 import {
   uploadDocument,
   deleteDocument,
@@ -152,6 +155,7 @@ export default function AddProject() {
   // Dynamic parcels state
   const [allParcels, setAllParcels] = useState<LandParcel[]>([]);
   const [loadingParcels, setLoadingParcels] = useState(true);
+  const [departments, setDepartments] = useState<Department[]>([]);
 
   // Edit states
   const [editId] = useState<string | null>(() => {
@@ -176,21 +180,26 @@ export default function AddProject() {
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
   const userId = user?.id;
+  const { t } = useTranslation();
 
-  // Fetch all parcels
+  // Fetch all parcels and departments
   useEffect(() => {
-    const fetchParcels = async () => {
+    const init = async () => {
       try {
         setLoadingParcels(true);
-        const data = await getLandParcels();
-        setAllParcels(data);
+        const [parcelsData, deptsData] = await Promise.all([
+          getLandParcels(),
+          getDepartments(),
+        ]);
+        setAllParcels(parcelsData);
+        setDepartments(deptsData);
       } catch (error) {
-        console.error('Failed to fetch land parcels:', error);
+        console.error('Failed to fetch land parcels or departments:', error);
       } finally {
         setLoadingParcels(false);
       }
     };
-    fetchParcels();
+    init();
   }, []);
 
   // Fetch project details (for edit mode)
@@ -624,12 +633,31 @@ export default function AddProject() {
             </div>
 
             <Field label="Requesting Institution">
-              <input
+              <select
                 className={inputCls}
-                placeholder="e.g. Chief Ministry / Road Development Authority"
+                title="Select Requesting Institution"
                 value={form.institution}
-                onChange={set('institution')}
-              />
+                onChange={(e) => {
+                  const selectedName = e.target.value;
+                  const dept = departments.find((d) => d.name === selectedName);
+                  setForm((f) => ({
+                    ...f,
+                    institution: selectedName,
+                    institutionAddress: dept?.address || '',
+                  }));
+                }}
+              >
+                <option value="">-- Select Department --</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.name}>
+                    {dept.name}
+                  </option>
+                ))}
+                {form.institution &&
+                  !departments.some((d) => d.name === form.institution) && (
+                    <option value={form.institution}>{form.institution}</option>
+                  )}
+              </select>
             </Field>
 
             <div className="lg:col-span-3">
@@ -1021,8 +1049,7 @@ export default function AddProject() {
                   )}
                 </div>
                 <span className="text-foreground text-sm font-medium">
-                  Whether the proposed land is a land allocated to land owners
-                  under statutory notifications under the Land Reform Act
+                  {t('section_20')}
                 </span>
               </label>
             </div>
@@ -1049,20 +1076,17 @@ export default function AddProject() {
                   )}
                 </div>
                 <span className="text-foreground text-sm font-medium">
-                  Whether there are alternative State lands or lands belonging
-                  to the Land Reform Commission that can be utilized for the
-                  proposed public purpose? (If so, details such as the location,
-                  terrain nature, etc. of the land should be mentioned.)
+                  {t('section_21')}
                 </span>
               </label>
             </div>
 
             {/* Section 22 */}
             <div className="md:col-span-2">
-              <Field label="Name and designation of the officer who selected this land as suitable for the proposed public purpose">
+              <Field label={t('section_22')}>
                 <input
                   className={inputCls}
-                  placeholder="Enter Name and designation of the officer who selected this land as suitable for the proposed public purpose"
+                  placeholder={t('section_22')}
                   value={form.section22SecretaryRecommendation}
                   onChange={set('section22SecretaryRecommendation')}
                 />
@@ -1071,10 +1095,10 @@ export default function AddProject() {
 
             {/* Section 23 */}
             <div className="md:col-span-2">
-              <Field label="Name and designation of the officer who recommended that this land is suitable to be acquired for the proposed public purpose">
+              <Field label={t('section_23')}>
                 <input
                   className={inputCls}
-                  placeholder="Enter Name and designation of the officer who recommended that this land is suitable to be acquired for the proposed public purpose"
+                  placeholder={t('section_23')}
                   value={form.section23ValuationRecommendation}
                   onChange={set('section23ValuationRecommendation')}
                 />
@@ -1103,18 +1127,17 @@ export default function AddProject() {
                   )}
                 </div>
                 <span className="text-foreground text-sm font-medium">
-                  Whether it was inquired if there are other suitable State or
-                  private lands in this area for this purpose
+                  {t('section_24')}
                 </span>
               </label>
             </div>
 
             {/* Section 25 */}
             <div className="md:col-span-2">
-              <Field label="Clearly specify the source of funds allocated to bear the acquisition, compensation, and other necessary expenses">
+              <Field label={t('section_25')}>
                 <input
                   className={inputCls}
-                  placeholder="Enter Clearly specify the source of funds allocated to bear the acquisition, compensation, and other necessary expenses"
+                  placeholder={t('section_25')}
                   value={form.section25AdditionalConditions}
                   onChange={set('section25AdditionalConditions')}
                 />
@@ -1143,10 +1166,7 @@ export default function AddProject() {
                   )}
                 </div>
                 <span className="text-foreground text-sm font-medium">
-                  Whether the selection of the proposed land for public purpose
-                  complies with the general development plan of the area, and
-                  whether agreement/consent was obtained from the relevant Local
-                  Authority / Urban Development Department or relevant institute
+                  {t('section_26')}
                 </span>
               </label>
             </div>

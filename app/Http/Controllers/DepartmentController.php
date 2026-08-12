@@ -42,6 +42,7 @@ class DepartmentController extends Controller
         $validated = $request->validate([
             'department_name' => 'required|string|max:255|unique:departments,department_name',
             'dep_code' => 'required|string|max:255|unique:departments,dep_code',
+            'dep_address' => 'nullable|string|max:255',
             'dep_head' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:departments,email',
             'phone' => 'required|string|max:255|unique:departments,phone',
@@ -66,6 +67,7 @@ class DepartmentController extends Controller
         $validated = $request->validate([
             'department_name' => 'required|string|max:255|unique:departments,department_name,'.$id,
             'dep_code' => 'required|string|max:255|unique:departments,dep_code,'.$id,
+            'dep_address' => 'nullable|string|max:255',
             'dep_head' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:departments,email,'.$id,
             'phone' => 'required|string|max:255|unique:departments,phone,'.$id,

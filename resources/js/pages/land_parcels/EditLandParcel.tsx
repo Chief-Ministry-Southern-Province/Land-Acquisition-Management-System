@@ -29,8 +29,7 @@ import {
   getLandParcel,
   updateLandParcel,
 } from '@/services/landParcelManagementService';
-import { getProjects } from '@/services/projectsManagementService';
-import type { Project, Document } from '@/services/projectsManagementService';
+import type { Document } from '@/services/projectsManagementService';
 import {
   createPropertyOwner,
   getPropertyOwners,
@@ -256,7 +255,7 @@ export default function EditLandParcel({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [unauthorized, setUnauthorized] = useState(false);
   const [statusError, setStatusError] = useState(false);
-  const [projects, setProjects] = useState<Project[]>([]);
+
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
     {},
   );
@@ -419,8 +418,7 @@ export default function EditLandParcel({ id }: { id: string }) {
         setUnauthorized(false);
         setStatusError(false);
 
-        const [projData, ownerData, parcelData] = await Promise.all([
-          getProjects(),
+        const [ownerData, parcelData] = await Promise.all([
           getPropertyOwners(),
           getLandParcel(id),
         ]);
@@ -439,7 +437,6 @@ export default function EditLandParcel({ id }: { id: string }) {
           return;
         }
 
-        setProjects(projData);
         setExistingOwners(ownerData);
         setParcel(parcelData);
 
@@ -2245,7 +2242,7 @@ export default function EditLandParcel({ id }: { id: string }) {
         })()}
 
         {/* Acquisition Info */}
-        <div className="bg-card border-border rounded-xl border p-6">
+        {/* <div className="bg-card border-border rounded-xl border p-6">
           <SectionHeader icon={FileText} title="Acquisition Information" />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label="Associated Project">
@@ -2284,7 +2281,7 @@ export default function EditLandParcel({ id }: { id: string }) {
               </Field>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Sticky bottom bar (mobile convenience) */}
         <div className="flex justify-end gap-3 pb-6 pt-2">

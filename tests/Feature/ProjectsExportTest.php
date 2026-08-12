@@ -68,3 +68,29 @@ test('can export projects as pdf', function () {
     $response->assertStatus(200);
     $response->assertHeader('Content-Type', 'application/pdf');
 });
+
+test('can export projects as pdf in sinhala', function () {
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get('/api/projects/export?format=pdf&locale=si');
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/pdf');
+});
+
+test('can export single project as pdf', function () {
+    $project = Projects::where('project_id', 'PRJ-101')->first();
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get("/api/projects/export?format=pdf&id={$project->id}");
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/pdf');
+});
+
+test('can export single project as pdf in sinhala', function () {
+    $project = Projects::where('project_id', 'PRJ-101')->first();
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get("/api/projects/export?format=pdf&id={$project->id}&locale=si");
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/pdf');
+});

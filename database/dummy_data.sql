@@ -17,12 +17,12 @@ DELETE FROM roles;
 DELETE FROM departments;
 
 -- 1. Seed departments table (Exact Backup Data)
-INSERT INTO departments (id, department_name, dep_code, dep_head, email, phone, staff, status, created_at, updated_at) VALUES
-(1, 'Administration', 'ADM', 'John Silva', 'admin@lams.gov.lk', '+94 11 234 1001', 12, 1, '2026-07-09 08:01:12', '2026-07-09 08:01:12'),
-(2, 'Land Acquisition', 'LAQ', 'Nimal Perera', 'land@lams.gov.lk', '+94 11 234 1002', 18, 1, '2026-07-09 08:01:12', '2026-07-09 08:01:12'),
-(3, 'Survey', 'SRV', 'Kasun Fernando', 'survey@lams.gov.lk', '+94 11 234 1003', 15, 1, '2026-07-09 08:01:12', '2026-07-09 08:01:12'),
-(4, 'Legal', 'LEG', 'Saman Jayasuriya', 'legal@lams.gov.lk', '+94 11 234 1004', 8, 1, '2026-07-09 08:01:12', '2026-07-09 08:01:12'),
-(5, 'Finance', 'FIN', 'Amila Gunasekara', 'finance@lams.gov.lk', '+94 11 234 1005', 10, 1, '2026-07-09 08:01:12', '2026-07-09 08:01:12');
+INSERT INTO departments (id, department_name, dep_code, dep_address, dep_head, email, phone, staff, status, created_at, updated_at) VALUES
+(1, 'Department of Southern Province Health Services', 'ADM', 'Galle Fort, Galle', 'John Silva', 'admin@lams.gov.lk', '+94 11 234 1001', 12, 1, '2026-07-09 08:01:12', '2026-07-09 08:01:12'),
+(2, 'Department of Ayurwedha', 'AYU', 'Kachcheri Complex, Galle', 'Nimal Perera', 'land@lams.gov.lk', '+94 11 234 1002', 18, 1, '2026-07-09 08:01:12', '2026-07-09 08:01:12'),
+(3, 'Department of Local Government', 'LG', 'Wakwella Road, Galle', 'Kasun Fernando', 'survey@lams.gov.lk', '+94 11 234 1003', 15, 1, '2026-07-09 08:01:12', '2026-07-09 08:01:12'),
+(4, 'Road Development Authority', 'RDA', 'Court Road, Galle', 'Saman Jayasuriya', 'legal@lams.gov.lk', '+94 11 234 1004', 8, 1, '2026-07-09 08:01:12', '2026-07-09 08:01:12'),
+(5, 'Finance', 'FIN', 'Main Street, Galle', 'Amila Gunasekara', 'finance@lams.gov.lk', '+94 11 234 1005', 10, 1, '2026-07-09 08:01:12', '2026-07-09 08:01:12');
 
 -- 2. Seed roles table (Exact Backup Data)
 INSERT INTO roles (id, role_name, description, created_at, updated_at) VALUES

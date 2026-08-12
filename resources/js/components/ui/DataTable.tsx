@@ -5,6 +5,7 @@ interface Column {
   key: string;
   label: string;
   sortable?: boolean;
+  filterable?: boolean;
   render?: (value: any, row: any) => React.ReactNode;
 }
 
@@ -35,6 +36,8 @@ export function DataTable({
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" } | null>(null);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [showFilterPopover, setShowFilterPopover] = useState(false);
 
   const handleSort = (key: string) => {
     setSortConfig((prev) => {
@@ -45,9 +48,22 @@ export function DataTable({
     });
   };
 
-  let filteredData = data;
+  let filteredData = [...data];
+
+  // Apply active column filters
+  if (Object.keys(activeFilters).length > 0) {
+    filteredData = filteredData.filter((row) => {
+      return Object.entries(activeFilters).every(([key, value]) => {
+        if (!value) return true;
+        const rowValue = row[key];
+        return String(rowValue).toLowerCase() === String(value).toLowerCase();
+      });
+    });
+  }
+
+  // Apply search term filter
   if (searchTerm) {
-    filteredData = data.filter((row) =>
+    filteredData = filteredData.filter((row) =>
       Object.values(row).some((value) =>
         String(value).toLowerCase().includes(searchTerm.toLowerCase())
       )
@@ -95,10 +111,103 @@ export function DataTable({
 
           <div className="flex items-center gap-2">
             {filterable && (
-              <button className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors">
-                <Filter className="w-4 h-4" />
-                <span className="text-sm">Filter</span>
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowFilterPopover(!showFilterPopover)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${
+                    Object.keys(activeFilters).length > 0
+                      ? "bg-primary/10 hover:bg-primary/20 text-primary border-primary/30"
+                      : "bg-muted hover:bg-muted/80 text-foreground border-transparent"
+                  }`}
+                >
+                  <Filter className="w-4 h-4" />
+                  <span className="text-sm">
+                    Filter
+                    {Object.keys(activeFilters).length > 0 &&
+                      ` (${Object.keys(activeFilters).length})`}
+                  </span>
+                </button>
+
+                {showFilterPopover && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowFilterPopover(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-lg shadow-xl z-50 p-4 max-h-[300px] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
+                        <h3 className="font-semibold text-sm text-foreground">Filter by Column</h3>
+                        {Object.keys(activeFilters).length > 0 && (
+                          <button
+                            onClick={() => {
+                              setActiveFilters({});
+                              setCurrentPage(1);
+                            }}
+                            className="text-xs text-destructive hover:underline font-medium"
+                          >
+                            Clear All
+                          </button>
+                        )}
+                      </div>
+                      <div className="space-y-4">
+                        {columns
+                          .filter((col) => col.filterable !== false)
+                          .map((column) => {
+                            // Extract unique, non-empty values for this column from the original data
+                            const uniqueValues = Array.from(
+                              new Set(
+                                data
+                                  .map((row) => row[column.key])
+                                  .filter(
+                                    (val) => val !== undefined && val !== null && val !== ""
+                                  )
+                              )
+                            ).sort();
+
+                            // If no unique values exist, don't show the filter dropdown for this column
+                            if (uniqueValues.length === 0) return null;
+
+                            return (
+                              <div key={column.key} className="flex flex-col gap-1.5">
+                                <label className="text-xs font-semibold text-muted-foreground font-medium">
+                                  {column.label}
+                                </label>
+                                <select
+                                  value={activeFilters[column.key] || ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setActiveFilters((prev) => {
+                                      const next = { ...prev };
+                                      if (val) {
+                                        next[column.key] = val;
+                                      } else {
+                                        delete next[column.key];
+                                      }
+                                      return next;
+                                    });
+                                    setCurrentPage(1);
+                                  }}
+                                  className="w-full text-sm px-3 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                >
+                                  <option value="">All</option>
+                                  {uniqueValues.map((val) => {
+                                    const displayVal =
+                                      typeof val === "object" ? JSON.stringify(val) : String(val);
+                                    return (
+                                      <option key={displayVal} value={displayVal}>
+                                        {displayVal}
+                                      </option>
+                                    );
+                                  })}
+                                </select>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
             {exportable && onExport && (
               <div className="relative">
@@ -110,35 +219,41 @@ export function DataTable({
                   <span className="text-sm">Export</span>
                 </button>
                 {showExportDropdown && (
-                  <div className="absolute right-0 mt-2 w-36 bg-card border border-border rounded-lg shadow-lg z-50 py-1">
-                    <button
-                      onClick={() => {
-                        onExport('pdf');
-                        setShowExportDropdown(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    >
-                      Export PDF
-                    </button>
-                    <button
-                      onClick={() => {
-                        onExport('excel');
-                        setShowExportDropdown(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    >
-                      Export Excel
-                    </button>
-                    <button
-                      onClick={() => {
-                        onExport('csv');
-                        setShowExportDropdown(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    >
-                      Export CSV
-                    </button>
-                  </div>
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowExportDropdown(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-36 bg-card border border-border rounded-lg shadow-lg z-50 py-1">
+                      <button
+                        onClick={() => {
+                          onExport('pdf');
+                          setShowExportDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      >
+                        Export PDF
+                      </button>
+                      <button
+                        onClick={() => {
+                          onExport('excel');
+                          setShowExportDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      >
+                        Export Excel
+                      </button>
+                      <button
+                        onClick={() => {
+                          onExport('csv');
+                          setShowExportDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      >
+                        Export CSV
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             )}

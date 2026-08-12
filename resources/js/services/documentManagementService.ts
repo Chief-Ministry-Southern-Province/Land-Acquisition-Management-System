@@ -7,22 +7,37 @@ export const uploadDocument = async (
   projectId: string | null,
   category: string,
   landParcelId: string | null = null,
+  propertyOwnerId: string | null = null,
+  onUploadProgress?: (progressEvent: any) => void,
 ): Promise<Document> => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('user_id', userId);
 
-  if (projectId) {
+  if (projectId && projectId !== 'null' && projectId !== 'undefined') {
     formData.append('project_id', projectId);
   }
 
-  if (landParcelId) {
+  if (landParcelId && landParcelId !== 'null' && landParcelId !== 'undefined') {
     formData.append('land_parcel_id', landParcelId);
+  }
+
+  if (
+    propertyOwnerId &&
+    propertyOwnerId !== 'null' &&
+    propertyOwnerId !== 'undefined'
+  ) {
+    formData.append('property_owner_id', propertyOwnerId);
   }
 
   formData.append('document_category', category);
 
-  const response = await api.post('/api/documents', formData);
+  const response = await api.post('/api/documents', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    onUploadProgress,
+  });
 
   return response.data.document;
 };

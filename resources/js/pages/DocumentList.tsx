@@ -12,6 +12,11 @@ import {
   Building,
   MapPin,
   Calendar,
+  User,
+  Scale,
+  Layers,
+  DollarSign,
+  CheckCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { SyncLoader } from 'react-spinners';
@@ -27,6 +32,8 @@ import { getLandParcels } from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 import type { Project } from '@/services/projectsManagementService';
 import { getProjects } from '@/services/projectsManagementService';
+import { getPropertyOwners } from '@/services/propertyOwnerManagement';
+import type { PropertyOwner } from '@/services/propertyOwnerManagement';
 
 export default function DocumentList() {
   const { props: pageProps } = usePage();
@@ -37,11 +44,13 @@ export default function DocumentList() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [landParcels, setLandParcels] = useState<LandParcel[]>([]);
+  const [propertyOwners, setPropertyOwners] = useState<PropertyOwner[]>([]);
 
   // Filter/Search states
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [projectFilter, setProjectFilter] = useState<string>('');
   const [parcelFilter, setParcelFilter] = useState<string>('');
+  const [ownerFilter, setOwnerFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // UI States
@@ -55,6 +64,7 @@ export default function DocumentList() {
   const [customCategory, setCustomCategory] = useState<string>('');
   const [uploadProjectId, setUploadProjectId] = useState<string>('');
   const [uploadParcelId, setUploadParcelId] = useState<string>('');
+  const [uploadOwnerId, setUploadOwnerId] = useState<string>('');
 
   // Available categories
   const categoriesList = [
@@ -64,7 +74,6 @@ export default function DocumentList() {
     'Valuation',
     'Compensation',
     'Legal',
-    'Gazette Notice',
     'Other',
   ];
 
@@ -72,14 +81,16 @@ export default function DocumentList() {
   const loadPageData = async () => {
     try {
       setLoading(true);
-      const [docsData, projsData, parcelsData] = await Promise.all([
+      const [docsData, projsData, parcelsData, ownersData] = await Promise.all([
         getDocuments(),
         getProjects(),
         getLandParcels(),
+        getPropertyOwners(),
       ]);
       setDocuments(docsData);
       setProjects(projsData);
       setLandParcels(parcelsData);
+      setPropertyOwners(ownersData);
     } catch (error) {
       console.error('Failed to load document list page data:', error);
     } finally {
@@ -90,14 +101,17 @@ export default function DocumentList() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [docsData, projsData, parcelsData] = await Promise.all([
-          getDocuments(),
-          getProjects(),
-          getLandParcels(),
-        ]);
+        const [docsData, projsData, parcelsData, ownersData] =
+          await Promise.all([
+            getDocuments(),
+            getProjects(),
+            getLandParcels(),
+            getPropertyOwners(),
+          ]);
         setDocuments(docsData);
         setProjects(projsData);
         setLandParcels(parcelsData);
+        setPropertyOwners(ownersData);
       } catch (error) {
         console.error('Failed to load document list page data:', error);
       } finally {
@@ -135,28 +149,29 @@ export default function DocumentList() {
       c.includes('legal') ||
       c.includes('court') ||
       c.includes('petition') ||
-      c.includes('ownership')
+      c.includes('ownership') ||
+      c.includes('affidavit') ||
+      c.includes('injunction') ||
+      c.includes('deed') ||
+      c.includes('attorney') ||
+      c.includes('obligation') ||
+      c.includes('clearance')
     ) {
       return 'legal';
-    }
-
-    if (c.includes('gazette') || c.includes('notice')) {
-      return 'gazette';
     }
 
     return 'other';
   };
 
   const categories = [
-    { id: 'all', name: 'All Documents' },
-    { id: 'approvals', name: 'Approvals' },
-    { id: 'reports', name: 'Reports' },
-    { id: 'survey', name: 'Survey Plans' },
-    { id: 'valuation', name: 'Valuations' },
-    { id: 'compensation', name: 'Compensation' },
-    { id: 'legal', name: 'Legal Cases' },
-    { id: 'gazette', name: 'Gazette Notices' },
-    { id: 'other', name: 'Others' },
+    { id: 'all', name: 'All Documents', icon: Folder },
+    { id: 'approvals', name: 'Approvals', icon: CheckCircle },
+    { id: 'reports', name: 'Reports', icon: FileText },
+    { id: 'survey', name: 'Survey Plans', icon: Layers },
+    { id: 'valuation', name: 'Valuations', icon: DollarSign },
+    { id: 'compensation', name: 'Compensation', icon: DollarSign },
+    { id: 'legal', name: 'Legal Cases', icon: Scale },
+    { id: 'other', name: 'Others', icon: Folder },
   ];
 
   // Dynamic counts for each folder
@@ -229,12 +244,14 @@ export default function DocumentList() {
         uploadProjectId || null,
         finalCategory,
         uploadParcelId || null,
+        uploadOwnerId || null,
       );
 
       // Reset form states
       setSelectedFile(null);
       setUploadProjectId('');
       setUploadParcelId('');
+      setUploadOwnerId('');
       setCustomCategory('');
       setUploadCategory('Approvals');
       setIsUploadModalOpen(false);
@@ -283,6 +300,11 @@ export default function DocumentList() {
       return false;
     }
 
+    // 3.5. Property Owner Filter
+    if (ownerFilter && String(doc.property_owner_id) !== String(ownerFilter)) {
+      return false;
+    }
+
     // 4. Search Filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -303,22 +325,48 @@ export default function DocumentList() {
       key: 'original_filename',
       label: 'Document Name',
       sortable: true,
-      render: (value: string, row: any) => (
-        <div className="flex items-center gap-3">
-          <FileText className="h-5 w-5 shrink-0 text-red-500" />
-          <div className="min-w-0">
-            <p
-              className="text-foreground max-w-xs truncate text-sm font-semibold md:max-w-md"
-              title={value}
-            >
-              {value}
-            </p>
-            <p className="text-muted-foreground mt-0.5 text-[10px]">
-              {row.file_size} • {row.file_type.toUpperCase()}
-            </p>
+      render: (value: string, row: any) => {
+        const catKey = getCategoryKey(row.document_category);
+        let IconComponent = FileText;
+        let iconColor = 'text-red-500';
+
+        if (catKey === 'approvals') {
+          IconComponent = CheckCircle;
+          iconColor = 'text-green-600';
+        } else if (catKey === 'reports') {
+          IconComponent = FileText;
+          iconColor = 'text-blue-500';
+        } else if (catKey === 'survey') {
+          IconComponent = Layers;
+          iconColor = 'text-indigo-500';
+        } else if (catKey === 'valuation') {
+          IconComponent = DollarSign;
+          iconColor = 'text-emerald-600';
+        } else if (catKey === 'compensation') {
+          IconComponent = DollarSign;
+          iconColor = 'text-amber-600';
+        } else if (catKey === 'legal') {
+          IconComponent = Scale;
+          iconColor = 'text-purple-600';
+        }
+
+        return (
+          <div className="flex items-center gap-3">
+            <IconComponent className={`h-5 w-5 shrink-0 ${iconColor}`} />
+            <div className="min-w-0">
+              <p
+                className="text-foreground max-w-xs truncate text-sm font-semibold md:max-w-md"
+                title={value}
+              >
+                {value}
+              </p>
+              <p className="text-muted-foreground mt-0.5 text-[10px]">
+                {row.file_size} • {row.file_type.toUpperCase()}
+              </p>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: 'document_category',
@@ -373,6 +421,32 @@ export default function DocumentList() {
             <MapPin className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
             <span className="max-w-[120px] truncate">
               {parcel?.land_name || parcel?.parcel_id || `ID: ${value}`}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'property_owner_id',
+      label: 'Property Owner Link',
+      sortable: true,
+      render: (value: any) => {
+        if (!value) {
+          return <span className="text-muted-foreground text-xs">—</span>;
+        }
+
+        const owner = propertyOwners.find(
+          (po) => String(po.id) === String(value),
+        );
+
+        return (
+          <div
+            className="text-foreground flex items-center gap-1 text-xs font-medium"
+            title={owner?.name}
+          >
+            <User className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+            <span className="max-w-[120px] truncate font-medium">
+              {owner?.name || `ID: ${value}`}
             </span>
           </div>
         );
@@ -491,12 +565,30 @@ export default function DocumentList() {
             </select>
           </div>
 
+          {/* Property Owner filter */}
+          <div>
+            <select
+              title="Filter by Property Owner"
+              className="bg-input-background border-border w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+              value={ownerFilter}
+              onChange={(e) => setOwnerFilter(e.target.value)}
+            >
+              <option value="">-- All Property Owners --</option>
+              {propertyOwners.map((po) => (
+                <option key={po.id} value={po.id}>
+                  {po.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Clear filters */}
-          {(projectFilter || parcelFilter || searchQuery) && (
+          {(projectFilter || parcelFilter || ownerFilter || searchQuery) && (
             <button
               onClick={() => {
                 setProjectFilter('');
                 setParcelFilter('');
+                setOwnerFilter('');
                 setSearchQuery('');
               }}
               className="border-border hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors"
@@ -529,6 +621,7 @@ export default function DocumentList() {
             <div className="space-y-1">
               {categories.map((folder) => {
                 const isActive = selectedCategory === folder.id;
+                const IconComponent = folder.icon;
 
                 return (
                   <button
@@ -541,7 +634,7 @@ export default function DocumentList() {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <Folder
+                      <IconComponent
                         className={`h-4 w-4 ${isActive ? 'text-white' : 'text-muted-foreground'}`}
                       />
                       <span>{folder.name}</span>
@@ -686,6 +779,26 @@ export default function DocumentList() {
                 </select>
               </div>
 
+              {/* Property Owner picker */}
+              <div>
+                <label className="text-muted-foreground mb-1.5 block text-xs font-semibold uppercase tracking-wider">
+                  Associate with Property Owner (Optional)
+                </label>
+                <select
+                  title="Property Owner Association"
+                  className="bg-input-background border-border w-full rounded-lg border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  value={uploadOwnerId}
+                  onChange={(e) => setUploadOwnerId(e.target.value)}
+                >
+                  <option value="">-- No Property Owner Association --</option>
+                  {propertyOwners.map((owner) => (
+                    <option key={owner.id} value={owner.id}>
+                      {owner.name} ({owner.ownerId})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Buttons */}
               <div className="border-border mt-6 flex items-center justify-end gap-3 border-t pt-4">
                 <button
@@ -695,6 +808,7 @@ export default function DocumentList() {
                     setSelectedFile(null);
                     setUploadProjectId('');
                     setUploadParcelId('');
+                    setUploadOwnerId('');
                     setCustomCategory('');
                   }}
                   className="border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg border px-4 py-2 text-sm font-semibold transition-colors"
