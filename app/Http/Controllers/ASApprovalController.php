@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Projects;
+use App\Models\User;
+use App\Notifications\RealtimeSystemNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -52,6 +54,17 @@ class ASApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[System]: Approved by Assistant Secretary';
         $project->save();
 
+        // Notify Senior Assistant Secretary (SAS) users
+        $sasUsers = User::whereHas('role', fn($q) => $q->where('role_name', 'SAS'))->get();
+        foreach ($sasUsers as $sas) {
+            $sas->notify(new RealtimeSystemNotification(
+                title: 'Project Approved by AS',
+                message: "Project '{$project->title}' was approved by AS and is pending your review.",
+                actionUrl: '/approval-workflow',
+                type: 'success'
+            ));
+        }
+
         return response()->json(['message' => 'Project approved successfully', 'project' => $project], 200);
     }
 
@@ -83,6 +96,17 @@ class ASApprovalController extends Controller
         $project->ao_status = 'pending';
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[Rejected AS - Returned to DO]: '.$comment;
         $project->save();
+
+        // Notify DO, HOB, and AO users
+        $notifiedUsers = User::whereHas('role', fn($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO']))->get();
+        foreach ($notifiedUsers as $u) {
+            $u->notify(new RealtimeSystemNotification(
+                title: 'Project Rejected by AS',
+                message: "Project '{$project->title}' was rejected by AS and returned to DO: {$comment}",
+                actionUrl: '/dashboard',
+                type: 'error'
+            ));
+        }
 
         return response()->json(['message' => 'Project rejected and returned to DO successfully', 'project' => $project], 200);
     }
