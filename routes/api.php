@@ -19,6 +19,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SASApprovalController;
 use App\Http\Controllers\SECApprovalController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/test', function () {
@@ -58,6 +59,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('documents', DocumentsController::class);
     Route::get('departments', [DepartmentController::class, 'index']);
     Route::get('departments/{id}', [DepartmentController::class, 'show']);
+
+    // Notifications Routes
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
     // ─── Land Acquisition Workflow Routes ───────────────────────────────
     // DO & Admin can write data

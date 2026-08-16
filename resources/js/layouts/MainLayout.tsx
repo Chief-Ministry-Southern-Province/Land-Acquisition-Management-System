@@ -1,7 +1,8 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Bell, ChevronRight, Menu, Settings, X } from 'lucide-react';
+import { ChevronRight, Menu, Settings, X } from 'lucide-react';
 import { useState } from 'react';
 
+import { NotificationBell } from '@/components/NotificationBell';
 import SideBar from '@/components/SideBar';
 import type { SideBarItem } from '@/components/SideBar';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -14,7 +15,8 @@ type Props = {
 export default function MainLayout({ children, sidebarItems }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { locale } = useTranslation();
-  const { url } = usePage();
+  const { url, props } = usePage();
+  const auth = props.auth as any;
 
   const getBreadcrumbs = () => {
     // remove query parameters if any
@@ -112,13 +114,7 @@ export default function MainLayout({ children, sidebarItems }: Props) {
             {/* Language Switch */}
 
             {/* Notifications */}
-            <button
-              onClick={() => router.visit('/notifications')}
-              className="hover:bg-muted relative rounded-lg p-2 transition-colors"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="bg-destructive absolute right-1 top-1 h-2 w-2 rounded-full"></span>
-            </button>
+            <NotificationBell userId={auth?.user?.id} />
 
             {/* User Menu */}
             <button
