@@ -56,6 +56,10 @@
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently \"php artisan serve\" \"npm run dev\""
         ],
+        "dev:all": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently \"php artisan serve\" \"npm run dev\" \"php artisan reverb:start\" \"php artisan queue:work\""
+        ],
         "lint": [
             "pint --parallel"
         ],
