@@ -52,7 +52,7 @@ class HOBApprovalController extends Controller
         $project->save();
 
         // Notify Administrative Officer (AO) users
-        $aoUsers = User::whereHas('role', fn($q) => $q->where('role_name', 'AO'))->get();
+        $aoUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'AO'))->get();
         foreach ($aoUsers as $ao) {
             $ao->notify(new RealtimeSystemNotification(
                 title: 'Project Approved by HOB',
@@ -90,7 +90,7 @@ class HOBApprovalController extends Controller
         $project->save();
 
         // Notify Development Officers (DO)
-        $doUsers = User::whereHas('role', fn($q) => $q->where('role_name', 'DO'))->get();
+        $doUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'DO'))->get();
         foreach ($doUsers as $do) {
             $do->notify(new RealtimeSystemNotification(
                 title: 'Project Queried by HOB',
@@ -128,7 +128,7 @@ class HOBApprovalController extends Controller
         $project->save();
 
         // Notify Development Officers (DO)
-        $doUsers = User::whereHas('role', fn($q) => $q->where('role_name', 'DO'))->get();
+        $doUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'DO'))->get();
         foreach ($doUsers as $do) {
             $do->notify(new RealtimeSystemNotification(
                 title: 'Project Rejected by HOB',

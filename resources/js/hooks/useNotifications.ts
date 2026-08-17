@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { echo } from '@/echo';
 
 export interface NotificationItem {
@@ -18,8 +18,11 @@ export function useNotifications(userId?: number) {
   const [loading, setLoading] = useState<boolean>(false);
 
   // Fetch initial notifications
-  const fetchNotifications = async () => {
-    if (!userId) return;
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) {
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await axios.get('/api/notifications');
@@ -30,11 +33,14 @@ export function useNotifications(userId?: number) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      return;
+    }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
 
     const channelName = `App.Models.User.${userId}`;
@@ -50,14 +56,14 @@ export function useNotifications(userId?: number) {
     return () => {
       echo.leaveChannel(`private-${channelName}`);
     };
-  }, [userId]);
+  }, [userId, fetchNotifications]);
 
   const markAsRead = async (id: string) => {
     // Optimistic UI update
     setNotifications((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, read_at: new Date().toISOString() } : item
-      )
+        item.id === id ? { ...item, read_at: new Date().toISOString() } : item,
+      ),
     );
     setUnreadCount((prev) => Math.max(0, prev - 1));
 
@@ -73,7 +79,10 @@ export function useNotifications(userId?: number) {
   const markAllAsRead = async () => {
     // Optimistic UI update
     setNotifications((prev) =>
-      prev.map((item) => ({ ...item, read_at: item.read_at || new Date().toISOString() }))
+      prev.map((item) => ({
+        ...item,
+        read_at: item.read_at || new Date().toISOString(),
+      })),
     );
     setUnreadCount(0);
 
@@ -86,5 +95,12 @@ export function useNotifications(userId?: number) {
     }
   };
 
-  return { notifications, unreadCount, loading, markAsRead, markAllAsRead, fetchNotifications };
+  return {
+    notifications,
+    unreadCount,
+    loading,
+    markAsRead,
+    markAllAsRead,
+    fetchNotifications,
+  };
 }

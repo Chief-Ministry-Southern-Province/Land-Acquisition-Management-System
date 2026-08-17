@@ -53,7 +53,7 @@ class AOApprovalController extends Controller
         $project->save();
 
         // Notify Assistant Secretary (AS) users
-        $asUsers = User::whereHas('role', fn($q) => $q->where('role_name', 'AS'))->get();
+        $asUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'AS'))->get();
         foreach ($asUsers as $as) {
             $as->notify(new RealtimeSystemNotification(
                 title: 'Project Approved by AO',
@@ -92,7 +92,7 @@ class AOApprovalController extends Controller
         $project->save();
 
         // Notify DO and HOB users
-        $notifiedUsers = User::whereHas('role', fn($q) => $q->whereIn('role_name', ['DO', 'HOB']))->get();
+        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB']))->get();
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Queried by AO',
@@ -130,7 +130,7 @@ class AOApprovalController extends Controller
         $project->save();
 
         // Notify DO and HOB users
-        $notifiedUsers = User::whereHas('role', fn($q) => $q->whereIn('role_name', ['DO', 'HOB']))->get();
+        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB']))->get();
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Rejected by AO',

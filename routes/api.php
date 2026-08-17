@@ -12,6 +12,7 @@ use App\Http\Controllers\HOBApprovalController;
 use App\Http\Controllers\LandParcelController;
 use App\Http\Controllers\LandSurveyController;
 use App\Http\Controllers\LandValuationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\PropertyOwnerController;
@@ -19,7 +20,6 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SASApprovalController;
 use App\Http\Controllers\SECApprovalController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/test', function () {

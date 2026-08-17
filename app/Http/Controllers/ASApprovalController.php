@@ -55,7 +55,7 @@ class ASApprovalController extends Controller
         $project->save();
 
         // Notify Senior Assistant Secretary (SAS) users
-        $sasUsers = User::whereHas('role', fn($q) => $q->where('role_name', 'SAS'))->get();
+        $sasUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'SAS'))->get();
         foreach ($sasUsers as $sas) {
             $sas->notify(new RealtimeSystemNotification(
                 title: 'Project Approved by AS',
@@ -98,7 +98,7 @@ class ASApprovalController extends Controller
         $project->save();
 
         // Notify DO, HOB, and AO users
-        $notifiedUsers = User::whereHas('role', fn($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO']))->get();
+        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO']))->get();
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Rejected by AS',

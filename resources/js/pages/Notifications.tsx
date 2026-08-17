@@ -1,11 +1,5 @@
 import { usePage, router } from '@inertiajs/react';
-import {
-  AlertTriangle,
-  Bell,
-  CheckCircle2,
-  Info,
-  XCircle,
-} from 'lucide-react';
+import { AlertTriangle, Bell, CheckCircle2, Info, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import MainLayout from '@/layouts/MainLayout';
@@ -15,7 +9,8 @@ export default function Notifications() {
   const { props } = usePage();
   const auth = props.auth as any;
 
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(auth?.user?.id);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    useNotifications(auth?.user?.id);
 
   const filteredNotifications =
     filter === 'all'
@@ -46,9 +41,9 @@ export default function Notifications() {
             System alerts and updates ({unreadCount} unread)
           </p>
         </div>
-        <button 
+        <button
           onClick={markAllAsRead}
-          className="border-border hover:bg-muted rounded-lg border px-4 py-2 transition-colors cursor-pointer"
+          className="border-border hover:bg-muted cursor-pointer rounded-lg border px-4 py-2 transition-colors"
         >
           Mark All as Read
         </button>
@@ -68,7 +63,7 @@ export default function Notifications() {
             <button
               key={tab.id}
               onClick={() => setFilter(tab.id)}
-              className={`whitespace-nowrap border-b-2 px-4 py-3 transition-colors cursor-pointer ${
+              className={`cursor-pointer whitespace-nowrap border-b-2 px-4 py-3 transition-colors ${
                 filter === tab.id
                   ? 'border-primary text-primary'
                   : 'text-muted-foreground hover:text-foreground border-transparent'
@@ -90,6 +85,7 @@ export default function Notifications() {
               key={notification.id}
               onClick={() => {
                 markAsRead(notification.id);
+
                 if (notification.action_url) {
                   router.visit(notification.action_url);
                 }
@@ -104,7 +100,9 @@ export default function Notifications() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-start justify-between gap-4">
-                    <h4 className="text-sm font-semibold">{notification.title}</h4>
+                    <h4 className="text-sm font-semibold">
+                      {notification.title}
+                    </h4>
                     {!notification.read_at && (
                       <div className="bg-primary mt-1.5 h-2 w-2 flex-shrink-0 rounded-full"></div>
                     )}

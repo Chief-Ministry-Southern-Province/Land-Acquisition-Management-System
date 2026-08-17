@@ -318,7 +318,7 @@ class ProjectsController extends Controller
         $project->save();
 
         // Notify Head of Branch (HOB) users
-        $hobUsers = User::whereHas('role', fn($q) => $q->where('role_name', 'HOB'))->get();
+        $hobUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'HOB'))->get();
         foreach ($hobUsers as $hob) {
             $hob->notify(new RealtimeSystemNotification(
                 title: 'New Project Submitted',

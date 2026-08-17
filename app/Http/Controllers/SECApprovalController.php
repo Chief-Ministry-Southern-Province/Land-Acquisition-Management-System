@@ -53,12 +53,12 @@ class SECApprovalController extends Controller
         $project->save();
 
         // Notify DO, HOB, AO, AS, and SAS users
-        $notifiedUsers = User::whereHas('role', fn($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS', 'SAS']))->get();
+        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS', 'SAS']))->get();
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Fully Approved (Secretary)',
                 message: "Project '{$project->title}' was approved by Secretary. Case completed.",
-                actionUrl: "/land-parcels",
+                actionUrl: '/land-parcels',
                 type: 'success'
             ));
         }
@@ -98,7 +98,7 @@ class SECApprovalController extends Controller
         $project->save();
 
         // Notify DO, HOB, AO, AS, and SAS users
-        $notifiedUsers = User::whereHas('role', fn($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS', 'SAS']))->get();
+        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS', 'SAS']))->get();
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Rejected by Secretary',

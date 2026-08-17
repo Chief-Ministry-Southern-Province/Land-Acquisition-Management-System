@@ -70,7 +70,7 @@ class SASApprovalController extends Controller
 
         if ($project->sec_status === 'pending') {
             // Escalated to Secretary - notify SEC users
-            $secUsers = User::whereHas('role', fn($q) => $q->where('role_name', 'SEC'))->get();
+            $secUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'SEC'))->get();
             foreach ($secUsers as $sec) {
                 $sec->notify(new RealtimeSystemNotification(
                     title: 'Escalated Project Approval Request',
@@ -81,12 +81,12 @@ class SASApprovalController extends Controller
             }
         } else {
             // Case completed - notify DO, HOB, AO, AS
-            $notifiedUsers = User::whereHas('role', fn($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS']))->get();
+            $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS']))->get();
             foreach ($notifiedUsers as $u) {
                 $u->notify(new RealtimeSystemNotification(
                     title: 'Project Fully Approved',
                     message: "Project '{$project->title}' has been fully approved by SAS.",
-                    actionUrl: "/land-parcels",
+                    actionUrl: '/land-parcels',
                     type: 'success'
                 ));
             }
@@ -126,7 +126,7 @@ class SASApprovalController extends Controller
         $project->save();
 
         // Notify DO, HOB, AO, and AS users
-        $notifiedUsers = User::whereHas('role', fn($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS']))->get();
+        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS']))->get();
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Rejected by SAS',

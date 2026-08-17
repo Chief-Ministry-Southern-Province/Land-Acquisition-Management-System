@@ -18,7 +18,7 @@ beforeEach(function () {
         'staff' => 3,
         'status' => true,
     ]);
-    
+
     $this->doRole = Roles::firstOrCreate(['role_name' => 'DO'], ['description' => 'Development Officer']);
     $this->hobRole = Roles::firstOrCreate(['role_name' => 'HOB'], ['description' => 'Head of Branch']);
 
@@ -46,9 +46,9 @@ test('can fetch notifications', function () {
     $response->assertStatus(200)
         ->assertJsonStructure([
             'notifications' => [
-                '*' => ['id', 'title', 'message', 'action_url', 'type', 'created_at', 'read_at']
+                '*' => ['id', 'title', 'message', 'action_url', 'type', 'created_at', 'read_at'],
             ],
-            'unread_count'
+            'unread_count',
         ]);
 
     expect($response->json('unread_count'))->toBe(1);

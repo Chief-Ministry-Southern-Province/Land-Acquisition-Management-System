@@ -15,11 +15,15 @@ export const NotificationBell: React.FC<Props> = ({ userId }) => {
   // Close notifications list when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -34,7 +38,7 @@ export const NotificationBell: React.FC<Props> = ({ userId }) => {
       case 'error':
         return <XCircle className="h-4 w-4 text-rose-500" />;
       default:
-        return <Info className="h-4 w-4 text-primary" />;
+        return <Info className="text-primary h-4 w-4" />;
     }
   };
 
@@ -42,12 +46,12 @@ export const NotificationBell: React.FC<Props> = ({ userId }) => {
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="hover:bg-muted relative rounded-lg p-2 transition-colors cursor-pointer"
+        className="hover:bg-muted relative cursor-pointer rounded-lg p-2 transition-colors"
         aria-label="Notifications"
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="bg-destructive absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white leading-none">
+          <span className="bg-destructive absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold leading-none text-white">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -64,9 +68,9 @@ export const NotificationBell: React.FC<Props> = ({ userId }) => {
             </span>
           </div>
 
-          <div className="max-h-80 overflow-y-auto divide-y divide-border">
+          <div className="divide-border max-h-80 divide-y overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-6 text-center text-xs text-muted-foreground">
+              <div className="text-muted-foreground p-6 text-center text-xs">
                 No new notifications
               </div>
             ) : (
@@ -76,18 +80,21 @@ export const NotificationBell: React.FC<Props> = ({ userId }) => {
                   onClick={() => {
                     markAsRead(item.id);
                     setIsOpen(false);
-                    if (item.action_url) router.visit(item.action_url);
+
+                    if (item.action_url) {
+                      router.visit(item.action_url);
+                    }
                   }}
-                  className={`flex gap-3 p-4 transition-colors hover:bg-muted/50 cursor-pointer ${
+                  className={`hover:bg-muted/50 flex cursor-pointer gap-3 p-4 transition-colors ${
                     !item.read_at ? 'bg-primary/5' : ''
                   }`}
                 >
                   <div className="mt-0.5 shrink-0">{getIcon(item.type)}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-foreground text-xs font-semibold truncate">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-foreground truncate text-xs font-semibold">
                       {item.title}
                     </p>
-                    <p className="text-muted-foreground mt-0.5 text-xs break-words">
+                    <p className="text-muted-foreground mt-0.5 break-words text-xs">
                       {item.message}
                     </p>
                     <span className="text-muted-foreground mt-1 block text-[10px]">
@@ -101,13 +108,13 @@ export const NotificationBell: React.FC<Props> = ({ userId }) => {
               ))
             )}
           </div>
-          <div className="border-t border-border p-2 text-center bg-muted/20">
+          <div className="border-border bg-muted/20 border-t p-2 text-center">
             <button
               onClick={() => {
                 setIsOpen(false);
                 router.visit('/notifications');
               }}
-              className="text-primary text-xs font-medium hover:underline w-full cursor-pointer py-1"
+              className="text-primary w-full cursor-pointer py-1 text-xs font-medium hover:underline"
             >
               View All Notifications
             </button>
