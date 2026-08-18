@@ -84,6 +84,9 @@ export default function SideBar({ items }: SideBarProps = {}) {
     ],
     HOB: [
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      { path: '/land-parcels', icon: Map, label: t('land_parcels') },
+      { path: '/land-owners', icon: Users, label: t('land_owners') },
       { path: '/compensation', icon: DollarSign, label: t('compensation') },
       {
         path: '/acquisition-workflow',
@@ -101,6 +104,9 @@ export default function SideBar({ items }: SideBarProps = {}) {
     ],
     AO: [
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      { path: '/land-parcels', icon: Map, label: t('land_parcels') },
+      { path: '/land-owners', icon: Users, label: t('land_owners') },
       {
         path: '/pending-approvals',
         icon: CheckSquare,
@@ -109,6 +115,9 @@ export default function SideBar({ items }: SideBarProps = {}) {
     ],
     AS: [
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      { path: '/land-parcels', icon: Map, label: t('land_parcels') },
+      { path: '/land-owners', icon: Users, label: t('land_owners') },
       {
         path: '/pending-approvals',
         icon: CheckSquare,
@@ -117,6 +126,9 @@ export default function SideBar({ items }: SideBarProps = {}) {
     ],
     SAS: [
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      { path: '/land-parcels', icon: Map, label: t('land_parcels') },
+      { path: '/land-owners', icon: Users, label: t('land_owners') },
       {
         path: '/pending-approvals',
         icon: CheckSquare,
@@ -125,6 +137,9 @@ export default function SideBar({ items }: SideBarProps = {}) {
     ],
     SEC: [
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      { path: '/land-parcels', icon: Map, label: t('land_parcels') },
+      { path: '/land-owners', icon: Users, label: t('land_owners') },
       {
         path: '/pending-approvals',
         icon: CheckSquare,

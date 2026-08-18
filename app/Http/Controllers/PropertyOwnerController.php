@@ -11,8 +11,15 @@ class PropertyOwnerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $user = $request->user();
+        if (!$user || !$user->role || !in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+            return response()->json([
+                'message' => 'Forbidden. You do not have the required role to access this resource.',
+            ], 403);
+        }
+
         return response()->json([
             'message' => 'Property owners fetched successfully',
             'property_owners' => PropertyOwner::with('landParcels')->get(),
@@ -24,6 +31,13 @@ class PropertyOwnerController extends Controller
      */
     public function store(Request $request)
     {
+        $user = $request->user();
+        if (!$user || !$user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'owner_id' => 'required|string|max:255',
             'name' => 'required|string|max:255',
@@ -44,8 +58,15 @@ class PropertyOwnerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->role || !in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+            return response()->json([
+                'message' => 'Forbidden. You do not have the required role to access this resource.',
+            ], 403);
+        }
+
         $propertyOwner = PropertyOwner::with(['landParcels', 'compensations.landParcel', 'documents'])->find($id);
 
         if ($propertyOwner) {
@@ -65,6 +86,13 @@ class PropertyOwnerController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'owner_id' => 'required|string|max:255',
             'name' => 'required|string|max:255',
@@ -93,8 +121,15 @@ class PropertyOwnerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
+        }
+
         $propertyOwner = PropertyOwner::find($id, ['*']);
 
         if (! $propertyOwner) {
