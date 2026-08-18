@@ -13,6 +13,7 @@
         "barryvdh/laravel-dompdf": "^3.1",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.7",
+        "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
@@ -54,6 +55,10 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently \"php artisan serve\" \"npm run dev\""
+        ],
+        "dev:all": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently \"php artisan serve\" \"npm run dev\" \"php artisan reverb:start\" \"php artisan queue:work\""
         ],
         "lint": [
             "pint --parallel"

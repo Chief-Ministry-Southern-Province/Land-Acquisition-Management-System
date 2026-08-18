@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\LandParcel;
 use App\Models\Projects;
+use App\Models\User;
+use App\Notifications\RealtimeSystemNotification;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -314,6 +316,17 @@ class ProjectsController extends Controller
         $project->do_status = 'submitted';
         $project->case_status = 'pending';
         $project->save();
+
+        // Notify Head of Branch (HOB) users
+        $hobUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'HOB'))->get();
+        foreach ($hobUsers as $hob) {
+            $hob->notify(new RealtimeSystemNotification(
+                title: 'New Project Submitted',
+                message: "Project '{$project->title}' has been submitted and is pending review.",
+                actionUrl: '/approval-workflow',
+                type: 'info'
+            ));
+        }
 
         return response()->json([
             'message' => 'Project submitted successfully',

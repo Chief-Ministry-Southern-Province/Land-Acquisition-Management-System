@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Projects;
+use App\Models\User;
+use App\Notifications\RealtimeSystemNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -66,6 +68,30 @@ class SASApprovalController extends Controller
 
         $project->save();
 
+        if ($project->sec_status === 'pending') {
+            // Escalated to Secretary - notify SEC users
+            $secUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'SEC'))->get();
+            foreach ($secUsers as $sec) {
+                $sec->notify(new RealtimeSystemNotification(
+                    title: 'Escalated Project Approval Request',
+                    message: "Project '{$project->title}' exceeds 20M LKR and is escalated to you for final approval.",
+                    actionUrl: '/approval-workflow',
+                    type: 'warning'
+                ));
+            }
+        } else {
+            // Case completed - notify DO, HOB, AO, AS
+            $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS']))->get();
+            foreach ($notifiedUsers as $u) {
+                $u->notify(new RealtimeSystemNotification(
+                    title: 'Project Fully Approved',
+                    message: "Project '{$project->title}' has been fully approved by SAS.",
+                    actionUrl: '/land-parcels',
+                    type: 'success'
+                ));
+            }
+        }
+
         return response()->json(['message' => 'Project approved successfully', 'project' => $project], 200);
     }
 
@@ -98,6 +124,17 @@ class SASApprovalController extends Controller
         $project->as_status = 'pending';
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[Rejected SAS - Returned to DO]: '.$comment;
         $project->save();
+
+        // Notify DO, HOB, AO, and AS users
+        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS']))->get();
+        foreach ($notifiedUsers as $u) {
+            $u->notify(new RealtimeSystemNotification(
+                title: 'Project Rejected by SAS',
+                message: "Project '{$project->title}' was rejected by SAS and returned to DO: {$comment}",
+                actionUrl: '/dashboard',
+                type: 'error'
+            ));
+        }
 
         return response()->json(['message' => 'Project rejected and returned to DO successfully', 'project' => $project], 200);
     }
