@@ -15,7 +15,7 @@ class DocumentsController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        if (!$user || !$user->role || !in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+        if (! $user || ! $user->role || ! in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
             return response()->json([
                 'message' => 'Forbidden. You do not have the required role to access this resource.',
             ], 403);
@@ -33,7 +33,7 @@ class DocumentsController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
-        if (!$user || !$user->role || $user->role->role_name !== 'DO') {
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
             return response()->json([
                 'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
             ], 403);
@@ -106,7 +106,7 @@ class DocumentsController extends Controller
     public function show(Request $request, string $id)
     {
         $user = $request->user();
-        if (!$user || !$user->role || !in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+        if (! $user || ! $user->role || ! in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
             return response()->json([
                 'message' => 'Forbidden. You do not have the required role to access this resource.',
             ], 403);
@@ -132,7 +132,7 @@ class DocumentsController extends Controller
     public function update(Request $request, string $id)
     {
         $user = $request->user();
-        if (!$user || !$user->role || $user->role->role_name !== 'DO') {
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
             return response()->json([
                 'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
             ], 403);
@@ -207,7 +207,7 @@ class DocumentsController extends Controller
     public function destroy(Request $request, string $id)
     {
         $user = $request->user();
-        if (!$user || !$user->role || $user->role->role_name !== 'DO') {
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
             return response()->json([
                 'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
             ], 403);
@@ -238,7 +238,7 @@ class DocumentsController extends Controller
     public function download(Request $request, string $id)
     {
         $user = $request->user();
-        if (!$user || !$user->role || !in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+        if (! $user || ! $user->role || ! in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
             return response()->json([
                 'message' => 'Forbidden. You do not have the required role to access this resource.',
             ], 403);

@@ -331,6 +331,4 @@ export default function ASDashboard() {
   );
 }
 
-ASDashboard.layout = (page: React.ReactNode) => (
-  <MainLayout>{page}</MainLayout>
-);
+ASDashboard.layout = (page: React.ReactNode) => <MainLayout>{page}</MainLayout>;

@@ -331,6 +331,4 @@ export default function AODashboard() {
   );
 }
 
-AODashboard.layout = (page: React.ReactNode) => (
-  <MainLayout>{page}</MainLayout>
-);
+AODashboard.layout = (page: React.ReactNode) => <MainLayout>{page}</MainLayout>;
