@@ -16,8 +16,15 @@ class LandParcelController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $user = $request->user();
+        if (! $user || ! $user->role || ! in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+            return response()->json([
+                'message' => 'Forbidden. You do not have the required role to access this resource.',
+            ], 403);
+        }
+
         $landParcels = LandParcel::with(['owners', 'project', 'residents', 'documents'])->get();
 
         return response()->json([
@@ -31,6 +38,13 @@ class LandParcelController extends Controller
      */
     public function store(Request $request)
     {
+        $user = $request->user();
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'parcel_id' => 'required|string|max:255|unique:land_parcels,parcel_id',
             'project_id' => 'nullable|exists:projects,id',
@@ -165,8 +179,15 @@ class LandParcelController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
+        $user = $request->user();
+        if (! $user || ! $user->role || ! in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+            return response()->json([
+                'message' => 'Forbidden. You do not have the required role to access this resource.',
+            ], 403);
+        }
+
         $landParcel = LandParcel::with(['owners', 'project', 'residents', 'documents', 'surveys.document', 'valuations.document', 'compensations.payments.document'])->find($id);
 
         if ($landParcel) {
@@ -187,12 +208,10 @@ class LandParcelController extends Controller
     public function update(Request $request, string $id)
     {
         $user = $request->user();
-        if (! app()->runningUnitTests()) {
-            if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
-                return response()->json([
-                    'message' => 'Forbidden. Only Development Officers (DO) can edit land parcels.',
-                ], 403);
-            }
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
         }
 
         $landParcel = LandParcel::find($id);
@@ -329,8 +348,15 @@ class LandParcelController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
+        $user = $request->user();
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
+        }
+
         $landParcel = LandParcel::find($id, ['*']);
 
         if (! $landParcel) {
@@ -348,6 +374,13 @@ class LandParcelController extends Controller
 
     public function export(Request $request, ExportService $exportService)
     {
+        $user = $request->user();
+        if (! $user || ! $user->role || ! in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+            return response()->json([
+                'message' => 'Forbidden. You do not have the required role to access this resource.',
+            ], 403);
+        }
+
         $format = $request->query('format', 'pdf');
         $id = $request->query('id');
 
@@ -445,6 +478,13 @@ class LandParcelController extends Controller
 
     public function import(Request $request, ImportService $importService)
     {
+        $user = $request->user();
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
+        }
+
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240',
         ]);

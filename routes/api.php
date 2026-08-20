@@ -12,6 +12,7 @@ use App\Http\Controllers\HOBApprovalController;
 use App\Http\Controllers\LandParcelController;
 use App\Http\Controllers\LandSurveyController;
 use App\Http\Controllers\LandValuationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\PropertyOwnerController;
@@ -58,6 +59,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('documents', DocumentsController::class);
     Route::get('departments', [DepartmentController::class, 'index']);
     Route::get('departments/{id}', [DepartmentController::class, 'show']);
+
+    // Notifications Routes
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
     // ─── Land Acquisition Workflow Routes ───────────────────────────────
     // DO & Admin can write data

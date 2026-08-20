@@ -51,13 +51,49 @@ The system implements a strict hierarchy for approvals and data management:
 | **SAS** | Senior Assistant Secretary | High-level review and approval. |
 | **SEC** | Secretary | Final authority for project and payment approvals. |
 
-## 🏁 Getting Started
+## 🐳 Running with Docker (Recommended)
+
+The fastest way to get the system running is using Docker. This sets up the application, database (MySQL), cache (Redis), and mail server (Mailpit) automatically.
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
+
+### Quick Start
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-repo/land-acquisition-management-system.git
+   cd land-acquisition-management-system
+   ```
+
+2. **Launch the system**
+   ```bash
+   docker compose up -d
+   ```
+   *This will build the image locally and start all required services.*
+
+3. **Using Pre-built Docker Hub Image**
+   If you prefer to use the public image from Docker Hub instead of building locally:
+   - Open `docker-compose.yml`
+   - Update the `image` tag for the `app` service to: `your-dockerhub-username/land-acquisition-app:latest`
+   - Run `docker compose up -d`
+
+4. **Access the Application**
+   The app will be available at: [http://localhost:8000](http://localhost:8000)
+
+### Useful Docker Commands
+- **Stop services:** `docker compose stop`
+- **Stop and remove containers:** `docker compose down`
+- **View logs:** `docker compose logs -f app`
+- **Restart services:** `docker compose restart`
+
+## 🛠 Local Manual Installation
 
 ### Prerequisites
 - PHP $\ge$ 8.2
 - Composer
 - Node.js $\ge$ 18
 - NPM or PNPM
+
 
 ### Installation
 

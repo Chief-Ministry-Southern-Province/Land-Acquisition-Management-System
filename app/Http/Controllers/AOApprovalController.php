@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Projects;
+use App\Models\User;
+use App\Notifications\RealtimeSystemNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -50,6 +52,17 @@ class AOApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[System]: Approved by Administrative Officer';
         $project->save();
 
+        // Notify Assistant Secretary (AS) users
+        $asUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'AS'))->get();
+        foreach ($asUsers as $as) {
+            $as->notify(new RealtimeSystemNotification(
+                title: 'Project Approved by AO',
+                message: "Project '{$project->title}' was approved by AO and is pending your review.",
+                actionUrl: '/approval-workflow',
+                type: 'success'
+            ));
+        }
+
         return response()->json(['message' => 'Project approved successfully', 'project' => $project], 200);
     }
 
@@ -78,6 +91,17 @@ class AOApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[Query AO]: '.$comment;
         $project->save();
 
+        // Notify DO and HOB users
+        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB']))->get();
+        foreach ($notifiedUsers as $u) {
+            $u->notify(new RealtimeSystemNotification(
+                title: 'Project Queried by AO',
+                message: "Project '{$project->title}' was returned by AO: {$comment}",
+                actionUrl: '/dashboard',
+                type: 'warning'
+            ));
+        }
+
         return response()->json(['message' => 'Project queried successfully', 'project' => $project], 200);
     }
 
@@ -104,6 +128,17 @@ class AOApprovalController extends Controller
         $project->case_status = 'rejected'; // Halts request completely
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[Rejected AO]: '.$comment;
         $project->save();
+
+        // Notify DO and HOB users
+        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB']))->get();
+        foreach ($notifiedUsers as $u) {
+            $u->notify(new RealtimeSystemNotification(
+                title: 'Project Rejected by AO',
+                message: "Project '{$project->title}' was rejected by AO: {$comment}",
+                actionUrl: '/dashboard',
+                type: 'error'
+            ));
+        }
 
         return response()->json(['message' => 'Project rejected successfully', 'project' => $project], 200);
     }

@@ -8,7 +8,6 @@ import {
   Info,
   Lock,
   Mail,
-  Monitor,
   RefreshCcw,
   Save,
   Server,
@@ -163,7 +162,6 @@ export default function SystemSettings() {
   const [timezone, setTimezone] = useState('Asia/Colombo');
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
   const [currency, setCurrency] = useState('LKR');
-  const [darkMode, setDarkMode] = useState(false);
 
   // ── Security settings ──
   const [sessionTimeout, setSessionTimeout] = useState('30');
@@ -533,22 +531,6 @@ export default function SystemSettings() {
                 </select>
               </Field>
             </div>
-          </SectionCard>
-
-          <SectionCard
-            title="Display"
-            description="Appearance and interface preferences"
-          >
-            <SettingRow
-              icon={Monitor}
-              title="Dark Mode"
-              description="Enable dark mode for the entire application interface"
-            >
-              <Toggle
-                checked={darkMode}
-                onChange={() => setDarkMode(!darkMode)}
-              />
-            </SettingRow>
           </SectionCard>
         </div>
       )}

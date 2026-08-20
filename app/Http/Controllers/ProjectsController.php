@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\LandParcel;
 use App\Models\Projects;
+use App\Models\User;
+use App\Notifications\RealtimeSystemNotification;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,8 +15,15 @@ class ProjectsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $user = $request->user();
+        if (! $user || ! $user->role || ! in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+            return response()->json([
+                'message' => 'Forbidden. You do not have the required role to access this resource.',
+            ], 403);
+        }
+
         return response()->json([
             'message' => 'Projects fetched successfully',
             'projects' => Projects::all(),
@@ -26,6 +35,13 @@ class ProjectsController extends Controller
      */
     public function store(Request $request)
     {
+        $user = $request->user();
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'project_id' => 'required|string|max:255',
             'title' => 'nullable|string|max:255',
@@ -126,8 +142,15 @@ class ProjectsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
+        $user = $request->user();
+        if (! $user || ! $user->role || ! in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+            return response()->json([
+                'message' => 'Forbidden. You do not have the required role to access this resource.',
+            ], 403);
+        }
+
         $project = Projects::with(['landParcels.owners', 'landParcels.surveys.document', 'landParcels.valuations.document', 'landParcels.compensations.payments.document', 'documents'])->find($id);
 
         if ($project) {
@@ -147,6 +170,27 @@ class ProjectsController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $project = Projects::find($id, ['*']);
+
+        if (! $project) {
+            return response()->json([
+                'message' => 'Project not found',
+            ], 404);
+        }
+
+        $user = $request->user();
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
+        }
+
+        if ($project->case_status !== 'draft' && $project->do_status !== 'draft') {
+            return response()->json([
+                'message' => 'Forbidden. Development Officers (DO) can only edit draft projects.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'project_id' => 'required|string|max:255',
             'title' => 'nullable|string|max:255',
@@ -187,25 +231,6 @@ class ProjectsController extends Controller
 
         if (empty($validated['title']) && ! empty($validated['name'])) {
             $validated['title'] = $validated['name'];
-        }
-
-        $project = Projects::find($id, ['*']);
-
-        if (! $project) {
-            return response()->json([
-                'message' => 'Project not found',
-            ], 404);
-        }
-
-        $user = $request->user();
-        if (! app()->runningUnitTests()) {
-            if ($user && $user->role && $user->role->role_name === 'DO') {
-                if ($project->case_status !== 'draft' && $project->do_status !== 'draft') {
-                    return response()->json([
-                        'message' => 'Forbidden. Development Officers (DO) can only edit draft projects.',
-                    ], 403);
-                }
-            }
         }
 
         $validated['are_residents_moved_temp'] = filter_var($validated['are_residents_moved_temp'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -272,14 +297,16 @@ class ProjectsController extends Controller
         }
 
         $user = $request->user();
-        if (! app()->runningUnitTests()) {
-            if ($user && $user->role && $user->role->role_name === 'DO') {
-                if ($project->case_status !== 'draft' && $project->do_status !== 'draft') {
-                    return response()->json([
-                        'message' => 'Forbidden. Development Officers (DO) can only delete draft projects.',
-                    ], 403);
-                }
-            }
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
+        }
+
+        if ($project->case_status !== 'draft' && $project->do_status !== 'draft') {
+            return response()->json([
+                'message' => 'Forbidden. Development Officers (DO) can only delete draft projects.',
+            ], 403);
         }
 
         $project->delete();
@@ -303,17 +330,32 @@ class ProjectsController extends Controller
         }
 
         $user = $request->user();
-        if ($user && $user->role && $user->role->role_name === 'DO') {
-            if ($project->do_status !== 'draft') {
-                return response()->json([
-                    'message' => 'Forbidden. Development Officers (DO) can only submit draft projects.',
-                ], 403);
-            }
+        if (! $user || ! $user->role || $user->role->role_name !== 'DO') {
+            return response()->json([
+                'message' => 'Forbidden. Only Development Officers (DO) can perform this action.',
+            ], 403);
+        }
+
+        if ($project->do_status !== 'draft') {
+            return response()->json([
+                'message' => 'Forbidden. Development Officers (DO) can only submit draft projects.',
+            ], 403);
         }
 
         $project->do_status = 'submitted';
         $project->case_status = 'pending';
         $project->save();
+
+        // Notify Head of Branch (HOB) users
+        $hobUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'HOB'))->get();
+        foreach ($hobUsers as $hob) {
+            $hob->notify(new RealtimeSystemNotification(
+                title: 'New Project Submitted',
+                message: "Project '{$project->title}' has been submitted and is pending review.",
+                actionUrl: '/approval-workflow',
+                type: 'info'
+            ));
+        }
 
         return response()->json([
             'message' => 'Project submitted successfully',
@@ -323,6 +365,13 @@ class ProjectsController extends Controller
 
     public function export(Request $request, ExportService $exportService)
     {
+        $user = $request->user();
+        if (! $user || ! $user->role || ! in_array($user->role->role_name, ['DO', 'HOB', 'AO', 'AS', 'SAS', 'SEC'])) {
+            return response()->json([
+                'message' => 'Forbidden. You do not have the required role to access this resource.',
+            ], 403);
+        }
+
         $format = $request->query('format', 'excel');
         $id = $request->query('id');
 

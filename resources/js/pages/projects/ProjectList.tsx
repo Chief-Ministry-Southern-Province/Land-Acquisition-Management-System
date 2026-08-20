@@ -158,7 +158,7 @@ export default function ProjectList() {
     const isDraft =
       (row.caseStatus || row.status || '').toLowerCase() === 'draft' ||
       (row.doStatus || '').toLowerCase() === 'draft';
-    const canModify = userRole !== 'DO' || isDraft;
+    const canModify = userRole === 'DO' && isDraft;
 
     return (
       <div className="flex items-center justify-end gap-2">
@@ -210,13 +210,15 @@ export default function ProjectList() {
             Manage land acquisition projects
           </p>
         </div>
-        <button
-          onClick={() => router.visit('/projects/new')}
-          className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Add Project</span>
-        </button>
+        {userRole === 'DO' && (
+          <button
+            onClick={() => router.visit('/projects/new')}
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Add Project</span>
+          </button>
+        )}
       </div>
 
       {/* Projects Table */}
