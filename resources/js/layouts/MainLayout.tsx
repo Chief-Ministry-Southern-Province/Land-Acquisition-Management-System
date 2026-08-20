@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { NotificationBell } from '@/components/NotificationBell';
 import SideBar from '@/components/SideBar';
 import type { SideBarItem } from '@/components/SideBar';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
 
 type Props = {
@@ -115,6 +116,9 @@ export default function MainLayout({ children, sidebarItems }: Props) {
 
             {/* Notifications */}
             <NotificationBell userId={auth?.user?.id} />
+
+            {/* Theme Switcher */}
+            <ThemeSwitcher />
 
             {/* User Menu */}
             <button

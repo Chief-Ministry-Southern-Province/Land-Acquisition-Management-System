@@ -304,34 +304,36 @@ export default function LandParcelList() {
             Manage land parcel information
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept=".xlsx,.xls,.csv"
-            onChange={handleImport}
-            disabled={importing}
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importing}
-            className="bg-muted hover:bg-muted/80 text-foreground flex items-center gap-2 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
-            title="Import Land Parcels from Excel or CSV file"
-          >
-            <Upload className="h-5 w-5" />
-            <span>{importing ? 'Importing...' : 'Import'}</span>
-          </button>
-          <button
-            onClick={() => {
-              router.visit('/land-parcels/create');
-            }}
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
-          >
-            <Plus className="h-5 w-5" />
-            <span>Add Parcel</span>
-          </button>
-        </div>
+        {userRole === 'DO' && (
+          <div className="flex items-center gap-3">
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleImport}
+              disabled={importing}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+              className="bg-muted hover:bg-muted/80 text-foreground flex items-center gap-2 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
+              title="Import Land Parcels from Excel or CSV file"
+            >
+              <Upload className="h-5 w-5" />
+              <span>{importing ? 'Importing...' : 'Import'}</span>
+            </button>
+            <button
+              onClick={() => {
+                router.visit('/land-parcels/create');
+              }}
+              className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Add Parcel</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {importMessage && (

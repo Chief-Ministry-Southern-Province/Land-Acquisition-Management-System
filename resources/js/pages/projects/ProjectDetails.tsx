@@ -222,13 +222,15 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       >
         <Download className="h-4 w-4" />
       </button>
-      <button
-        onClick={() => handleDelete(row.id)}
-        className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-        title="Delete"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
+      {userRole === 'DO' && (
+        <button
+          onClick={() => handleDelete(row.id)}
+          className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+          title="Delete"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 
@@ -460,9 +462,9 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             )}
           </div>
           {project &&
-            (userRole !== 'DO' ||
-              (project.caseStatus || project.status || '').toLowerCase() ===
-                'draft' ||
+            userRole === 'DO' &&
+            ((project.caseStatus || project.status || '').toLowerCase() ===
+              'draft' ||
               (project.doStatus || '').toLowerCase() === 'draft') && (
               <button
                 onClick={() => router.visit(`/projects/new?edit=${project.id}`)}
@@ -963,19 +965,21 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 Manage and upload documents related to this project.
               </p>
             </div>
-            <div>
-              <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors">
-                <Upload className="h-4 w-4" />
-                <span>Upload Document</span>
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  accept=".pdf,.jpg,.jpeg,.png,.docx,.dwg"
-                  multiple
-                />
-              </label>
-            </div>
+            {userRole === 'DO' && (
+              <div>
+                <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors">
+                  <Upload className="h-4 w-4" />
+                  <span>Upload Document</span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    accept=".pdf,.jpg,.jpeg,.png,.docx,.dwg"
+                    multiple
+                  />
+                </label>
+              </div>
+            )}
           </div>
 
           <DataTable

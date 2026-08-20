@@ -29,15 +29,24 @@ beforeEach(function () {
 });
 
 test('failed project creation logs in audit logs', function () {
-    $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/projects', [
+    $doRole = Roles::create(['role_name' => 'DO', 'description' => 'DO Role']);
+    $doUser = User::create([
+        'name' => 'DO User',
+        'email' => 'do_failed@test.com',
+        'password' => bcrypt('password'),
+        'department_id' => $this->department->id,
+        'role_id' => $doRole->id,
+    ]);
+
+    $response = $this->actingAs($doUser, 'sanctum')->postJson('/api/projects', [
         'project_id' => '', // triggers validation error
     ]);
 
     $response->assertStatus(422);
 
     $this->assertDatabaseHas('audit_logs', [
-        'user_id' => $this->user->id,
-        'name' => $this->user->name,
+        'user_id' => $doUser->id,
+        'name' => $doUser->name,
         'action' => 'Create',
         'module' => 'Projects',
         'detail' => 'Failed to create project Unknown',
