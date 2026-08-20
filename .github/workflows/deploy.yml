@@ -53,4 +53,7 @@ jobs:
             echo "Restarting queue..."
             php artisan queue:restart
 
+            echo "Restarting Reverb..."
+            php artisan reverb:restart
+
             echo "Deployment completed."
