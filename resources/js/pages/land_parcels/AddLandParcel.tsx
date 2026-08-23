@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
+import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
 import { uploadDocument } from '@/services/documentManagementService';
 import { createLandParcel } from '@/services/landParcelManagementService';
 
@@ -589,7 +590,7 @@ export default function AddLandParcel() {
 
   const handleSelectExistingOwner = (owner: PropertyOwner) => {
     if (selectedOwners.some((o) => o.nic === owner.nic)) {
-      alert('This owner is already added to the parcel.');
+      toastError('This owner is already added to the parcel.');
 
       return;
     }
@@ -669,13 +670,13 @@ export default function AddLandParcel() {
     }
 
     if (selectedOwners.length === 0) {
-      alert('You must add or select at least one property owner.');
+      toastError('You must add or select at least one property owner.');
 
       return false;
     }
 
     if (!planFile) {
-      alert(
+      toastError(
         form.hasPlan
           ? 'You must upload a copy of the land parcel plan.'
           : 'You must upload a simple sketch of the land parcel.',
@@ -804,6 +805,7 @@ export default function AddLandParcel() {
         }
       }
 
+      toastSuccess('Land parcel created successfully!');
       router.visit('/land-parcels');
     } catch (error: any) {
       console.error('Failed to create land parcel:', error);
@@ -841,15 +843,15 @@ export default function AddLandParcel() {
           }
         });
         setErrors(backendErrors);
-        alert(`Validation Error:\n\n${errorMessages.join('\n')}`);
+        await alertInfo('Validation Error', errorMessages.join('\n'));
       } else if (error.response?.data?.message) {
         setErrors({ landNumber: error.response.data.message });
-        alert(`Error: ${error.response.data.message}`);
+        toastError(`Error: ${error.response.data.message}`);
       } else {
         setErrors({
           landNumber: 'An error occurred while saving the land parcel.',
         });
-        alert(
+        toastError(
           'An error occurred while saving the land parcel. Please verify your inputs.',
         );
       }

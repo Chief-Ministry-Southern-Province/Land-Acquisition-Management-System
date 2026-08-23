@@ -20,6 +20,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
 import api from '@/services/api';
 import { getAuditLogs } from '@/services/auditLogService';
 import {
@@ -195,7 +196,7 @@ export default function LandParcelDetails({ id }: Props) {
       await exportLandParcels('pdf', id, locale);
     } catch (error) {
       console.error('Failed to export land parcel as PDF:', error);
-      alert('Failed to export land parcel.');
+      toastError('Failed to export land parcel.');
     } finally {
       setLoading(false);
     }
@@ -203,7 +204,7 @@ export default function LandParcelDetails({ id }: Props) {
 
   const handleDownload = async (docId: string, filename: string) => {
     if (!docId || docId.startsWith('mock-')) {
-      alert('This is a placeholder document and cannot be downloaded.');
+      toastError('This is a placeholder document and cannot be downloaded.');
 
       return;
     }
@@ -212,18 +213,23 @@ export default function LandParcelDetails({ id }: Props) {
       await downloadDocument(docId, filename);
     } catch (error) {
       console.error('Failed to download document:', error);
-      alert('Failed to download document.');
+      toastError('Failed to download document.');
     }
   };
 
   const handleDelete = async (docId: string) => {
     if (!docId || docId.startsWith('mock-')) {
-      alert('This is a placeholder document and cannot be deleted.');
+      toastError('This is a placeholder document and cannot be deleted.');
 
       return;
     }
 
-    if (!confirm('Are you sure you want to delete this document?')) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Document',
+      text: 'Are you sure you want to delete this document?',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -231,9 +237,10 @@ export default function LandParcelDetails({ id }: Props) {
       setLoading(true);
       await deleteDocument(docId);
       await fetchParcelDetails();
+      toastSuccess('Document deleted successfully.');
     } catch (error) {
       console.error('Failed to delete document:', error);
-      alert('Failed to delete document.');
+      toastError('Failed to delete document.');
     } finally {
       setLoading(false);
     }
@@ -264,10 +271,10 @@ export default function LandParcelDetails({ id }: Props) {
       );
       setDocId(String(doc.id));
       setDocName(doc.original_filename || file.name);
-      alert('File uploaded successfully!');
+      toastSuccess('File uploaded successfully!');
     } catch (err) {
       console.error(err);
-      alert('File upload failed. Please try again.');
+      toastError('File upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -291,11 +298,11 @@ export default function LandParcelDetails({ id }: Props) {
         'compensation',
         parcel?.id || null,
       );
-      alert('Document uploaded successfully!');
+      toastSuccess('Document uploaded successfully!');
       await fetchParcelDetails();
     } catch (err) {
       console.error(err);
-      alert('Failed to upload document. Please try again.');
+      toastError('Failed to upload document. Please try again.');
     } finally {
       setCompDocUploading(false);
     }
@@ -306,7 +313,7 @@ export default function LandParcelDetails({ id }: Props) {
     e.preventDefault();
 
     if (!surveyDocId) {
-      alert('Mandatory Checklist: Please upload the survey plan file.');
+      toastError('Mandatory Checklist: Please upload the survey plan file.');
 
       return;
     }
@@ -338,10 +345,10 @@ export default function LandParcelDetails({ id }: Props) {
 
       if (surveyId) {
         await updateSurvey(surveyId, payload);
-        alert('Survey record updated successfully.');
+        toastSuccess('Survey record updated successfully.');
       } else {
         await createSurvey(payload);
-        alert('Survey plan registered successfully.');
+        toastSuccess('Survey plan registered successfully.');
       }
 
       setShowSurveyForm(false);
@@ -349,7 +356,7 @@ export default function LandParcelDetails({ id }: Props) {
       await fetchParcelDetails();
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'Failed to submit survey plan.');
+      toastError(err.response?.data?.message || 'Failed to submit survey plan.');
     } finally {
       setLoading(false);
     }
@@ -385,18 +392,23 @@ export default function LandParcelDetails({ id }: Props) {
   };
 
   const handleDeleteSurvey = async (sId: string) => {
-    if (!confirm('Are you sure you want to delete this survey record?')) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Survey Record',
+      text: 'Are you sure you want to delete this survey record?',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
       setLoading(true);
       await deleteSurvey(sId);
-      alert('Survey record deleted.');
+      toastSuccess('Survey record deleted.');
       await fetchParcelDetails();
     } catch (err) {
       console.error(err);
-      alert('Failed to delete survey record.');
+      toastError('Failed to delete survey record.');
     } finally {
       setLoading(false);
     }
@@ -407,7 +419,7 @@ export default function LandParcelDetails({ id }: Props) {
     e.preventDefault();
 
     if (!valuationDocId) {
-      alert('Mandatory Checklist: Please upload the valuation report PDF.');
+      toastError('Mandatory Checklist: Please upload the valuation report PDF.');
 
       return;
     }
@@ -430,10 +442,10 @@ export default function LandParcelDetails({ id }: Props) {
 
       if (valuationId) {
         await updateValuation(valuationId, payload);
-        alert('Valuation record updated successfully.');
+        toastSuccess('Valuation record updated successfully.');
       } else {
         await createValuation(payload);
-        alert('Valuation report registered successfully.');
+        toastSuccess('Valuation report registered successfully.');
       }
 
       setShowValuationForm(false);
@@ -441,7 +453,7 @@ export default function LandParcelDetails({ id }: Props) {
       await fetchParcelDetails();
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'Failed to submit valuation.');
+      toastError(err.response?.data?.message || 'Failed to submit valuation.');
     } finally {
       setLoading(false);
     }
@@ -477,18 +489,23 @@ export default function LandParcelDetails({ id }: Props) {
   };
 
   const handleDeleteValuation = async (vId: string) => {
-    if (!confirm('Are you sure you want to delete this valuation record?')) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Valuation Record',
+      text: 'Are you sure you want to delete this valuation record?',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
       setLoading(true);
       await deleteValuation(vId);
-      alert('Valuation record deleted.');
+      toastSuccess('Valuation record deleted.');
       await fetchParcelDetails();
     } catch (err) {
       console.error(err);
-      alert('Failed to delete valuation.');
+      toastError('Failed to delete valuation.');
     } finally {
       setLoading(false);
     }
@@ -499,7 +516,7 @@ export default function LandParcelDetails({ id }: Props) {
     e.preventDefault();
 
     if (!compOwnerId) {
-      alert('Please select a property owner.');
+      toastError('Please select a property owner.');
 
       return;
     }
@@ -519,10 +536,10 @@ export default function LandParcelDetails({ id }: Props) {
 
       if (compensationId) {
         await api.put(`/api/compensation/${compensationId}`, payload);
-        alert('Compensation schedule updated.');
+        toastSuccess('Compensation schedule updated.');
       } else {
         await api.post('/api/compensation', payload);
-        alert('Compensation schedule created.');
+        toastSuccess('Compensation schedule created.');
       }
 
       setShowCompensationForm(false);
@@ -530,7 +547,7 @@ export default function LandParcelDetails({ id }: Props) {
       await fetchParcelDetails();
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'Failed to submit compensation.');
+      toastError(err.response?.data?.message || 'Failed to submit compensation.');
     } finally {
       setLoading(false);
     }
@@ -558,18 +575,23 @@ export default function LandParcelDetails({ id }: Props) {
   };
 
   const handleDeleteCompensation = async (cId: string) => {
-    if (!confirm('Are you sure you want to delete this compensation?')) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Compensation',
+      text: 'Are you sure you want to delete this compensation?',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
       setLoading(true);
       await api.delete(`/api/compensation/${cId}`);
-      alert('Compensation schedule deleted.');
+      toastSuccess('Compensation schedule deleted.');
       await fetchParcelDetails();
     } catch (err) {
       console.error(err);
-      alert('Failed to delete compensation.');
+      toastError('Failed to delete compensation.');
     } finally {
       setLoading(false);
     }
@@ -580,7 +602,7 @@ export default function LandParcelDetails({ id }: Props) {
     e.preventDefault();
 
     if (!payDocId) {
-      alert('Mandatory Checklist: Please upload a payment receipt PDF.');
+      toastError('Mandatory Checklist: Please upload a payment receipt PDF.');
 
       return;
     }
@@ -603,10 +625,10 @@ export default function LandParcelDetails({ id }: Props) {
 
       if (paymentId) {
         await updatePayment(paymentId, payload);
-        alert('Payment record updated.');
+        toastSuccess('Payment record updated.');
       } else {
         await createPayment(payload);
-        alert('Payment installment logged successfully.');
+        toastSuccess('Payment installment logged successfully.');
       }
 
       setShowPaymentForm(false);
@@ -614,7 +636,7 @@ export default function LandParcelDetails({ id }: Props) {
       await fetchParcelDetails();
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'Failed to submit payment.');
+      toastError(err.response?.data?.message || 'Failed to submit payment.');
     } finally {
       setLoading(false);
     }
@@ -666,18 +688,23 @@ export default function LandParcelDetails({ id }: Props) {
   };
 
   const handleDeletePayment = async (pId: string) => {
-    if (!confirm('Are you sure you want to delete this payment record?')) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Payment Record',
+      text: 'Are you sure you want to delete this payment record?',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
       setLoading(true);
       await deletePayment(pId);
-      alert('Payment record deleted.');
+      toastSuccess('Payment record deleted.');
       await fetchParcelDetails();
     } catch (err) {
       console.error(err);
-      alert('Failed to delete payment.');
+      toastError('Failed to delete payment.');
     } finally {
       setLoading(false);
     }
@@ -863,7 +890,7 @@ export default function LandParcelDetails({ id }: Props) {
         'legal',
         parcel?.id || null,
       );
-      alert('Legal document uploaded successfully!');
+      toastSuccess('Legal document uploaded successfully!');
       setShowLegalUploadForm(false);
       setLegalDocTitle('');
       setLegalDocCategory('court_order');
@@ -871,7 +898,7 @@ export default function LandParcelDetails({ id }: Props) {
       await fetchParcelDetails();
     } catch (err) {
       console.error(err);
-      alert('Failed to upload legal document. Please try again.');
+      toastError('Failed to upload legal document. Please try again.');
     } finally {
       setLegalDocUploading(false);
     }

@@ -22,6 +22,7 @@ import { useEffect, useState } from 'react';
 import { SyncLoader } from 'react-spinners';
 import { DataTable } from '@/components/ui/DataTable';
 import MainLayout from '@/layouts/MainLayout';
+import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
 import {
   getDocuments,
   uploadDocument,
@@ -192,7 +193,12 @@ export default function DocumentList() {
 
   // Handle file deletion
   const handleDeleteDoc = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Document',
+      text: `Are you sure you want to delete "${name}"?`,
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -200,9 +206,10 @@ export default function DocumentList() {
       setLoading(true);
       await deleteDocument(id);
       await loadPageData();
+      toastSuccess('Document deleted successfully.');
     } catch (error) {
       console.error('Failed to delete document:', error);
-      alert('Failed to delete document. Please try again.');
+      toastError('Failed to delete document. Please try again.');
       setLoading(false);
     }
   };
@@ -213,7 +220,7 @@ export default function DocumentList() {
       await downloadDocument(id, name);
     } catch (error) {
       console.error('Failed to download document:', error);
-      alert('Failed to download document.');
+      toastError('Failed to download document.');
     }
   };
 
@@ -222,7 +229,7 @@ export default function DocumentList() {
     e.preventDefault();
 
     if (!selectedFile) {
-      alert('Please select a file to upload.');
+      toastError('Please select a file to upload.');
 
       return;
     }
@@ -231,7 +238,7 @@ export default function DocumentList() {
       uploadCategory === 'Other' ? customCategory : uploadCategory;
 
     if (!finalCategory) {
-      alert('Please specify a document category.');
+      toastError('Please specify a document category.');
 
       return;
     }
@@ -258,9 +265,10 @@ export default function DocumentList() {
 
       // Refresh list
       await loadPageData();
+      toastSuccess('Document uploaded successfully!');
     } catch (error) {
       console.error('Failed to upload document:', error);
-      alert(
+      toastError(
         'Failed to upload document. Please verify project or parcel details.',
       );
     } finally {

@@ -16,6 +16,7 @@ import { StatusBadge } from '@/components/ui/StatusBridge';
 import WorkflowTimeline from '@/components/ui/WorkflowTimeline';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { confirmDialog, confirmAction, toastError, toastSuccess } from '@/lib/alerts';
 import api from '@/services/api';
 import {
   deleteDocument,
@@ -155,12 +156,17 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       await downloadDocument(docId, filename);
     } catch (error) {
       console.error('Failed to download document:', error);
-      alert('Failed to download document.');
+      toastError('Failed to download document.');
     }
   };
 
   const handleDelete = async (docId: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Document',
+      text: 'Are you sure you want to delete this document?',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -168,9 +174,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       setLoading(true);
       await deleteDocument(docId);
       await fetchProjectDetails();
+      toastSuccess('Document deleted successfully.');
     } catch (error) {
       console.error('Failed to delete document:', error);
-      alert('Failed to delete document.');
+      toastError('Failed to delete document.');
     } finally {
       setLoading(false);
     }
@@ -181,7 +188,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       await exportProjects(format, id, locale);
     } catch (error) {
       console.error(`Failed to export project details as ${format}:`, error);
-      alert(`Failed to export project details.`);
+      toastError(`Failed to export project details.`);
     }
   };
 
@@ -190,11 +197,13 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       return;
     }
 
-    if (
-      !confirm(
-        'Are you sure you want to submit this project? This will change status to Pending.',
-      )
-    ) {
+    const confirmed = await confirmAction({
+      title: 'Submit Project',
+      text: 'Are you sure you want to submit this project? This will change status to Pending.',
+      confirmButtonText: 'Submit',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -202,9 +211,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       setLoading(true);
       await submitProject(project.id);
       await fetchProjectDetails();
+      toastSuccess('Project submitted successfully!');
     } catch (error) {
       console.error('Failed to submit project:', error);
-      alert('Failed to submit project.');
+      toastError('Failed to submit project.');
     } finally {
       setLoading(false);
     }
