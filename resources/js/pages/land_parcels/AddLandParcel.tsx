@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useRef } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
 import { uploadDocument } from '@/services/documentManagementService';
@@ -28,88 +29,6 @@ import {
   getPropertyOwners,
 } from '@/services/propertyOwnerManagement';
 import type { PropertyOwner } from '@/services/propertyOwnerManagement';
-
-const PROVINCES = [
-  {
-    value: 'Western',
-    label: 'Western',
-    districts: [
-      { value: 'Colombo', label: 'Colombo' },
-      { value: 'Gampaha', label: 'Gampaha' },
-      { value: 'Kalutara', label: 'Kalutara' },
-    ],
-  },
-  {
-    value: 'Central',
-    label: 'Central',
-    districts: [
-      { value: 'Kandy', label: 'Kandy' },
-      { value: 'Matale', label: 'Matale' },
-      { value: 'Nuwara Eliya', label: 'Nuwara Eliya' },
-    ],
-  },
-  {
-    value: 'Southern',
-    label: 'Southern',
-    districts: [
-      { value: 'Galle', label: 'Galle' },
-      { value: 'Matara', label: 'Matara' },
-      { value: 'Hambantota', label: 'Hambantota' },
-    ],
-  },
-  {
-    value: 'Northern',
-    label: 'Northern',
-    districts: [
-      { value: 'Jaffna', label: 'Jaffna' },
-      { value: 'Kilinochchi', label: 'Kilinochchi' },
-      { value: 'Mannar', label: 'Mannar' },
-      { value: 'Mullaitivu', label: 'Mullaitivu' },
-      { value: 'Vavuniya', label: 'Vavuniya' },
-    ],
-  },
-  {
-    value: 'Eastern',
-    label: 'Eastern',
-    districts: [
-      { value: 'Ampara', label: 'Ampara' },
-      { value: 'Batticaloa', label: 'Batticaloa' },
-      { value: 'Trincomalee', label: 'Trincomalee' },
-    ],
-  },
-  {
-    value: 'North Western',
-    label: 'North Western',
-    districts: [
-      { value: 'Kurunegala', label: 'Kurunegala' },
-      { value: 'Puttalam', label: 'Puttalam' },
-    ],
-  },
-  {
-    value: 'North Central',
-    label: 'North Central',
-    districts: [
-      { value: 'Anuradhapura', label: 'Anuradhapura' },
-      { value: 'Polonnaruwa', label: 'Polonnaruwa' },
-    ],
-  },
-  {
-    value: 'Uva',
-    label: 'Uva',
-    districts: [
-      { value: 'Badulla', label: 'Badulla' },
-      { value: 'Monaragala', label: 'Monaragala' },
-    ],
-  },
-  {
-    value: 'Sabaragamuwa',
-    label: 'Sabaragamuwa',
-    districts: [
-      { value: 'Kegalle', label: 'Kegalle' },
-      { value: 'Ratnapura', label: 'Ratnapura' },
-    ],
-  },
-];
 
 const LAND_USE_TYPES = [
   'Agricultural',
@@ -175,7 +94,7 @@ type FormData = {
 const EMPTY: FormData = {
   landName: '',
   landNumber: '',
-  province: 'Southern',
+  province: '',
   district: '',
   divisionalSecretariat: '',
   gramaNiladhari: '',
@@ -256,6 +175,92 @@ const inputCls =
 
 export default function AddLandParcel() {
   const [form, setForm] = useState<FormData>(EMPTY);
+  const { t } = useTranslation();
+
+  const PROVINCES = useMemo(
+    () => [
+      {
+        value: t('western'),
+        label: t('western'),
+        districts: [
+          { value: t('colombo'), label: t('colombo') },
+          { value: t('gampaha'), label: t('gampaha') },
+          { value: t('kalutara'), label: t('kalutara') },
+        ],
+      },
+      {
+        value: t('central'),
+        label: t('central'),
+        districts: [
+          { value: t('kandy'), label: t('kandy') },
+          { value: t('matale'), label: t('matale') },
+          { value: t('nuwara_eliya'), label: t('nuwara_eliya') },
+        ],
+      },
+      {
+        value: t('southern'),
+        label: t('southern'),
+        districts: [
+          { value: t('galle'), label: t('galle') },
+          { value: t('matara'), label: t('matara') },
+          { value: t('hambantota'), label: t('hambantota') },
+        ],
+      },
+      {
+        value: t('northern'),
+        label: t('northern'),
+        districts: [
+          { value: t('jaffna'), label: t('jaffna') },
+          { value: t('kilinochchi'), label: t('kilinochchi') },
+          { value: t('mannar'), label: t('mannar') },
+          { value: t('mullaitivu'), label: t('mullaitivu') },
+          { value: t('vavuniya'), label: t('vavuniya') },
+        ],
+      },
+      {
+        value: t('eastern'),
+        label: t('eastern'),
+        districts: [
+          { value: t('ampara'), label: t('ampara') },
+          { value: t('batticaloa'), label: t('batticaloa') },
+          { value: t('trincomalee'), label: t('trincomalee') },
+        ],
+      },
+      {
+        value: t('north_western'),
+        label: t('north_western'),
+        districts: [
+          { value: t('kurunegala'), label: t('kurunegala') },
+          { value: t('puttalam'), label: t('puttalam') },
+        ],
+      },
+      {
+        value: t('north_central'),
+        label: t('north_central'),
+        districts: [
+          { value: t('anuradhapura'), label: t('anuradhapura') },
+          { value: t('polonnaruwa'), label: t('polonnaruwa') },
+        ],
+      },
+      {
+        value: t('uva'),
+        label: t('uva'),
+        districts: [
+          { value: t('badulla'), label: t('badulla') },
+          { value: t('monaragala'), label: t('monaragala') },
+        ],
+      },
+      {
+        value: t('sabaragamuwa'),
+        label: t('sabaragamuwa'),
+        districts: [
+          { value: t('kegalle'), label: t('kegalle') },
+          { value: t('ratnapura'), label: t('ratnapura') },
+        ],
+      },
+    ],
+    [t],
+  );
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
     {},
@@ -918,9 +923,9 @@ export default function AddLandParcel() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1>Add Land Parcel</h1>
+            <h1>{t('add_land_parcel')}</h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Register a new land parcel into the system
+              {t('register_a_new_land_parcel_to_system')}
             </p>
           </div>
         </div>
@@ -933,7 +938,7 @@ export default function AddLandParcel() {
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:opacity-50"
           >
             <X className="h-4 w-4" />
-            Cancel
+            {t('cancel')}
           </button>
           <button
             type="submit"
@@ -942,7 +947,7 @@ export default function AddLandParcel() {
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {submitting ? 'Saving...' : 'Save Parcel'}
+            {submitting ? t('saving') : t('save_parcel')}
           </button>
         </div>
       </div>
@@ -955,18 +960,18 @@ export default function AddLandParcel() {
       >
         {/* Location Details */}
         <div className="bg-card border-border rounded-xl border p-6">
-          <SectionHeader icon={MapPin} title="Location Details" />
+          <SectionHeader icon={MapPin} title={t('location_details')} />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Field label="Land Name">
+            <Field label={t('land_name')}>
               <input
                 className={inputCls}
-                placeholder="e.g. Watta Land"
+                placeholder={t('watta_land_example')}
                 value={form.landName}
                 onChange={set('landName')}
               />
             </Field>
 
-            <Field label="Land Number" required>
+            <Field label={t('land_number')} required>
               <input
                 className={inputCls}
                 placeholder="e.g. LND/2026/001"
@@ -976,7 +981,7 @@ export default function AddLandParcel() {
               {errMsg('landNumber')}
             </Field>
 
-            <Field label="Province">
+            <Field label={t('province')}>
               <select
                 className={inputCls}
                 value={form.province}
@@ -988,7 +993,7 @@ export default function AddLandParcel() {
                   }));
                 }}
               >
-                <option value="">Select Province</option>
+                <option value="">{t('select_province')}</option>
                 {PROVINCES.map((p) => (
                   <option key={p.value} value={p.value}>
                     {p.label}
@@ -997,14 +1002,14 @@ export default function AddLandParcel() {
               </select>
             </Field>
 
-            <Field label="District" required>
+            <Field label={t('district')} required>
               <select
                 className={inputCls}
                 value={form.district}
                 onChange={set('district')}
                 disabled={!form.province}
               >
-                <option value="">Select District</option>
+                <option value="">{t('select_district')}</option>
                 {PROVINCES.find(
                   (p) => p.value === form.province,
                 )?.districts.map((d) => (
@@ -1016,52 +1021,52 @@ export default function AddLandParcel() {
               {errMsg('district')}
             </Field>
 
-            <Field label="Divisional Secretariat" required>
+            <Field label={t('divisional_secretariat')} required>
               <input
                 className={inputCls}
-                placeholder="e.g. Galle Four Gravets"
+                placeholder={t('galle_four_gravets_example')}
                 value={form.divisionalSecretariat}
                 onChange={set('divisionalSecretariat')}
               />
               {errMsg('divisionalSecretariat')}
             </Field>
 
-            <Field label="Grama Niladhari Division">
+            <Field label={t('gn_division')}>
               <input
                 className={inputCls}
-                placeholder="GN Division"
+                placeholder={t('gn_division_example')}
                 value={form.gramaNiladhari}
                 onChange={set('gramaNiladhari')}
               />
             </Field>
 
-            <Field label="Village / Town" required>
+            <Field label={t('village')} required>
               <input
                 className={inputCls}
-                placeholder="e.g. Unawatuna"
+                placeholder={t('village_example')}
                 value={form.village}
                 onChange={set('village')}
               />
               {errMsg('village')}
             </Field>
 
-            <Field label="Latitude">
+            <Field label={t('latitude')}>
               <input
                 className={inputCls}
                 type="number"
                 step="any"
-                placeholder="e.g. 6.053500"
+                placeholder={`${t('example')} 6.053500`}
                 value={form.latitude}
                 onChange={set('latitude')}
               />
             </Field>
 
-            <Field label="Longitude">
+            <Field label={t('longitude')}>
               <input
                 className={inputCls}
                 type="number"
                 step="any"
-                placeholder="e.g. 80.221000"
+                placeholder={`${t('example')} 80.221000`}
                 value={form.longitude}
                 onChange={set('longitude')}
               />
@@ -1069,7 +1074,7 @@ export default function AddLandParcel() {
 
             <div className="mt-2 md:col-span-2 lg:col-span-3">
               <label className="text-foreground mb-1.5 block text-sm font-medium">
-                Google Map Pin (Click on the map to pin/re-pin the location)
+                {t('google_map_title')}
               </label>
               <div
                 id="google-map-picker"
@@ -1082,9 +1087,9 @@ export default function AddLandParcel() {
 
         {/* Parcel Details */}
         <div className="bg-card border-border rounded-xl border p-6">
-          <SectionHeader icon={Layers} title="Parcel Details" />
+          <SectionHeader icon={Layers} title={t('parcel_details')} />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Field label="Extent — Acres" required>
+            <Field label={`${t('extent')} — ${t('acres')}`} required>
               <input
                 className={inputCls}
                 type="number"
@@ -1097,7 +1102,7 @@ export default function AddLandParcel() {
               {errMsg('extentAcres')}
             </Field>
 
-            <Field label="Extent — Roods">
+            <Field label={`${t('extent')} — ${t('roods')}`}>
               <input
                 className={inputCls}
                 type="number"
@@ -1109,7 +1114,7 @@ export default function AddLandParcel() {
               />
             </Field>
 
-            <Field label="Extent — Perches">
+            <Field label={`${t('extent')} — ${t('perches')}`}>
               <input
                 className={inputCls}
                 type="number"
@@ -1121,7 +1126,7 @@ export default function AddLandParcel() {
               />
             </Field>
 
-            <Field label="Full Land Size (Perches)">
+            <Field label={t('full_land_size')}>
               <input
                 className={`${inputCls} bg-muted/40 cursor-not-allowed`}
                 type="text"
@@ -1142,7 +1147,7 @@ export default function AddLandParcel() {
                   }}
                 />
                 <span className="text-foreground text-sm font-medium">
-                  Does land parcel has a plan
+                  {t('does_land_have_plan')}
                 </span>
               </label>
             </div>
@@ -1151,18 +1156,18 @@ export default function AddLandParcel() {
               <div className="flex flex-col gap-2">
                 <label className="text-foreground text-sm font-semibold">
                   {form.hasPlan
-                    ? 'Attach Copy of Plan *'
-                    : 'Attach Simple Sketch of Land Parcel *'}
+                    ? `${t('attach_copy_of_plan')}`
+                    : `${t('attach_a_simple_sketch_of_land_parcel')}`}
                 </label>
                 <p className="text-muted-foreground text-xs">
                   {form.hasPlan
-                    ? 'A copy of the land parcel plan is required. Supported formats: PDF, JPG, PNG, DOCX.'
-                    : 'A simple sketch of the land parcel is required. Supported formats: PDF, JPG, PNG, DOCX.'}
+                    ? `${t('copy_of_plan_is_required')}`
+                    : `${t('simple_sketch_of_plan_required')}`}
                 </p>
                 <div className="mt-2 flex items-center gap-4">
                   <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold text-white transition-colors">
                     <Upload className="h-4 w-4" />
-                    <span>Choose File</span>
+                    <span>{t('choose_file')}</span>
                     <input
                       type="file"
                       className="hidden"
@@ -1180,14 +1185,14 @@ export default function AddLandParcel() {
                     <div className="flex items-center gap-2 text-sm font-medium text-green-600">
                       <CheckCircle className="h-4 w-4" />
                       <span>
-                        Attached: <strong>{planFile.name}</strong> (
+                        {t('attached')} <strong>{planFile.name}</strong> (
                         {(planFile.size / 1024).toFixed(1)} KB)
                       </span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 text-sm text-red-500">
                       <AlertCircle className="h-4 w-4" />
-                      <span>No file attached. This is required.</span>
+                      <span>{t('no_file_attached')}</span>
                     </div>
                   )}
                 </div>
@@ -1196,20 +1201,20 @@ export default function AddLandParcel() {
 
             {form.hasPlan ? (
               <>
-                <Field label="Plan Number" required>
+                <Field label={t('plan_number')} required>
                   <input
                     className={inputCls}
-                    placeholder="e.g. P/2024/001"
+                    placeholder={`${t('example')} P/2024/001`}
                     value={form.planNumber}
                     onChange={set('planNumber')}
                   />
                   {errMsg('planNumber')}
                 </Field>
 
-                <Field label="Parcel Numbers">
+                <Field label={t('parcel_numbers')}>
                   <input
                     className={inputCls}
-                    placeholder="e.g. 1, 2, 3"
+                    placeholder={`${t('example')} 1, 2, 3`}
                     value={form.parcelNumbers}
                     onChange={set('parcelNumbers')}
                   />
@@ -1217,37 +1222,37 @@ export default function AddLandParcel() {
               </>
             ) : (
               <>
-                <Field label="Boundary — North">
+                <Field label={`${t('boundary')} — ${t('north')}`}>
                   <input
                     className={inputCls}
-                    placeholder="e.g. Main Road"
+                    placeholder={`${t('example')} ${t('main_road')}`}
                     value={form.boundariesNorth}
                     onChange={set('boundariesNorth')}
                   />
                 </Field>
 
-                <Field label="Boundary — South">
+                <Field label={`${t('boundary')} — ${t('south')}`}>
                   <input
                     className={inputCls}
-                    placeholder="e.g. River"
+                    placeholder={`${t('example')} ${t('river')}`}
                     value={form.boundariesSouth}
                     onChange={set('boundariesSouth')}
                   />
                 </Field>
 
-                <Field label="Boundary — East">
+                <Field label={`${t('boundary')} — ${t('east')}`}>
                   <input
                     className={inputCls}
-                    placeholder="e.g. Land of Mr. Silva"
+                    placeholder={`${t('example')} ${t('land_of_silva')}`}
                     value={form.boundariesEast}
                     onChange={set('boundariesEast')}
                   />
                 </Field>
 
-                <Field label="Boundary — West">
+                <Field label={`${t('boundary')} — ${t('west')}`}>
                   <input
                     className={inputCls}
-                    placeholder="e.g. Temple Land"
+                    placeholder={`${t('example')} ${t('temple_land')}`}
                     value={form.boundariesWest}
                     onChange={set('boundariesWest')}
                   />
@@ -1266,36 +1271,36 @@ export default function AddLandParcel() {
                   }
                 />
                 <span className="text-foreground text-sm font-medium">
-                  Does land has a cultivation
+                  {t('does_land_has_cultivation')}
                 </span>
               </label>
             </div>
 
             {form.isCultivated && (
               <>
-                <Field label="Cultivation Details">
+                <Field label={t('cultivation_details')}>
                   <input
                     className={inputCls}
-                    placeholder="e.g. Coconut, Paddy"
+                    placeholder={`${t('example')} ${t('coconut')}, ${t('paddy')}`}
                     value={form.cultivation}
                     onChange={set('cultivation')}
                   />
                 </Field>
 
-                <Field label="Cultivation Status">
+                <Field label={t('cultivation_status')}>
                   <select
                     className={inputCls}
                     value={form.cultivationStatus}
                     onChange={set('cultivationStatus')}
                   >
-                    <option value="unspecified">Unspecified</option>
-                    <option value="fertile">Fertile</option>
-                    <option value="mid">Mid</option>
-                    <option value="infertile">Infertile</option>
+                    <option value="unspecified">{t('unspecified')}</option>
+                    <option value="fertile">{t('fertile')}</option>
+                    <option value="mid">{t('mid')}</option>
+                    <option value="infertile">{t('infertile')}</option>
                   </select>
                 </Field>
 
-                <Field label="Annual Income (LKR)">
+                <Field label={t('annual_income')}>
                   <input
                     className={inputCls}
                     type="number"
@@ -1309,7 +1314,7 @@ export default function AddLandParcel() {
             )}
 
             <div className="md:col-start-1 lg:col-start-1">
-              <Field label="Estimated Value (LKR)">
+              <Field label={t('estimated_value')}>
                 <input
                   className={inputCls}
                   type="number"
