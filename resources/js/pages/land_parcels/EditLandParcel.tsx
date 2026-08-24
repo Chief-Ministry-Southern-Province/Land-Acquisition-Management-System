@@ -19,7 +19,12 @@ import {
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
-import { confirmDialog, alertInfo, toastError, toastSuccess } from '@/lib/alerts';
+import {
+  confirmDialog,
+  alertInfo,
+  toastError,
+  toastSuccess,
+} from '@/lib/alerts';
 import {
   uploadDocument,
   deleteDocument,

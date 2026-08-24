@@ -18,7 +18,10 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
 import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
 import { uploadDocument } from '@/services/documentManagementService';
-import { createLandParcel } from '@/services/landParcelManagementService';
+import {
+  createLandParcel,
+  getLandParcels,
+} from '@/services/landParcelManagementService';
 
 import {
   createPropertyOwner,
@@ -360,12 +363,49 @@ export default function AddLandParcel() {
     setSelectedResidents((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Fetch property owners
+  const generateNextLandNumber = (parcels: any[]) => {
+    const currentYear = new Date().getFullYear();
+    const prefix = `LND/${currentYear}/`;
+
+    // Find all parcel_ids matching the pattern LND/YYYY/NNN
+    const matchRegex = new RegExp(`^LND/${currentYear}/(\\d+)$`);
+    let maxNum = 0;
+
+    parcels.forEach((p) => {
+      if (p.parcel_id) {
+        const match = String(p.parcel_id).match(matchRegex);
+
+        if (match) {
+          const num = parseInt(match[1], 10);
+
+          if (num > maxNum) {
+            maxNum = num;
+          }
+        }
+      }
+    });
+
+    const nextNum = maxNum + 1;
+    const paddedNum = String(nextNum).padStart(3, '0');
+
+    return `${prefix}${paddedNum}`;
+  };
+
+  // Fetch property owners and existing land parcels to auto-generate land number
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const ownerData = await getPropertyOwners();
+        const [ownerData, parcelData] = await Promise.all([
+          getPropertyOwners(),
+          getLandParcels(),
+        ]);
         setExistingOwners(ownerData);
+
+        const generatedNum = generateNextLandNumber(parcelData);
+        setForm((f) => ({
+          ...f,
+          landNumber: generatedNum,
+        }));
       } catch (error) {
         console.error('Failed to fetch initial data:', error);
       }

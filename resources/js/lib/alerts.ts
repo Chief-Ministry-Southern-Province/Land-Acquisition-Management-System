@@ -1,13 +1,17 @@
 import Swal from 'sweetalert2';
 
 // Base styling classes using Tailwind CSS and custom theme variables
-const basePopupClass = 'rounded-xl border border-border bg-card text-foreground shadow-xl font-sans p-6 max-w-md';
+const basePopupClass =
+  'rounded-xl border border-border bg-card text-foreground shadow-xl font-sans p-6 max-w-md';
 const baseTitleClass = 'text-lg font-semibold text-foreground mt-2';
-const baseHtmlContainerClass = 'text-sm text-muted-foreground mt-2 whitespace-pre-line';
+const baseHtmlContainerClass =
+  'text-sm text-muted-foreground mt-2 whitespace-pre-line';
 const baseActionsClass = 'flex gap-3 justify-end mt-6 w-full';
 
-const baseConfirmButtonClass = 'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-white cursor-pointer';
-const baseCancelButtonClass = 'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 border border-border bg-muted/50 text-muted-foreground hover:bg-muted/80 cursor-pointer';
+const baseConfirmButtonClass =
+  'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-white cursor-pointer';
+const baseCancelButtonClass =
+  'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 border border-border bg-muted/50 text-muted-foreground hover:bg-muted/80 cursor-pointer';
 
 export interface ConfirmOptions {
   title: string;
@@ -70,7 +74,6 @@ export async function confirmAction(options: ConfirmOptions): Promise<boolean> {
   return result.isConfirmed;
 }
 
-
 //  Information alert modal. Useful for blocking messages (like permission errors or detailed validation reports).
 export async function alertInfo(title: string, text?: string): Promise<void> {
   await Swal.fire({
@@ -107,7 +110,6 @@ const AlertPopup = Swal.mixin({
   },
 });
 
-
 //  Centered success alert popup (auto-dismisses after 3s, or via OK button).
 export async function alertSuccess(message: string): Promise<void> {
   await AlertPopup.fire({
@@ -117,7 +119,6 @@ export async function alertSuccess(message: string): Promise<void> {
     text: message,
   });
 }
-
 
 //  Centered error alert popup (auto-dismisses after 4s, or via OK button).
 export async function alertError(message: string): Promise<void> {

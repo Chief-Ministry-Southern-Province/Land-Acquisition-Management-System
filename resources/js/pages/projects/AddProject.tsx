@@ -20,7 +20,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
-import { confirmDialog, alertInfo, toastError, toastSuccess } from '@/lib/alerts';
+import {
+  confirmDialog,
+  alertInfo,
+  toastError,
+  toastSuccess,
+} from '@/lib/alerts';
 import { getDepartments } from '@/services/departmentManagementService';
 import type { Department } from '@/services/departmentManagementService';
 import {

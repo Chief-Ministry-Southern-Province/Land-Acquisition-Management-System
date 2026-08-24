@@ -16,7 +16,12 @@ import { StatusBadge } from '@/components/ui/StatusBridge';
 import WorkflowTimeline from '@/components/ui/WorkflowTimeline';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
-import { confirmDialog, confirmAction, toastError, toastSuccess } from '@/lib/alerts';
+import {
+  confirmDialog,
+  confirmAction,
+  toastError,
+  toastSuccess,
+} from '@/lib/alerts';
 import api from '@/services/api';
 import {
   deleteDocument,

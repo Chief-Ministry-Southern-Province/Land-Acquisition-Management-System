@@ -356,7 +356,9 @@ export default function LandParcelDetails({ id }: Props) {
       await fetchParcelDetails();
     } catch (err: any) {
       console.error(err);
-      toastError(err.response?.data?.message || 'Failed to submit survey plan.');
+      toastError(
+        err.response?.data?.message || 'Failed to submit survey plan.',
+      );
     } finally {
       setLoading(false);
     }
@@ -419,7 +421,9 @@ export default function LandParcelDetails({ id }: Props) {
     e.preventDefault();
 
     if (!valuationDocId) {
-      toastError('Mandatory Checklist: Please upload the valuation report PDF.');
+      toastError(
+        'Mandatory Checklist: Please upload the valuation report PDF.',
+      );
 
       return;
     }
@@ -547,7 +551,9 @@ export default function LandParcelDetails({ id }: Props) {
       await fetchParcelDetails();
     } catch (err: any) {
       console.error(err);
-      toastError(err.response?.data?.message || 'Failed to submit compensation.');
+      toastError(
+        err.response?.data?.message || 'Failed to submit compensation.',
+      );
     } finally {
       setLoading(false);
     }
