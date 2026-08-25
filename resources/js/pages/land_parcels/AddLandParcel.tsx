@@ -31,23 +31,23 @@ import {
 import type { PropertyOwner } from '@/services/propertyOwnerManagement';
 
 const LAND_USE_TYPES = [
-  'Agricultural',
-  'Residential',
-  'Commercial',
-  'Industrial',
-  'Forest Reserve',
-  'Wetland',
-  'Bare Land',
-  'Mixed Use',
+  { value: 'Agricultural', key: 'agricultural' },
+  { value: 'Residential', key: 'residential' },
+  { value: 'Commercial', key: 'commercial' },
+  { value: 'Industrial', key: 'industrial' },
+  { value: 'Forest Reserve', key: 'forest_reserve' },
+  { value: 'Wetland', key: 'wetland' },
+  { value: 'Bare Land', key: 'bare_land' },
+  { value: 'Mixed Use', key: 'mixed_use' },
 ];
 
 const TENURE_TYPES = [
-  'Freehold',
-  'Leasehold',
-  'Crown Land',
-  'State Land',
-  'Temple Land',
-  'Other',
+  { value: 'Freehold', key: 'freehold' },
+  { value: 'Leasehold', key: 'leasehold' },
+  { value: 'Crown Land', key: 'crown_land' },
+  { value: 'State Land', key: 'state_land' },
+  { value: 'Temple Land', key: 'temple_land' },
+  { value: 'Other', key: 'other' },
 ];
 
 type FormData = {
@@ -1252,7 +1252,7 @@ export default function AddLandParcel() {
                 <Field label={`${t('boundary')} — ${t('west')}`}>
                   <input
                     className={inputCls}
-                    placeholder={`${t('example')} ${t('temple_land')}`}
+                    placeholder={`${t('example')} ${t('temple_land_example')}`}
                     value={form.boundariesWest}
                     onChange={set('boundariesWest')}
                   />
@@ -1326,32 +1326,32 @@ export default function AddLandParcel() {
               </Field>
             </div>
 
-            <Field label="Land Use Type" required>
+            <Field label={t('land_use_type')} required>
               <select
                 className={inputCls}
                 value={form.landUseType}
                 onChange={set('landUseType')}
               >
-                <option value="">Select Type</option>
-                {LAND_USE_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                <option value="">{t('select_type')}</option>
+                {LAND_USE_TYPES.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {t(item.key)}
                   </option>
                 ))}
               </select>
               {errMsg('landUseType')}
             </Field>
 
-            <Field label="Tenure Type" required>
+            <Field label={t('tenure_type')} required>
               <select
                 className={inputCls}
                 value={form.tenureType}
                 onChange={set('tenureType')}
               >
-                <option value="">Select Tenure</option>
-                {TENURE_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                <option value="">{t('select_tenure')}</option>
+                {TENURE_TYPES.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {t(item.key)}
                   </option>
                 ))}
               </select>
@@ -1369,14 +1369,14 @@ export default function AddLandParcel() {
                   }
                 />
                 <span className="text-foreground text-sm font-medium">
-                  Land under litigation (Case Hold)
+                  {t('land_under_litigation')}
                 </span>
               </label>
             </div>
 
             {form.isCasehold && (
               <>
-                <Field label="Case Number">
+                <Field label={t('case_number')}>
                   <input
                     className={inputCls}
                     placeholder="e.g. CASE/2026/001"
@@ -1385,7 +1385,7 @@ export default function AddLandParcel() {
                   />
                 </Field>
 
-                <Field label="Case Start Date">
+                <Field label={t('case_start_date')}>
                   <input
                     className={inputCls}
                     type="date"
@@ -1394,7 +1394,7 @@ export default function AddLandParcel() {
                   />
                 </Field>
 
-                <Field label="Case End Date">
+                <Field label={t('case_end_date')}>
                   <input
                     className={inputCls}
                     type="date"
@@ -1403,17 +1403,17 @@ export default function AddLandParcel() {
                   />
                 </Field>
 
-                <Field label="Case Status">
+                <Field label={t('case_status')}>
                   <select
                     className={inputCls}
                     value={form.caseStatus}
                     onChange={set('caseStatus')}
                   >
-                    <option value="">Select Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="dismissed">Dismissed</option>
+                    <option value="">{t('select_case_status')}</option>
+                    <option value="pending">{t('case_pending')}</option>
+                    <option value="ongoing">{t('case_ongoing')}</option>
+                    <option value="resolved">{t('case_resolved')}</option>
+                    <option value="dismissed">{t('case_dismissed')}</option>
                   </select>
                 </Field>
               </>
@@ -1430,7 +1430,7 @@ export default function AddLandParcel() {
                   }
                 />
                 <span className="text-foreground text-sm font-medium">
-                  Donated Land
+                  {t('donated_land')}
                 </span>
               </label>
             </div>
@@ -1439,7 +1439,7 @@ export default function AddLandParcel() {
 
         {/* Owner Details */}
         <div className="bg-card border-border rounded-xl border p-6">
-          <SectionHeader icon={User} title="Owner Details" />
+          <SectionHeader icon={User} title={t('owner_details')} />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* List of currently added owners */}
             <div className="space-y-3 md:col-span-2">
@@ -1447,10 +1447,10 @@ export default function AddLandParcel() {
                 <div className="border-border text-muted-foreground bg-muted/10 rounded-xl border-2 border-dashed p-8 text-center">
                   <Users className="text-muted-foreground/60 mx-auto mb-2 h-8 w-8" />
                   <p className="text-sm font-medium">
-                    No owners linked to this parcel yet.
+                    {t('no_owners_linked_to_parcel')}
                   </p>
                   <p className="mt-1 text-xs">
-                    Please search existing owners or add a new one below.
+                    {t('please_search_or_add_new_one')}
                   </p>
                 </div>
               ) : (
@@ -1512,7 +1512,7 @@ export default function AddLandParcel() {
                 className="bg-primary/10 hover:bg-primary/20 text-primary flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition-colors"
               >
                 <Search className="h-3.5 w-3.5" />
-                Select Existing Owner
+                {t('select_existing_owner')}
               </button>
 
               <button
@@ -1524,7 +1524,7 @@ export default function AddLandParcel() {
                 className="border-border hover:bg-muted text-foreground flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-semibold transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
-                Add New Owner
+                {t('add_new_owner')}
               </button>
             </div>
 
@@ -1532,21 +1532,21 @@ export default function AddLandParcel() {
               <div className="bg-muted/30 border-border space-y-4 rounded-xl border p-4 md:col-span-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Select Existing Property Owner
+                    {t('select_existing_property_owner')}
                   </h4>
                   <button
                     type="button"
                     onClick={() => setShowOwnerPicker(false)}
                     className="text-muted-foreground hover:text-foreground text-xs"
                   >
-                    Close
+                    {t('close')}
                   </button>
                 </div>
                 <div className="relative">
                   <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                   <input
                     className={`${inputCls} pl-9`}
-                    placeholder="Search owners by Name, NIC, or Owner ID..."
+                    placeholder={t('search_owner_placeholder')}
                     value={ownerSearch}
                     onChange={(e) => setOwnerSearch(e.target.value)}
                   />
@@ -1554,11 +1554,11 @@ export default function AddLandParcel() {
                 <div className="divide-border border-border bg-card max-h-48 divide-y overflow-y-auto rounded-lg border">
                   {ownerSearch && filteredExistingOwners.length === 0 ? (
                     <p className="text-muted-foreground p-4 text-center text-xs">
-                      No owners match your search.
+                      {t('no_owners_match_search')}
                     </p>
                   ) : !ownerSearch ? (
                     <p className="text-muted-foreground p-4 text-center text-xs">
-                      Type in the search box to find registered owners.
+                      {t('type_in_searchbox_to_search_owners')}
                     </p>
                   ) : (
                     filteredExistingOwners.map((owner) => {
@@ -1579,7 +1579,8 @@ export default function AddLandParcel() {
                               </span>
                             </p>
                             <p className="text-muted-foreground mt-0.5">
-                              NIC: {owner.nic} | Contact: {owner.contact}
+                              {t('nic')}: {owner.nic} | {t('contact_number')}:{' '}
+                              {owner.contact}
                             </p>
                           </div>
                           <button
@@ -1592,7 +1593,7 @@ export default function AddLandParcel() {
                                 : 'bg-primary hover:bg-primary-hover text-white'
                             }`}
                           >
-                            {alreadyAdded ? 'Added' : 'Select'}
+                            {alreadyAdded ? t('added') : t('select')}
                           </button>
                         </div>
                       );
@@ -1606,7 +1607,7 @@ export default function AddLandParcel() {
               <div className="bg-muted/30 border-border space-y-4 rounded-xl border p-4 md:col-span-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Add New Property Owner Details
+                    {t('add_new_property_owner_details')}
                   </h4>
                   <button
                     type="button"
@@ -1616,17 +1617,17 @@ export default function AddLandParcel() {
                     }}
                     className="text-muted-foreground hover:text-foreground text-xs"
                   >
-                    Close
+                    {t('close')}
                   </button>
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="flex flex-col gap-1">
                     <label className="text-foreground text-xs font-medium">
-                      Full Name *
+                      {`${t('full_name')} *`}
                     </label>
                     <input
                       className={inputCls}
-                      placeholder="Owner Name"
+                      placeholder={t('owner_name')}
                       value={newOwnerForm.name}
                       onChange={(e) =>
                         setNewOwnerForm((p) => ({ ...p, name: e.target.value }))
@@ -1641,11 +1642,11 @@ export default function AddLandParcel() {
 
                   <div className="flex flex-col gap-1">
                     <label className="text-foreground text-xs font-medium">
-                      NIC No *
+                      {`${t('nic')} *`}
                     </label>
                     <input
                       className={inputCls}
-                      placeholder="e.g. 199012345678"
+                      placeholder={`${t('example')} 199012345678`}
                       value={newOwnerForm.nic}
                       onChange={(e) =>
                         setNewOwnerForm((p) => ({ ...p, nic: e.target.value }))
@@ -1660,11 +1661,11 @@ export default function AddLandParcel() {
 
                   <div className="flex flex-col gap-1">
                     <label className="text-foreground text-xs font-medium">
-                      Contact Number *
+                      {`${t('contact_number')} *`}
                     </label>
                     <input
                       className={inputCls}
-                      placeholder="e.g. 0771234567"
+                      placeholder={`${t('example')} 0771234567`}
                       value={newOwnerForm.contact}
                       onChange={(e) =>
                         setNewOwnerForm((p) => ({
@@ -1682,11 +1683,11 @@ export default function AddLandParcel() {
 
                   <div className="flex flex-col gap-1">
                     <label className="text-foreground text-xs font-medium">
-                      Address *
+                      {`${t('address')} *`}
                     </label>
                     <input
                       className={inputCls}
-                      placeholder="Permanent Address"
+                      placeholder={t('permanant_address')}
                       value={newOwnerForm.address}
                       onChange={(e) =>
                         setNewOwnerForm((p) => ({
@@ -1709,7 +1710,7 @@ export default function AddLandParcel() {
                     className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Add Owner to List
+                    {t('add_owner_to_list')}
                   </button>
                 </div>
               </div>
@@ -1719,7 +1720,7 @@ export default function AddLandParcel() {
 
         {/* Resident Details */}
         <div className="bg-card border-border rounded-xl border p-6">
-          <SectionHeader icon={Users} title="Resident Details" />
+          <SectionHeader icon={Users} title={t('resident_details')} />
           <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="flex items-center gap-2 md:col-span-1 lg:col-span-2">
               <label className="flex cursor-pointer select-none items-center gap-2">
@@ -1735,7 +1736,7 @@ export default function AddLandParcel() {
                   }
                 />
                 <span className="text-foreground text-sm font-medium">
-                  Is land has residential houses?
+                  {t('is_land_has_residential_houses')}
                 </span>
               </label>
             </div>
@@ -1754,7 +1755,7 @@ export default function AddLandParcel() {
                   }
                 />
                 <span className="text-foreground text-sm font-medium">
-                  Is resident is owner?
+                  {t('is_resident_owner')}
                 </span>
               </label>
             </div>
@@ -1768,11 +1769,10 @@ export default function AddLandParcel() {
                   <div className="border-border text-muted-foreground bg-muted/10 rounded-xl border-2 border-dashed p-6 text-center">
                     <Users className="text-muted-foreground/60 mx-auto mb-2 h-7 w-7" />
                     <p className="text-sm font-medium">
-                      No residents added to this parcel yet.
+                      {t('no_residents_added_to_this_parcel_yet')}
                     </p>
                     <p className="mt-1 text-xs">
-                      Click "Add Resident" below to record people living on this
-                      land.
+                      {t('click_add_residents_to_add_residents')}
                     </p>
                   </div>
                 ) : (
@@ -1801,17 +1801,17 @@ export default function AddLandParcel() {
                           </h4>
                           {res.nic && (
                             <p className="text-muted-foreground mt-1 text-xs">
-                              NIC: {res.nic}
+                              {t('nic')}: {res.nic}
                             </p>
                           )}
                           {res.contact && (
                             <p className="text-muted-foreground font-mono text-xs">
-                              Contact: {res.contact}
+                              {t('contact_number')}: {res.contact}
                             </p>
                           )}
                           {res.address && (
                             <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
-                              Address: {res.address}
+                              {t('address')}: {res.address}
                             </p>
                           )}
                         </div>
@@ -1828,7 +1828,7 @@ export default function AddLandParcel() {
                   className="bg-primary/10 hover:bg-primary/20 text-primary flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  Add Resident
+                  {t('add_resident')}
                 </button>
               </div>
 
@@ -1836,7 +1836,7 @@ export default function AddLandParcel() {
                 <div className="bg-muted/30 border-border space-y-4 rounded-xl border p-4 md:col-span-2">
                   <div className="flex items-center justify-between">
                     <h4 className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                      Add New Resident Details
+                      {t('add_new_resident_details')}
                     </h4>
                     <button
                       type="button"
@@ -1846,17 +1846,17 @@ export default function AddLandParcel() {
                       }}
                       className="text-muted-foreground hover:text-foreground text-xs"
                     >
-                      Close
+                      {t('close')}
                     </button>
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="flex flex-col gap-1">
                       <label className="text-foreground text-xs font-medium">
-                        Full Name *
+                        {t('full_name')} *
                       </label>
                       <input
                         className={inputCls}
-                        placeholder="Resident Name"
+                        placeholder={t('full_name')}
                         value={newResidentForm.name}
                         onChange={(e) =>
                           setNewResidentForm((p) => ({
@@ -1874,7 +1874,7 @@ export default function AddLandParcel() {
 
                     <div className="flex flex-col gap-1">
                       <label className="text-foreground text-xs font-medium">
-                        Relationship
+                        {t('relationship')}
                       </label>
                       <select
                         className={inputCls}
@@ -1886,19 +1886,19 @@ export default function AddLandParcel() {
                           }))
                         }
                       >
-                        <option value="owner">Owner Resident</option>
-                        <option value="tenant">Tenant</option>
-                        <option value="family_member">Family Member</option>
+                        <option value="owner">{t('owner_resident')}</option>
+                        <option value="tenant">{t('tenant')}</option>
+                        <option value="family_member">{t('family_member')}</option>
                       </select>
                     </div>
 
                     <div className="flex flex-col gap-1">
                       <label className="text-foreground text-xs font-medium">
-                        NIC No
+                        {t('nic')}
                       </label>
                       <input
                         className={inputCls}
-                        placeholder="e.g. 199012345678"
+                        placeholder={`${t('example')} 199012345678`}
                         value={newResidentForm.nic}
                         onChange={(e) =>
                           setNewResidentForm((p) => ({
@@ -1911,11 +1911,11 @@ export default function AddLandParcel() {
 
                     <div className="flex flex-col gap-1">
                       <label className="text-foreground text-xs font-medium">
-                        Contact Number
+                        {t('contact_number')}
                       </label>
                       <input
                         className={inputCls}
-                        placeholder="e.g. 0771234567"
+                        placeholder={`${t('example')} 0771234567`}
                         value={newResidentForm.contact}
                         onChange={(e) =>
                           setNewResidentForm((p) => ({
@@ -1928,11 +1928,11 @@ export default function AddLandParcel() {
 
                     <div className="flex flex-col gap-1 md:col-span-2">
                       <label className="text-foreground text-xs font-medium">
-                        Address
+                        {t('resident_address')}
                       </label>
                       <input
                         className={inputCls}
-                        placeholder="Resident Address"
+                        placeholder={t('resident_address')}
                         value={newResidentForm.address}
                         onChange={(e) =>
                           setNewResidentForm((p) => ({
@@ -1950,7 +1950,7 @@ export default function AddLandParcel() {
                       className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700"
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      Add Resident to List
+                      {t('add_resident_to_list')}
                     </button>
                   </div>
                 </div>
@@ -1992,18 +1992,17 @@ export default function AddLandParcel() {
                   </div>
                   <div>
                     <p className="text-foreground text-sm font-semibold uppercase tracking-wide">
-                      Land Documents
+                      {t('land_documents')}
                     </p>
                     <p className="text-muted-foreground mt-0.5 text-xs">
-                      Attach documents to this land parcel. Queued files will be
-                      uploaded when you save the parcel.
+                      {t('attach_documents_to_this_land_parcel')}
                     </p>
                   </div>
                 </div>
                 <div>
                   <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-white transition-colors">
                     <Upload className="h-3.5 w-3.5" />
-                    <span>Select File</span>
+                    <span>{t('select_file')}</span>
                     <input
                       type="file"
                       className="hidden"
@@ -2041,11 +2040,11 @@ export default function AddLandParcel() {
                               {doc.name}
                             </p>
                             <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
-                              Queued
+                              {t('queued')}
                             </span>
                           </div>
                           <p className="text-muted-foreground mt-0.5 text-xs">
-                            Category: {doc.category} • Size: {doc.size} • Date:{' '}
+                            {t('category')}: {doc.category} • {t('size')}: {doc.size} • {t('date')}:{' '}
                             {doc.uploadDate}
                           </p>
                         </div>
@@ -2117,7 +2116,7 @@ export default function AddLandParcel() {
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors disabled:opacity-50"
           >
             <X className="h-4 w-4" />
-            Cancel
+            {t('cancel')}
           </button>
           <button
             type="submit"
@@ -2125,7 +2124,7 @@ export default function AddLandParcel() {
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm text-white transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {submitting ? 'Saving...' : 'Save Parcel'}
+            {submitting ? t('saving') : t('save_parcel')}
           </button>
         </div>
       </form>
