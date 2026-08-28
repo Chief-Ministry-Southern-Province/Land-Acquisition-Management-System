@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import MainLayout from '@/layouts/MainLayout';
+import { confirmDialog } from '@/lib/alerts';
 import {
   getBackups,
   createBackup,
@@ -295,9 +296,12 @@ export default function SystemSettings() {
   };
 
   const handleDeleteBackup = async (filename: string) => {
-    if (
-      !confirm(`Are you sure you want to delete the backup file "${filename}"?`)
-    ) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Backup File',
+      text: `Are you sure you want to delete the backup file "${filename}"?`,
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -312,11 +316,13 @@ export default function SystemSettings() {
   };
 
   const handleRestoreBackup = async (filename: string) => {
-    if (
-      !confirm(
-        `Are you sure you want to restore the database backup from "${filename}"? This will overwrite all current system data.`,
-      )
-    ) {
+    const confirmed = await confirmDialog({
+      title: 'Restore Database',
+      text: `Are you sure you want to restore the database backup from "${filename}"? This will overwrite all current system data.`,
+      confirmButtonText: 'Restore',
+    });
+
+    if (!confirmed) {
       return;
     }
 

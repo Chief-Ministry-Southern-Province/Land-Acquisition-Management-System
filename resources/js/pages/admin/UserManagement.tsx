@@ -5,6 +5,7 @@ import { SyncLoader } from 'react-spinners';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
 import {
   deleteUser,
   getAllUsers,
@@ -74,7 +75,12 @@ export default function UserManagement() {
   }, []);
 
   const handleDelete = async (rawId: number) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) {
+    const confirmed = await confirmDialog({
+      title: 'Delete User',
+      text: 'Are you sure you want to delete this user?',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -82,9 +88,12 @@ export default function UserManagement() {
       setError(null);
       await deleteUser(rawId);
       setUsers((prev) => prev.filter((u) => u.rawId !== rawId));
+      toastSuccess('User deleted successfully.');
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Failed to delete user.');
+      const errMsg = err.message || 'Failed to delete user.';
+      setError(errMsg);
+      toastError(errMsg);
     }
   };
 

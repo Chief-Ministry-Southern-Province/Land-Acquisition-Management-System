@@ -5,6 +5,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
 import {
   uploadDocument,
   deleteDocument,
@@ -62,7 +63,7 @@ export default function LandOwnerDetails({ id }: Props) {
         `Failed to export property owner profile as ${format}:`,
         error,
       );
-      alert(`Failed to export property owner profile.`);
+      toastError(`Failed to export property owner profile.`);
     } finally {
       setLoading(false);
     }
@@ -101,11 +102,11 @@ export default function LandOwnerDetails({ id }: Props) {
 
       setSelectedFile(null);
       setUploadProgress(null);
-      alert('Document uploaded successfully!');
+      toastSuccess('Document uploaded successfully!');
       await fetchOwner();
     } catch (error) {
       console.error('Failed to upload document:', error);
-      alert('Failed to upload document. Please try again.');
+      toastError('Failed to upload document. Please try again.');
     } finally {
       setUploading(false);
       setUploadProgress(null);
@@ -117,22 +118,27 @@ export default function LandOwnerDetails({ id }: Props) {
       await downloadDocument(docId, filename);
     } catch (error) {
       console.error('Failed to download document:', error);
-      alert('Failed to download document.');
+      toastError('Failed to download document.');
     }
   };
 
   const handleDelete = async (docId: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Document',
+      text: 'Are you sure you want to delete this document?',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
       await deleteDocument(docId);
-      alert('Document deleted successfully!');
+      toastSuccess('Document deleted successfully!');
       await fetchOwner();
     } catch (error) {
       console.error('Failed to delete document:', error);
-      alert('Failed to delete document.');
+      toastError('Failed to delete document.');
     }
   };
 
@@ -379,7 +385,7 @@ export default function LandOwnerDetails({ id }: Props) {
 
                           if (file) {
                             if (file.size > 10 * 1024 * 1024) {
-                              alert('File size exceeds the 10MB limit.');
+                              toastError('File size exceeds the 10MB limit.');
                               e.target.value = '';
 
                               return;

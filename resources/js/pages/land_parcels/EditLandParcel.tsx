@@ -20,6 +20,12 @@ import {
 import { useEffect, useState, useMemo, useRef } from 'react';
 import MainLayout from '@/layouts/MainLayout';
 import {
+  confirmDialog,
+  alertInfo,
+  toastError,
+  toastSuccess,
+} from '@/lib/alerts';
+import {
   uploadDocument,
   deleteDocument,
   downloadDocument,
@@ -314,7 +320,7 @@ export default function EditLandParcel({ id }: { id: string }) {
       await downloadDocument(docId, filename);
     } catch (error) {
       console.error('Failed to download document:', error);
-      alert('Failed to download document.');
+      toastError('Failed to download document.');
     }
   };
 
@@ -325,9 +331,12 @@ export default function EditLandParcel({ id }: { id: string }) {
       return;
     }
 
-    if (
-      !confirm('Are you sure you want to delete this document permanently?')
-    ) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Document',
+      text: 'Are you sure you want to delete this document permanently?',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -335,9 +344,10 @@ export default function EditLandParcel({ id }: { id: string }) {
       setLoading(true);
       await deleteDocument(docId);
       await refreshDocuments();
+      toastSuccess('Document deleted successfully.');
     } catch (error) {
       console.error('Failed to delete document:', error);
-      alert('Failed to delete document.');
+      toastError('Failed to delete document.');
     } finally {
       setLoading(false);
     }
@@ -730,7 +740,7 @@ export default function EditLandParcel({ id }: { id: string }) {
 
   const handleSelectExistingOwner = (owner: PropertyOwner) => {
     if (selectedOwners.some((o) => o.nic === owner.nic)) {
-      alert('This owner is already added to the parcel.');
+      toastError('This owner is already added to the parcel.');
 
       return;
     }
@@ -810,7 +820,7 @@ export default function EditLandParcel({ id }: { id: string }) {
     }
 
     if (selectedOwners.length === 0) {
-      alert('You must add or select at least one property owner.');
+      toastError('You must add or select at least one property owner.');
 
       return false;
     }
@@ -827,13 +837,13 @@ export default function EditLandParcel({ id }: { id: string }) {
 
     if (form.hasPlan) {
       if (!planFile && !existingPlanDoc) {
-        alert('You must upload a copy of the land parcel plan.');
+        toastError('You must upload a copy of the land parcel plan.');
 
         return false;
       }
     } else {
       if (!planFile && !existingSketchDoc) {
-        alert('You must upload a simple sketch of the land parcel.');
+        toastError('You must upload a simple sketch of the land parcel.');
 
         return false;
       }
@@ -952,6 +962,7 @@ export default function EditLandParcel({ id }: { id: string }) {
         }
       }
 
+      toastSuccess('Land parcel updated successfully!');
       router.visit(`/land-parcels/${id}`);
     } catch (error: any) {
       console.error('Failed to update land parcel:', error);
@@ -989,15 +1000,15 @@ export default function EditLandParcel({ id }: { id: string }) {
           }
         });
         setErrors(backendErrors);
-        alert(`Validation Error:\n\n${errorMessages.join('\n')}`);
+        await alertInfo('Validation Error', errorMessages.join('\n'));
       } else if (error.response?.data?.message) {
         setErrors({ landNumber: error.response.data.message });
-        alert(`Error: ${error.response.data.message}`);
+        toastError(`Error: ${error.response.data.message}`);
       } else {
         setErrors({
           landNumber: 'An error occurred while saving the land parcel.',
         });
-        alert(
+        toastError(
           'An error occurred while saving the land parcel. Please verify your inputs.',
         );
       }

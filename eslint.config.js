@@ -106,6 +106,22 @@ export default [
         },
     },
     {
+        files: ['**/*.ts', '**/*.tsx'],
+        rules: {
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector: 'CallExpression[callee.name=/^(confirmAction|confirmDialog)$/]:not(AwaitExpression > CallExpression)',
+                    message: 'confirmAction and confirmDialog return a Promise and must be awaited.',
+                },
+                {
+                    selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name=/^(confirmAction|confirmDialog)$/]:not(AwaitExpression > CallExpression)',
+                    message: 'confirmAction and confirmDialog return a Promise and must be awaited.',
+                },
+            ],
+        },
+    },
+    {
         ignores: [
             'vendor',
             'node_modules',
