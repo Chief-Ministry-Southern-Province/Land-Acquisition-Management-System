@@ -386,4 +386,18 @@ return [
     'payment_status' => 'Payment Status',
     'payment_date' => 'Payment Date',
     'bank_account' => 'Bank Account',
+
+    // Errors
+    'error_403_title' => 'Access Denied',
+    'error_403_description' => 'You do not have permission to view this resource or perform this action.',
+    'error_404_title' => 'Page Not Found',
+    'error_404_description' => 'The page or resource you are looking for does not exist or has been moved.',
+    'error_419_title' => 'Page Expired',
+    'error_419_description' => 'Your session has expired. Please refresh the page and try again.',
+    'error_500_title' => 'Internal Server Error',
+    'error_500_description' => 'An unexpected server error occurred. Our technical team has been notified.',
+    'error_back_to_home' => 'Back to Dashboard',
+    'error_refresh_page' => 'Refresh Page',
+    'error_session_expired' => 'Your session has expired. Please login again.',
+    'error_something_went_wrong' => 'Something went wrong',
 ];
