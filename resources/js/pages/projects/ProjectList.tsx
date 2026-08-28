@@ -5,6 +5,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
 import {
   getProjects,
   deleteProject,
@@ -46,13 +47,19 @@ export default function ProjectList() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete project "${name}"?`)) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Project',
+      text: `Are you sure you want to delete project "${name}"?`,
+    });
+
+    if (confirmed) {
       try {
         await deleteProject(id);
         setProjects((prev) => prev.filter((p) => p.id !== id));
+        toastSuccess('Project deleted successfully.');
       } catch (error) {
         console.error('Failed to delete project:', error);
-        alert('Failed to delete project. Please try again.');
+        toastError('Failed to delete project. Please try again.');
       }
     }
   };

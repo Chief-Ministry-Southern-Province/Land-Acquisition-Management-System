@@ -30,6 +30,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { confirmAction, toastError, toastSuccess } from '@/lib/alerts';
 import { getLandParcels } from '@/services/landParcelManagementService';
 import {
   getProjects,
@@ -114,18 +115,20 @@ export default function DODashboard() {
 
   // Submit project to HOB review
   const handleSubmit = async (id: string, title: string) => {
-    if (
-      confirm(
-        `Are you sure you want to submit the project "${title}" to the Head of Branch (HOB) for review?`,
-      )
-    ) {
+    const confirmed = await confirmAction({
+      title: 'Submit Project',
+      text: `Are you sure you want to submit the project "${title}" to the Head of Branch (HOB) for review?`,
+      confirmButtonText: 'Submit',
+    });
+
+    if (confirmed) {
       try {
         await submitProject(id);
-        alert('Project submitted successfully!');
+        toastSuccess('Project submitted successfully!');
         handleRefresh();
       } catch (error) {
         console.error('Failed to submit project:', error);
-        alert('Failed to submit project. Please try again.');
+        toastError('Failed to submit project. Please try again.');
       }
     }
   };

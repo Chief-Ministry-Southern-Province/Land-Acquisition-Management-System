@@ -5,6 +5,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
 import {
   getLandParcels,
   exportLandParcels,
@@ -67,11 +68,14 @@ export default function LandParcelList() {
         const failedCount = res.failures.length;
         const msg = `Successfully imported ${res.imported_count} land parcels. ${failedCount} rows failed validation.`;
         setImportMessage({ type: 'success', text: msg });
-        alert(msg + '\n\nFirst failure: ' + res.failures[0].errors.join(', '));
+        await alertInfo(
+          'Import Completed with Failures',
+          msg + '\n\nFirst failure: ' + res.failures[0].errors.join(', '),
+        );
       } else {
         const msg = `Successfully imported all ${res.imported_count} land parcels!`;
         setImportMessage({ type: 'success', text: msg });
-        alert(msg);
+        toastSuccess(msg);
       }
 
       // Refresh list
@@ -104,7 +108,7 @@ export default function LandParcelList() {
           }
         }
 
-        alert(msg + failureDetails);
+        await alertInfo('Import Failed', msg + failureDetails);
 
         // Refresh list if partial records were imported
         if (data.imported_count > 0) {
@@ -123,7 +127,7 @@ export default function LandParcelList() {
           error.response?.data?.message ||
           'Failed to import land parcels. Please check the file format.';
         setImportMessage({ type: 'error', text: errorMsg });
-        alert(errorMsg);
+        toastError(errorMsg);
       }
     } finally {
       setImporting(false);

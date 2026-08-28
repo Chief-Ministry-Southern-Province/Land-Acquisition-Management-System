@@ -20,6 +20,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import {
+  confirmDialog,
+  alertInfo,
+  toastError,
+  toastSuccess,
+} from '@/lib/alerts';
 import { getDepartments } from '@/services/departmentManagementService';
 import type { Department } from '@/services/departmentManagementService';
 import {
@@ -216,8 +222,9 @@ export default function AddProject() {
             (data.caseStatus || data.status || '').toLowerCase() !== 'draft' &&
             (data.doStatus || '').toLowerCase() !== 'draft'
           ) {
-            alert(
-              'Forbidden. Development Officers (DO) can only edit draft projects.',
+            await alertInfo(
+              'Forbidden',
+              'Development Officers (DO) can only edit draft projects.',
             );
             router.visit(`/projects/${editId}`);
 
@@ -330,7 +337,7 @@ export default function AddProject() {
       await downloadDocument(docId, filename);
     } catch (error) {
       console.error('Failed to download document:', error);
-      alert('Failed to download document.');
+      toastError('Failed to download document.');
     }
   };
 
@@ -341,9 +348,12 @@ export default function AddProject() {
       return;
     }
 
-    if (
-      !confirm('Are you sure you want to delete this document permanently?')
-    ) {
+    const confirmed = await confirmDialog({
+      title: 'Delete Document',
+      text: 'Are you sure you want to delete this document permanently?',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -351,9 +361,10 @@ export default function AddProject() {
       setLoadingProject(true);
       await deleteDocument(docId);
       await refreshDocuments();
+      toastSuccess('Document deleted successfully.');
     } catch (error) {
       console.error('Failed to delete document:', error);
-      alert('Failed to delete document.');
+      toastError('Failed to delete document.');
     } finally {
       setLoadingProject(false);
     }
@@ -545,7 +556,7 @@ export default function AddProject() {
         router.visit('/projects');
       } catch (error) {
         console.error('Failed to save project and upload documents:', error);
-        alert('Failed to save project. Please check form details.');
+        toastError('Failed to save project. Please check form details.');
       } finally {
         setLoadingProject(false);
       }
