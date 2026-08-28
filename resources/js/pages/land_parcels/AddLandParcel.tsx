@@ -1888,7 +1888,9 @@ export default function AddLandParcel() {
                       >
                         <option value="owner">{t('owner_resident')}</option>
                         <option value="tenant">{t('tenant')}</option>
-                        <option value="family_member">{t('family_member')}</option>
+                        <option value="family_member">
+                          {t('family_member')}
+                        </option>
                       </select>
                     </div>
 
@@ -2044,8 +2046,8 @@ export default function AddLandParcel() {
                             </span>
                           </div>
                           <p className="text-muted-foreground mt-0.5 text-xs">
-                            {t('category')}: {doc.category} • {t('size')}: {doc.size} • {t('date')}:{' '}
-                            {doc.uploadDate}
+                            {t('category')}: {doc.category} • {t('size')}:{' '}
+                            {doc.size} • {t('date')}: {doc.uploadDate}
                           </p>
                         </div>
                       </div>
