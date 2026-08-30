@@ -67,7 +67,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const [dbCompensations, setDbCompensations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
-  const { locale } = useTranslation();
+  const { locale, t } = useTranslation();
 
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
@@ -161,14 +161,14 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       await downloadDocument(docId, filename);
     } catch (error) {
       console.error('Failed to download document:', error);
-      toastError('Failed to download document.');
+      toastError(t('document_download_failed'));
     }
   };
 
   const handleDelete = async (docId: string) => {
     const confirmed = await confirmDialog({
-      title: 'Delete Document',
-      text: 'Are you sure you want to delete this document?',
+      title: t('delete_document'),
+      text: t('delete_document_confirm_short'),
     });
 
     if (!confirmed) {
@@ -179,10 +179,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       setLoading(true);
       await deleteDocument(docId);
       await fetchProjectDetails();
-      toastSuccess('Document deleted successfully.');
+      toastSuccess(t('document_deleted_success'));
     } catch (error) {
       console.error('Failed to delete document:', error);
-      toastError('Failed to delete document.');
+      toastError(t('document_delete_failed'));
     } finally {
       setLoading(false);
     }
@@ -193,7 +193,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       await exportProjects(format, id, locale);
     } catch (error) {
       console.error(`Failed to export project details as ${format}:`, error);
-      toastError(`Failed to export project details.`);
+      toastError(t('export_failed'));
     }
   };
 
@@ -203,9 +203,9 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     }
 
     const confirmed = await confirmAction({
-      title: 'Submit Project',
-      text: 'Are you sure you want to submit this project? This will change status to Pending.',
-      confirmButtonText: 'Submit',
+      title: t('submit_project'),
+      text: t('submit_project_confirm'),
+      confirmButtonText: t('submit_btn'),
     });
 
     if (!confirmed) {
@@ -216,10 +216,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       setLoading(true);
       await submitProject(project.id);
       await fetchProjectDetails();
-      toastSuccess('Project submitted successfully!');
+      toastSuccess(t('project_submitted_success'));
     } catch (error) {
       console.error('Failed to submit project:', error);
-      toastError('Failed to submit project.');
+      toastError(t('project_submit_failed'));
     } finally {
       setLoading(false);
     }
@@ -233,7 +233,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       <button
         onClick={() => handleDownload(row.id, row.name)}
         className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
-        title="Download"
+        title={t('download')}
       >
         <Download className="h-4 w-4" />
       </button>
@@ -241,7 +241,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
         <button
           onClick={() => handleDelete(row.id)}
           className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-          title="Delete"
+          title={t('delete')}
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -387,21 +387,21 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   ];
 
   const tabs = [
-    { id: 'general', label: 'General Information' },
-    { id: 'workflow', label: 'Acquisition Workflow' },
-    { id: 'parcels', label: 'Land Parcels' },
-    { id: 'owners', label: 'Owners' },
-    { id: 'valuations', label: 'Valuations' },
-    { id: 'compensation', label: 'Compensation' },
-    { id: 'documents', label: 'Documents' },
-    { id: 'legal', label: 'Legal Cases' },
-    { id: 'audit', label: 'Audit Trail' },
+    { id: 'general', label: t('tab_general') },
+    { id: 'workflow', label: t('tab_workflow') },
+    { id: 'parcels', label: t('tab_parcels') },
+    { id: 'owners', label: t('tab_owners') },
+    { id: 'valuations', label: t('tab_valuations') },
+    { id: 'compensation', label: t('tab_compensation') },
+    { id: 'documents', label: t('tab_documents') },
+    { id: 'legal', label: t('tab_legal') },
+    { id: 'audit', label: t('tab_audit') },
   ];
 
   if (loading) {
     return (
       <div className="bg-card border-border text-muted-foreground flex h-64 items-center justify-center rounded-lg border">
-        Loading project details...
+        {t('loading_project_details_view')}
       </div>
     );
   }
@@ -409,7 +409,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   if (!project) {
     return (
       <div className="bg-card border-border text-destructive flex h-64 items-center justify-center rounded-lg border">
-        Project not found
+        {t('project_not_found')}
       </div>
     );
   }
@@ -431,7 +431,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
               <StatusBadge status={(project.status || 'draft').toLowerCase()} />
             </div>
             <p className="text-muted-foreground">
-              Project ID: {project.projectId}
+              {t('project_id')}: {project.projectId}
             </p>
           </div>
         </div>
@@ -442,7 +442,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
               className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
             >
               <Download className="h-4 w-4" />
-              <span>Export</span>
+              <span>{t('export')}</span>
             </button>
             {showExportDropdown && (
               <div className="bg-card border-border absolute right-0 z-50 mt-2 w-36 rounded-lg border py-1 shadow-lg">
@@ -453,7 +453,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   }}
                   className="text-foreground hover:bg-muted w-full px-4 py-2 text-left text-sm font-medium transition-colors"
                 >
-                  Export PDF
+                  {t('export_pdf')}
                 </button>
                 <button
                   onClick={() => {
@@ -462,7 +462,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   }}
                   className="text-foreground hover:bg-muted w-full px-4 py-2 text-left text-sm font-medium transition-colors"
                 >
-                  Export Excel
+                  {t('export_excel')}
                 </button>
                 <button
                   onClick={() => {
@@ -471,7 +471,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   }}
                   className="text-foreground hover:bg-muted w-full px-4 py-2 text-left text-sm font-medium transition-colors"
                 >
-                  Export CSV
+                  {t('export_csv')}
                 </button>
               </div>
             )}
@@ -486,7 +486,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
               >
                 <Edit className="h-4 w-4" />
-                <span>Edit Project</span>
+                <span>{t('edit_project_btn')}</span>
               </button>
             )}
           {project &&
@@ -497,7 +497,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
               >
                 <Send className="h-4 w-4" />
-                <span>Submit Project</span>
+                <span>{t('submit_project')}</span>
               </button>
             )}
         </div>
@@ -529,7 +529,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="bg-card border-border shadow-xs flex flex-col justify-between rounded-lg border p-5">
               <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                Total Estimated Value
+                {t('total_estimated_value')}
               </span>
               <span className="text-foreground mt-2 font-mono text-xl font-bold">
                 ₨ {totalEstimatedValue.toLocaleString()}
@@ -537,7 +537,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             </div>
             <div className="bg-card border-border shadow-xs flex flex-col justify-between rounded-lg border p-5">
               <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                Total Valuation Assessed
+                {t('total_valuation_assessed')}
               </span>
               <span className="mt-2 font-mono text-xl font-bold text-emerald-600">
                 ₨ {totalValuationAssessed.toLocaleString()}
@@ -545,7 +545,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             </div>
             <div className="bg-card border-border shadow-xs flex flex-col justify-between rounded-lg border p-5">
               <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                Total Compensation Calculated
+                {t('total_compensation_calculated')}
               </span>
               <span className="text-primary mt-2 font-mono text-xl font-bold">
                 ₨ {totalCompensationCalculated.toLocaleString()}
@@ -553,7 +553,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             </div>
             <div className="bg-card border-border shadow-xs flex flex-col justify-between rounded-lg border p-5">
               <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                Total Disbursed Payments
+                {t('total_disbursed_payments')}
               </span>
               <span className="mt-2 font-mono text-xl font-bold text-emerald-700">
                 ₨ {totalDisbursedPayments.toLocaleString()}
@@ -563,33 +563,33 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="bg-card border-border rounded-lg border p-6">
-              <h3 className="mb-4">Project Overview</h3>
+              <h3 className="mb-4">{t('project_overview')}</h3>
               <dl className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Project Title:</dt>
+                  <dt className="text-muted-foreground">{t('project_title_colon')}</dt>
                   <dd className="font-semibold">
                     {project.title || project.name}
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Institution:</dt>
-                  <dd>{project.institution || 'N/A'}</dd>
+                  <dt className="text-muted-foreground">{t('institution_colon')}</dt>
+                  <dd>{project.institution || t('n_a')}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">
-                    Institution Address:
+                    {t('institution_address_colon')}
                   </dt>
                   <dd className="text-right">
-                    {project.institutionAddress || 'N/A'}
+                    {project.institutionAddress || t('n_a')}
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Purpose:</dt>
+                  <dt className="text-muted-foreground">{t('purpose_colon')}</dt>
                   <dd className="text-right">{project.purpose}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">
-                    Land Area Breakdown:
+                    {t('land_area_breakdown')}
                   </dt>
                   <dd className="font-mono">
                     {project.landAreaAcers ?? 0} A, {project.landAreaRoods ?? 0}{' '}
@@ -598,47 +598,45 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">
-                    Total Acquired Area:
+                    {t('total_acquired_area')}
                   </dt>
                   <dd className="font-semibold">
-                    {project.fullLandArea ?? 0} Perches
+                    {project.fullLandArea ?? 0} {t('perches')}
                   </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">
-                    Temporary Relocation:
+                    {t('temporary_relocation_colon')}
                   </dt>
-                  <dd>{project.areResidentsMovedTemp ? 'Yes' : 'No'}</dd>
+                  <dd>{project.areResidentsMovedTemp ? t('yes') : t('no')}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Approval Date:</dt>
+                  <dt className="text-muted-foreground">{t('approval_date_colon')}</dt>
                   <dd>{formatDate(project.approvalDate)}</dd>
                 </div>
               </dl>
             </div>
 
             <div className="bg-card border-border rounded-lg border p-6">
-              <h3 className="mb-4">Statutory Compliance Details</h3>
+              <h3 className="mb-4">{t('statutory_compliance_details')}</h3>
               <div className="space-y-4">
                 {/* Section 20 */}
                 <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <p className="text-muted-foreground text-sm leading-relaxed">
-                        Whether the proposed land is a land allocated to land
-                        owners under statutory notifications under the Land
-                        Reform Act:
+                        {t('section_20')}:
                       </p>
                     </div>
                     <div className="mt-1 shrink-0">
                       {project.section20Observation !== null ? (
                         project.section20Observation ? (
-                          <Badge variant="success">Yes</Badge>
+                          <Badge variant="success">{t('yes')}</Badge>
                         ) : (
-                          <Badge variant="danger">No</Badge>
+                          <Badge variant="danger">{t('no')}</Badge>
                         )
                       ) : (
-                        <Badge variant="default">N/A</Badge>
+                        <Badge variant="default">{t('n_a')}</Badge>
                       )}
                     </div>
                   </div>
@@ -649,20 +647,18 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <p className="text-muted-foreground text-sm leading-relaxed">
-                        Whether there are alternative State lands or lands
-                        belonging to the Land Reform Commission that can be
-                        utilized for the proposed public purpose?
+                        {t('section_21')}
                       </p>
                     </div>
                     <div className="mt-1 shrink-0">
                       {project.section21SecretaryReport !== null ? (
                         project.section21SecretaryReport ? (
-                          <Badge variant="success">Yes</Badge>
+                          <Badge variant="success">{t('yes')}</Badge>
                         ) : (
-                          <Badge variant="danger">No</Badge>
+                          <Badge variant="danger">{t('no')}</Badge>
                         )
                       ) : (
-                        <Badge variant="default">N/A</Badge>
+                        <Badge variant="default">{t('n_a')}</Badge>
                       )}
                     </div>
                   </div>
@@ -672,13 +668,12 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
                   <div className="space-y-2">
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Name and designation of the officer who selected this land
-                      as suitable for the proposed public purpose:
+                      {t('section_22')}:
                     </p>
                     <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
                       <User className="text-muted-foreground h-4 w-4 shrink-0" />
                       <span className="text-foreground font-semibold">
-                        {project.section22SecretaryRecommendation || 'N/A'}
+                        {project.section22SecretaryRecommendation || t('n_a')}
                       </span>
                     </div>
                   </div>
@@ -688,14 +683,12 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
                   <div className="space-y-2">
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Name and designation of the officer who recommended that
-                      this land is suitable to be acquired for the proposed
-                      public purpose:
+                      {t('section_23')}:
                     </p>
                     <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
                       <User className="text-muted-foreground h-4 w-4 shrink-0" />
                       <span className="text-foreground font-semibold">
-                        {project.section23ValuationRecommendation || 'N/A'}
+                        {project.section23ValuationRecommendation || t('n_a')}
                       </span>
                     </div>
                   </div>
@@ -706,19 +699,18 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <p className="text-muted-foreground text-sm leading-relaxed">
-                        Whether it was inquired if there are other suitable
-                        State or private lands in this area for this purpose:
+                        {t('section_24')}:
                       </p>
                     </div>
                     <div className="mt-1 shrink-0">
                       {project.section24DecisionRemarks !== null ? (
                         project.section24DecisionRemarks ? (
-                          <Badge variant="success">Yes</Badge>
+                          <Badge variant="success">{t('yes')}</Badge>
                         ) : (
-                          <Badge variant="danger">No</Badge>
+                          <Badge variant="danger">{t('no')}</Badge>
                         )
                       ) : (
-                        <Badge variant="default">N/A</Badge>
+                        <Badge variant="default">{t('n_a')}</Badge>
                       )}
                     </div>
                   </div>
@@ -728,13 +720,12 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 <div className="border-border/60 border-b pb-4 last:border-b-0 last:pb-0">
                   <div className="space-y-2">
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Clearly specify the source of funds allocated to bear the
-                      acquisition, compensation, and other necessary expenses:
+                      {t('section_25')}:
                     </p>
                     <div className="bg-muted/40 border-border/50 flex items-center gap-2.5 rounded-lg border p-3 text-sm">
                       <DollarSign className="text-muted-foreground h-4 w-4 shrink-0" />
                       <span className="text-foreground font-semibold">
-                        {project.section25AdditionalConditions || 'N/A'}
+                        {project.section25AdditionalConditions || t('n_a')}
                       </span>
                     </div>
                   </div>
@@ -745,22 +736,18 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <p className="text-muted-foreground text-sm leading-relaxed">
-                        Whether the selection of the proposed land for public
-                        purpose complies with the general development plan of
-                        the area, and whether agreement/consent was obtained
-                        from the relevant Local Authority / Urban Development
-                        Department or relevant institute:
+                        {t('section_26')}:
                       </p>
                     </div>
                     <div className="mt-1 shrink-0">
                       {project.section26FinalRecommendation !== null ? (
                         project.section26FinalRecommendation ? (
-                          <Badge variant="success">Yes</Badge>
+                          <Badge variant="success">{t('yes')}</Badge>
                         ) : (
-                          <Badge variant="danger">No</Badge>
+                          <Badge variant="danger">{t('no')}</Badge>
                         )
                       ) : (
-                        <Badge variant="default">N/A</Badge>
+                        <Badge variant="default">{t('n_a')}</Badge>
                       )}
                     </div>
                   </div>
@@ -778,11 +765,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
           <div className="bg-card border-border space-y-4 rounded-lg border p-6">
             <div>
               <h3 className="text-foreground text-base font-bold">
-                Parcel Workflow Progress Checklist
+                {t('parcel_workflow_checklist')}
               </h3>
               <p className="text-muted-foreground mt-1 text-xs">
-                Milestone tracking mapping the data logging progress of each
-                land parcel under this project.
+                {t('parcel_workflow_checklist_subtitle')}
               </p>
             </div>
 
@@ -790,15 +776,15 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
               <table className="w-full border-collapse text-left text-sm">
                 <thead>
                   <tr className="bg-muted text-muted-foreground border-border border-b text-xs font-bold uppercase">
-                    <th className="px-4 py-3">Parcel ID</th>
-                    <th className="px-4 py-3">Name / Location</th>
-                    <th className="px-4 py-3 text-center">Land Registered</th>
-                    <th className="px-4 py-3 text-center">Survey Plan</th>
-                    <th className="px-4 py-3 text-center">Valuation Report</th>
+                    <th className="px-4 py-3">{t('parcel_id')}</th>
+                    <th className="px-4 py-3">{t('name_location')}</th>
+                    <th className="px-4 py-3 text-center">{t('land_registered')}</th>
+                    <th className="px-4 py-3 text-center">{t('survey_plan')}</th>
+                    <th className="px-4 py-3 text-center">{t('valuation_report')}</th>
                     <th className="px-4 py-3 text-center">
-                      Compensation Setup
+                      {t('compensation_setup')}
                     </th>
-                    <th className="px-4 py-3">Payment Progress</th>
+                    <th className="px-4 py-3">{t('payment_progress')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-border divide-y text-xs">
@@ -810,7 +796,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                       p.compensations && p.compensations.length > 0;
 
                     // Payment progress
-                    let paymentProgressText = 'Pending (0%)';
+                    let paymentProgressText = `${t('pending')} (0%)`;
 
                     if (hasComp) {
                       const totalComp = p.compensations.reduce(
@@ -832,16 +818,16 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                       );
 
                       if (totalComp === 0) {
-                        paymentProgressText = 'Fully Paid (100%)';
+                        paymentProgressText = `${t('fully_paid')} (100%)`;
                       } else {
                         const pct = Math.round((totalPaid / totalComp) * 100);
 
                         if (pct >= 100) {
-                          paymentProgressText = 'Fully Paid (100%)';
+                          paymentProgressText = `${t('fully_paid')} (100%)`;
                         } else if (pct === 0) {
-                          paymentProgressText = 'Pending (0%)';
+                          paymentProgressText = `${t('pending')} (0%)`;
                         } else {
-                          paymentProgressText = `In Progress (${pct}%)`;
+                          paymentProgressText = `${t('in_progress')} (${pct}%)`;
                         }
                       }
                     }
@@ -856,7 +842,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                           {p.parcel_id}
                         </td>
                         <td className="px-4 py-3">
-                          {p.land_name || 'N/A'}
+                          {p.land_name || t('n_a')}
                           <span className="text-muted-foreground block text-[10px]">
                             {p.village}, {p.district}
                           </span>
@@ -876,7 +862,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                         <td className="px-4 py-3 font-medium">
                           <span
                             className={
-                              paymentProgressText.startsWith('Fully')
+                              paymentProgressText.startsWith(t('fully_paid'))
                                 ? 'font-bold text-green-600'
                                 : 'text-amber-600'
                             }
@@ -894,7 +880,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                         colSpan={7}
                         className="text-muted-foreground px-4 py-6 text-center"
                       >
-                        No land parcels registered under this project.
+                        {t('no_parcels_registered')}
                       </td>
                     </tr>
                   )}
@@ -908,13 +894,13 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       {activeTab === 'parcels' && (
         <DataTable
           columns={[
-            { key: 'parcelId', label: 'Parcel ID', sortable: true },
-            { key: 'landNo', label: 'Land No', sortable: true },
-            { key: 'village', label: 'Village', sortable: true },
-            { key: 'extent', label: 'Extent', sortable: true },
+            { key: 'parcelId', label: t('parcel_id'), sortable: true },
+            { key: 'landNo', label: t('land_no'), sortable: true },
+            { key: 'village', label: t('village'), sortable: true },
+            { key: 'extent', label: t('extent'), sortable: true },
             {
               key: 'status',
-              label: 'Status',
+              label: t('status'),
               render: (value: string) => <StatusBadge status={value} />,
             },
           ]}
@@ -926,11 +912,11 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       {activeTab === 'owners' && (
         <DataTable
           columns={[
-            { key: 'ownerId', label: 'Owner ID', sortable: true },
-            { key: 'name', label: 'Name', sortable: true },
-            { key: 'nic', label: 'NIC', sortable: true },
-            { key: 'contact', label: 'Contact', sortable: true },
-            { key: 'parcels', label: 'Parcels', sortable: true },
+            { key: 'ownerId', label: t('owner_id'), sortable: true },
+            { key: 'name', label: t('name'), sortable: true },
+            { key: 'nic', label: t('nic'), sortable: true },
+            { key: 'contact', label: t('contact'), sortable: true },
+            { key: 'parcels', label: t('parcels_label'), sortable: true },
           ]}
           data={owners}
           onRowClick={(row) => router.visit(`/land-owners/${row.id}`)}
@@ -940,13 +926,13 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       {activeTab === 'valuations' && (
         <DataTable
           columns={[
-            { key: 'id', label: 'Valuation ID', sortable: true },
-            { key: 'parcel', label: 'Parcel', sortable: true },
-            { key: 'marketValue', label: 'Market Value', sortable: true },
-            { key: 'assessed', label: 'Assessed Value', sortable: true },
+            { key: 'id', label: t('valuation_id'), sortable: true },
+            { key: 'parcel', label: t('parcel_label'), sortable: true },
+            { key: 'marketValue', label: t('market_value'), sortable: true },
+            { key: 'assessed', label: t('assessed_value'), sortable: true },
             {
               key: 'status',
-              label: 'Status',
+              label: t('status'),
               render: (value: string) => <StatusBadge status={value} />,
             },
           ]}
@@ -957,13 +943,13 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       {activeTab === 'compensation' && (
         <DataTable
           columns={[
-            { key: 'id', label: 'Compensation ID', sortable: true },
-            { key: 'owner', label: 'Owner', sortable: true },
-            { key: 'amount', label: 'Amount', sortable: true },
-            { key: 'approved', label: 'Approved Date', sortable: true },
+            { key: 'id', label: t('compensation_id'), sortable: true },
+            { key: 'owner', label: t('owner'), sortable: true },
+            { key: 'amount', label: t('amount'), sortable: true },
+            { key: 'approved', label: t('approved_date'), sortable: true },
             {
               key: 'status',
-              label: 'Status',
+              label: t('status'),
               render: (value: string) => <StatusBadge status={value} />,
             },
           ]}
@@ -975,16 +961,16 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
         <div className="space-y-4">
           <div className="bg-card border-border flex items-center justify-between rounded-lg border p-4">
             <div>
-              <h3 className="text-base font-semibold">Project Documents</h3>
+              <h3 className="text-base font-semibold">{t('project_documents')}</h3>
               <p className="text-muted-foreground text-sm">
-                Manage and upload documents related to this project.
+                {t('manage_upload_documents')}
               </p>
             </div>
             {userRole === 'DO' && (
               <div>
                 <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors">
                   <Upload className="h-4 w-4" />
-                  <span>Upload Document</span>
+                  <span>{t('upload_document')}</span>
                   <input
                     type="file"
                     className="hidden"
@@ -999,11 +985,11 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
 
           <DataTable
             columns={[
-              { key: 'name', label: 'Document Name', sortable: true },
-              { key: 'type', label: 'Type', sortable: true },
-              { key: 'category', label: 'Category', sortable: true },
-              { key: 'uploadDate', label: 'Upload Date', sortable: true },
-              { key: 'size', label: 'Size', sortable: true },
+              { key: 'name', label: t('document_name'), sortable: true },
+              { key: 'type', label: t('type'), sortable: true },
+              { key: 'category', label: t('category'), sortable: true },
+              { key: 'uploadDate', label: t('upload_date'), sortable: true },
+              { key: 'size', label: t('size'), sortable: true },
             ]}
             data={documents}
             actions={documentActions}
@@ -1014,12 +1000,12 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       {activeTab === 'legal' && (
         <DataTable
           columns={[
-            { key: 'caseNo', label: 'Case Number', sortable: true },
-            { key: 'court', label: 'Court', sortable: true },
-            { key: 'parcel', label: 'Related Parcel', sortable: true },
+            { key: 'caseNo', label: t('case_number_label'), sortable: true },
+            { key: 'court', label: t('court'), sortable: true },
+            { key: 'parcel', label: t('related_parcel'), sortable: true },
             {
               key: 'status',
-              label: 'Status',
+              label: t('status'),
               render: (value: string) => <StatusBadge status={value} />,
             },
           ]}
@@ -1030,10 +1016,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       {activeTab === 'audit' && (
         <DataTable
           columns={[
-            { key: 'date', label: 'Date & Time', sortable: true },
-            { key: 'user', label: 'User', sortable: true },
-            { key: 'action', label: 'Action', sortable: true },
-            { key: 'details', label: 'Details', sortable: true },
+            { key: 'date', label: t('date_time'), sortable: true },
+            { key: 'user', label: t('user_label'), sortable: true },
+            { key: 'action', label: t('action'), sortable: true },
+            { key: 'details', label: t('details'), sortable: true },
           ]}
           data={auditTrail}
           searchable={false}
