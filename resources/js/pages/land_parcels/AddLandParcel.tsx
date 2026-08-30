@@ -333,7 +333,7 @@ export default function AddLandParcel() {
     const errs: any = {};
 
     if (!newResidentForm.name.trim()) {
-      errs.name = 'Resident name is required';
+      errs.name = t('resident_name_required', 'Resident name is required');
     }
 
     if (Object.keys(errs).length > 0) {
@@ -579,19 +579,19 @@ export default function AddLandParcel() {
     const errs: any = {};
 
     if (!newOwnerForm.name.trim()) {
-      errs.name = 'Name is required';
+      errs.name = t('owner_name_required', 'Name is required');
     }
 
     if (!newOwnerForm.nic.trim()) {
-      errs.nic = 'NIC is required';
+      errs.nic = t('owner_nic_required', 'NIC is required');
     }
 
     if (!newOwnerForm.contact.trim()) {
-      errs.contact = 'Contact is required';
+      errs.contact = t('owner_contact_required', 'Contact is required');
     }
 
     if (!newOwnerForm.address.trim()) {
-      errs.address = 'Address is required';
+      errs.address = t('owner_address_required', 'Address is required');
     }
 
     if (
@@ -599,7 +599,7 @@ export default function AddLandParcel() {
         (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
       )
     ) {
-      errs.nic = 'This owner is already added';
+      errs.nic = t('owner_added_error', 'This owner is already added');
     }
 
     if (
@@ -607,8 +607,7 @@ export default function AddLandParcel() {
         (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
       )
     ) {
-      errs.nic =
-        'An owner with this NIC already exists in the database. Use search instead.';
+      errs.nic = t('owner_exists_db_error', 'An owner with this NIC already exists in the database. Use search instead.');
     }
 
     if (Object.keys(errs).length > 0) {
@@ -635,7 +634,7 @@ export default function AddLandParcel() {
 
   const handleSelectExistingOwner = (owner: PropertyOwner) => {
     if (selectedOwners.some((o) => o.nic === owner.nic)) {
-      toastError('This owner is already added to the parcel.');
+      toastError(t('owner_added_parcel_error', 'This owner is already added to the parcel.'));
 
       return;
     }
@@ -687,35 +686,35 @@ export default function AddLandParcel() {
     const errs: Partial<Record<keyof FormData, string>> = {};
 
     if (!form.landNumber.trim()) {
-      errs.landNumber = 'Land Number is required';
+      errs.landNumber = t('land_number_required', 'Land Number is required');
     }
 
     if (!form.district) {
-      errs.district = 'District is required';
+      errs.district = t('district_required', 'District is required');
     }
 
     if (!form.divisionalSecretariat.trim()) {
-      errs.divisionalSecretariat = 'Divisional Secretariat is required';
+      errs.divisionalSecretariat = t('div_sec_required', 'Divisional Secretariat is required');
     }
 
     if (!form.village.trim()) {
-      errs.village = 'Village is required';
+      errs.village = t('village_required', 'Village is required');
     }
 
     if (!form.extentAcres.trim()) {
-      errs.extentAcres = 'Extent (acres) is required';
+      errs.extentAcres = t('extent_acres_required', 'Extent (acres) is required');
     }
 
     if (!form.landUseType) {
-      errs.landUseType = 'Land use type is required';
+      errs.landUseType = t('land_use_type_required', 'Land use type is required');
     }
 
     if (!form.tenureType) {
-      errs.tenureType = 'Tenure type is required';
+      errs.tenureType = t('tenure_type_required', 'Tenure type is required');
     }
 
     if (selectedOwners.length === 0) {
-      toastError('You must add or select at least one property owner.');
+      toastError(t('min_one_owner_error', 'You must add or select at least one property owner.'));
 
       return false;
     }
@@ -723,8 +722,8 @@ export default function AddLandParcel() {
     if (!planFile) {
       toastError(
         form.hasPlan
-          ? 'You must upload a copy of the land parcel plan.'
-          : 'You must upload a simple sketch of the land parcel.',
+          ? t('upload_copy_of_plan_error', 'You must upload a copy of the land parcel plan.')
+          : t('upload_simple_sketch_error', 'You must upload a simple sketch of the land parcel.'),
       );
 
       return false;
@@ -772,8 +771,8 @@ export default function AddLandParcel() {
 
       const payload = {
         parcel_id: form.landNumber,
-        land_name: form.landName || 'Land Parcel ' + form.landNumber,
-        province: form.province || 'Southern',
+        land_name: form.landName || t('land_parcel_name_generated', 'Land Parcel {number}').replace('{number}', form.landNumber),
+        province: form.province || t('southern_default', 'Southern'),
         district: form.district,
         division: form.divisionalSecretariat,
         divisional_secretariat: form.divisionalSecretariat,
@@ -800,12 +799,12 @@ export default function AddLandParcel() {
         has_residential_houses: form.hasResidentialHouses,
         is_resident_owner: form.isResidentOwner,
         is_cultivated: form.isCultivated,
-        cultivation: form.isCultivated ? form.cultivation || 'N/A' : 'N/A',
+        cultivation: form.isCultivated ? form.cultivation || t('n_a', 'N/A') : t('n_a', 'N/A'),
         cultivation_status: form.isCultivated
           ? form.cultivationStatus
           : 'unspecified',
         annual_income: form.isCultivated ? Number(form.annualIncome) || 0 : 0,
-        land_type: form.landType || form.landUseType || 'Standard',
+        land_type: form.landType || form.landUseType || t('standard_land_type', 'Standard'),
         is_casehold: form.isCasehold,
         case_number: form.isCasehold ? form.caseNumber || null : null,
         case_start_date: form.isCasehold ? form.caseStartDate || null : null,
@@ -850,7 +849,7 @@ export default function AddLandParcel() {
         }
       }
 
-      toastSuccess('Land parcel created successfully!');
+      toastSuccess(t('land_parcel_created_success', 'Land parcel created successfully!'));
       router.visit('/land-parcels');
     } catch (error: any) {
       console.error('Failed to create land parcel:', error);
@@ -888,16 +887,16 @@ export default function AddLandParcel() {
           }
         });
         setErrors(backendErrors);
-        await alertInfo('Validation Error', errorMessages.join('\n'));
+        await alertInfo(t('validation_error_title', 'Validation Error'), errorMessages.join('\n'));
       } else if (error.response?.data?.message) {
         setErrors({ landNumber: error.response.data.message });
         toastError(`Error: ${error.response.data.message}`);
       } else {
         setErrors({
-          landNumber: 'An error occurred while saving the land parcel.',
+          landNumber: t('generic_error_saving', 'An error occurred while saving the land parcel.'),
         });
         toastError(
-          'An error occurred while saving the land parcel. Please verify your inputs.',
+          t('save_parcel_error', 'An error occurred while saving the land parcel. Please verify your inputs.'),
         );
       }
     } finally {
@@ -918,7 +917,7 @@ export default function AddLandParcel() {
           <button
             onClick={() => router.visit('/land-parcels')}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
-            title="Back to Land Parcels"
+            title={t('back_to_land_parcels', 'Back to Land Parcels')}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -1464,7 +1463,7 @@ export default function AddLandParcel() {
                         type="button"
                         onClick={() => handleRemoveOwner(idx)}
                         className="text-muted-foreground hover:text-destructive absolute right-3 top-3 transition-colors"
-                        title="Remove Owner"
+                        title={t('remove_owner_tooltip', 'Remove Owner')}
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -1477,23 +1476,23 @@ export default function AddLandParcel() {
                                 : 'bg-blue-500/10 text-blue-600'
                             }`}
                           >
-                            {owner.isNew ? 'New' : 'Existing'}
+                            {owner.isNew ? t('new_label', 'New') : t('existing_label', 'Existing')}
                           </span>
                           <span className="text-muted-foreground font-mono text-xs">
-                            {owner.isNew ? 'Will be created' : owner.ownerId}
+                            {owner.isNew ? t('will_be_created', 'Will be created') : owner.ownerId}
                           </span>
                         </div>
                         <h4 className="text-foreground text-sm font-semibold">
                           {owner.name}
                         </h4>
                         <p className="text-muted-foreground mt-1 text-xs">
-                          NIC: {owner.nic}
+                          {t('nic', 'NIC')}: {owner.nic}
                         </p>
                         <p className="text-muted-foreground font-mono text-xs">
-                          Contact: {owner.contact}
+                          {t('contact', 'Contact')}: {owner.contact}
                         </p>
                         <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
-                          Address: {owner.address}
+                          {t('address', 'Address')}: {owner.address}
                         </p>
                       </div>
                     </div>
@@ -1786,7 +1785,7 @@ export default function AddLandParcel() {
                           type="button"
                           onClick={() => handleRemoveResident(idx)}
                           className="text-muted-foreground hover:text-destructive absolute right-3 top-3 transition-colors"
-                          title="Remove Resident"
+                          title={t('remove_resident_tooltip', 'Remove Resident')}
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -2055,7 +2054,7 @@ export default function AddLandParcel() {
                         type="button"
                         onClick={() => handleRemoveQueuedFile(doc.id)}
                         className="text-muted-foreground hover:text-destructive p-1 transition-colors"
-                        title="Remove from queue"
+                        title={t('remove_from_queue_tooltip', 'Remove from queue')}
                       >
                         <X className="h-4 w-4" />
                       </button>

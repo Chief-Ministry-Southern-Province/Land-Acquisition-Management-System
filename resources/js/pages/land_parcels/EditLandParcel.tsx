@@ -18,6 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useRef } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import {
   confirmDialog,
@@ -42,87 +43,6 @@ import {
 } from '@/services/propertyOwnerManagement';
 import type { PropertyOwner } from '@/services/propertyOwnerManagement';
 
-const PROVINCES = [
-  {
-    value: 'Western',
-    label: 'Western',
-    districts: [
-      { value: 'Colombo', label: 'Colombo' },
-      { value: 'Gampaha', label: 'Gampaha' },
-      { value: 'Kalutara', label: 'Kalutara' },
-    ],
-  },
-  {
-    value: 'Central',
-    label: 'Central',
-    districts: [
-      { value: 'Kandy', label: 'Kandy' },
-      { value: 'Matale', label: 'Matale' },
-      { value: 'Nuwara Eliya', label: 'Nuwara Eliya' },
-    ],
-  },
-  {
-    value: 'Southern',
-    label: 'Southern',
-    districts: [
-      { value: 'Galle', label: 'Galle' },
-      { value: 'Matara', label: 'Matara' },
-      { value: 'Hambantota', label: 'Hambantota' },
-    ],
-  },
-  {
-    value: 'Northern',
-    label: 'Northern',
-    districts: [
-      { value: 'Jaffna', label: 'Jaffna' },
-      { value: 'Kilinochchi', label: 'Kilinochchi' },
-      { value: 'Mannar', label: 'Mannar' },
-      { value: 'Mullaitivu', label: 'Mullaitivu' },
-      { value: 'Vavuniya', label: 'Vavuniya' },
-    ],
-  },
-  {
-    value: 'Eastern',
-    label: 'Eastern',
-    districts: [
-      { value: 'Ampara', label: 'Ampara' },
-      { value: 'Batticaloa', label: 'Batticaloa' },
-      { value: 'Trincomalee', label: 'Trincomalee' },
-    ],
-  },
-  {
-    value: 'North Western',
-    label: 'North Western',
-    districts: [
-      { value: 'Kurunegala', label: 'Kurunegala' },
-      { value: 'Puttalam', label: 'Puttalam' },
-    ],
-  },
-  {
-    value: 'North Central',
-    label: 'North Central',
-    districts: [
-      { value: 'Anuradhapura', label: 'Anuradhapura' },
-      { value: 'Polonnaruwa', label: 'Polonnaruwa' },
-    ],
-  },
-  {
-    value: 'Uva',
-    label: 'Uva',
-    districts: [
-      { value: 'Badulla', label: 'Badulla' },
-      { value: 'Monaragala', label: 'Monaragala' },
-    ],
-  },
-  {
-    value: 'Sabaragamuwa',
-    label: 'Sabaragamuwa',
-    districts: [
-      { value: 'Kegalle', label: 'Kegalle' },
-      { value: 'Ratnapura', label: 'Ratnapura' },
-    ],
-  },
-];
 
 const LAND_USE_TYPES = [
   'Agricultural',
@@ -256,6 +176,93 @@ const inputCls =
   'w-full px-3 py-2 border border-border rounded-lg bg-input-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors';
 
 export default function EditLandParcel({ id }: { id: string }) {
+  const { t } = useTranslation();
+
+  const PROVINCES = useMemo(
+    () => [
+      {
+        value: t('western'),
+        label: t('western'),
+        districts: [
+          { value: t('colombo'), label: t('colombo') },
+          { value: t('gampaha'), label: t('gampaha') },
+          { value: t('kalutara'), label: t('kalutara') },
+        ],
+      },
+      {
+        value: t('central'),
+        label: t('central'),
+        districts: [
+          { value: t('kandy'), label: t('kandy') },
+          { value: t('matale'), label: t('matale') },
+          { value: t('nuwara_eliya'), label: t('nuwara_eliya') },
+        ],
+      },
+      {
+        value: t('southern'),
+        label: t('southern'),
+        districts: [
+          { value: t('galle'), label: t('galle') },
+          { value: t('matara'), label: t('matara') },
+          { value: t('hambantota'), label: t('hambantota') },
+        ],
+      },
+      {
+        value: t('northern'),
+        label: t('northern'),
+        districts: [
+          { value: t('jaffna'), label: t('jaffna') },
+          { value: t('kilinochchi'), label: t('kilinochchi') },
+          { value: t('mannar'), label: t('mannar') },
+          { value: t('mullaitivu'), label: t('mullaitivu') },
+          { value: t('vavuniya'), label: t('vavuniya') },
+        ],
+      },
+      {
+        value: t('eastern'),
+        label: t('eastern'),
+        districts: [
+          { value: t('ampara'), label: t('ampara') },
+          { value: t('batticaloa'), label: t('batticaloa') },
+          { value: t('trincomalee'), label: t('trincomalee') },
+        ],
+      },
+      {
+        value: t('north_western'),
+        label: t('north_western'),
+        districts: [
+          { value: t('kurunegala'), label: t('kurunegala') },
+          { value: t('puttalam'), label: t('puttalam') },
+        ],
+      },
+      {
+        value: t('north_central'),
+        label: t('north_central'),
+        districts: [
+          { value: t('anuradhapura'), label: t('anuradhapura') },
+          { value: t('polonnaruwa'), label: t('polonnaruwa') },
+        ],
+      },
+      {
+        value: t('uva'),
+        label: t('uva'),
+        districts: [
+          { value: t('badulla'), label: t('badulla') },
+          { value: t('monaragala'), label: t('monaragala') },
+        ],
+      },
+      {
+        value: t('sabaragamuwa'),
+        label: t('sabaragamuwa'),
+        districts: [
+          { value: t('kegalle'), label: t('kegalle') },
+          { value: t('ratnapura'), label: t('ratnapura') },
+        ],
+      },
+    ],
+    [t],
+  );
+
   const [form, setForm] = useState<FormData>(EMPTY);
   const [parcel, setParcel] = useState<LandParcel | null>(null);
   const [loading, setLoading] = useState(true);
@@ -320,7 +327,7 @@ export default function EditLandParcel({ id }: { id: string }) {
       await downloadDocument(docId, filename);
     } catch (error) {
       console.error('Failed to download document:', error);
-      toastError('Failed to download document.');
+      toastError(t('failed_download_document', 'Failed to download document.'));
     }
   };
 
@@ -332,8 +339,8 @@ export default function EditLandParcel({ id }: { id: string }) {
     }
 
     const confirmed = await confirmDialog({
-      title: 'Delete Document',
-      text: 'Are you sure you want to delete this document permanently?',
+      title: t('delete_document_title', 'Delete Document'),
+      text: t('delete_document_confirm_details', 'Are you sure you want to delete this document?'),
     });
 
     if (!confirmed) {
@@ -344,10 +351,10 @@ export default function EditLandParcel({ id }: { id: string }) {
       setLoading(true);
       await deleteDocument(docId);
       await refreshDocuments();
-      toastSuccess('Document deleted successfully.');
+      toastSuccess(t('document_deleted_success', 'Document deleted successfully.'));
     } catch (error) {
       console.error('Failed to delete document:', error);
-      toastError('Failed to delete document.');
+      toastError(t('failed_delete_document', 'Failed to delete document.'));
     } finally {
       setLoading(false);
     }
@@ -740,7 +747,7 @@ export default function EditLandParcel({ id }: { id: string }) {
 
   const handleSelectExistingOwner = (owner: PropertyOwner) => {
     if (selectedOwners.some((o) => o.nic === owner.nic)) {
-      toastError('This owner is already added to the parcel.');
+      toastError(t('owner_added_parcel_error', 'This owner is already added to the parcel.'));
 
       return;
     }
@@ -792,35 +799,35 @@ export default function EditLandParcel({ id }: { id: string }) {
     const errs: Partial<Record<keyof FormData, string>> = {};
 
     if (!form.landNumber.trim()) {
-      errs.landNumber = 'Land Number is required';
+      errs.landNumber = t('land_number_required', 'Land Number is required');
     }
 
     if (!form.district) {
-      errs.district = 'District is required';
+      errs.district = t('district_required', 'District is required');
     }
 
     if (!form.divisionalSecretariat.trim()) {
-      errs.divisionalSecretariat = 'Divisional Secretariat is required';
+      errs.divisionalSecretariat = t('div_sec_required', 'Divisional Secretariat is required');
     }
 
     if (!form.village.trim()) {
-      errs.village = 'Village is required';
+      errs.village = t('village_required', 'Village is required');
     }
 
     if (!form.extentAcres.trim()) {
-      errs.extentAcres = 'Extent (acres) is required';
+      errs.extentAcres = t('extent_acres_required', 'Extent (acres) is required');
     }
 
     if (!form.landUseType) {
-      errs.landUseType = 'Land use type is required';
+      errs.landUseType = t('land_use_type_required', 'Land use type is required');
     }
 
     if (!form.tenureType) {
-      errs.tenureType = 'Tenure type is required';
+      errs.tenureType = t('tenure_type_required', 'Tenure type is required');
     }
 
     if (selectedOwners.length === 0) {
-      toastError('You must add or select at least one property owner.');
+      toastError(t('min_one_owner_error', 'You must add or select at least one property owner.'));
 
       return false;
     }
@@ -837,13 +844,13 @@ export default function EditLandParcel({ id }: { id: string }) {
 
     if (form.hasPlan) {
       if (!planFile && !existingPlanDoc) {
-        toastError('You must upload a copy of the land parcel plan.');
+        toastError(t('upload_copy_of_plan_error', 'You must upload a copy of the land parcel plan.'));
 
         return false;
       }
     } else {
       if (!planFile && !existingSketchDoc) {
-        toastError('You must upload a simple sketch of the land parcel.');
+        toastError(t('upload_simple_sketch_error', 'You must upload a simple sketch of the land parcel.'));
 
         return false;
       }
@@ -962,7 +969,7 @@ export default function EditLandParcel({ id }: { id: string }) {
         }
       }
 
-      toastSuccess('Land parcel updated successfully!');
+      toastSuccess(t('land_parcel_updated_success', 'Land parcel updated successfully!'));
       router.visit(`/land-parcels/${id}`);
     } catch (error: any) {
       console.error('Failed to update land parcel:', error);
@@ -1000,16 +1007,16 @@ export default function EditLandParcel({ id }: { id: string }) {
           }
         });
         setErrors(backendErrors);
-        await alertInfo('Validation Error', errorMessages.join('\n'));
+        await alertInfo(t('validation_error_title', 'Validation Error'), errorMessages.join('\n'));
       } else if (error.response?.data?.message) {
         setErrors({ landNumber: error.response.data.message });
         toastError(`Error: ${error.response.data.message}`);
       } else {
         setErrors({
-          landNumber: 'An error occurred while saving the land parcel.',
+          landNumber: t('generic_error_saving', 'An error occurred while saving the land parcel.'),
         });
         toastError(
-          'An error occurred while saving the land parcel. Please verify your inputs.',
+          t('save_parcel_error', 'An error occurred while saving the land parcel. Please verify your inputs.'),
         );
       }
     } finally {
@@ -1025,7 +1032,7 @@ export default function EditLandParcel({ id }: { id: string }) {
   if (loading) {
     return (
       <div className="text-muted-foreground flex h-96 items-center justify-center">
-        Loading parcel details...
+        {t('loading_project_details_view', 'Loading parcel details...')}
       </div>
     );
   }
@@ -1033,16 +1040,15 @@ export default function EditLandParcel({ id }: { id: string }) {
   if (unauthorized) {
     return (
       <div className="bg-destructive/10 border-destructive/30 text-destructive flex h-96 flex-col items-center justify-center gap-4 rounded-xl border p-6">
-        <p className="text-lg font-semibold">Access Denied</p>
+        <p className="text-lg font-semibold">{t('access_denied', 'Access Denied')}</p>
         <p className="text-sm">
-          Only Divisional/Development Officers (DO) can edit land parcel
-          information.
+          {t('unauthorized_do_edit_info', 'Only Divisional/Development Officers (DO) can edit land parcel information.')}
         </p>
         <Link
           href={`/land-parcels/${id}`}
           className="text-primary font-medium hover:underline"
         >
-          Back to Details
+          {t('back_to_details', 'Back to Details')}
         </Link>
       </div>
     );
@@ -1051,15 +1057,15 @@ export default function EditLandParcel({ id }: { id: string }) {
   if (statusError) {
     return (
       <div className="bg-destructive/10 border-destructive/30 text-destructive flex h-96 flex-col items-center justify-center gap-4 rounded-xl border p-6">
-        <p className="text-lg font-semibold">Editing Restricted</p>
+        <p className="text-lg font-semibold">{t('editing_restricted', 'Editing Restricted')}</p>
         <p className="text-sm">
-          Only land parcels with status "available" can be edited.
+          {t('only_available_status_editable', 'Only land parcels with status "available" can be edited.')}
         </p>
         <Link
           href={`/land-parcels/${id}`}
           className="text-primary font-medium hover:underline"
         >
-          Back to Details
+          {t('back_to_details', 'Back to Details')}
         </Link>
       </div>
     );
@@ -1068,15 +1074,15 @@ export default function EditLandParcel({ id }: { id: string }) {
   if (!parcel && !loading && !unauthorized && !statusError) {
     return (
       <div className="bg-destructive/10 border-destructive/30 text-destructive flex h-96 flex-col items-center justify-center gap-4 rounded-xl border p-6">
-        <p className="text-lg font-semibold">Error Loading Parcel</p>
+        <p className="text-lg font-semibold">{t('error_loading_parcel', 'Error Loading Parcel')}</p>
         <p className="text-sm">
-          Failed to retrieve land parcel details. Please try again later.
+          {t('failed_retrieve_parcel_details', 'Failed to retrieve land parcel details. Please try again later.')}
         </p>
         <Link
           href={`/land-parcels/${id}`}
           className="text-primary font-medium hover:underline"
         >
-          Back to Details
+          {t('back_to_details', 'Back to Details')}
         </Link>
       </div>
     );
@@ -1090,14 +1096,14 @@ export default function EditLandParcel({ id }: { id: string }) {
           <button
             onClick={() => router.visit(`/land-parcels/${id}`)}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
-            title="Back to Details"
+            title={t('back_to_details', 'Back to Details')}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1>Edit Land Parcel</h1>
+            <h1>{t('edit_land_parcel', 'Edit Land Parcel')}</h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Update details for land parcel #{form.landNumber}
+              {t('update_details_for_parcel_desc', 'Update details for land parcel #{number}').replace('{number}', form.landNumber)}
             </p>
           </div>
         </div>
@@ -1616,7 +1622,7 @@ export default function EditLandParcel({ id }: { id: string }) {
                         type="button"
                         onClick={() => handleRemoveOwner(idx)}
                         className="text-muted-foreground hover:text-destructive absolute right-3 top-3 transition-colors"
-                        title="Remove Owner"
+                        title={t('remove_owner_tooltip', 'Remove Owner')}
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -1629,23 +1635,23 @@ export default function EditLandParcel({ id }: { id: string }) {
                                 : 'bg-blue-500/10 text-blue-600'
                             }`}
                           >
-                            {owner.isNew ? 'New' : 'Existing'}
+                            {owner.isNew ? t('new_label', 'New') : t('existing_label', 'Existing')}
                           </span>
                           <span className="text-muted-foreground font-mono text-xs">
-                            {owner.isNew ? 'Will be created' : owner.ownerId}
+                            {owner.isNew ? t('will_be_created', 'Will be created') : owner.ownerId}
                           </span>
                         </div>
                         <h4 className="text-foreground text-sm font-semibold">
                           {owner.name}
                         </h4>
                         <p className="text-muted-foreground mt-1 text-xs">
-                          NIC: {owner.nic}
+                          {t('nic', 'NIC')}: {owner.nic}
                         </p>
                         <p className="text-muted-foreground font-mono text-xs">
-                          Contact: {owner.contact}
+                          {t('contact', 'Contact')}: {owner.contact}
                         </p>
                         <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
-                          Address: {owner.address}
+                          {t('address', 'Address')}: {owner.address}
                         </p>
                       </div>
                     </div>
@@ -1938,7 +1944,7 @@ export default function EditLandParcel({ id }: { id: string }) {
                           type="button"
                           onClick={() => handleRemoveResident(idx)}
                           className="text-muted-foreground hover:text-destructive absolute right-3 top-3 transition-colors"
-                          title="Remove Resident"
+                          title={t('remove_resident_tooltip', 'Remove Resident')}
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -2226,7 +2232,7 @@ export default function EditLandParcel({ id }: { id: string }) {
                             type="button"
                             onClick={() => handleDownload(doc.id, doc.name)}
                             className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
-                            title="Download"
+                            title={t('download', 'Download')}
                           >
                             <Download className="h-4 w-4" />
                           </button>
@@ -2237,8 +2243,8 @@ export default function EditLandParcel({ id }: { id: string }) {
                           className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
                           title={
                             doc.isQueued
-                              ? 'Remove from queue'
-                              : 'Delete permanently'
+                              ? t('remove_from_queue_tooltip', 'Remove from queue')
+                              : t('delete_permanently', 'Delete permanently')
                           }
                         >
                           <Trash2 className="h-4 w-4" />
