@@ -14,11 +14,13 @@ import {
 import { useEffect, useState } from 'react';
 import { SyncLoader } from 'react-spinners';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { getLandParcels } from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 
 export default function GisMapList() {
+  const { t } = useTranslation();
   const [parcels, setParcels] = useState<LandParcel[]>([]);
   const [selectedParcelId, setSelectedParcelId] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -107,11 +109,13 @@ export default function GisMapList() {
       <div className="border-border flex flex-col gap-4 border-b pb-5 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="font-sans text-3xl font-bold tracking-tight">
-            GIS / Map View
+            {t('gis_map_view_title', 'GIS / Map View')}
           </h1>
           <p className="text-muted-foreground mt-1.5 text-sm md:text-base">
-            Interactive map displaying geographical locations, survey
-            boundaries, and project association of land parcels.
+            {t(
+              'gis_map_view_subtitle',
+              'Interactive map displaying geographical locations, survey boundaries, and project association of land parcels.',
+            )}
           </p>
         </div>
       </div>
@@ -120,7 +124,7 @@ export default function GisMapList() {
         <div className="bg-card border-border flex min-h-[450px] flex-col items-center justify-center gap-3 rounded-xl border">
           <SyncLoader size={12} color="#2E7D32" />
           <p className="text-muted-foreground text-sm">
-            Loading GIS data and maps...
+            {t('loading_gis_data', 'Loading GIS data and maps...')}
           </p>
         </div>
       ) : (
@@ -130,13 +134,16 @@ export default function GisMapList() {
             {/* Search Card */}
             <div className="bg-card border-border space-y-3 rounded-xl border p-4 shadow-sm">
               <h3 className="text-foreground text-sm font-bold uppercase tracking-wider">
-                Search Parcel
+                {t('search_parcel_title', 'Search Parcel')}
               </h3>
               <div className="relative">
                 <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="ID, name, village..."
+                  placeholder={t(
+                    'search_parcel_placeholder',
+                    'ID, name, village...',
+                  )}
                   className="bg-input-background border-border w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -148,7 +155,7 @@ export default function GisMapList() {
             <div className="bg-card border-border space-y-3 rounded-xl border p-4 shadow-sm">
               <h3 className="text-foreground flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <Layers className="text-muted-foreground h-4 w-4" />
-                Map Layers
+                {t('map_layers_title', 'Map Layers')}
               </h3>
               <div className="space-y-2.5">
                 <label className="text-foreground flex cursor-pointer items-center gap-2.5 text-sm font-medium">
@@ -158,7 +165,9 @@ export default function GisMapList() {
                     onChange={(e) => setShowBoundaries(e.target.checked)}
                     className="border-border h-4 w-4 rounded text-[#2E7D32] focus:ring-[#2E7D32]"
                   />
-                  <span>Parcel Boundaries</span>
+                  <span>
+                    {t('layer_parcel_boundaries', 'Parcel Boundaries')}
+                  </span>
                 </label>
                 <label className="text-foreground flex cursor-pointer items-center gap-2.5 text-sm font-medium">
                   <input
@@ -167,7 +176,7 @@ export default function GisMapList() {
                     onChange={(e) => setShowRoads(e.target.checked)}
                     className="border-border h-4 w-4 rounded text-[#2E7D32] focus:ring-[#2E7D32]"
                   />
-                  <span>Survey Markings</span>
+                  <span>{t('layer_survey_markings', 'Survey Markings')}</span>
                 </label>
                 <label className="text-muted-foreground flex cursor-pointer items-center gap-2.5 text-sm font-medium opacity-60">
                   <input
@@ -176,7 +185,7 @@ export default function GisMapList() {
                     defaultChecked
                     className="border-border h-4 w-4 rounded"
                   />
-                  <span>Roads & Highways</span>
+                  <span>{t('layer_roads_highways', 'Roads & Highways')}</span>
                 </label>
                 <label className="text-muted-foreground flex cursor-pointer items-center gap-2.5 text-sm font-medium opacity-60">
                   <input
@@ -185,7 +194,7 @@ export default function GisMapList() {
                     defaultChecked
                     className="border-border h-4 w-4 rounded"
                   />
-                  <span>Water Bodies</span>
+                  <span>{t('layer_water_bodies', 'Water Bodies')}</span>
                 </label>
               </div>
             </div>
@@ -193,7 +202,10 @@ export default function GisMapList() {
             {/* Scrollable Land Parcels List */}
             <div className="bg-card border-border space-y-3 rounded-xl border p-4 shadow-sm">
               <h3 className="text-foreground text-sm font-bold uppercase tracking-wider">
-                Parcels ({filteredParcels.length})
+                {t('parcels_list_title', 'Parcels (:count)').replace(
+                  ':count',
+                  String(filteredParcels.length),
+                )}
               </h3>
               <div className="max-h-[300px] space-y-2 overflow-y-auto pr-1">
                 {filteredParcels.length > 0 ? (
@@ -221,7 +233,8 @@ export default function GisMapList() {
                         <p
                           className={`truncate text-xs ${isSelected ? 'text-white/80' : 'text-muted-foreground font-medium'}`}
                         >
-                          {parcel.land_name || 'Unnamed parcel'}
+                          {parcel.land_name ||
+                            t('unnamed_parcel', 'Unnamed parcel')}
                         </p>
                         <p
                           className={`mt-1 flex items-center gap-1 text-[10px] ${isSelected ? 'text-white/70' : 'text-muted-foreground/80'}`}
@@ -229,14 +242,14 @@ export default function GisMapList() {
                           <Compass className="h-3 w-3 shrink-0" />
                           {parcel.latitude
                             ? `${Number(parcel.latitude).toFixed(4)}, ${Number(parcel.longitude).toFixed(4)}`
-                            : 'No GPS coordinate'}
+                            : t('no_gps_coordinate', 'No GPS coordinate')}
                         </p>
                       </button>
                     );
                   })
                 ) : (
                   <div className="text-muted-foreground p-6 text-center text-xs">
-                    No matching parcels found.
+                    {t('no_matching_parcels', 'No matching parcels found.')}
                   </div>
                 )}
               </div>
@@ -254,7 +267,7 @@ export default function GisMapList() {
                     onClick={handleZoomIn}
                     disabled={!selectedParcel?.latitude}
                     className="hover:bg-muted text-foreground rounded-md p-1.5 transition-colors disabled:opacity-40"
-                    title="Zoom In"
+                    title={t('tooltip_zoom_in', 'Zoom In')}
                   >
                     <ZoomIn className="h-4 w-4" />
                   </button>
@@ -262,7 +275,7 @@ export default function GisMapList() {
                     onClick={handleZoomOut}
                     disabled={!selectedParcel?.latitude}
                     className="hover:bg-muted text-foreground rounded-md p-1.5 transition-colors disabled:opacity-40"
-                    title="Zoom Out"
+                    title={t('tooltip_zoom_out', 'Zoom Out')}
                   >
                     <ZoomOut className="h-4 w-4" />
                   </button>
@@ -271,7 +284,7 @@ export default function GisMapList() {
                     onClick={handleFullScreen}
                     disabled={!selectedParcel?.latitude}
                     className="hover:bg-muted text-foreground rounded-md p-1.5 transition-colors disabled:opacity-40"
-                    title="Open in Google Maps"
+                    title={t('tooltip_open_google_maps', 'Open in Google Maps')}
                   >
                     <Maximize className="h-4 w-4" />
                   </button>
@@ -284,7 +297,7 @@ export default function GisMapList() {
                     selectedParcel.latitude &&
                     selectedParcel.longitude
                       ? `${Number(selectedParcel.latitude).toFixed(6)}, ${Number(selectedParcel.longitude).toFixed(6)}`
-                      : 'None'}
+                      : t('gps_none', 'None')}
                   </span>
                 </div>
               </div>
@@ -295,7 +308,10 @@ export default function GisMapList() {
                 selectedParcel.latitude &&
                 selectedParcel.longitude ? (
                   <iframe
-                    title={`Map showing location of ${selectedParcel.parcel_id}`}
+                    title={t(
+                      'iframe_title',
+                      'Map showing location of :id',
+                    ).replace(':id', selectedParcel.parcel_id)}
                     src={getMapEmbedUrl()}
                     className="absolute inset-0 h-full w-full border-0"
                     allowFullScreen
@@ -306,12 +322,16 @@ export default function GisMapList() {
                     <div className="max-w-sm text-white">
                       <MapPin className="mx-auto mb-4 h-16 w-16 animate-bounce text-white/90" />
                       <p className="mb-2 text-xl font-bold">
-                        No GPS Coordinates Set
+                        {t(
+                          'no_gps_coordinates_title',
+                          'No GPS Coordinates Set',
+                        )}
                       </p>
                       <p className="text-sm leading-relaxed text-white/80">
-                        This land parcel does not have latitude and longitude
-                        details in LAMS database. Register coordinates in
-                        properties screen to display map.
+                        {t(
+                          'no_gps_coordinates_desc',
+                          'This land parcel does not have latitude and longitude details in LAMS database. Register coordinates in properties screen to display map.',
+                        )}
                       </p>
                     </div>
                   </div>
@@ -325,7 +345,7 @@ export default function GisMapList() {
                     <div className="pointer-events-none absolute right-4 top-4 z-10">
                       <span className="flex items-center gap-1 rounded border border-white/20 bg-[#2E7D32]/90 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-md">
                         <Layers className="h-3 w-3" />
-                        Overlay Active
+                        {t('overlay_active', 'Overlay Active')}
                       </span>
                     </div>
                   )}
@@ -342,7 +362,8 @@ export default function GisMapList() {
                     </div>
                     <div>
                       <h4 className="text-foreground text-lg font-bold">
-                        {selectedParcel.land_name || 'Unnamed land parcel'}
+                        {selectedParcel.land_name ||
+                          t('unnamed_land_parcel', 'Unnamed land parcel')}
                       </h4>
                       <p className="text-muted-foreground font-mono text-xs">
                         ID: {selectedParcel.parcel_id}
@@ -359,20 +380,23 @@ export default function GisMapList() {
                   <div className="space-y-3">
                     <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider">
                       <Compass className="h-4 w-4" />
-                      <span>Geographical Location</span>
+                      <span>
+                        {t('geo_location_title', 'Geographical Location')}
+                      </span>
                     </div>
                     <dl className="space-y-1.5 text-sm">
                       <div className="flex justify-between md:block">
                         <dt className="text-muted-foreground text-xs">
-                          Province:
+                          {t('label_province', 'Province:')}
                         </dt>
                         <dd className="text-foreground font-medium">
-                          {selectedParcel.province || 'Southern'}
+                          {selectedParcel.province ||
+                            t('value_province_southern', 'Southern')}
                         </dd>
                       </div>
                       <div className="flex justify-between md:block">
                         <dt className="text-muted-foreground text-xs">
-                          District:
+                          {t('label_district', 'District:')}
                         </dt>
                         <dd className="text-foreground font-medium">
                           {selectedParcel.district}
@@ -380,25 +404,26 @@ export default function GisMapList() {
                       </div>
                       <div className="flex justify-between md:block">
                         <dt className="text-muted-foreground text-xs">
-                          DS Division:
+                          {t('label_ds_division', 'DS Division:')}
                         </dt>
                         <dd className="text-foreground font-medium">
                           {selectedParcel.divisional_secretariat ||
                             selectedParcel.division ||
-                            'N/A'}
+                            t('n_a', 'N/A')}
                         </dd>
                       </div>
                       <div className="flex justify-between md:block">
                         <dt className="text-muted-foreground text-xs">
-                          Grama Niladari:
+                          {t('label_grama_niladari', 'Grama Niladari:')}
                         </dt>
                         <dd className="text-foreground font-medium">
-                          {selectedParcel.grama_niladari_division || 'N/A'}
+                          {selectedParcel.grama_niladari_division ||
+                            t('n_a', 'N/A')}
                         </dd>
                       </div>
                       <div className="flex justify-between md:block">
                         <dt className="text-muted-foreground text-xs">
-                          Village:
+                          {t('label_village', 'Village:')}
                         </dt>
                         <dd className="text-foreground font-medium">
                           {selectedParcel.village}
@@ -411,21 +436,25 @@ export default function GisMapList() {
                   <div className="border-border space-y-3 border-t pt-4 md:border-x md:border-t-0 md:px-6 md:pt-0">
                     <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider">
                       <Info className="h-4 w-4" />
-                      <span>Physical Details</span>
+                      <span>
+                        {t('physical_details_title', 'Physical Details')}
+                      </span>
                     </div>
                     <dl className="space-y-1.5 text-sm">
                       <div className="flex justify-between md:block">
                         <dt className="text-muted-foreground text-xs">
-                          Land Size (A / P):
+                          {t('label_land_size', 'Land Size (A / P):')}
                         </dt>
                         <dd className="text-foreground font-medium">
-                          {selectedParcel.extent_acers ?? 0} Acers,{' '}
-                          {selectedParcel.extent_perches ?? 0} Perches
+                          {selectedParcel.extent_acers ?? 0}{' '}
+                          {t('acres', 'Acres')},{' '}
+                          {selectedParcel.extent_perches ?? 0}{' '}
+                          {t('perches', 'Perches')}
                         </dd>
                       </div>
                       <div className="flex justify-between md:block">
                         <dt className="text-muted-foreground text-xs">
-                          Estimated Value:
+                          {t('label_estimated_value', 'Estimated Value:')}
                         </dt>
                         <dd className="flex items-center gap-0.5 font-bold text-[#2E7D32]">
                           <DollarSign className="h-3.5 w-3.5 shrink-0" />
@@ -433,26 +462,37 @@ export default function GisMapList() {
                             {Number(
                               selectedParcel.estimated_value || 0,
                             ).toLocaleString()}{' '}
-                            LKR
+                            {t('lkr_currency', 'LKR')}
                           </span>
                         </dd>
                       </div>
                       <div className="flex justify-between md:block">
                         <dt className="text-muted-foreground text-xs">
-                          Residential Structure:
+                          {t(
+                            'label_residential_structure',
+                            'Residential Structure:',
+                          )}
                         </dt>
                         <dd className="text-foreground font-medium">
-                          {selectedParcel.has_residential_houses ? 'Yes' : 'No'}
+                          {selectedParcel.has_residential_houses
+                            ? t('value_yes', 'Yes')
+                            : t('value_no', 'No')}
                         </dd>
                       </div>
                       <div className="flex justify-between md:block">
                         <dt className="text-muted-foreground text-xs">
-                          Cultivation status:
+                          {t('label_cultivation_status', 'Cultivation status:')}
                         </dt>
                         <dd className="text-foreground font-medium capitalize">
                           {selectedParcel.is_cultivated
-                            ? `Cultivated (${selectedParcel.cultivation})`
-                            : 'Uncultivated'}
+                            ? t(
+                                'value_cultivated',
+                                'Cultivated (:crop)',
+                              ).replace(
+                                ':crop',
+                                selectedParcel.cultivation || '',
+                              )
+                            : t('value_uncultivated', 'Uncultivated')}
                         </dd>
                       </div>
                     </dl>
@@ -462,7 +502,9 @@ export default function GisMapList() {
                   <div className="border-border space-y-3 border-t pt-4 md:border-t-0 md:pt-0">
                     <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider">
                       <Building className="h-4 w-4" />
-                      <span>Project Association</span>
+                      <span>
+                        {t('project_association_title', 'Project Association')}
+                      </span>
                     </div>
                     {selectedParcel.project ? (
                       <div className="bg-muted/40 border-border space-y-2 rounded-lg border p-3">
@@ -480,7 +522,10 @@ export default function GisMapList() {
                       </div>
                     ) : (
                       <div className="bg-muted/10 border-border text-muted-foreground rounded-lg border border-dashed p-4 text-center text-xs">
-                        Not associated with any project.
+                        {t(
+                          'not_associated_project',
+                          'Not associated with any project.',
+                        )}
                       </div>
                     )}
 
@@ -488,7 +533,10 @@ export default function GisMapList() {
                       <div className="text-foreground bg-muted/20 border-border flex items-center justify-between rounded-lg border p-2.5 text-xs">
                         <div>
                           <span className="text-muted-foreground block text-[10px] font-bold uppercase tracking-wider">
-                            Survey Plan Number
+                            {t(
+                              'label_survey_plan_number',
+                              'Survey Plan Number',
+                            )}
                           </span>
                           <span className="font-bold">
                             {selectedParcel.plan_number}
@@ -498,7 +546,10 @@ export default function GisMapList() {
                           <button
                             onClick={handleFullScreen}
                             className="border-border shadow-xs rounded border bg-white p-1.5 text-[#2E7D32] hover:text-[#2E7D32]/80"
-                            title="Verify Coordinates"
+                            title={t(
+                              'tooltip_verify_coordinates',
+                              'Verify Coordinates',
+                            )}
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
                           </button>

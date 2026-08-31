@@ -21,6 +21,7 @@ import {
 import { useEffect, useState } from 'react';
 import { SyncLoader } from 'react-spinners';
 import { DataTable } from '@/components/ui/DataTable';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
 import {
@@ -37,6 +38,7 @@ import { getPropertyOwners } from '@/services/propertyOwnerManagement';
 import type { PropertyOwner } from '@/services/propertyOwnerManagement';
 
 export default function DocumentList() {
+  const { t } = useTranslation();
   const { props: pageProps } = usePage();
   const loggedInUser = (pageProps.auth as any)?.user;
   const userId = loggedInUser?.id || '';
@@ -165,14 +167,26 @@ export default function DocumentList() {
   };
 
   const categories = [
-    { id: 'all', name: 'All Documents', icon: Folder },
-    { id: 'approvals', name: 'Approvals', icon: CheckCircle },
-    { id: 'reports', name: 'Reports', icon: FileText },
-    { id: 'survey', name: 'Survey Plans', icon: Layers },
-    { id: 'valuation', name: 'Valuations', icon: DollarSign },
-    { id: 'compensation', name: 'Compensation', icon: DollarSign },
-    { id: 'legal', name: 'Legal Cases', icon: Scale },
-    { id: 'other', name: 'Others', icon: Folder },
+    { id: 'all', name: t('cat_all_documents', 'All Documents'), icon: Folder },
+    {
+      id: 'approvals',
+      name: t('cat_approvals', 'Approvals'),
+      icon: CheckCircle,
+    },
+    { id: 'reports', name: t('cat_reports', 'Reports'), icon: FileText },
+    { id: 'survey', name: t('cat_survey_plans', 'Survey Plans'), icon: Layers },
+    {
+      id: 'valuation',
+      name: t('cat_valuations', 'Valuations'),
+      icon: DollarSign,
+    },
+    {
+      id: 'compensation',
+      name: t('cat_compensation', 'Compensation'),
+      icon: DollarSign,
+    },
+    { id: 'legal', name: t('cat_legal_cases', 'Legal Cases'), icon: Scale },
+    { id: 'other', name: t('cat_others', 'Others'), icon: Folder },
   ];
 
   // Dynamic counts for each folder
@@ -194,8 +208,11 @@ export default function DocumentList() {
   // Handle file deletion
   const handleDeleteDoc = async (id: string, name: string) => {
     const confirmed = await confirmDialog({
-      title: 'Delete Document',
-      text: `Are you sure you want to delete "${name}"?`,
+      title: t('delete_doc_confirm_title', 'Delete Document'),
+      text: t(
+        'delete_doc_confirm_text',
+        'Are you sure you want to delete ":name"?',
+      ).replace(':name', name),
     });
 
     if (!confirmed) {
@@ -206,10 +223,17 @@ export default function DocumentList() {
       setLoading(true);
       await deleteDocument(id);
       await loadPageData();
-      toastSuccess('Document deleted successfully.');
+      toastSuccess(
+        t('toast_doc_deleted_success', 'Document deleted successfully.'),
+      );
     } catch (error) {
       console.error('Failed to delete document:', error);
-      toastError('Failed to delete document. Please try again.');
+      toastError(
+        t(
+          'toast_doc_delete_failed',
+          'Failed to delete document. Please try again.',
+        ),
+      );
       setLoading(false);
     }
   };
@@ -220,7 +244,9 @@ export default function DocumentList() {
       await downloadDocument(id, name);
     } catch (error) {
       console.error('Failed to download document:', error);
-      toastError('Failed to download document.');
+      toastError(
+        t('toast_doc_download_failed', 'Failed to download document.'),
+      );
     }
   };
 
@@ -229,7 +255,9 @@ export default function DocumentList() {
     e.preventDefault();
 
     if (!selectedFile) {
-      toastError('Please select a file to upload.');
+      toastError(
+        t('toast_select_file_error', 'Please select a file to upload.'),
+      );
 
       return;
     }
@@ -238,7 +266,9 @@ export default function DocumentList() {
       uploadCategory === 'Other' ? customCategory : uploadCategory;
 
     if (!finalCategory) {
-      toastError('Please specify a document category.');
+      toastError(
+        t('toast_specify_cat_error', 'Please specify a document category.'),
+      );
 
       return;
     }
@@ -265,11 +295,16 @@ export default function DocumentList() {
 
       // Refresh list
       await loadPageData();
-      toastSuccess('Document uploaded successfully!');
+      toastSuccess(
+        t('toast_doc_uploaded_success', 'Document uploaded successfully!'),
+      );
     } catch (error) {
       console.error('Failed to upload document:', error);
       toastError(
-        'Failed to upload document. Please verify project or parcel details.',
+        t(
+          'toast_doc_upload_failed',
+          'Failed to upload document. Please verify project or parcel details.',
+        ),
       );
     } finally {
       setUploadLoading(false);
@@ -331,7 +366,7 @@ export default function DocumentList() {
   const columns = [
     {
       key: 'original_filename',
-      label: 'Document Name',
+      label: t('col_document_name', 'Document Name'),
       sortable: true,
       render: (value: string, row: any) => {
         const catKey = getCategoryKey(row.document_category);
@@ -378,17 +413,17 @@ export default function DocumentList() {
     },
     {
       key: 'document_category',
-      label: 'Category',
+      label: t('col_category', 'Category'),
       sortable: true,
       render: (value: string) => (
         <span className="bg-muted border-border inline-flex items-center rounded border px-2 py-0.5 text-xs font-semibold">
-          {value}
+          {t('opt_' + value.toLowerCase().replace(' ', '_'), value)}
         </span>
       ),
     },
     {
       key: 'project_id',
-      label: 'Project Link',
+      label: t('col_project_link', 'Project Link'),
       sortable: true,
       render: (value: any) => {
         if (!value) {
@@ -412,7 +447,7 @@ export default function DocumentList() {
     },
     {
       key: 'land_parcel_id',
-      label: 'Land Parcel Link',
+      label: t('col_parcel_link', 'Land Parcel Link'),
       sortable: true,
       render: (value: any) => {
         if (!value) {
@@ -436,7 +471,7 @@ export default function DocumentList() {
     },
     {
       key: 'property_owner_id',
-      label: 'Property Owner Link',
+      label: t('col_owner_link', 'Property Owner Link'),
       sortable: true,
       render: (value: any) => {
         if (!value) {
@@ -462,7 +497,7 @@ export default function DocumentList() {
     },
     {
       key: 'upload_date',
-      label: 'Uploaded On',
+      label: t('col_uploaded_on', 'Uploaded On'),
       sortable: true,
       render: (value: string) => (
         <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
@@ -479,14 +514,14 @@ export default function DocumentList() {
       <button
         onClick={() => handleDownloadDoc(row.id, row.original_filename)}
         className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
-        title="Download File"
+        title={t('download_file_tooltip', 'Download File')}
       >
         <Download className="h-4 w-4" />
       </button>
       <button
         onClick={() => handleDeleteDoc(row.id, row.original_filename)}
         className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50"
-        title="Delete Document"
+        title={t('delete_document_tooltip', 'Delete Document')}
       >
         <Trash2 className="h-4 w-4" />
       </button>
@@ -499,11 +534,13 @@ export default function DocumentList() {
       <div className="border-border flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Document Management
+            {t('document_management_title', 'Document Management')}
           </h1>
           <p className="text-muted-foreground mt-1.5 text-sm md:text-base">
-            Upload, download, and catalog project-specific files and land parcel
-            diagrams.
+            {t(
+              'document_management_subtitle',
+              'Upload, download, and catalog project-specific files and land parcel diagrams.',
+            )}
           </p>
         </div>
         <button
@@ -511,7 +548,7 @@ export default function DocumentList() {
           className="flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#2E7D32] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#2E7D32]/95"
         >
           <Upload className="h-4 w-4" />
-          <span>Upload Document</span>
+          <span>{t('upload_document_btn', 'Upload Document')}</span>
         </button>
       </div>
 
@@ -520,7 +557,7 @@ export default function DocumentList() {
         <div className="border-border mb-3 flex items-center gap-2 border-b pb-3">
           <Filter className="text-muted-foreground h-4 w-5" />
           <h4 className="text-foreground text-sm font-bold uppercase tracking-wider">
-            Search & Filters
+            {t('search_filters_title', 'Search & Filters')}
           </h4>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -529,7 +566,10 @@ export default function DocumentList() {
             <Search className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
             <input
               type="text"
-              placeholder="Search filename, category..."
+              placeholder={t(
+                'search_placeholder',
+                'Search filename, category...',
+              )}
               className="bg-input-background border-border w-full rounded-lg border px-4 py-2.5 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -539,7 +579,7 @@ export default function DocumentList() {
           {/* Project filter */}
           <div>
             <select
-              title="Filter by Project"
+              title={t('filter_by_project', 'Filter by Project')}
               className="bg-input-background border-border w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
               value={projectFilter}
               onChange={(e) => {
@@ -547,7 +587,9 @@ export default function DocumentList() {
                 setParcelFilter(''); // reset parcel filter when project changes
               }}
             >
-              <option value="">-- All Projects --</option>
+              <option value="">
+                {t('all_projects_option', '-- All Projects --')}
+              </option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.title || p.name}
@@ -559,12 +601,14 @@ export default function DocumentList() {
           {/* Land parcel filter */}
           <div>
             <select
-              title="Filter by Land Parcel"
+              title={t('filter_by_parcel', 'Filter by Land Parcel')}
               className="bg-input-background border-border w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
               value={parcelFilter}
               onChange={(e) => setParcelFilter(e.target.value)}
             >
-              <option value="">-- All Land Parcels --</option>
+              <option value="">
+                {t('all_parcels_option', '-- All Land Parcels --')}
+              </option>
               {filteredParcelsForFilter.map((lp) => (
                 <option key={lp.id} value={lp.id}>
                   {lp.land_name || lp.parcel_id} ({lp.parcel_id})
@@ -576,12 +620,14 @@ export default function DocumentList() {
           {/* Property Owner filter */}
           <div>
             <select
-              title="Filter by Property Owner"
+              title={t('filter_by_owner', 'Filter by Property Owner')}
               className="bg-input-background border-border w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
               value={ownerFilter}
               onChange={(e) => setOwnerFilter(e.target.value)}
             >
-              <option value="">-- All Property Owners --</option>
+              <option value="">
+                {t('all_owners_option', '-- All Property Owners --')}
+              </option>
               {propertyOwners.map((po) => (
                 <option key={po.id} value={po.id}>
                   {po.name}
@@ -602,7 +648,7 @@ export default function DocumentList() {
               className="border-border hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors"
             >
               <X className="h-4 w-4" />
-              <span>Clear Filters</span>
+              <span>{t('clear_filters_btn', 'Clear Filters')}</span>
             </button>
           )}
         </div>
@@ -613,7 +659,7 @@ export default function DocumentList() {
         <div className="bg-card border-border flex min-h-[350px] flex-col items-center justify-center gap-3 rounded-xl border">
           <SyncLoader size={12} color="#2E7D32" />
           <p className="text-muted-foreground text-sm">
-            Loading documents inventory...
+            {t('loading_documents_inventory', 'Loading documents inventory...')}
           </p>
         </div>
       ) : (
@@ -623,7 +669,7 @@ export default function DocumentList() {
             <div className="border-border flex items-center gap-2 border-b px-2 pb-2">
               <Folder className="text-muted-foreground h-4 w-4" />
               <h3 className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                Sidebar Categories
+                {t('sidebar_categories_title', 'Sidebar Categories')}
               </h3>
             </div>
             <div className="space-y-1">
@@ -676,7 +722,7 @@ export default function DocumentList() {
             <div className="border-border bg-muted/20 flex items-center justify-between border-b px-6 py-4">
               <h3 className="text-foreground flex items-center gap-2 text-lg font-bold">
                 <Upload className="h-5 w-5 text-[#2E7D32]" />
-                Upload New Document
+                {t('upload_new_doc_title', 'Upload New Document')}
               </h3>
               <button
                 onClick={() => {
@@ -696,32 +742,31 @@ export default function DocumentList() {
               {/* File selector */}
               <div>
                 <label className="text-muted-foreground mb-1.5 block text-xs font-semibold uppercase tracking-wider">
-                  Select Document File
+                  {t('select_doc_file_label', 'Select Document File')}
                 </label>
                 <input
                   type="file"
                   required
-                  title="Document File"
+                  title={t('doc_file_input_title', 'Document File')}
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                   className="bg-input-background border-border file:bg-muted file:text-foreground file:hover:bg-muted/80 w-full rounded-lg border px-4 py-2 text-sm file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-xs file:font-semibold focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                 />
               </div>
 
-              {/* Category picker */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-muted-foreground mb-1.5 block text-xs font-semibold uppercase tracking-wider">
-                    Document Category
+                    {t('doc_category_label', 'Document Category')}
                   </label>
                   <select
-                    title="Category Selection"
+                    title={t('cat_select_title', 'Category Selection')}
                     className="bg-input-background border-border w-full rounded-lg border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                     value={uploadCategory}
                     onChange={(e) => setUploadCategory(e.target.value)}
                   >
                     {categoriesList.map((cat) => (
                       <option key={cat} value={cat}>
-                        {cat}
+                        {t('opt_' + cat.toLowerCase().replace(' ', '_'), cat)}
                       </option>
                     ))}
                   </select>
@@ -729,12 +774,15 @@ export default function DocumentList() {
                 {uploadCategory === 'Other' && (
                   <div>
                     <label className="text-muted-foreground mb-1.5 block text-xs font-semibold uppercase tracking-wider">
-                      Specify Category
+                      {t('specify_cat_label', 'Specify Category')}
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Resettlement Plan"
+                      placeholder={t(
+                        'specify_cat_placeholder',
+                        'e.g. Resettlement Plan',
+                      )}
                       className="bg-input-background border-border w-full rounded-lg border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                       value={customCategory}
                       onChange={(e) => setCustomCategory(e.target.value)}
@@ -743,13 +791,15 @@ export default function DocumentList() {
                 )}
               </div>
 
-              {/* Project picker */}
               <div>
                 <label className="text-muted-foreground mb-1.5 block text-xs font-semibold uppercase tracking-wider">
-                  Associate with Project (Optional)
+                  {t(
+                    'associate_project_label',
+                    'Associate with Project (Optional)',
+                  )}
                 </label>
                 <select
-                  title="Project Association"
+                  title={t('proj_associate_title', 'Project Association')}
                   className="bg-input-background border-border w-full rounded-lg border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                   value={uploadProjectId}
                   onChange={(e) => {
@@ -757,7 +807,12 @@ export default function DocumentList() {
                     setUploadParcelId(''); // reset parcel when project changes
                   }}
                 >
-                  <option value="">-- No Project Association --</option>
+                  <option value="">
+                    {t(
+                      'no_proj_associate_option',
+                      '-- No Project Association --',
+                    )}
+                  </option>
                   {projects.map((proj) => (
                     <option key={proj.id} value={proj.id}>
                       {proj.title || proj.name} ({proj.projectId})
@@ -766,18 +821,25 @@ export default function DocumentList() {
                 </select>
               </div>
 
-              {/* Parcel picker */}
               <div>
                 <label className="text-muted-foreground mb-1.5 block text-xs font-semibold uppercase tracking-wider">
-                  Associate with Land Parcel (Optional)
+                  {t(
+                    'associate_parcel_label',
+                    'Associate with Land Parcel (Optional)',
+                  )}
                 </label>
                 <select
-                  title="Land Parcel Association"
+                  title={t('parcel_associate_title', 'Land Parcel Association')}
                   className="bg-input-background border-border w-full rounded-lg border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                   value={uploadParcelId}
                   onChange={(e) => setUploadParcelId(e.target.value)}
                 >
-                  <option value="">-- No Land Parcel Association --</option>
+                  <option value="">
+                    {t(
+                      'no_parcel_associate_option',
+                      '-- No Land Parcel Association --',
+                    )}
+                  </option>
                   {filteredParcelsForUpload.map((parcel) => (
                     <option key={parcel.id} value={parcel.id}>
                       {parcel.land_name || parcel.parcel_id} ({parcel.parcel_id}
@@ -787,18 +849,28 @@ export default function DocumentList() {
                 </select>
               </div>
 
-              {/* Property Owner picker */}
               <div>
                 <label className="text-muted-foreground mb-1.5 block text-xs font-semibold uppercase tracking-wider">
-                  Associate with Property Owner (Optional)
+                  {t(
+                    'associate_owner_label',
+                    'Associate with Property Owner (Optional)',
+                  )}
                 </label>
                 <select
-                  title="Property Owner Association"
+                  title={t(
+                    'owner_associate_title',
+                    'Property Owner Association',
+                  )}
                   className="bg-input-background border-border w-full rounded-lg border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                   value={uploadOwnerId}
                   onChange={(e) => setUploadOwnerId(e.target.value)}
                 >
-                  <option value="">-- No Property Owner Association --</option>
+                  <option value="">
+                    {t(
+                      'no_owner_associate_option',
+                      '-- No Property Owner Association --',
+                    )}
+                  </option>
                   {propertyOwners.map((owner) => (
                     <option key={owner.id} value={owner.id}>
                       {owner.name} ({owner.ownerId})
@@ -807,7 +879,6 @@ export default function DocumentList() {
                 </select>
               </div>
 
-              {/* Buttons */}
               <div className="border-border mt-6 flex items-center justify-end gap-3 border-t pt-4">
                 <button
                   type="button"
@@ -821,7 +892,7 @@ export default function DocumentList() {
                   }}
                   className="border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg border px-4 py-2 text-sm font-semibold transition-colors"
                 >
-                  Cancel
+                  {t('btn_cancel', 'Cancel')}
                 </button>
                 <button
                   type="submit"
@@ -831,12 +902,12 @@ export default function DocumentList() {
                   {uploadLoading ? (
                     <>
                       <SyncLoader size={4} color="#ffffff" />
-                      <span>Uploading...</span>
+                      <span>{t('btn_uploading', 'Uploading...')}</span>
                     </>
                   ) : (
                     <>
                       <Plus className="h-4 w-4" />
-                      <span>Upload Document</span>
+                      <span>{t('btn_upload_document', 'Upload Document')}</span>
                     </>
                   )}
                 </button>

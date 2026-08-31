@@ -14,7 +14,7 @@ import {
 import type { LandParcel } from '@/services/landParcelManagementService';
 
 export default function LandParcelList() {
-  const { locale } = useTranslation();
+  const { locale, t } = useTranslation();
   const [parcels, setParcels] = useState<LandParcel[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
@@ -66,14 +66,25 @@ export default function LandParcelList() {
 
       if (res.failures && res.failures.length > 0) {
         const failedCount = res.failures.length;
-        const msg = `Successfully imported ${res.imported_count} land parcels. ${failedCount} rows failed validation.`;
+        const msg = t(
+          'import_partial_success_msg',
+          'Successfully imported {imported} land parcels. {failed} rows failed validation.',
+        )
+          .replace('{imported}', res.imported_count.toString())
+          .replace('{failed}', failedCount.toString());
         setImportMessage({ type: 'success', text: msg });
         await alertInfo(
-          'Import Completed with Failures',
-          msg + '\n\nFirst failure: ' + res.failures[0].errors.join(', '),
+          t('import_completed_failures', 'Import Completed with Failures'),
+          msg +
+            '\n\n' +
+            t('first_failure_label', 'First failure: ') +
+            res.failures[0].errors.join(', '),
         );
       } else {
-        const msg = `Successfully imported all ${res.imported_count} land parcels!`;
+        const msg = t(
+          'import_success_count',
+          'Successfully imported all {count} land parcels!',
+        ).replace('{count}', res.imported_count.toString());
         setImportMessage({ type: 'success', text: msg });
         toastSuccess(msg);
       }
@@ -87,28 +98,43 @@ export default function LandParcelList() {
       if (error.response?.status === 422) {
         const data = error.response.data;
         const failedCount = data.failures?.length || 0;
-        const msg = `Import failed: ${failedCount} rows had validation errors. ${data.imported_count} land parcels were imported successfully.`;
+        const msg = t(
+          'import_failed_validation',
+          'Import failed: {failed} rows had validation errors. {imported} land parcels were imported successfully.',
+        )
+          .replace('{failed}', failedCount.toString())
+          .replace('{imported}', data.imported_count.toString());
         setImportMessage({ type: 'error', text: msg });
 
         let failureDetails = '';
 
         if (data.failures && data.failures.length > 0) {
           failureDetails =
-            '\n\nValidation failures:\n' +
+            '\n\n' +
+            t('validation_failures_label', 'Validation failures:') +
+            '\n' +
             data.failures
               .slice(0, 5)
               .map(
                 (f: any) =>
-                  `Row ${f.row} (${f.attribute}): ${f.errors.join(', ')}`,
+                  `${t('row_label', 'Row')} ${f.row} (${f.attribute}): ${f.errors.join(', ')}`,
               )
               .join('\n');
 
           if (data.failures.length > 5) {
-            failureDetails += `\n... and ${data.failures.length - 5} more failures.`;
+            failureDetails +=
+              `\n` +
+              t('and_more_failures', '... and {count} more failures.').replace(
+                '{count}',
+                (data.failures.length - 5).toString(),
+              );
           }
         }
 
-        await alertInfo('Import Failed', msg + failureDetails);
+        await alertInfo(
+          t('import_failed', 'Import Failed'),
+          msg + failureDetails,
+        );
 
         // Refresh list if partial records were imported
         if (data.imported_count > 0) {
@@ -125,7 +151,10 @@ export default function LandParcelList() {
       } else {
         const errorMsg =
           error.response?.data?.message ||
-          'Failed to import land parcels. Please check the file format.';
+          t(
+            'default_import_error',
+            'Failed to import land parcels. Please check the file format.',
+          );
         setImportMessage({ type: 'error', text: errorMsg });
         toastError(errorMsg);
       }
@@ -139,62 +168,67 @@ export default function LandParcelList() {
   };
 
   const columns = [
-    { key: 'parcel_id', label: 'Land Number', sortable: true },
+    {
+      key: 'parcel_id',
+      label: t('land_number', 'Land Number'),
+      sortable: true,
+    },
     {
       key: 'land_name',
-      label: 'Land Name',
+      label: t('land_name_header', 'Land Name'),
       sortable: true,
-      render: (value: string | null) => value || 'N/A',
+      render: (value: string | null) => value || t('n_a', 'N/A'),
     },
-    { key: 'district', label: 'District', sortable: true },
+    { key: 'district', label: t('district', 'District'), sortable: true },
     {
       key: 'divisional_secretariat',
-      label: 'Divisional Secretariat',
+      label: t('divisional_secretariat', 'Divisional Secretariat'),
       sortable: true,
       render: (_val: any, row: any) =>
-        row.divisional_secretariat || row.division || 'N/A',
+        row.divisional_secretariat || row.division || t('n_a', 'N/A'),
     },
     {
       key: 'grama_niladari_division',
-      label: 'GN Division',
+      label: t('gn_division', 'GN Division'),
       sortable: true,
-      render: (value: string | null) => value || 'N/A',
+      render: (value: string | null) => value || t('n_a', 'N/A'),
     },
-    { key: 'village', label: 'Village', sortable: true },
+    { key: 'village', label: t('village', 'Village'), sortable: true },
     {
       key: 'land_type',
-      label: 'Land Type',
+      label: t('land_type', 'Land Type'),
       sortable: true,
-      render: (value: string | null) => value || 'Standard',
+      render: (value: string | null) =>
+        value || t('standard_land_type', 'Standard'),
     },
     {
       key: 'owners',
-      label: 'Owner Name',
+      label: t('owner_name_header', 'Owner Name'),
       sortable: true,
       render: (_val: any, row: any) => {
         if (row.owners && row.owners.length > 0) {
           return row.owners.map((o: any) => o.name).join(', ');
         }
 
-        return 'N/A';
+        return t('n_a', 'N/A');
       },
     },
     {
       key: 'extent',
-      label: 'Extent',
+      label: t('extent', 'Extent'),
       sortable: true,
       render: (_val: any, row: any) =>
-        `${row.land_size_acers ?? row.extent_acers ?? 0} ac, ${row.land_size_roods ?? 0} rd, ${row.land_size_perches ?? row.extent_perches ?? 0} per`,
+        `${row.land_size_acers ?? row.extent_acers ?? 0} ${t('ac_abbr', 'ac')}, ${row.land_size_roods ?? 0} ${t('rd_abbr', 'rd')}, ${row.land_size_perches ?? row.extent_perches ?? 0} ${t('per_abbr', 'per')}`,
     },
     {
       key: 'cultivation_status',
-      label: 'Cultivation',
+      label: t('cultivation_header', 'Cultivation'),
       sortable: true,
-      render: (value: string | null) => value || 'N/A',
+      render: (value: string | null) => value || t('n_a', 'N/A'),
     },
     {
       key: 'estimated_value',
-      label: 'Estimated Value',
+      label: t('estimated_value', 'Estimated Value'),
       sortable: true,
       render: (value: number | null) =>
         value !== undefined && value !== null
@@ -203,14 +237,14 @@ export default function LandParcelList() {
     },
     {
       key: 'project',
-      label: 'Associated Project',
+      label: t('associated_project', 'Associated Project'),
       sortable: true,
       render: (_val: any, row: any) =>
-        row.project?.title || row.project?.name || 'N/A',
+        row.project?.title || row.project?.name || t('n_a', 'N/A'),
     },
     {
       key: 'is_casehold',
-      label: 'Casehold',
+      label: t('casehold', 'Casehold'),
       sortable: true,
       render: (value: boolean | null) => (
         <span
@@ -220,13 +254,13 @@ export default function LandParcelList() {
               : 'text-muted-foreground'
           }
         >
-          {value ? 'Yes' : 'No'}
+          {value ? t('yes', 'Yes') : t('no', 'No')}
         </span>
       ),
     },
     {
       key: 'is_donated',
-      label: 'Donated',
+      label: t('donated', 'Donated'),
       sortable: true,
       render: (value: boolean | null) => (
         <span
@@ -236,29 +270,29 @@ export default function LandParcelList() {
               : 'text-muted-foreground'
           }
         >
-          {value ? 'Yes' : 'No'}
+          {value ? t('yes', 'Yes') : t('no', 'No')}
         </span>
       ),
     },
     {
       key: 'status',
-      label: 'Current Status',
+      label: t('current_status', 'Current Status'),
       sortable: true,
       render: (value: string) => <StatusBadge status={value} />,
     },
     {
       key: 'created_at',
-      label: 'Created At',
+      label: t('created_at', 'Created At'),
       sortable: true,
       render: (value: string) =>
-        value ? new Date(value).toLocaleDateString() : 'N/A',
+        value ? new Date(value).toLocaleDateString() : t('n_a', 'N/A'),
     },
     {
       key: 'updated_at',
-      label: 'Updated At',
+      label: t('updated_at', 'Updated At'),
       sortable: true,
       render: (value: string) =>
-        value ? new Date(value).toLocaleDateString() : 'N/A',
+        value ? new Date(value).toLocaleDateString() : t('n_a', 'N/A'),
     },
   ];
 
@@ -271,7 +305,7 @@ export default function LandParcelList() {
             router.visit(`/land-parcels/${row.id}/edit`);
           }}
           className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
-          title="Edit Land Parcel"
+          title={t('edit_land_parcel_tooltip', 'Edit Land Parcel')}
         >
           <Pencil className="h-4 w-4" />
         </button>
@@ -282,7 +316,7 @@ export default function LandParcelList() {
           router.visit(`/land-parcels/${row.id}`);
         }}
         className="hover:bg-muted rounded p-1.5 transition-colors"
-        title="View Details"
+        title={t('view_details_tooltip', 'View Details')}
       >
         <Eye className="h-4 w-4" />
       </button>
@@ -292,7 +326,7 @@ export default function LandParcelList() {
           router.visit(`/gis-maps?parcel=${row.id}`);
         }}
         className="hover:bg-muted rounded p-1.5 transition-colors"
-        title="View on Map"
+        title={t('view_on_map_tooltip', 'View on Map')}
       >
         <MapPin className="h-4 w-4" />
       </button>
@@ -303,9 +337,9 @@ export default function LandParcelList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Land Parcels</h1>
+          <h1>{t('land_parcels', 'Land Parcels')}</h1>
           <p className="text-muted-foreground mt-1">
-            Manage land parcel information
+            {t('manage_land_parcel_info', 'Manage land parcel information')}
           </p>
         </div>
         {userRole === 'DO' && (
@@ -322,10 +356,17 @@ export default function LandParcelList() {
               onClick={() => fileInputRef.current?.click()}
               disabled={importing}
               className="bg-muted hover:bg-muted/80 text-foreground flex items-center gap-2 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
-              title="Import Land Parcels from Excel or CSV file"
+              title={t(
+                'import_excel_csv_desc',
+                'Import Land Parcels from Excel or CSV file',
+              )}
             >
               <Upload className="h-5 w-5" />
-              <span>{importing ? 'Importing...' : 'Import'}</span>
+              <span>
+                {importing
+                  ? t('importing', 'Importing...')
+                  : t('import', 'Import')}
+              </span>
             </button>
             <button
               onClick={() => {
@@ -334,7 +375,7 @@ export default function LandParcelList() {
               className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
             >
               <Plus className="h-5 w-5" />
-              <span>Add Parcel</span>
+              <span>{t('add_parcel_btn', 'Add Parcel')}</span>
             </button>
           </div>
         )}
@@ -354,7 +395,7 @@ export default function LandParcelList() {
 
       {loading ? (
         <div className="bg-card border-border text-muted-foreground flex h-64 items-center justify-center rounded-lg border">
-          Loading land parcels...
+          {t('loading_land_parcels_msg', 'Loading land parcels...')}
         </div>
       ) : (
         <DataTable

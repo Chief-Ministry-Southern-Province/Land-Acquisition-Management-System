@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { ArrowLeft, Eye, EyeOff, Info, Save, UserPlus, X } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { register } from '@/services/authService';
 import { getDepartments } from '@/services/departmentManagementService';
@@ -55,43 +56,58 @@ const EMPTY_VALUES: AddUserFormValues = {
   status: 'Active',
 };
 
-function validate(values: AddUserFormValues, isEditMode = false): FormErrors {
+function validate(
+  values: AddUserFormValues,
+  isEditMode = false,
+  t: any,
+): FormErrors {
   const errors: FormErrors = {};
 
   if (!values.userName.trim()) {
-    errors.userName = 'User name is required.';
+    errors.userName = t('err_user_name_required', 'User name is required.');
   }
 
   if (!values.username.trim()) {
-    errors.username = 'Username is required.';
+    errors.username = t('err_username_required', 'Username is required.');
   } else if (!/^[a-zA-Z0-9._-]{3,}$/.test(values.username.trim())) {
-    errors.username =
-      'Username must be at least 3 characters (letters, numbers, . _ -).';
+    errors.username = t(
+      'err_username_invalid',
+      'Username must be at least 3 characters (letters, numbers, . _ -).',
+    );
   }
 
   if (!values.role) {
-    errors.role = 'Please select a role.';
+    errors.role = t('err_select_role', 'Please select a role.');
   }
 
   if (!values.department) {
-    errors.department = 'Please select a department.';
+    errors.department = t(
+      'err_select_department',
+      'Please select a department.',
+    );
   }
 
   if (!values.email.trim()) {
-    errors.email = 'Email is required.';
+    errors.email = t('err_email_required', 'Email is required.');
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
-    errors.email = 'Enter a valid email address.';
+    errors.email = t('err_email_invalid', 'Enter a valid email address.');
   }
 
   if (!isEditMode) {
     if (!values.password) {
-      errors.password = 'Password is required.';
+      errors.password = t('err_password_required', 'Password is required.');
     } else if (values.password.length < 8) {
-      errors.password = 'Password must be at least 8 characters.';
+      errors.password = t(
+        'err_password_len',
+        'Password must be at least 8 characters.',
+      );
     }
 
     if (values.confirmPassword !== values.password) {
-      errors.confirmPassword = 'Passwords do not match.';
+      errors.confirmPassword = t(
+        'err_passwords_dont_match',
+        'Passwords do not match.',
+      );
     }
   }
 
@@ -163,6 +179,7 @@ export default function AddUserForm({
   isSubmitting: isSubmittingProp,
   userToEdit,
 }: AddUserFormProps) {
+  const { t } = useTranslation();
   const [roles, setRoles] = useState<Role[]>([]);
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
@@ -217,7 +234,10 @@ export default function AddUserForm({
         }
       } catch (err: any) {
         if (active) {
-          setOptionsError(err.message || 'Error loading roles/departments.');
+          setOptionsError(
+            err.message ||
+              t('err_loading_options', 'Error loading roles/departments.'),
+          );
           setIsLoadingOptions(false);
         }
       }
@@ -228,7 +248,7 @@ export default function AddUserForm({
     return () => {
       active = false;
     };
-  }, []);
+  }, [t]);
 
   const handleChange =
     (field: keyof AddUserFormValues) =>
@@ -241,7 +261,7 @@ export default function AddUserForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setGeneralError(null);
-    const validationErrors = validate(values, isEditMode);
+    const validationErrors = validate(values, isEditMode, t);
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
@@ -309,13 +329,20 @@ export default function AddUserForm({
             setGeneralError(
               data.message ||
                 (isEditMode
-                  ? 'Failed to update user.'
-                  : 'Failed to register user.'),
+                  ? t('toast_failed_user_update', 'Failed to update user.')
+                  : t(
+                      'toast_failed_user_registration',
+                      'Failed to register user.',
+                    )),
             );
           }
         } else {
           setGeneralError(
-            err.message || 'A network error occurred. Please try again.',
+            err.message ||
+              t(
+                'toast_network_error',
+                'A network error occurred. Please try again.',
+              ),
           );
         }
 
@@ -341,16 +368,26 @@ export default function AddUserForm({
             type="button"
             onClick={handleCancel}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
-            title="Back to User Management"
+            title={t('back_to_user_mgmt', 'Back to User Management')}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1>{isEditMode ? 'Edit User' : 'Add User'}</h1>
+            <h1>
+              {isEditMode
+                ? t('edit_user', 'Edit User')
+                : t('add_user', 'Add User')}
+            </h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
               {isEditMode
-                ? 'Update system user details and access'
-                : 'Create a new system user and assign access'}
+                ? t(
+                    'edit_user_subtitle',
+                    'Update system user details and access',
+                  )
+                : t(
+                    'add_user_subtitle',
+                    'Create a new system user and assign access',
+                  )}
             </p>
           </div>
         </div>
@@ -361,7 +398,7 @@ export default function AddUserForm({
             disabled={isSubmitting}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:opacity-50"
           >
-            <X className="h-4 w-4" /> Cancel
+            <X className="h-4 w-4" /> {t('cancel', 'Cancel')}
           </button>
           <button
             type="submit"
@@ -372,11 +409,11 @@ export default function AddUserForm({
             <Save className="h-4 w-4" />
             {isSubmitting
               ? isEditMode
-                ? 'Saving...'
-                : 'Adding...'
+                ? t('saving', 'Saving...')
+                : t('adding', 'Adding...')
               : isEditMode
-                ? 'Save Changes'
-                : 'Add User'}
+                ? t('save_changes', 'Save Changes')
+                : t('add_user', 'Add User')}
           </button>
         </div>
       </div>
@@ -403,23 +440,26 @@ export default function AddUserForm({
         <div className="bg-card border-border rounded-xl border p-6">
           <SectionHeader
             icon={UserPlus}
-            title="User Information"
+            title={t('user_information', 'User Information')}
             subtitle={
               isEditMode
-                ? 'Basic details for the user'
-                : 'Basic details and credentials for the new user'
+                ? t('edit_user_info_subtitle', 'Basic details for the user')
+                : t(
+                    'add_user_info_subtitle',
+                    'Basic details and credentials for the new user',
+                  )
             }
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* User Name – full width */}
             <div className="md:col-span-2">
-              <Field label="Full Name" required>
+              <Field label={t('full_name', 'Full Name')} required>
                 <input
                   id="userName"
                   className={inputCls}
                   type="text"
-                  placeholder="e.g. K.P. Silva"
+                  placeholder={t('full_name_placeholder', 'e.g. K.P. Silva')}
                   value={values.userName}
                   onChange={handleChange('userName')}
                   disabled={isSubmitting}
@@ -431,12 +471,12 @@ export default function AddUserForm({
             </div>
 
             {/* Username */}
-            <Field label="Username" required>
+            <Field label={t('username', 'Username')} required>
               <input
                 id="username"
                 className={inputCls}
                 type="text"
-                placeholder="e.g. kpsilva"
+                placeholder={t('username_placeholder', 'e.g. kpsilva')}
                 value={values.username}
                 onChange={handleChange('username')}
                 disabled={isSubmitting}
@@ -447,12 +487,12 @@ export default function AddUserForm({
             </Field>
 
             {/* Email */}
-            <Field label="Email" required>
+            <Field label={t('email', 'Email')} required>
               <input
                 id="email"
                 className={inputCls}
                 type="email"
-                placeholder="e.g. kpsilva@lams.gov.lk"
+                placeholder={t('email_placeholder', 'e.g. kpsilva@lams.gov.lk')}
                 value={values.email}
                 onChange={handleChange('email')}
                 disabled={isSubmitting}
@@ -461,7 +501,7 @@ export default function AddUserForm({
             </Field>
 
             {/* Role */}
-            <Field label="Role" required>
+            <Field label={t('role', 'Role')} required>
               <select
                 id="role"
                 className={inputCls}
@@ -470,7 +510,9 @@ export default function AddUserForm({
                 disabled={isSubmitting || isLoadingOptions}
               >
                 <option value="">
-                  {isLoadingOptions ? 'Loading roles...' : 'Select role'}
+                  {isLoadingOptions
+                    ? t('loading_roles', 'Loading roles...')
+                    : t('select_role', 'Select role')}
                 </option>
                 {roles.map((role) => (
                   <option key={role.id} value={role.id}>
@@ -483,7 +525,7 @@ export default function AddUserForm({
             </Field>
 
             {/* Department */}
-            <Field label="Department" required>
+            <Field label={t('department', 'Department')} required>
               <select
                 id="department"
                 className={inputCls}
@@ -493,8 +535,8 @@ export default function AddUserForm({
               >
                 <option value="">
                   {isLoadingOptions
-                    ? 'Loading departments...'
-                    : 'Select department'}
+                    ? t('loading_departments', 'Loading departments...')
+                    : t('select_department', 'Select department')}
                 </option>
                 {departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>
@@ -511,16 +553,19 @@ export default function AddUserForm({
               <>
                 {/* Password */}
                 <Field
-                  label="Password"
+                  label={t('password', 'Password')}
                   required
-                  hint="Must be at least 8 characters"
+                  hint={t('password_hint', 'Must be at least 8 characters')}
                 >
                   <div className="relative">
                     <input
                       id="password"
                       className={`${inputCls} pr-10`}
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="At least 8 characters"
+                      placeholder={t(
+                        'password_placeholder',
+                        'At least 8 characters',
+                      )}
                       value={values.password}
                       onChange={handleChange('password')}
                       disabled={isSubmitting}
@@ -544,12 +589,18 @@ export default function AddUserForm({
                 </Field>
 
                 {/* Confirm Password */}
-                <Field label="Confirm Password" required>
+                <Field
+                  label={t('confirm_password', 'Confirm Password')}
+                  required
+                >
                   <input
                     id="confirmPassword"
                     className={inputCls}
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Re-enter password"
+                    placeholder={t(
+                      'confirm_password_placeholder',
+                      'Re-enter password',
+                    )}
                     value={values.confirmPassword}
                     onChange={handleChange('confirmPassword')}
                     disabled={isSubmitting}
@@ -563,7 +614,7 @@ export default function AddUserForm({
 
             {/* Status – full width */}
             <div className="md:col-span-2">
-              <Field label="Status">
+              <Field label={t('status', 'Status')}>
                 <div className="mt-1 flex items-center gap-5">
                   <label className="flex cursor-pointer items-center gap-2 text-sm">
                     <input
@@ -578,7 +629,7 @@ export default function AddUserForm({
                       disabled={isSubmitting}
                     />
                     <span className="bg-success/10 text-success inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
-                      Active
+                      {t('active', 'Active')}
                     </span>
                   </label>
                   <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -594,7 +645,7 @@ export default function AddUserForm({
                       disabled={isSubmitting}
                     />
                     <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
-                      Inactive
+                      {t('inactive', 'Inactive')}
                     </span>
                   </label>
                 </div>

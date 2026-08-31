@@ -54,8 +54,21 @@ interface Props {
 }
 
 export default function LandParcelDetails({ id }: Props) {
-  const { locale } = useTranslation();
+  const { locale, t } = useTranslation();
   const [parcel, setParcel] = useState<LandParcel | null>(null);
+
+  const getCultivationStatusText = (status: string) => {
+    switch (status) {
+      case 'fertile':
+        return t('fertile', 'Fertile');
+      case 'mid':
+        return t('mid', 'Moderate');
+      case 'infertile':
+        return t('infertile', 'Infertile');
+      default:
+        return t('unspecified', 'Unspecified');
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<any[]>([]);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
@@ -830,7 +843,7 @@ export default function LandParcelDetails({ id }: Props) {
   if (loading && !parcel) {
     return (
       <div className="text-muted-foreground flex h-96 items-center justify-center">
-        Loading parcel details...
+        {t('loading_project_details_view', 'Loading parcel details...')}
       </div>
     );
   }
@@ -838,21 +851,24 @@ export default function LandParcelDetails({ id }: Props) {
   if (!parcel) {
     return (
       <div className="text-muted-foreground flex h-96 flex-col items-center justify-center gap-4">
-        <p>Land parcel not found.</p>
+        <p>{t('land_parcel_not_found', 'Land parcel not found.')}</p>
         <Link href="/land-parcels" className="text-primary hover:underline">
-          Back to Land Parcels
+          {t('back_to_land_parcels', 'Back to Land Parcels')}
         </Link>
       </div>
     );
   }
 
   const tabs = [
-    { id: 'general', label: 'General Information' },
-    { id: 'survey', label: 'Survey Info' },
-    { id: 'valuation', label: 'Valuation Details' },
-    { id: 'compensation', label: 'Compensation & Payments' },
+    { id: 'general', label: t('general_information', 'General Information') },
+    { id: 'survey', label: t('survey_info', 'Survey Info') },
+    { id: 'valuation', label: t('valuation_details', 'Valuation Details') },
+    {
+      id: 'compensation',
+      label: t('compensation_payments', 'Compensation & Payments'),
+    },
     ...(parcel.is_casehold
-      ? [{ id: 'legal', label: 'Legal & Obligations' }]
+      ? [{ id: 'legal', label: t('legal_obligations', 'Legal & Obligations') }]
       : []),
   ];
 
@@ -896,7 +912,12 @@ export default function LandParcelDetails({ id }: Props) {
         'legal',
         parcel?.id || null,
       );
-      toastSuccess('Legal document uploaded successfully!');
+      toastSuccess(
+        t(
+          'legal_document_uploaded_success',
+          'Legal document uploaded successfully!',
+        ),
+      );
       setShowLegalUploadForm(false);
       setLegalDocTitle('');
       setLegalDocCategory('court_order');
@@ -904,7 +925,12 @@ export default function LandParcelDetails({ id }: Props) {
       await fetchParcelDetails();
     } catch (err) {
       console.error(err);
-      toastError('Failed to upload legal document. Please try again.');
+      toastError(
+        t(
+          'failed_upload_legal_doc',
+          'Failed to upload legal document. Please try again.',
+        ),
+      );
     } finally {
       setLegalDocUploading(false);
     }
@@ -917,12 +943,15 @@ export default function LandParcelDetails({ id }: Props) {
           <Link
             href="/land-parcels"
             className="hover:bg-muted rounded-lg p-2 transition-colors"
+            title={t('back_to_land_parcels', 'Back to Land Parcels')}
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
             <div className="mb-1 flex items-center gap-3">
-              <h1>Land Number: {parcel.parcel_id}</h1>
+              <h1>
+                {t('land_number_colon', 'Land Number:')} {parcel.parcel_id}
+              </h1>
               <StatusBadge status={parcel.status} />
             </div>
             <p className="text-muted-foreground">{parcel.land_name || ''}</p>
@@ -935,7 +964,7 @@ export default function LandParcelDetails({ id }: Props) {
               className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
             >
               <Pencil className="h-4 w-4" />
-              <span>Edit Parcel</span>
+              <span>{t('edit_land_parcel', 'Edit Land Parcel')}</span>
             </button>
           )}
           <button
@@ -943,15 +972,18 @@ export default function LandParcelDetails({ id }: Props) {
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
           >
             <MapPin className="h-4 w-4" />
-            <span>View on Map</span>
+            <span>{t('view_on_map_tooltip', 'View on Map')}</span>
           </button>
           <button
             onClick={handleExportPdf}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
-            title="Export Land Acquisition Application Form (PDF)"
+            title={t(
+              'export_land_acq_form_tooltip',
+              'Export Land Acquisition Application Form (PDF)',
+            )}
           >
             <Download className="h-4 w-4" />
-            <span>Export Form (PDF)</span>
+            <span>{t('export_form_pdf', 'Export Form (PDF)')}</span>
           </button>
         </div>
       </div>
@@ -979,65 +1011,90 @@ export default function LandParcelDetails({ id }: Props) {
       {activeTab === 'general' && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="bg-card border-border rounded-lg border p-6">
-            <h3 className="mb-4">Parcel Information</h3>
+            <h3 className="mb-4">{t('parcel_overview', 'Parcel Overview')}</h3>
             <dl className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Land Name:</dt>
-                <dd className="font-medium">{parcel.land_name || 'N/A'}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Province / District:</dt>
-                <dd>
-                  {parcel.province || 'Southern'} / {parcel.district}
+                <dt className="text-muted-foreground">
+                  {t('land_name_colon', 'Land Name:')}
+                </dt>
+                <dd className="font-medium">
+                  {parcel.land_name || t('n_a', 'N/A')}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">
-                  Divisional Secretariat:
+                  {t('province_district_label', 'Province / District:')}
                 </dt>
                 <dd>
-                  {parcel.divisional_secretariat || parcel.division || 'N/A'}
+                  {parcel.province || t('southern_default', 'Southern')} /{' '}
+                  {parcel.district}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">
-                  Grama Niladhari Division:
+                  {t('divisional_secretariat_colon', 'Divisional Secretariat:')}
                 </dt>
-                <dd>{parcel.grama_niladari_division || 'N/A'}</dd>
+                <dd>
+                  {parcel.divisional_secretariat ||
+                    parcel.division ||
+                    t('n_a', 'N/A')}
+                </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Village / Town:</dt>
+                <dt className="text-muted-foreground">
+                  {t('gn_division_colon', 'Grama Niladhari Division:')}
+                </dt>
+                <dd>{parcel.grama_niladari_division || t('n_a', 'N/A')}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">
+                  {t('village_town_colon', 'Village / Town:')}
+                </dt>
                 <dd>{parcel.village}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Extent Breakdown:</dt>
+                <dt className="text-muted-foreground">
+                  {t('extent_breakdown_label', 'Extent Breakdown:')}
+                </dt>
                 <dd className="font-mono">
-                  {parcel.land_size_acers ?? parcel.extent_acers ?? 0} A,{' '}
-                  {parcel.land_size_roods ?? 0} R,{' '}
-                  {parcel.land_size_perches ?? parcel.extent_perches ?? 0} P
+                  {parcel.land_size_acers ?? parcel.extent_acers ?? 0}{' '}
+                  {t('ac_abbr', 'A')}, {parcel.land_size_roods ?? 0}{' '}
+                  {t('rd_abbr', 'R')},{' '}
+                  {parcel.land_size_perches ?? parcel.extent_perches ?? 0}{' '}
+                  {t('per_abbr', 'P')}
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Total Land Size:</dt>
+                <dt className="text-muted-foreground">
+                  {t('total_land_size_label', 'Total Land Size:')}
+                </dt>
                 <dd className="font-medium">
-                  {parcel.full_land_size ?? 0} Perches
+                  {parcel.full_land_size ?? 0} {t('perches', 'Perches')}
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Plan Status:</dt>
-                <dd>{parcel.has_plan ? 'Has Plan' : 'No Plan'}</dd>
+                <dt className="text-muted-foreground">
+                  {t('plan_status_label', 'Plan Status:')}
+                </dt>
+                <dd>
+                  {parcel.has_plan
+                    ? t('has_plan', 'Has Plan')
+                    : t('no_plan', 'No Plan')}
+                </dd>
               </div>
               {parcel.has_plan ? (
                 <>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Plan Number:</dt>
-                    <dd>{parcel.plan_number || 'N/A'}</dd>
+                    <dt className="text-muted-foreground">
+                      {t('plan_number_colon', 'Plan Number:')}
+                    </dt>
+                    <dd>{parcel.plan_number || t('n_a', 'N/A')}</dd>
                   </div>
                   {parcel.parcel_numbers &&
                     parcel.parcel_numbers.length > 0 && (
                       <div className="flex justify-between">
                         <dt className="text-muted-foreground">
-                          Parcel Numbers:
+                          {t('parcel_numbers_colon', 'Parcel Numbers:')}
                         </dt>
                         <dd className="font-mono">
                           {parcel.parcel_numbers.join(', ')}
@@ -1049,67 +1106,95 @@ export default function LandParcelDetails({ id }: Props) {
                 <>
                   <div className="border-border my-2 flex items-center justify-between border-t pt-2">
                     <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                      Plan Boundaries
+                      {t('plan_boundaries_label', 'Plan Boundaries')}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">North Boundary:</dt>
+                    <dt className="text-muted-foreground">
+                      {t('north_boundary_label', 'North Boundary:')}
+                    </dt>
                     <dd className="text-right">
-                      {parcel.boundaries_north || 'N/A'}
+                      {parcel.boundaries_north || t('n_a', 'N/A')}
                     </dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">South Boundary:</dt>
+                    <dt className="text-muted-foreground">
+                      {t('south_boundary_label', 'South Boundary:')}
+                    </dt>
                     <dd className="text-right">
-                      {parcel.boundaries_south || 'N/A'}
+                      {parcel.boundaries_south || t('n_a', 'N/A')}
                     </dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">East Boundary:</dt>
+                    <dt className="text-muted-foreground">
+                      {t('east_boundary_label', 'East Boundary:')}
+                    </dt>
                     <dd className="text-right">
-                      {parcel.boundaries_east || 'N/A'}
+                      {parcel.boundaries_east || t('n_a', 'N/A')}
                     </dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">West Boundary:</dt>
+                    <dt className="text-muted-foreground">
+                      {t('west_boundary_label', 'West Boundary:')}
+                    </dt>
                     <dd className="text-right">
-                      {parcel.boundaries_west || 'N/A'}
+                      {parcel.boundaries_west || t('n_a', 'N/A')}
                     </dd>
                   </div>
                 </>
               )}
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Cultivation & Status:</dt>
+                <dt className="text-muted-foreground">
+                  {t('cultivation_status_label', 'Cultivation & Status:')}
+                </dt>
                 <dd>
-                  {parcel.cultivation || 'N/A'} (
-                  {parcel.cultivation_status || 'fertile'})
+                  {parcel.cultivation || t('n_a', 'N/A')} (
+                  {getCultivationStatusText(
+                    parcel.cultivation_status || 'fertile',
+                  )}
+                  )
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Annual Income:</dt>
+                <dt className="text-muted-foreground">
+                  {t('annual_income_colon', 'Annual Income:')}
+                </dt>
                 <dd>₨ {Number(parcel.annual_income || 0).toLocaleString()}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Land Type:</dt>
-                <dd>{parcel.land_type || 'Standard'}</dd>
+                <dt className="text-muted-foreground">
+                  {t('land_type_colon', 'Land Type:')}
+                </dt>
+                <dd>
+                  {parcel.land_type || t('standard_land_type', 'Standard')}
+                </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Estimated Value:</dt>
+                <dt className="text-muted-foreground">
+                  {t('estimated_value_colon', 'Estimated Value:')}
+                </dt>
                 <dd className="font-medium">
                   ₨ {Number(parcel.estimated_value || 0).toLocaleString()}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">
-                  Residential / Owner Living:
+                  {t(
+                    'residential_owner_living_colon',
+                    'Residential / Owner Living:',
+                  )}
                 </dt>
                 <dd>
-                  {parcel.has_residential_houses ? 'Yes' : 'No'} /{' '}
-                  {parcel.is_resident_owner ? 'Yes' : 'No'}
+                  {parcel.has_residential_houses
+                    ? t('yes', 'Yes')
+                    : t('no', 'No')}{' '}
+                  / {parcel.is_resident_owner ? t('yes', 'Yes') : t('no', 'No')}
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Donated Status:</dt>
+                <dt className="text-muted-foreground">
+                  {t('donated_status_label', 'Donated Status:')}
+                </dt>
                 <dd
                   className={
                     parcel.is_donated
@@ -1117,12 +1202,14 @@ export default function LandParcelDetails({ id }: Props) {
                       : ''
                   }
                 >
-                  {parcel.is_donated ? 'Yes (Donated)' : 'No'}
+                  {parcel.is_donated
+                    ? t('yes_donated', 'Yes (Donated)')
+                    : t('no', 'No')}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">
-                  Litigation / Casehold:
+                  {t('litigation_casehold_label', 'Litigation / Casehold:')}
                 </dt>
                 <dd
                   className={
@@ -1131,43 +1218,49 @@ export default function LandParcelDetails({ id }: Props) {
                       : ''
                   }
                 >
-                  {parcel.is_casehold ? 'Yes (Under Litigation)' : 'No'}
+                  {parcel.is_casehold
+                    ? t('yes_casehold', 'Yes (Under Litigation)')
+                    : t('no', 'No')}
                 </dd>
               </div>
               {parcel.is_casehold && (
                 <>
                   <div className="flex justify-between border-l border-amber-200 pl-4">
                     <dt className="text-muted-foreground text-xs">
-                      Case Number:
+                      {t('case_number_colon', 'Case Number:')}
                     </dt>
                     <dd className="font-mono text-xs">
-                      {parcel.case_number || 'N/A'}
+                      {parcel.case_number || t('n_a', 'N/A')}
                     </dd>
                   </div>
                   <div className="flex justify-between border-l border-amber-200 pl-4">
                     <dt className="text-muted-foreground text-xs">
-                      Case Status:
+                      {t('case_status_colon', 'Case Status:')}
                     </dt>
-                    <dd className="text-xs">{parcel.case_status || 'N/A'}</dd>
+                    <dd className="text-xs">
+                      {parcel.case_status || t('n_a', 'N/A')}
+                    </dd>
                   </div>
                   <div className="flex justify-between border-l border-amber-200 pl-4">
                     <dt className="text-muted-foreground text-xs">
-                      Case Period:
+                      {t('case_period_label', 'Case Period:')}
                     </dt>
                     <dd className="text-xs">
                       {parcel.case_start_date
                         ? new Date(parcel.case_start_date).toLocaleDateString()
-                        : 'N/A'}{' '}
+                        : t('n_a', 'N/A')}{' '}
                       -{' '}
                       {parcel.case_end_date
                         ? new Date(parcel.case_end_date).toLocaleDateString()
-                        : 'Active'}
+                        : t('active', 'Active')}
                     </dd>
                   </div>
                 </>
               )}
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Associated Project:</dt>
+                <dt className="text-muted-foreground">
+                  {t('associated_project_colon', 'Associated Project:')}
+                </dt>
                 <dd>
                   {parcel.project ? (
                     <Link
@@ -1177,35 +1270,41 @@ export default function LandParcelDetails({ id }: Props) {
                       {parcel.project.title || parcel.project.name}
                     </Link>
                   ) : (
-                    'None'
+                    t('none', 'None')
                   )}
                 </dd>
               </div>
               <div className="border-border my-2 flex items-center justify-between border-t pt-2" />
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">GPS Location:</dt>
+                <dt className="text-muted-foreground">
+                  {t('gps_location_label', 'GPS Location:')}
+                </dt>
                 <dd className="font-mono text-xs">
                   {parcel.latitude && parcel.longitude
                     ? `${Number(parcel.latitude).toFixed(6)}, ${Number(parcel.longitude).toFixed(6)}`
-                    : 'N/A'}
+                    : t('n_a', 'N/A')}
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Remarks:</dt>
-                <dd className="text-right">{parcel.remarks || 'No remarks'}</dd>
+                <dt className="text-muted-foreground">
+                  {t('remarks_colon', 'Remarks:')}
+                </dt>
+                <dd className="text-right">
+                  {parcel.remarks || t('no_remarks', 'No remarks')}
+                </dd>
               </div>
             </dl>
           </div>
 
           <div className="space-y-6">
             <div className="bg-card border-border rounded-lg border p-6">
-              <h3 className="mb-4">Ownership</h3>
+              <h3 className="mb-4">{t('ownership', 'Ownership')}</h3>
               <DataTable
                 columns={[
-                  { key: 'name', label: 'Owner Name' },
-                  { key: 'nic', label: 'NIC' },
-                  { key: 'share', label: 'Share' },
-                  { key: 'type', label: 'Type' },
+                  { key: 'name', label: t('owner_name_header', 'Owner Name') },
+                  { key: 'nic', label: t('nic', 'NIC') },
+                  { key: 'share', label: t('share', 'Share') },
+                  { key: 'type', label: t('type', 'Type') },
                 ]}
                 data={owners}
                 searchable={false}
@@ -1215,15 +1314,18 @@ export default function LandParcelDetails({ id }: Props) {
             </div>
 
             <div className="bg-card border-border rounded-lg border p-6">
-              <h3 className="mb-4">Documents</h3>
+              <h3 className="mb-4">{t('land_documents', 'Documents')}</h3>
               <DataTable
                 columns={[
-                  { key: 'name', label: 'Document Name' },
-                  { key: 'type', label: 'Type' },
-                  { key: 'date', label: 'Date' },
+                  {
+                    key: 'name',
+                    label: t('document_name_header', 'Document Name'),
+                  },
+                  { key: 'type', label: t('type', 'Type') },
+                  { key: 'date', label: t('date', 'Date') },
                   {
                     key: 'actions',
-                    label: 'Actions',
+                    label: t('actions', 'Actions'),
                     render: (_val: any, row: any) => {
                       const isAvailable = parcel?.status === 'available';
 
@@ -1235,7 +1337,7 @@ export default function LandParcelDetails({ id }: Props) {
                           <button
                             onClick={() => handleDownload(row.id, row.name)}
                             className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
-                            title="Download"
+                            title={t('download', 'Download')}
                           >
                             <Download className="h-4 w-4" />
                           </button>
@@ -1243,7 +1345,7 @@ export default function LandParcelDetails({ id }: Props) {
                             <button
                               onClick={() => handleDelete(row.id)}
                               className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                              title="Delete"
+                              title={t('delete', 'Delete')}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -1261,12 +1363,12 @@ export default function LandParcelDetails({ id }: Props) {
           </div>
 
           <div className="bg-card border-border rounded-lg border p-6 lg:col-span-2">
-            <h3 className="mb-4">History</h3>
+            <h3 className="mb-4">{t('history', 'History')}</h3>
             <DataTable
               columns={[
-                { key: 'date', label: 'Date' },
-                { key: 'event', label: 'Event' },
-                { key: 'user', label: 'User' },
+                { key: 'date', label: t('date', 'Date') },
+                { key: 'event', label: t('event', 'Event') },
+                { key: 'user', label: t('user', 'User') },
               ]}
               data={history}
               searchable={false}
@@ -1283,11 +1385,13 @@ export default function LandParcelDetails({ id }: Props) {
           <div className="bg-card border-border flex items-center justify-between rounded-lg border p-6">
             <div>
               <h3 className="text-base font-semibold">
-                Survey Plans & Ref Coordinates
+                {t('survey_plan_records', 'Survey Plan Records')}
               </h3>
               <p className="text-muted-foreground text-sm">
-                Log external survey plans, surveyor credentials, boundary size,
-                and coordinates.
+                {t(
+                  'survey_plans_subtitle',
+                  'Register and view surveyor reports and official survey maps of the land.',
+                )}
               </p>
             </div>
             {isDO && !showSurveyForm && (
@@ -1301,8 +1405,8 @@ export default function LandParcelDetails({ id }: Props) {
                 <Plus className="h-4 w-4" />
                 <span>
                   {parcel.surveys && parcel.surveys.length > 0
-                    ? 'Update Survey plan'
-                    : 'Log Survey plan'}
+                    ? t('update_survey_plan', 'Update Survey plan')
+                    : t('register_survey_plan', 'Register Survey Plan')}
                 </span>
               </button>
             )}
@@ -1315,7 +1419,9 @@ export default function LandParcelDetails({ id }: Props) {
             >
               <div className="flex items-center justify-between border-b pb-3">
                 <h3 className="text-foreground text-base font-bold">
-                  {surveyId ? 'Edit Survey Record' : 'Register Survey Plan'}
+                  {surveyId
+                    ? t('edit_survey_record', 'Edit Survey Record')
+                    : t('register_survey_plan', 'Register Survey Plan')}
                 </h3>
                 <button
                   type="button"
@@ -1329,7 +1435,7 @@ export default function LandParcelDetails({ id }: Props) {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Surveyor Name *
+                    {t('surveyor_name', 'Surveyor Name')} *
                   </label>
                   <input
                     type="text"
@@ -1337,13 +1443,16 @@ export default function LandParcelDetails({ id }: Props) {
                     value={surveyorName}
                     onChange={(e) => setSurveyorName(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                    placeholder="Enter surveyor full name"
+                    placeholder={t(
+                      'enter_surveyor_fullname',
+                      'Enter surveyor full name',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Survey Date *
+                    {t('survey_date', 'Survey Date')} *
                   </label>
                   <input
                     type="date"
@@ -1356,7 +1465,7 @@ export default function LandParcelDetails({ id }: Props) {
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Survey Ref Number *
+                    {t('survey_ref_number', 'Survey Ref Number')} *
                   </label>
                   <input
                     type="text"
@@ -1364,13 +1473,16 @@ export default function LandParcelDetails({ id }: Props) {
                     value={surveyRefNumber}
                     onChange={(e) => setSurveyRefNumber(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                    placeholder="e.g. SRV/2026/G/8732"
+                    placeholder={t(
+                      'survey_ref_placeholder',
+                      'e.g. SRV/2026/G/8732',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Surveyed Size (Perches) *
+                    {t('surveyed_size_perches', 'Surveyed Size (Perches)')} *
                   </label>
                   <input
                     type="number"
@@ -1383,60 +1495,79 @@ export default function LandParcelDetails({ id }: Props) {
                       )
                     }
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                    placeholder="Size in perches"
+                    placeholder={t(
+                      'size_in_perches_placeholder',
+                      'Size in perches',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Status
+                    {t('status', 'Status')}
                   </label>
                   <select
                     value={surveyStatus}
                     onChange={(e) => setSurveyStatus(e.target.value as any)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
                   >
-                    <option value="completed">Completed</option>
-                    <option value="pending">Pending</option>
+                    <option value="completed">
+                      {t('completed', 'Completed')}
+                    </option>
+                    <option value="pending">{t('pending', 'Pending')}</option>
                   </select>
                 </div>
 
                 <div className="space-y-1 md:col-span-2">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Survey Coordinates (GeoJSON Polygon/JSON - Optional)
+                    {t(
+                      'survey_coordinates',
+                      'Survey Coordinates (GeoJSON Polygon/JSON - Optional)',
+                    )}
                   </label>
                   <textarea
                     value={surveyCoordinates}
                     onChange={(e) => setSurveyCoordinates(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-xs"
                     rows={3}
-                    placeholder='e.g. { "type": "Polygon", "coordinates": [...] }'
+                    placeholder={t(
+                      'coordinates_placeholder',
+                      'e.g. { "type": "Polygon", "coordinates": [...] }',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1 md:col-span-2">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Remarks
+                    {t('remarks_field', 'Remarks')}
                   </label>
                   <textarea
                     value={surveyRemarks}
                     onChange={(e) => setSurveyRemarks(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
                     rows={2}
-                    placeholder="Any observations or survey remarks"
+                    placeholder={t(
+                      'survey_remarks_placeholder',
+                      'Any observations or survey remarks',
+                    )}
                   />
                 </div>
 
                 {/* Mandatory Survey plan document upload */}
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Upload Survey Plan (MANDATORY PDF) *
+                    {t(
+                      'upload_survey_plan_mandatory',
+                      'Upload Survey Plan (MANDATORY PDF) *',
+                    )}
                   </label>
                   <div className="flex items-center gap-4">
                     <label className="bg-muted hover:bg-muted/80 text-foreground border-border flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors">
                       <Upload className="text-muted-foreground h-4 w-4" />
                       <span>
-                        {surveyUploading ? 'Uploading...' : 'Choose File'}
+                        {surveyUploading
+                          ? t('uploading', 'Uploading...')
+                          : t('choose_file', 'Choose File')}
                       </span>
                       <input
                         type="file"
@@ -1458,14 +1589,18 @@ export default function LandParcelDetails({ id }: Props) {
                       <div className="flex items-center gap-2 text-sm text-green-600">
                         <CheckCircle className="h-4 w-4" />
                         <span>
-                          Uploaded Plan: <strong>{surveyDocName}</strong>
+                          {t('uploaded_plan', 'Uploaded Plan')}:{' '}
+                          <strong>{surveyDocName}</strong>
                         </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-sm text-red-500">
                         <AlertCircle className="h-4 w-4" />
                         <span>
-                          A survey plan report must be uploaded before saving.
+                          {t(
+                            'survey_plan_upload_alert',
+                            'A survey plan report must be uploaded before saving.',
+                          )}
                         </span>
                       </div>
                     )}
@@ -1479,7 +1614,7 @@ export default function LandParcelDetails({ id }: Props) {
                   onClick={() => setShowSurveyForm(false)}
                   className="border-border hover:bg-muted text-foreground rounded-lg border px-5 py-2 text-sm font-semibold transition-colors"
                 >
-                  Cancel
+                  {t('cancel', 'Cancel')}
                 </button>
                 <button
                   type="submit"
@@ -1487,10 +1622,10 @@ export default function LandParcelDetails({ id }: Props) {
                   className="rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95 disabled:opacity-50"
                 >
                   {surveyUploading
-                    ? 'Uploading File...'
+                    ? t('uploading_file', 'Uploading File...')
                     : surveyId
-                      ? 'Update Record'
-                      : 'Save Survey Plan'}
+                      ? t('update_record', 'Update Record')
+                      : t('save_survey_plan', 'Save Survey Plan')}
                 </button>
               </div>
             </form>
@@ -1508,7 +1643,8 @@ export default function LandParcelDetails({ id }: Props) {
                     <div className="flex items-center gap-2">
                       <FileText className="text-primary h-5 w-5" />
                       <span className="text-sm font-bold">
-                        Ref Number: {survey.survey_ref_number}
+                        {t('ref_number_label', 'Ref Number')}:{' '}
+                        {survey.survey_ref_number}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -1518,14 +1654,14 @@ export default function LandParcelDetails({ id }: Props) {
                           <button
                             onClick={() => startEditSurvey(survey)}
                             className="hover:bg-muted text-muted-foreground hover:text-foreground rounded p-1.5 transition-colors"
-                            title="Edit"
+                            title={t('edit', 'Edit')}
                           >
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteSurvey(survey.id)}
                             className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                            title="Delete"
+                            title={t('delete', 'Delete')}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -1537,7 +1673,7 @@ export default function LandParcelDetails({ id }: Props) {
                   <dl className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-3">
                     <div>
                       <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                        Surveyor Name
+                        {t('surveyor_name', 'Surveyor Name')}
                       </dt>
                       <dd className="text-foreground font-medium">
                         {survey.surveyor_name}
@@ -1545,35 +1681,41 @@ export default function LandParcelDetails({ id }: Props) {
                     </div>
                     <div>
                       <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                        Survey Date
+                        {t('survey_date', 'Survey Date')}
                       </dt>
                       <dd className="text-foreground font-medium">
                         {survey.survey_date
                           ? new Date(survey.survey_date).toLocaleDateString()
-                          : 'N/A'}
+                          : t('n_a', 'N/A')}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                        Surveyed Size
+                        {t('surveyed_size', 'Surveyed Size')}
                       </dt>
                       <dd className="text-foreground font-mono font-medium">
-                        {survey.surveyed_size_perches} Perches
+                        {survey.surveyed_size_perches} {t('perches', 'Perches')}
                       </dd>
                     </div>
                     <div className="md:col-span-2">
                       <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                        Boundaries & GeoJSON Coordinates
+                        {t(
+                          'boundaries_geojson_label',
+                          'Boundaries & GeoJSON Coordinates',
+                        )}
                       </dt>
                       <dd className="bg-muted/40 max-h-24 overflow-y-auto rounded-md p-2 font-mono text-xs">
                         {survey.survey_coordinates
                           ? JSON.stringify(survey.survey_coordinates)
-                          : 'No coordinate polygons set'}
+                          : t(
+                              'no_coords_polygons_set',
+                              'No coordinate polygons set',
+                            )}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                        Survey Plan Drawing
+                        {t('survey_plan_drawing', 'Survey Plan Drawing')}
                       </dt>
                       <dd className="mt-1">
                         {survey.document ? (
@@ -1588,13 +1730,13 @@ export default function LandParcelDetails({ id }: Props) {
                           >
                             <Download className="h-3.5 w-3.5" />
                             <span>
-                              Download Plan ({survey.document.original_filename}
-                              )
+                              {t('download_plan', 'Download Plan')} (
+                              {survey.document.original_filename})
                             </span>
                           </button>
                         ) : (
                           <span className="text-xs text-red-500">
-                            File Reference Missing
+                            {t('file_ref_missing', 'File Reference Missing')}
                           </span>
                         )}
                       </dd>
@@ -1602,7 +1744,7 @@ export default function LandParcelDetails({ id }: Props) {
                     {survey.remarks && (
                       <div className="md:col-span-3">
                         <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                          Remarks
+                          {t('remarks_field', 'Remarks')}
                         </dt>
                         <dd className="text-foreground mt-1 text-xs">
                           {survey.remarks}
@@ -1616,7 +1758,9 @@ export default function LandParcelDetails({ id }: Props) {
           ) : (
             <div className="bg-card border-border text-muted-foreground flex h-36 flex-col items-center justify-center gap-2 rounded-lg border text-sm">
               <FileText className="text-muted-foreground/60 h-8 w-8" />
-              <span>No survey plan logged.</span>
+              <span>
+                {t('no_survey_plan_logged', 'No survey plan logged.')}
+              </span>
             </div>
           )}
         </div>
@@ -1627,10 +1771,14 @@ export default function LandParcelDetails({ id }: Props) {
         <div className="space-y-6">
           <div className="bg-card border-border flex items-center justify-between rounded-lg border p-6">
             <div>
-              <h3 className="text-base font-semibold">Valuation Assessments</h3>
+              <h3 className="text-base font-semibold">
+                {t('valuation_assessments', 'Valuation Assessments')}
+              </h3>
               <p className="text-muted-foreground text-sm">
-                Log external land values, crops and structure assessments, and
-                upload reports.
+                {t(
+                  'valuation_subtitle',
+                  'Record assessed values of land, structures, and crops from official valuers.',
+                )}
               </p>
             </div>
             {isDO && !showValuationForm && (
@@ -1644,8 +1792,8 @@ export default function LandParcelDetails({ id }: Props) {
                 <Plus className="h-4 w-4" />
                 <span>
                   {parcel.valuations && parcel.valuations.length > 0
-                    ? 'Update Valuation'
-                    : 'Log Valuation'}
+                    ? t('update_valuation', 'Update Valuation')
+                    : t('register_valuation', 'Register Valuation')}
                 </span>
               </button>
             )}
@@ -1659,8 +1807,11 @@ export default function LandParcelDetails({ id }: Props) {
               <div className="flex items-center justify-between border-b pb-3">
                 <h3 className="text-foreground text-base font-bold">
                   {valuationId
-                    ? 'Edit Valuation Record'
-                    : 'Register Valuation Assessment'}
+                    ? t('edit_valuation_record', 'Edit Valuation Record')
+                    : t(
+                        'register_valuation_assessment',
+                        'Register Valuation Assessment',
+                      )}
                 </h3>
                 <button
                   type="button"
@@ -1674,7 +1825,7 @@ export default function LandParcelDetails({ id }: Props) {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Valuer Name *
+                    {t('valuer_name', 'Valuer Name')} *
                   </label>
                   <input
                     type="text"
@@ -1682,13 +1833,16 @@ export default function LandParcelDetails({ id }: Props) {
                     value={valuerName}
                     onChange={(e) => setValuerName(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                    placeholder="e.g. Government Valuer"
+                    placeholder={t(
+                      'government_valuer_placeholder',
+                      'e.g. Government Valuer',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Valuation Date *
+                    {t('valuation_date', 'Valuation Date')} *
                   </label>
                   <input
                     type="date"
@@ -1701,7 +1855,7 @@ export default function LandParcelDetails({ id }: Props) {
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Valuation Ref Number *
+                    {t('valuation_ref_number', 'Valuation Ref Number')} *
                   </label>
                   <input
                     type="text"
@@ -1709,13 +1863,16 @@ export default function LandParcelDetails({ id }: Props) {
                     value={valuationRefNumber}
                     onChange={(e) => setValuationRefNumber(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                    placeholder="e.g. VAL/2026/LAMS/1029"
+                    placeholder={t(
+                      'valuation_ref_placeholder',
+                      'e.g. VAL/2026/LAMS/1029',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Land Value (₨) *
+                    {t('land_value_rs', 'Land Value (₨)')} *
                   </label>
                   <input
                     type="number"
@@ -1727,13 +1884,16 @@ export default function LandParcelDetails({ id }: Props) {
                       )
                     }
                     className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-sm"
-                    placeholder="Land parcel assessed value"
+                    placeholder={t(
+                      'land_assessed_value_placeholder',
+                      'Land parcel assessed value',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Crop Value (₨) *
+                    {t('crop_value_rs', 'Crop Value (₨)')} *
                   </label>
                   <input
                     type="number"
@@ -1745,13 +1905,16 @@ export default function LandParcelDetails({ id }: Props) {
                       )
                     }
                     className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-sm"
-                    placeholder="Crops & trees damage assessed value"
+                    placeholder={t(
+                      'crops_assessed_value_placeholder',
+                      'Crops & trees damage assessed value',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Structure Value (₨) *
+                    {t('structure_value_rs', 'Structure Value (₨)')} *
                   </label>
                   <input
                     type="number"
@@ -1763,28 +1926,35 @@ export default function LandParcelDetails({ id }: Props) {
                       )
                     }
                     className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-sm"
-                    placeholder="Structure & houses assessed value"
+                    placeholder={t(
+                      'structure_assessed_value_placeholder',
+                      'Structure & houses assessed value',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Status
+                    {t('status', 'Status')}
                   </label>
                   <select
                     value={valuationStatus}
                     onChange={(e) => setValuationStatus(e.target.value as any)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
                   >
-                    <option value="approved">Approved</option>
-                    <option value="pending">Pending</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="approved">
+                      {t('approved', 'Approved')}
+                    </option>
+                    <option value="pending">{t('pending', 'Pending')}</option>
+                    <option value="rejected">
+                      {t('rejected', 'Rejected')}
+                    </option>
                   </select>
                 </div>
 
                 <div className="flex flex-col justify-center rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
                   <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Total Valuation (Auto Sum)
+                    {t('total_valuation_autosum', 'Total Valuation (Auto Sum)')}
                   </span>
                   <span className="font-mono text-xl font-bold text-[#2E7D32]">
                     ₨{' '}
@@ -1798,27 +1968,35 @@ export default function LandParcelDetails({ id }: Props) {
 
                 <div className="space-y-1 md:col-span-2">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Remarks
+                    {t('remarks_field', 'Remarks')}
                   </label>
                   <textarea
                     value={valuationRemarks}
                     onChange={(e) => setValuationRemarks(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
                     rows={2}
-                    placeholder="Any valuation notes or damages detail"
+                    placeholder={t(
+                      'valuation_notes_placeholder',
+                      'Any valuation notes or damages detail',
+                    )}
                   />
                 </div>
 
                 {/* Mandatory Valuation report upload */}
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Upload Valuation Report (MANDATORY PDF) *
+                    {t(
+                      'upload_valuation_report_mandatory',
+                      'Upload Valuation Report (MANDATORY PDF) *',
+                    )}
                   </label>
                   <div className="flex items-center gap-4">
                     <label className="bg-muted hover:bg-muted/80 text-foreground border-border flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors">
                       <Upload className="text-muted-foreground h-4 w-4" />
                       <span>
-                        {valuationUploading ? 'Uploading...' : 'Choose File'}
+                        {valuationUploading
+                          ? t('uploading', 'Uploading...')
+                          : t('choose_file', 'Choose File')}
                       </span>
                       <input
                         type="file"
@@ -1840,15 +2018,18 @@ export default function LandParcelDetails({ id }: Props) {
                       <div className="flex items-center gap-2 text-sm text-green-600">
                         <CheckCircle className="h-4 w-4" />
                         <span>
-                          Uploaded Report: <strong>{valuationDocName}</strong>
+                          {t('uploaded_report', 'Uploaded Report')}:{' '}
+                          <strong>{valuationDocName}</strong>
                         </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-sm text-red-500">
                         <AlertCircle className="h-4 w-4" />
                         <span>
-                          A valuation certificate report PDF must be uploaded
-                          before saving.
+                          {t(
+                            'valuation_report_upload_alert',
+                            'A valuation certificate report PDF must be uploaded before saving.',
+                          )}
                         </span>
                       </div>
                     )}
@@ -1862,7 +2043,7 @@ export default function LandParcelDetails({ id }: Props) {
                   onClick={() => setShowValuationForm(false)}
                   className="border-border hover:bg-muted text-foreground rounded-lg border px-5 py-2 text-sm font-semibold transition-colors"
                 >
-                  Cancel
+                  {t('cancel', 'Cancel')}
                 </button>
                 <button
                   type="submit"
@@ -1870,10 +2051,10 @@ export default function LandParcelDetails({ id }: Props) {
                   className="rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95 disabled:opacity-50"
                 >
                   {valuationUploading
-                    ? 'Uploading Report...'
+                    ? t('uploading_report', 'Uploading Report...')
                     : valuationId
-                      ? 'Update Valuation'
-                      : 'Save Valuation Report'}
+                      ? t('update_valuation', 'Update Valuation')
+                      : t('save_valuation_report', 'Save Valuation Report')}
                 </button>
               </div>
             </form>
@@ -1891,7 +2072,8 @@ export default function LandParcelDetails({ id }: Props) {
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-5 w-5 text-emerald-600" />
                       <span className="text-sm font-bold">
-                        Valuation Ref: {val.valuation_ref_number}
+                        {t('valuation_ref_label', 'Valuation Ref')}:{' '}
+                        {val.valuation_ref_number}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -1901,14 +2083,14 @@ export default function LandParcelDetails({ id }: Props) {
                           <button
                             onClick={() => startEditValuation(val)}
                             className="hover:bg-muted text-muted-foreground hover:text-foreground rounded p-1.5 transition-colors"
-                            title="Edit"
+                            title={t('edit', 'Edit')}
                           >
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteValuation(val.id)}
                             className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                            title="Delete"
+                            title={t('delete', 'Delete')}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -1920,7 +2102,7 @@ export default function LandParcelDetails({ id }: Props) {
                   <dl className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-4">
                     <div>
                       <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                        Valuer Name
+                        {t('valuer_name', 'Valuer Name')}
                       </dt>
                       <dd className="text-foreground font-medium">
                         {val.valuer_name}
@@ -1928,17 +2110,17 @@ export default function LandParcelDetails({ id }: Props) {
                     </div>
                     <div>
                       <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                        Valuation Date
+                        {t('valuation_date', 'Valuation Date')}
                       </dt>
                       <dd className="text-foreground font-medium">
                         {val.valuation_date
                           ? new Date(val.valuation_date).toLocaleDateString()
-                          : 'N/A'}
+                          : t('n_a', 'N/A')}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                        Certificate PDF
+                        {t('certificate_pdf', 'Certificate PDF')}
                       </dt>
                       <dd className="mt-1">
                         {val.document ? (
@@ -1952,18 +2134,20 @@ export default function LandParcelDetails({ id }: Props) {
                             className="text-primary flex items-center gap-1.5 text-xs font-bold hover:underline"
                           >
                             <Download className="h-3.5 w-3.5" />
-                            <span>Download Report</span>
+                            <span>
+                              {t('download_report', 'Download Report')}
+                            </span>
                           </button>
                         ) : (
                           <span className="text-xs text-red-500">
-                            File Reference Missing
+                            {t('file_ref_missing', 'File Reference Missing')}
                           </span>
                         )}
                       </dd>
                     </div>
                     <div className="row-span-2 flex flex-col justify-center rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
                       <span className="text-muted-foreground text-xs font-bold uppercase">
-                        Assessed Value Total
+                        {t('assessed_value_total', 'Assessed Value Total')}
                       </span>
                       <span className="font-mono text-lg font-bold text-emerald-600">
                         ₨ {Number(val.total_valuation).toLocaleString()}
@@ -1972,7 +2156,7 @@ export default function LandParcelDetails({ id }: Props) {
 
                     <div>
                       <dt className="text-muted-foreground text-xs font-semibold">
-                        Land Value
+                        {t('land_value', 'Land Value')}
                       </dt>
                       <dd className="text-foreground font-mono font-medium">
                         ₨ {Number(val.land_value).toLocaleString()}
@@ -1980,7 +2164,7 @@ export default function LandParcelDetails({ id }: Props) {
                     </div>
                     <div>
                       <dt className="text-muted-foreground text-xs font-semibold">
-                        Crop Damage Value
+                        {t('crop_damage_value', 'Crop Damage Value')}
                       </dt>
                       <dd className="text-foreground font-mono font-medium">
                         ₨ {Number(val.crop_value).toLocaleString()}
@@ -1988,7 +2172,10 @@ export default function LandParcelDetails({ id }: Props) {
                     </div>
                     <div>
                       <dt className="text-muted-foreground text-xs font-semibold">
-                        Structure / Building Value
+                        {t(
+                          'structure_building_value',
+                          'Structure / Building Value',
+                        )}
                       </dt>
                       <dd className="text-foreground font-mono font-medium">
                         ₨ {Number(val.structure_value).toLocaleString()}
@@ -1998,7 +2185,7 @@ export default function LandParcelDetails({ id }: Props) {
                     {val.remarks && (
                       <div className="md:col-span-4">
                         <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                          Remarks
+                          {t('remarks_field', 'Remarks')}
                         </dt>
                         <dd className="text-foreground mt-1 text-xs">
                           {val.remarks}
@@ -2012,7 +2199,12 @@ export default function LandParcelDetails({ id }: Props) {
           ) : (
             <div className="bg-card border-border text-muted-foreground flex h-36 flex-col items-center justify-center gap-2 rounded-lg border text-sm">
               <DollarSign className="text-muted-foreground/60 h-8 w-8" />
-              <span>No valuation assessment logged.</span>
+              <span>
+                {t(
+                  'no_valuation_assessment_logged',
+                  'No valuation assessment logged.',
+                )}
+              </span>
             </div>
           )}
         </div>
@@ -2024,11 +2216,16 @@ export default function LandParcelDetails({ id }: Props) {
           <div className="bg-card border-border flex items-center justify-between rounded-lg border p-6">
             <div>
               <h3 className="text-base font-semibold">
-                Compensation Schedules & Payments
+                {t(
+                  'compensation_schedules_payments',
+                  'Compensation Schedules & Payments',
+                )}
               </h3>
               <p className="text-muted-foreground text-sm">
-                Manage compensation packages for registered land owners and log
-                installments receipts.
+                {t(
+                  'compensation_subtitle',
+                  'Record and track payment packages for each affected land owner.',
+                )}
               </p>
             </div>
             {isDO && !showCompensationForm && (
@@ -2041,7 +2238,9 @@ export default function LandParcelDetails({ id }: Props) {
                 disabled={!parcel.owners || parcel.owners.length === 0}
               >
                 <Plus className="h-4 w-4" />
-                <span>Calculate Compensation</span>
+                <span>
+                  {t('calculate_compensation', 'Calculate Compensation')}
+                </span>
               </button>
             )}
           </div>
@@ -2054,7 +2253,9 @@ export default function LandParcelDetails({ id }: Props) {
             >
               <div className="flex items-center justify-between border-b pb-3">
                 <h3 className="text-foreground text-base font-bold">
-                  {compensationId ? 'Edit Compensation' : 'Set Up Compensation'}
+                  {compensationId
+                    ? t('edit_compensation', 'Edit Compensation')
+                    : t('setup_compensation', 'Set Up Compensation')}
                 </h3>
                 <button
                   type="button"
@@ -2068,7 +2269,7 @@ export default function LandParcelDetails({ id }: Props) {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Select Owner *
+                    {t('select_owner', 'Select Owner')} *
                   </label>
                   <select
                     required
@@ -2077,7 +2278,9 @@ export default function LandParcelDetails({ id }: Props) {
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
                     disabled={!!compensationId}
                   >
-                    <option value="">-- Choose Owner --</option>
+                    <option value="">
+                      {t('choose_owner_option', '-- Choose Owner --')}
+                    </option>
                     {parcel.owners?.map((owner: any) => (
                       <option key={owner.id} value={owner.id}>
                         {owner.name} ({owner.nic})
@@ -2088,7 +2291,7 @@ export default function LandParcelDetails({ id }: Props) {
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Compensation Ref ID *
+                    {t('compensation_ref_id', 'Compensation Ref ID')} *
                   </label>
                   <input
                     type="text"
@@ -2096,13 +2299,16 @@ export default function LandParcelDetails({ id }: Props) {
                     value={compRef}
                     onChange={(e) => setCompRef(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                    placeholder="e.g. COMP/2026/029"
+                    placeholder={t(
+                      'compensation_ref_placeholder',
+                      'e.g. COMP/2026/029',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Approved Amount (₨) *
+                    {t('approved_amount_rs', 'Approved Amount (₨)')} *
                   </label>
                   <input
                     type="number"
@@ -2114,13 +2320,16 @@ export default function LandParcelDetails({ id }: Props) {
                       )
                     }
                     className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-sm"
-                    placeholder="Amount in LKR"
+                    placeholder={t(
+                      'amount_in_lkr_placeholder',
+                      'Amount in LKR',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Approval Date *
+                    {t('approval_date', 'Approval Date')} *
                   </label>
                   <input
                     type="date"
@@ -2133,7 +2342,7 @@ export default function LandParcelDetails({ id }: Props) {
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Target Payment Date *
+                    {t('target_payment_date', 'Target Payment Date')} *
                   </label>
                   <input
                     type="date"
@@ -2146,16 +2355,18 @@ export default function LandParcelDetails({ id }: Props) {
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Status
+                    {t('status', 'Status')}
                   </label>
                   <select
                     value={compStatus}
                     onChange={(e) => setCompStatus(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
                   >
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="paid">Paid</option>
+                    <option value="pending">{t('pending', 'Pending')}</option>
+                    <option value="approved">
+                      {t('approved', 'Approved')}
+                    </option>
+                    <option value="paid">{t('paid', 'Paid')}</option>
                   </select>
                 </div>
               </div>
@@ -2165,18 +2376,22 @@ export default function LandParcelDetails({ id }: Props) {
                 <div className="mb-4 flex items-center justify-between">
                   <div>
                     <h4 className="text-foreground text-sm font-bold">
-                      Compensation Documents
+                      {t('compensation_documents', 'Compensation Documents')}
                     </h4>
                     <p className="text-muted-foreground text-xs">
-                      Upload and manage letters, receipts, valuation worksheets
-                      and compensation-related files.
+                      {t(
+                        'comp_docs_subtitle',
+                        'Upload and view letters, receipts, and compensation vouchers.',
+                      )}
                     </p>
                   </div>
                   {isDO && (
                     <label className="bg-primary hover:bg-primary/95 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors">
                       <Upload className="h-3.5 w-3.5" />
                       <span>
-                        {compDocUploading ? 'Uploading...' : 'Upload Document'}
+                        {compDocUploading
+                          ? t('uploading', 'Uploading...')
+                          : t('upload_document', 'Upload Document')}
                       </span>
                       <input
                         type="file"
@@ -2189,12 +2404,18 @@ export default function LandParcelDetails({ id }: Props) {
                 </div>
                 <DataTable
                   columns={[
-                    { key: 'name', label: 'Document Name' },
-                    { key: 'type', label: 'Type' },
-                    { key: 'date', label: 'Upload Date' },
+                    {
+                      key: 'name',
+                      label: t('document_name_header', 'Document Name'),
+                    },
+                    { key: 'type', label: t('type', 'Type') },
+                    {
+                      key: 'date',
+                      label: t('upload_date_header', 'Upload Date'),
+                    },
                     {
                       key: 'actions',
-                      label: 'Actions',
+                      label: t('actions', 'Actions'),
                       render: (_val: any, row: any) => (
                         <div
                           className="flex items-center justify-end gap-2"
@@ -2204,7 +2425,7 @@ export default function LandParcelDetails({ id }: Props) {
                             type="button"
                             onClick={() => handleDownload(row.id, row.name)}
                             className="hover:bg-muted text-primary rounded p-1 transition-colors"
-                            title="Download"
+                            title={t('download', 'Download')}
                           >
                             <Download className="h-3.5 w-3.5" />
                           </button>
@@ -2213,7 +2434,7 @@ export default function LandParcelDetails({ id }: Props) {
                               type="button"
                               onClick={() => handleDelete(row.id)}
                               className="rounded p-1 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                              title="Delete"
+                              title={t('delete', 'Delete')}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -2234,13 +2455,13 @@ export default function LandParcelDetails({ id }: Props) {
                   onClick={() => setShowCompensationForm(false)}
                   className="border-border hover:bg-muted text-foreground rounded-lg border px-5 py-2 text-sm font-semibold transition-colors"
                 >
-                  Cancel
+                  {t('cancel', 'Cancel')}
                 </button>
                 <button
                   type="submit"
                   className="rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95"
                 >
-                  Save Schedule
+                  {t('save_schedule', 'Save Schedule')}
                 </button>
               </div>
             </form>
@@ -2254,7 +2475,9 @@ export default function LandParcelDetails({ id }: Props) {
             >
               <div className="flex items-center justify-between border-b pb-3">
                 <h3 className="text-foreground text-base font-bold">
-                  {paymentId ? 'Edit Payment' : 'Log Payment'}
+                  {paymentId
+                    ? t('edit_payment', 'Edit Payment')
+                    : t('log_payment', 'Log Payment')}
                 </h3>
                 <button
                   type="button"
@@ -2268,7 +2491,11 @@ export default function LandParcelDetails({ id }: Props) {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Payment Reference (Cheque / Tx ID) *
+                    {t(
+                      'payment_reference_label',
+                      'Payment Reference (Cheque / Tx ID)',
+                    )}{' '}
+                    *
                   </label>
                   <input
                     type="text"
@@ -2276,13 +2503,16 @@ export default function LandParcelDetails({ id }: Props) {
                     value={payRef}
                     onChange={(e) => setPayRef(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-sm"
-                    placeholder="Enter cheque no or tx hash"
+                    placeholder={t(
+                      'cheque_tx_placeholder',
+                      'Enter cheque no or tx hash',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Amount Paid (₨) *
+                    {t('amount_paid_rs', 'Amount Paid (₨)')} *
                   </label>
                   <input
                     type="number"
@@ -2294,13 +2524,13 @@ export default function LandParcelDetails({ id }: Props) {
                       )
                     }
                     className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-sm"
-                    placeholder="LKR amount"
+                    placeholder={t('lkr_amount_placeholder', 'LKR amount')}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Payment Date *
+                    {t('payment_date', 'Payment Date')} *
                   </label>
                   <input
                     type="date"
@@ -2313,83 +2543,101 @@ export default function LandParcelDetails({ id }: Props) {
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Payment Method *
+                    {t('payment_method', 'Payment Method')} *
                   </label>
                   <select
                     value={payMethod}
                     onChange={(e) => setPayMethod(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
                   >
-                    <option value="cheque">Cheque</option>
-                    <option value="bank_transfer">Bank Transfer</option>
-                    <option value="cash">Cash</option>
+                    <option value="cheque">{t('cheque', 'Cheque')}</option>
+                    <option value="bank_transfer">
+                      {t('bank_transfer', 'Bank Transfer')}
+                    </option>
+                    <option value="cash">{t('cash', 'Cash')}</option>
                   </select>
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Bank Name (Optional)
+                    {t('bank_name_optional', 'Bank Name (Optional)')}
                   </label>
                   <input
                     type="text"
                     value={payBank}
                     onChange={(e) => setPayBank(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                    placeholder="e.g. Bank of Ceylon"
+                    placeholder={t(
+                      'bank_name_placeholder',
+                      'e.g. Bank of Ceylon',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Account Number (Optional)
+                    {t('account_number_optional', 'Account Number (Optional)')}
                   </label>
                   <input
                     type="text"
                     value={payAccount}
                     onChange={(e) => setPayAccount(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-sm"
-                    placeholder="Account number or cheque branch"
+                    placeholder={t(
+                      'account_number_placeholder',
+                      'Account number or cheque branch',
+                    )}
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Status
+                    {t('status', 'Status')}
                   </label>
                   <select
                     value={payStatus}
                     onChange={(e) => setPayStatus(e.target.value as any)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
                   >
-                    <option value="completed">Completed</option>
-                    <option value="pending">Pending</option>
-                    <option value="failed">Failed</option>
+                    <option value="completed">
+                      {t('completed', 'Completed')}
+                    </option>
+                    <option value="pending">{t('pending', 'Pending')}</option>
+                    <option value="failed">{t('failed', 'Failed')}</option>
                   </select>
                 </div>
 
                 <div className="space-y-1 md:col-span-2">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Remarks
+                    {t('remarks_field', 'Remarks')}
                   </label>
                   <textarea
                     value={payRemarks}
                     onChange={(e) => setPayRemarks(e.target.value)}
                     className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
                     rows={2}
-                    placeholder="Payment notes"
+                    placeholder={t(
+                      'payment_notes_placeholder',
+                      'Payment notes',
+                    )}
                   />
                 </div>
 
                 {/* Mandatory Payment receipt upload */}
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                    Upload Payment Receipt / Cheque copy (MANDATORY PDF) *
+                    {t(
+                      'upload_receipt_mandatory',
+                      'Upload Payment Receipt / Cheque copy (MANDATORY PDF) *',
+                    )}
                   </label>
                   <div className="flex items-center gap-4">
                     <label className="bg-muted hover:bg-muted/80 text-foreground border-border flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors">
                       <Upload className="text-muted-foreground h-4 w-4" />
                       <span>
-                        {payUploading ? 'Uploading...' : 'Choose File'}
+                        {payUploading
+                          ? t('uploading', 'Uploading...')
+                          : t('choose_file', 'Choose File')}
                       </span>
                       <input
                         type="file"
@@ -2411,14 +2659,18 @@ export default function LandParcelDetails({ id }: Props) {
                       <div className="flex items-center gap-2 text-sm text-green-600">
                         <CheckCircle className="h-4 w-4" />
                         <span>
-                          Uploaded Receipt: <strong>{payDocName}</strong>
+                          {t('uploaded_receipt', 'Uploaded Receipt')}:{' '}
+                          <strong>{payDocName}</strong>
                         </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-sm text-red-500">
                         <AlertCircle className="h-4 w-4" />
                         <span>
-                          A payment receipt PDF must be uploaded before saving.
+                          {t(
+                            'payment_receipt_upload_alert',
+                            'A payment receipt PDF must be uploaded before saving.',
+                          )}
                         </span>
                       </div>
                     )}
@@ -2432,7 +2684,7 @@ export default function LandParcelDetails({ id }: Props) {
                   onClick={() => setShowPaymentForm(false)}
                   className="border-border hover:bg-muted text-foreground rounded-lg border px-5 py-2 text-sm font-semibold transition-colors"
                 >
-                  Cancel
+                  {t('cancel', 'Cancel')}
                 </button>
                 <button
                   type="submit"
@@ -2440,10 +2692,10 @@ export default function LandParcelDetails({ id }: Props) {
                   className="rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95 disabled:opacity-50"
                 >
                   {payUploading
-                    ? 'Uploading Receipt...'
+                    ? t('uploading_receipt', 'Uploading Receipt...')
                     : paymentId
-                      ? 'Update Payment'
-                      : 'Save Payment'}
+                      ? t('update_payment', 'Update Payment')
+                      : t('save_payment', 'Save Payment')}
                 </button>
               </div>
             </form>
@@ -2463,12 +2715,14 @@ export default function LandParcelDetails({ id }: Props) {
                         <div className="flex items-center gap-2">
                           <CheckCircle className="text-primary h-5 w-5" />
                           <h4 className="text-foreground text-base font-bold">
-                            Compensation: {comp.compensation_id}
+                            {t('compensation_ref', 'Compensation')}:{' '}
+                            {comp.compensation_id}
                           </h4>
                         </div>
                         <p className="text-muted-foreground mt-1 text-xs">
-                          Owner: <strong>{comp.owner?.name || 'N/A'}</strong> (
-                          {comp.owner?.nic || 'N/A'})
+                          {t('owner', 'Owner')}:{' '}
+                          <strong>{comp.owner?.name || t('n_a', 'N/A')}</strong>{' '}
+                          ({comp.owner?.nic || t('n_a', 'N/A')})
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
@@ -2478,14 +2732,14 @@ export default function LandParcelDetails({ id }: Props) {
                             <button
                               onClick={() => startEditCompensation(comp)}
                               className="hover:bg-muted text-muted-foreground hover:text-foreground rounded p-1.5 transition-colors"
-                              title="Edit"
+                              title={t('edit', 'Edit')}
                             >
                               <Pencil className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteCompensation(comp.id)}
                               className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                              title="Delete"
+                              title={t('delete', 'Delete')}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -2497,7 +2751,7 @@ export default function LandParcelDetails({ id }: Props) {
                     <div className="bg-muted/20 border-border/50 grid grid-cols-1 gap-4 rounded-lg border p-4 text-sm md:grid-cols-3">
                       <div>
                         <span className="text-muted-foreground block text-xs font-semibold uppercase">
-                          Total Approved Amount
+                          {t('total_approved_amount', 'Total Approved Amount')}
                         </span>
                         <span className="text-foreground font-mono text-base font-bold">
                           ₨ {Number(comp.amount).toLocaleString()}
@@ -2505,22 +2759,22 @@ export default function LandParcelDetails({ id }: Props) {
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-xs font-semibold uppercase">
-                          Approved Date
+                          {t('approved_date', 'Approved Date')}
                         </span>
                         <span className="text-foreground text-sm font-medium">
                           {comp.approved_date
                             ? new Date(comp.approved_date).toLocaleDateString()
-                            : 'N/A'}
+                            : t('n_a', 'N/A')}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-xs font-semibold uppercase">
-                          Target Payment Date
+                          {t('target_payment_date', 'Target Payment Date')}
                         </span>
                         <span className="text-foreground text-sm font-medium">
                           {comp.payment_date
                             ? new Date(comp.payment_date).toLocaleDateString()
-                            : 'N/A'}
+                            : t('n_a', 'N/A')}
                         </span>
                       </div>
                     </div>
@@ -2531,24 +2785,32 @@ export default function LandParcelDetails({ id }: Props) {
                         <div className="bg-muted/30 border-border rounded-lg border p-4">
                           <h5 className="text-foreground mb-3 flex items-center gap-1.5 text-sm font-bold">
                             <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span>Payment Settlement (Paid in Full)</span>
+                            <span>
+                              {t(
+                                'payment_settlement_paid_full',
+                                'Payment Settlement (Paid in Full)',
+                              )}
+                            </span>
                           </h5>
                           <dl className="grid grid-cols-1 gap-4 text-xs md:grid-cols-2 lg:grid-cols-3">
                             <div>
                               <dt className="text-muted-foreground font-semibold uppercase tracking-wider">
-                                Payment Date
+                                {t('payment_date', 'Payment Date')}
                               </dt>
                               <dd className="text-foreground font-medium">
                                 {comp.payments[0].payment_date
                                   ? new Date(
                                       comp.payments[0].payment_date,
                                     ).toLocaleDateString()
-                                  : 'N/A'}
+                                  : t('n_a', 'N/A')}
                               </dd>
                             </div>
                             <div>
                               <dt className="text-muted-foreground font-semibold uppercase tracking-wider">
-                                Payment Reference
+                                {t(
+                                  'payment_reference_label',
+                                  'Payment Reference',
+                                )}
                               </dt>
                               <dd className="text-foreground font-mono font-medium">
                                 {comp.payments[0].payment_reference}
@@ -2556,10 +2818,15 @@ export default function LandParcelDetails({ id }: Props) {
                             </div>
                             <div>
                               <dt className="text-muted-foreground font-semibold uppercase tracking-wider">
-                                Payment Method
+                                {t('payment_method', 'Payment Method')}
                               </dt>
                               <dd className="text-foreground font-medium uppercase">
-                                {comp.payments[0].payment_method}
+                                {comp.payments[0].payment_method === 'cheque'
+                                  ? t('cheque', 'Cheque')
+                                  : comp.payments[0].payment_method ===
+                                      'bank_transfer'
+                                    ? t('bank_transfer', 'Bank Transfer')
+                                    : t('cash', 'Cash')}
                                 {comp.payments[0].bank_name
                                   ? ` (${comp.payments[0].bank_name})`
                                   : ''}
@@ -2567,7 +2834,7 @@ export default function LandParcelDetails({ id }: Props) {
                             </div>
                             <div>
                               <dt className="text-muted-foreground font-semibold uppercase tracking-wider">
-                                Amount Paid
+                                {t('amount_paid', 'Amount Paid')}
                               </dt>
                               <dd className="text-foreground font-mono font-bold text-green-600">
                                 ₨{' '}
@@ -2578,7 +2845,7 @@ export default function LandParcelDetails({ id }: Props) {
                             </div>
                             <div>
                               <dt className="text-muted-foreground font-semibold uppercase tracking-wider">
-                                Receipt File
+                                {t('receipt_file', 'Receipt File')}
                               </dt>
                               <dd className="mt-1">
                                 {comp.payments[0].document ? (
@@ -2594,11 +2861,19 @@ export default function LandParcelDetails({ id }: Props) {
                                     className="text-primary flex items-center gap-1 font-semibold hover:underline"
                                   >
                                     <FileDown className="h-3.5 w-3.5" />
-                                    <span>Download Receipt</span>
+                                    <span>
+                                      {t(
+                                        'download_receipt',
+                                        'Download Receipt',
+                                      )}
+                                    </span>
                                   </button>
                                 ) : (
                                   <span className="text-red-500">
-                                    No file reference
+                                    {t(
+                                      'no_file_reference',
+                                      'No file reference',
+                                    )}
                                   </span>
                                 )}
                               </dd>
@@ -2611,10 +2886,18 @@ export default function LandParcelDetails({ id }: Props) {
                                     startEditPayment(comp.payments[0])
                                   }
                                   className="hover:bg-muted text-muted-foreground hover:text-foreground flex items-center gap-1 rounded border px-2 py-1 transition-colors"
-                                  title="Edit Payment"
+                                  title={t(
+                                    'edit_payment_tooltip',
+                                    'Edit Payment',
+                                  )}
                                 >
                                   <Pencil className="h-3 w-3" />
-                                  <span>Edit Payment Details</span>
+                                  <span>
+                                    {t(
+                                      'edit_payment_details',
+                                      'Edit Payment Details',
+                                    )}
+                                  </span>
                                 </button>
                                 <button
                                   type="button"
@@ -2622,10 +2905,15 @@ export default function LandParcelDetails({ id }: Props) {
                                     handleDeletePayment(comp.payments[0].id)
                                   }
                                   className="flex items-center gap-1 rounded border border-red-200 px-2 py-1 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                                  title="Delete Payment"
+                                  title={t(
+                                    'delete_payment_tooltip',
+                                    'Delete Payment',
+                                  )}
                                 >
                                   <Trash2 className="h-3 w-3" />
-                                  <span>Delete Payment</span>
+                                  <span>
+                                    {t('delete_payment', 'Delete Payment')}
+                                  </span>
                                 </button>
                               </div>
                             )}
@@ -2634,8 +2922,10 @@ export default function LandParcelDetails({ id }: Props) {
                       ) : (
                         <div className="bg-muted/10 border-border rounded-md border border-dashed p-4 text-center">
                           <p className="text-muted-foreground mb-3 text-xs">
-                            No payment has been recorded for this compensation
-                            schedule.
+                            {t(
+                              'no_payments_recorded',
+                              'No payment has been recorded for this compensation schedule.',
+                            )}
                           </p>
                           {isDO && (
                             <button
@@ -2644,7 +2934,9 @@ export default function LandParcelDetails({ id }: Props) {
                               className="bg-primary hover:bg-primary/95 mx-auto flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors"
                             >
                               <Plus className="h-3 w-3" />
-                              <span>Record Payment</span>
+                              <span>
+                                {t('record_payment', 'Record Payment')}
+                              </span>
                             </button>
                           )}
                         </div>
@@ -2657,7 +2949,12 @@ export default function LandParcelDetails({ id }: Props) {
           ) : (
             <div className="bg-card border-border text-muted-foreground flex h-36 flex-col items-center justify-center gap-2 rounded-lg border text-sm">
               <CheckCircle className="text-muted-foreground/60 h-8 w-8" />
-              <span>No compensation setup logged.</span>
+              <span>
+                {t(
+                  'no_compensation_setup_logged',
+                  'No compensation setup logged.',
+                )}
+              </span>
             </div>
           )}
         </div>
@@ -2671,49 +2968,49 @@ export default function LandParcelDetails({ id }: Props) {
             <div className="mb-4 flex items-center gap-2">
               <Scale className="h-5 w-5 text-amber-600" />
               <h3 className="text-base font-semibold">
-                Legal Case Information
+                {t('legal_case_info', 'Legal Case Information')}
               </h3>
             </div>
             <div className="border-border rounded-lg border bg-amber-50/50 p-4 dark:bg-amber-950/20">
               <dl className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                    Case Number
+                    {t('case_number', 'Case Number')}
                   </dt>
                   <dd className="text-foreground font-mono font-medium">
-                    {parcel.case_number || 'N/A'}
+                    {parcel.case_number || t('n_a', 'N/A')}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                    Case Status
+                    {t('case_status', 'Case Status')}
                   </dt>
                   <dd className="text-foreground font-medium">
                     {parcel.case_status ? (
                       <StatusBadge status={parcel.case_status} />
                     ) : (
-                      'N/A'
+                      t('n_a', 'N/A')
                     )}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                    Case Start Date
+                    {t('case_start_date', 'Case Start Date')}
                   </dt>
                   <dd className="text-foreground font-medium">
                     {parcel.case_start_date
                       ? new Date(parcel.case_start_date).toLocaleDateString()
-                      : 'N/A'}
+                      : t('n_a', 'N/A')}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                    Case End Date
+                    {t('case_end_date', 'Case End Date')}
                   </dt>
                   <dd className="text-foreground font-medium">
                     {parcel.case_end_date
                       ? new Date(parcel.case_end_date).toLocaleDateString()
-                      : 'Active / Ongoing'}
+                      : t('active_ongoing', 'Active / Ongoing')}
                   </dd>
                 </div>
               </dl>
@@ -2724,10 +3021,14 @@ export default function LandParcelDetails({ id }: Props) {
           <div className="bg-card border-border rounded-lg border p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-semibold">Legal Documents</h3>
+                <h3 className="text-base font-semibold">
+                  {t('legal_documents', 'Legal Documents')}
+                </h3>
                 <p className="text-muted-foreground text-sm">
-                  Upload and manage court orders, affidavits, injunction
-                  notices, clearance letters, and other legal files.
+                  {t(
+                    'legal_docs_subtitle',
+                    'Upload and view court orders, affidavits, clearance letters, and deeds.',
+                  )}
                 </p>
               </div>
               {isDO && !showLegalUploadForm && (
@@ -2736,7 +3037,7 @@ export default function LandParcelDetails({ id }: Props) {
                   className="bg-primary hover:bg-primary/95 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Upload Legal Document</span>
+                  <span>{t('upload_legal_doc', 'Upload Legal Document')}</span>
                 </button>
               )}
             </div>
@@ -2746,7 +3047,7 @@ export default function LandParcelDetails({ id }: Props) {
               <div className="border-border mb-6 space-y-4 rounded-lg border bg-amber-50/30 p-5 dark:bg-amber-950/10">
                 <div className="flex items-center justify-between border-b pb-3">
                   <h4 className="text-foreground text-sm font-bold">
-                    Upload New Legal Document
+                    {t('upload_new_legal_doc', 'Upload New Legal Document')}
                   </h4>
                   <button
                     type="button"
@@ -2765,49 +3066,67 @@ export default function LandParcelDetails({ id }: Props) {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="space-y-1">
                     <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                      Document Title
+                      {t('document_title', 'Document Title')}
                     </label>
                     <input
                       type="text"
                       value={legalDocTitle}
                       onChange={(e) => setLegalDocTitle(e.target.value)}
                       className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                      placeholder="e.g. Court Order - Case #2026/001"
+                      placeholder={t(
+                        'doc_title_placeholder',
+                        'e.g. Court Order - Case #2026/001',
+                      )}
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                      Legal Category
+                      {t('legal_category', 'Legal Category')}
                     </label>
                     <select
                       value={legalDocCategory}
                       onChange={(e) => setLegalDocCategory(e.target.value)}
                       className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
                     >
-                      <option value="court_order">Court Order</option>
-                      <option value="affidavit">Affidavit</option>
+                      <option value="court_order">
+                        {t('court_order', 'Court Order')}
+                      </option>
+                      <option value="affidavit">
+                        {t('affidavit', 'Affidavit')}
+                      </option>
                       <option value="injunction_notice">
-                        Injunction Notice
+                        {t('injunction_notice', 'Injunction Notice')}
                       </option>
-                      <option value="clearance_letter">Clearance Letter</option>
-                      <option value="legal_opinion">Legal Opinion</option>
-                      <option value="deed">Deed / Title Document</option>
+                      <option value="clearance_letter">
+                        {t('clearance_letter', 'Clearance Letter')}
+                      </option>
+                      <option value="legal_opinion">
+                        {t('legal_opinion', 'Legal Opinion')}
+                      </option>
+                      <option value="deed">
+                        {t('deed_title_doc', 'Deed / Title Document')}
+                      </option>
                       <option value="power_of_attorney">
-                        Power of Attorney
+                        {t('power_of_attorney', 'Power of Attorney')}
                       </option>
-                      <option value="other">Other Legal Document</option>
+                      <option value="other">
+                        {t('other_legal_doc', 'Other Legal Document')}
+                      </option>
                     </select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                      Reference Number
+                      {t('reference_number', 'Reference Number')}
                     </label>
                     <input
                       type="text"
                       value={legalDocRefNumber}
                       onChange={(e) => setLegalDocRefNumber(e.target.value)}
                       className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
-                      placeholder="e.g. REF/2026/LEGAL/001"
+                      placeholder={t(
+                        'ref_number_placeholder',
+                        'e.g. REF/2026/LEGAL/001',
+                      )}
                     />
                   </div>
                 </div>
@@ -2817,8 +3136,8 @@ export default function LandParcelDetails({ id }: Props) {
                     <Upload className="h-4 w-4" />
                     <span>
                       {legalDocUploading
-                        ? 'Uploading...'
-                        : 'Choose File & Upload'}
+                        ? t('uploading', 'Uploading...')
+                        : t('choose_file_upload', 'Choose File & Upload')}
                     </span>
                     <input
                       type="file"
@@ -2829,7 +3148,10 @@ export default function LandParcelDetails({ id }: Props) {
                     />
                   </label>
                   <span className="text-muted-foreground text-xs">
-                    Accepted: PDF, DOC, DOCX, PNG, JPG
+                    {t(
+                      'accepted_files_label',
+                      'Accepted: PDF, DOC, DOCX, PNG, JPG',
+                    )}
                   </span>
                 </div>
               </div>
@@ -2839,12 +3161,18 @@ export default function LandParcelDetails({ id }: Props) {
             {legalDocuments.length > 0 ? (
               <DataTable
                 columns={[
-                  { key: 'name', label: 'Document Name' },
-                  { key: 'type', label: 'Type' },
-                  { key: 'date', label: 'Upload Date' },
+                  {
+                    key: 'name',
+                    label: t('document_name_header', 'Document Name'),
+                  },
+                  { key: 'type', label: t('type', 'Type') },
+                  {
+                    key: 'date',
+                    label: t('upload_date_header', 'Upload Date'),
+                  },
                   {
                     key: 'actions',
-                    label: 'Actions',
+                    label: t('actions', 'Actions'),
                     render: (_val: any, row: any) => (
                       <div
                         className="flex items-center justify-end gap-2"
@@ -2853,7 +3181,7 @@ export default function LandParcelDetails({ id }: Props) {
                         <button
                           onClick={() => handleDownload(row.id, row.name)}
                           className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
-                          title="Download"
+                          title={t('download', 'Download')}
                         >
                           <Download className="h-4 w-4" />
                         </button>
@@ -2861,7 +3189,7 @@ export default function LandParcelDetails({ id }: Props) {
                           <button
                             onClick={() => handleDelete(row.id)}
                             className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                            title="Delete"
+                            title={t('delete', 'Delete')}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -2877,11 +3205,18 @@ export default function LandParcelDetails({ id }: Props) {
             ) : (
               <div className="text-muted-foreground flex h-36 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm">
                 <Scale className="text-muted-foreground/60 h-8 w-8" />
-                <span>No legal documents uploaded yet.</span>
+                <span>
+                  {t(
+                    'no_legal_docs_uploaded',
+                    'No legal documents uploaded yet.',
+                  )}
+                </span>
                 {isDO && (
                   <p className="text-xs">
-                    Click &quot;Upload Legal Document&quot; above to attach
-                    court orders, affidavits, or other legal files.
+                    {t(
+                      'upload_legal_doc_instruction',
+                      'Click "Upload Legal Document" above to attach court orders, affidavits, or other legal files.',
+                    )}
                   </p>
                 )}
               </div>
@@ -2897,7 +3232,9 @@ export default function LandParcelDetails({ id }: Props) {
             <div className="border-border bg-muted/20 flex items-center justify-between border-b px-6 py-4">
               <h3 className="text-foreground flex items-center gap-2 text-lg font-bold">
                 <MapPin className="h-5 w-5 text-[#2E7D32]" />
-                Map Location: {parcel.land_name || 'Parcel GPS Location'}
+                {t('map_location', 'Map Location:')}{' '}
+                {parcel.land_name ||
+                  t('parcel_gps_location', 'Parcel GPS Location')}
               </h3>
               <button
                 onClick={() => setIsMapModalOpen(false)}
@@ -2921,11 +3258,13 @@ export default function LandParcelDetails({ id }: Props) {
                     <div className="max-w-sm">
                       <MapPin className="mx-auto mb-3 h-12 w-12 animate-bounce text-white/90" />
                       <p className="mb-1 text-lg font-bold">
-                        No GPS Coordinates Set
+                        {t('no_gps_coordinates_set', 'No GPS Coordinates Set')}
                       </p>
                       <p className="text-xs text-white/80">
-                        This land parcel does not have latitude and longitude
-                        details.
+                        {t(
+                          'no_gps_details_desc',
+                          'This land parcel does not have latitude and longitude details.',
+                        )}
                       </p>
                     </div>
                   </div>
@@ -2933,10 +3272,10 @@ export default function LandParcelDetails({ id }: Props) {
               </div>
               <div className="text-muted-foreground flex items-center justify-between text-xs">
                 <span>
-                  Coordinates:{' '}
+                  {t('coordinates_colon', 'Coordinates:')}{' '}
                   {parcel.latitude && parcel.longitude
                     ? `${Number(parcel.latitude).toFixed(6)}, ${Number(parcel.longitude).toFixed(6)}`
-                    : 'None'}
+                    : t('none', 'None')}
                 </span>
                 {parcel.latitude && parcel.longitude && (
                   <button
@@ -2948,7 +3287,7 @@ export default function LandParcelDetails({ id }: Props) {
                     }
                     className="flex items-center gap-1 font-bold text-[#2E7D32] hover:underline"
                   >
-                    Open in Google Maps
+                    {t('open_in_google_maps', 'Open in Google Maps')}
                   </button>
                 )}
               </div>
@@ -2957,7 +3296,7 @@ export default function LandParcelDetails({ id }: Props) {
                   onClick={() => setIsMapModalOpen(false)}
                   className="rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95"
                 >
-                  Close
+                  {t('close', 'Close')}
                 </button>
               </div>
             </div>
