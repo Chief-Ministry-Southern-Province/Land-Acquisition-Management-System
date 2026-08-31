@@ -791,7 +791,7 @@ return [
     'fertile' => 'සාරවත්',
     'mid' => 'මධ්‍යම',
     'infertile' => 'සාර නැති',
-    'project_title_example' =>'දක්ෂිණ අධිවේගී මාර්ගය පුළුල් කිරීමේ අදියර 3',
+    'project_title_example' => 'දක්ෂිණ අධිවේගී මාර්ගය පුළුල් කිරීමේ අදියර 3',
 
     // Property Owners
     'owner_id' => 'හිමිකරු හැඳුනුම්පත',

@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from 'react';
 import { SyncLoader } from 'react-spinners';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import UnifiedMap from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { getLandParcels } from '@/services/landParcelManagementService';
@@ -80,27 +81,6 @@ export default function GisMapList() {
         '_blank',
       );
     }
-  };
-
-  // Generate Google Maps Embed URL
-  const getMapEmbedUrl = () => {
-    if (
-      !selectedParcel ||
-      !selectedParcel.latitude ||
-      !selectedParcel.longitude
-    ) {
-      return '';
-    }
-
-    const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY || '';
-    const lat = Number(selectedParcel.latitude);
-    const lon = Number(selectedParcel.longitude);
-    const gmapsZoom = Math.min(
-      Math.max(Math.round(18 - Math.log2(zoomLevel / 0.00075)), 1),
-      21,
-    );
-
-    return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${lat},${lon}&zoom=${gmapsZoom}`;
   };
 
   return (
@@ -307,16 +287,23 @@ export default function GisMapList() {
                 {selectedParcel &&
                 selectedParcel.latitude &&
                 selectedParcel.longitude ? (
-                  <iframe
-                    title={t(
-                      'iframe_title',
-                      'Map showing location of :id',
-                    ).replace(':id', selectedParcel.parcel_id)}
-                    src={getMapEmbedUrl()}
-                    className="absolute inset-0 h-full w-full border-0"
-                    allowFullScreen
-                    loading="lazy"
-                  ></iframe>
+                  <UnifiedMap
+                    latitude={selectedParcel.latitude}
+                    longitude={selectedParcel.longitude}
+                    zoom={Math.min(
+                      Math.max(
+                        Math.round(18 - Math.log2(zoomLevel / 0.00075)),
+                        1,
+                      ),
+                      21,
+                    )}
+                    showBoundaries={showBoundaries}
+                    boundaryGeoJson={selectedParcel.boundary_geojson}
+                    parcels={parcels}
+                    selectedParcelId={selectedParcelId}
+                    onSelectParcel={setSelectedParcelId}
+                    height="100%"
+                  />
                 ) : (
                   <div className="bg-linear-to-br absolute inset-0 flex items-center justify-center from-[#4a9f8f]/90 to-[#2d6b5f]/95 p-6 text-center">
                     <div className="max-w-sm text-white">
@@ -336,19 +323,6 @@ export default function GisMapList() {
                     </div>
                   </div>
                 )}
-
-                {/* Optional Boundary Layer Toggles Overlay */}
-                {selectedParcel &&
-                  selectedParcel.latitude &&
-                  selectedParcel.longitude &&
-                  showBoundaries && (
-                    <div className="pointer-events-none absolute right-4 top-4 z-10">
-                      <span className="flex items-center gap-1 rounded border border-white/20 bg-[#2E7D32]/90 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-md">
-                        <Layers className="h-3 w-3" />
-                        {t('overlay_active', 'Overlay Active')}
-                      </span>
-                    </div>
-                  )}
               </div>
             </div>
 

@@ -59,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('documents', DocumentsController::class);
     Route::get('departments', [DepartmentController::class, 'index']);
     Route::get('departments/{id}', [DepartmentController::class, 'show']);
+    Route::apiResource('audit-logs', AuditLogsController::class)->only(['index', 'show']);
 
     // Notifications Routes
     Route::get('notifications', [NotificationController::class, 'index']);
@@ -136,7 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('departments/{id}', [DepartmentController::class, 'update']);
         Route::delete('departments/{id}', [DepartmentController::class, 'destroy']);
         Route::apiResource('roles', RoleController::class);
-        Route::apiResource('audit-logs', AuditLogsController::class);
+        Route::apiResource('audit-logs', AuditLogsController::class)->except(['index', 'show']);
 
         Route::get('/backups', [BackupController::class, 'index']);
         Route::post('/backups', [BackupController::class, 'create']);
