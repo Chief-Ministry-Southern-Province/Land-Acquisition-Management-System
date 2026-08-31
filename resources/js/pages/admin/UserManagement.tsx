@@ -1,9 +1,10 @@
 import { router } from '@inertiajs/react';
 import { Edit, Plus, Shield, Trash2 } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SyncLoader } from 'react-spinners';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
 import {
@@ -28,12 +29,13 @@ interface UserData {
 }
 
 export default function UserManagement() {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<any | null>(null);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setIsLoading(true);
       const data = await getAllUsers();
@@ -53,10 +55,13 @@ export default function UserManagement() {
       setUsers(mapped);
       setIsLoading(false);
     } catch (err: any) {
-      setError(err.message || 'An error occurred while loading users.');
+      setError(
+        err.message ||
+          t('err_loading_users', 'An error occurred while loading users.'),
+      );
       setIsLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     let active = true;
@@ -72,12 +77,15 @@ export default function UserManagement() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [fetchUsers]);
 
   const handleDelete = async (rawId: number) => {
     const confirmed = await confirmDialog({
-      title: 'Delete User',
-      text: 'Are you sure you want to delete this user?',
+      title: t('delete_user', 'Delete User'),
+      text: t(
+        'confirm_user_delete_desc',
+        'Are you sure you want to delete this user?',
+      ),
     });
 
     if (!confirmed) {
@@ -88,10 +96,11 @@ export default function UserManagement() {
       setError(null);
       await deleteUser(rawId);
       setUsers((prev) => prev.filter((u) => u.rawId !== rawId));
-      toastSuccess('User deleted successfully.');
+      toastSuccess(t('toast_user_deleted', 'User deleted successfully.'));
     } catch (err: any) {
       console.error(err);
-      const errMsg = err.message || 'Failed to delete user.';
+      const errMsg =
+        err.message || t('toast_failed_delete_user', 'Failed to delete user.');
       setError(errMsg);
       toastError(errMsg);
     }
@@ -119,20 +128,22 @@ export default function UserManagement() {
       setEditingUser(null);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Failed to update user.');
+      setError(
+        err.message || t('toast_failed_user_update', 'Failed to update user.'),
+      );
     }
   };
 
   const columns = [
-    { key: 'id', label: 'User ID', sortable: true },
-    { key: 'name', label: 'User Name', sortable: true },
-    { key: 'username', label: 'Username', sortable: true },
-    { key: 'role', label: 'Role', sortable: true },
-    { key: 'department', label: 'Department', sortable: true },
-    { key: 'email', label: 'Email', sortable: true },
+    { key: 'id', label: t('col_user_id', 'User ID'), sortable: true },
+    { key: 'name', label: t('col_user_name', 'User Name'), sortable: true },
+    { key: 'username', label: t('username', 'Username'), sortable: true },
+    { key: 'role', label: t('role', 'Role'), sortable: true },
+    { key: 'department', label: t('department', 'Department'), sortable: true },
+    { key: 'email', label: t('email', 'Email'), sortable: true },
     {
       key: 'status',
-      label: 'Status',
+      label: t('status', 'Status'),
       render: (value: string) => <StatusBadge status={value} />,
     },
   ];
@@ -141,14 +152,14 @@ export default function UserManagement() {
     <div className="flex items-center justify-end gap-2">
       <button
         className="hover:bg-muted rounded p-1.5 transition-colors"
-        title="Edit"
+        title={t('edit', 'Edit')}
         onClick={() => handleUpdate(row)}
       >
         <Edit className="h-4 w-4" />
       </button>
       <button
         className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
-        title="Delete"
+        title={t('delete', 'Delete')}
         onClick={() => handleDelete(row.rawId)}
       >
         <Trash2 className="h-4 w-4" />
@@ -179,9 +190,9 @@ export default function UserManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>User Management</h1>
+          <h1>{t('user_mgmt_title', 'User Management')}</h1>
           <p className="text-muted-foreground mt-1">
-            Manage system users and access
+            {t('user_mgmt_subtitle', 'Manage system users and access')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -190,14 +201,14 @@ export default function UserManagement() {
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
           >
             <Shield className="h-5 w-5" />
-            <span>Manage Roles</span>
+            <span>{t('manage_roles', 'Manage Roles')}</span>
           </button>
           <button
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
             onClick={() => router.visit('/user-management/add')}
           >
             <Plus className="h-5 w-5" />
-            <span>Add User</span>
+            <span>{t('add_user', 'Add User')}</span>
           </button>
         </div>
       </div>
@@ -211,7 +222,7 @@ export default function UserManagement() {
       {isLoading ? (
         <div className="text-muted-foreground flex h-40 items-center justify-center gap-3 text-lg">
           <SyncLoader size={14} color="#494949" />
-          <span>Loading users</span>
+          <span>{t('loading_users', 'Loading users')}</span>
         </div>
       ) : (
         <DataTable columns={columns} data={users} actions={actions} />

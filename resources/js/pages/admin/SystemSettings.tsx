@@ -22,6 +22,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog } from '@/lib/alerts';
 import {
@@ -151,6 +152,7 @@ const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
 /* ────────────────── Main component ────────────────── */
 
 export default function SystemSettings() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('general');
   const [saved, setSaved] = useState(false);
 
@@ -215,11 +217,17 @@ export default function SystemSettings() {
       setBackups(data);
     } catch (error) {
       console.error('Failed to load backups:', error);
-      showToast('error', 'Failed to load database and file backups list.');
+      showToast(
+        'error',
+        t(
+          'toast_failed_load_backups',
+          'Failed to load database and file backups list.',
+        ),
+      );
     } finally {
       setLoadingBackups(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (activeTab === 'backup') {
@@ -238,11 +246,17 @@ export default function SystemSettings() {
 
     try {
       await createBackup();
-      showToast('success', 'Database backup created successfully.');
+      showToast(
+        'success',
+        t('toast_db_backup_success', 'Database backup created successfully.'),
+      );
       loadBackups();
     } catch (error) {
       console.error('Failed to create backup:', error);
-      showToast('error', 'Failed to create database backup.');
+      showToast(
+        'error',
+        t('toast_failed_db_backup', 'Failed to create database backup.'),
+      );
     } finally {
       setCreatingBackup(false);
     }
@@ -257,11 +271,23 @@ export default function SystemSettings() {
 
     try {
       await createFilesBackup();
-      showToast('success', 'Uploaded files backup created successfully.');
+      showToast(
+        'success',
+        t(
+          'toast_files_backup_success',
+          'Uploaded files backup created successfully.',
+        ),
+      );
       loadBackups();
     } catch (error) {
       console.error('Failed to create files backup:', error);
-      showToast('error', 'Failed to create uploaded files backup.');
+      showToast(
+        'error',
+        t(
+          'toast_failed_files_backup',
+          'Failed to create uploaded files backup.',
+        ),
+      );
     } finally {
       setCreatingFilesBackup(false);
     }
@@ -276,10 +302,16 @@ export default function SystemSettings() {
 
     try {
       await clearCache();
-      showToast('success', 'System cache cleared successfully.');
+      showToast(
+        'success',
+        t('toast_cache_cleared', 'System cache cleared successfully.'),
+      );
     } catch (error) {
       console.error('Failed to clear cache:', error);
-      showToast('error', 'Failed to clear system cache.');
+      showToast(
+        'error',
+        t('toast_failed_clear_cache', 'Failed to clear system cache.'),
+      );
     } finally {
       setClearingCache(false);
     }
@@ -287,18 +319,33 @@ export default function SystemSettings() {
 
   const handleDownloadBackup = async (filename: string) => {
     try {
-      showToast('success', `Downloading database backup: ${filename}`);
+      showToast(
+        'success',
+        t(
+          'toast_downloading_backup',
+          'Downloading database backup: :name',
+        ).replace(':name', filename),
+      );
       await downloadBackup(filename);
     } catch (error) {
       console.error('Failed to download backup:', error);
-      showToast('error', 'Failed to download database backup.');
+      showToast(
+        'error',
+        t(
+          'toast_failed_download_backup',
+          'Failed to download database backup.',
+        ),
+      );
     }
   };
 
   const handleDeleteBackup = async (filename: string) => {
     const confirmed = await confirmDialog({
-      title: 'Delete Backup File',
-      text: `Are you sure you want to delete the backup file "${filename}"?`,
+      title: t('delete_backup_file', 'Delete Backup File'),
+      text: t(
+        'confirm_delete_backup_desc',
+        'Are you sure you want to delete the backup file ":name"?',
+      ).replace(':name', filename),
     });
 
     if (!confirmed) {
@@ -307,19 +354,28 @@ export default function SystemSettings() {
 
     try {
       await deleteBackup(filename);
-      showToast('success', 'Backup file deleted successfully.');
+      showToast(
+        'success',
+        t('toast_backup_deleted', 'Backup file deleted successfully.'),
+      );
       loadBackups();
     } catch (error) {
       console.error('Failed to delete backup:', error);
-      showToast('error', 'Failed to delete backup file.');
+      showToast(
+        'error',
+        t('toast_failed_delete_backup', 'Failed to delete backup file.'),
+      );
     }
   };
 
   const handleRestoreBackup = async (filename: string) => {
     const confirmed = await confirmDialog({
-      title: 'Restore Database',
-      text: `Are you sure you want to restore the database backup from "${filename}"? This will overwrite all current system data.`,
-      confirmButtonText: 'Restore',
+      title: t('restore_database', 'Restore Database'),
+      text: t(
+        'confirm_restore_backup_desc',
+        'Are you sure you want to restore the database backup from ":name"? This will overwrite all current system data.',
+      ).replace(':name', filename),
+      confirmButtonText: t('restore', 'Restore'),
     });
 
     if (!confirmed) {
@@ -330,13 +386,17 @@ export default function SystemSettings() {
 
     try {
       await restoreBackup(filename);
-      showToast('success', 'Database restored successfully.');
+      showToast(
+        'success',
+        t('toast_db_restored', 'Database restored successfully.'),
+      );
       loadBackups();
     } catch (error: any) {
       console.error('Failed to restore backup:', error);
       showToast(
         'error',
-        error.response?.data?.message || 'Failed to restore database backup.',
+        error.response?.data?.message ||
+          t('toast_failed_restore_db', 'Failed to restore database backup.'),
       );
     } finally {
       setRestoringBackup(null);
@@ -385,9 +445,12 @@ export default function SystemSettings() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1>System Settings</h1>
+          <h1>{t('sys_settings_title', 'System Settings')}</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">
-            Configure system-wide preferences, security, and maintenance options
+            {t(
+              'sys_settings_subtitle',
+              'Configure system-wide preferences, security, and maintenance options',
+            )}
           </p>
         </div>
         <button
@@ -396,11 +459,11 @@ export default function SystemSettings() {
         >
           {saved ? (
             <>
-              <CheckCircle className="h-4 w-4" /> Saved
+              <CheckCircle className="h-4 w-4" /> {t('saved', 'Saved')}
             </>
           ) : (
             <>
-              <Save className="h-4 w-4" /> Save Changes
+              <Save className="h-4 w-4" /> {t('save_changes', 'Save Changes')}
             </>
           )}
         </button>
@@ -414,9 +477,11 @@ export default function SystemSettings() {
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">
-              System Status
+              {t('sys_status', 'System Status')}
             </p>
-            <p className="text-secondary text-sm font-semibold">Operational</p>
+            <p className="text-secondary text-sm font-semibold">
+              {t('operational', 'Operational')}
+            </p>
           </div>
         </div>
         <div className="bg-card border-border flex items-center gap-4 rounded-xl border p-4">
@@ -425,7 +490,7 @@ export default function SystemSettings() {
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">
-              Last Backup
+              {t('last_backup', 'Last Backup')}
             </p>
             <p className="text-sm font-semibold">{lastBackupTime}</p>
           </div>
@@ -436,7 +501,7 @@ export default function SystemSettings() {
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">
-              Uptime
+              {t('uptime', 'Uptime')}
             </p>
             <p className="text-sm font-semibold">99.97%</p>
           </div>
@@ -460,7 +525,7 @@ export default function SystemSettings() {
               }`}
             >
               <Icon className="h-4 w-4" />
-              {tab.label}
+              {t('tab_' + tab.key, tab.label)}
             </button>
           );
         })}
@@ -470,13 +535,19 @@ export default function SystemSettings() {
       {activeTab === 'general' && (
         <div className="space-y-5">
           <SectionCard
-            title="Application"
-            description="Basic application identity and regional preferences"
+            title={t('sec_application', 'Application')}
+            description={t(
+              'sec_application_subtitle',
+              'Basic application identity and regional preferences',
+            )}
           >
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 py-5 sm:grid-cols-2">
               <Field
-                label="System Name"
-                hint="Displayed in the header and browser tab"
+                label={t('system_name', 'System Name')}
+                hint={t(
+                  'system_name_hint',
+                  'Displayed in the header and browser tab',
+                )}
               >
                 <input
                   className={inputCls}
@@ -485,8 +556,11 @@ export default function SystemSettings() {
                 />
               </Field>
               <Field
-                label="Organisation Name"
-                hint="Official organisation administering the system"
+                label={t('organisation_name', 'Organisation Name')}
+                hint={t(
+                  'organisation_name_hint',
+                  'Official organisation administering the system',
+                )}
               >
                 <input
                   className={inputCls}
@@ -494,7 +568,7 @@ export default function SystemSettings() {
                   onChange={(e) => setOrgName(e.target.value)}
                 />
               </Field>
-              <Field label="Default Language">
+              <Field label={t('default_language', 'Default Language')}>
                 <select
                   className={inputCls}
                   value={language}
@@ -505,7 +579,7 @@ export default function SystemSettings() {
                   <option value="ta">தமிழ் (Tamil)</option>
                 </select>
               </Field>
-              <Field label="Timezone">
+              <Field label={t('timezone', 'Timezone')}>
                 <select
                   className={inputCls}
                   value={timezone}
@@ -515,7 +589,7 @@ export default function SystemSettings() {
                   <option value="UTC">UTC</option>
                 </select>
               </Field>
-              <Field label="Date Format">
+              <Field label={t('date_format', 'Date Format')}>
                 <select
                   className={inputCls}
                   value={dateFormat}
@@ -526,7 +600,7 @@ export default function SystemSettings() {
                   <option value="YYYY-MM-DD">YYYY-MM-DD</option>
                 </select>
               </Field>
-              <Field label="Currency">
+              <Field label={t('currency', 'Currency')}>
                 <select
                   className={inputCls}
                   value={currency}
@@ -545,13 +619,16 @@ export default function SystemSettings() {
       {activeTab === 'security' && (
         <div className="space-y-5">
           <SectionCard
-            title="Authentication"
-            description="Session and login policies"
+            title={t('sec_authentication', 'Authentication')}
+            description={t(
+              'sec_authentication_subtitle',
+              'Session and login policies',
+            )}
           >
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 py-5 sm:grid-cols-2">
               <Field
-                label="Session Timeout (minutes)"
-                hint="Auto-logout after inactivity"
+                label={t('session_timeout', 'Session Timeout (minutes)')}
+                hint={t('session_timeout_hint', 'Auto-logout after inactivity')}
               >
                 <input
                   className={inputCls}
@@ -563,8 +640,11 @@ export default function SystemSettings() {
                 />
               </Field>
               <Field
-                label="Max Login Attempts"
-                hint="Account locks after failed attempts"
+                label={t('max_login_attempts', 'Max Login Attempts')}
+                hint={t(
+                  'max_login_attempts_hint',
+                  'Account locks after failed attempts',
+                )}
               >
                 <input
                   className={inputCls}
@@ -578,8 +658,11 @@ export default function SystemSettings() {
             </div>
             <SettingRow
               icon={Shield}
-              title="Two-Factor Authentication"
-              description="Require OTP verification during login for all users"
+              title={t('two_factor_auth', 'Two-Factor Authentication')}
+              description={t(
+                'two_factor_auth_desc',
+                'Require OTP verification during login for all users',
+              )}
             >
               <Toggle
                 checked={twoFactor}
@@ -588,8 +671,11 @@ export default function SystemSettings() {
             </SettingRow>
             <SettingRow
               icon={Lock}
-              title="IP Whitelist"
-              description="Restrict access to pre-approved IP addresses only"
+              title={t('ip_whitelist', 'IP Whitelist')}
+              description={t(
+                'ip_whitelist_desc',
+                'Restrict access to pre-approved IP addresses only',
+              )}
             >
               <Toggle
                 checked={ipWhitelist}
@@ -599,13 +685,19 @@ export default function SystemSettings() {
           </SectionCard>
 
           <SectionCard
-            title="Password Policy"
-            description="Define password strength and expiry rules"
+            title={t('sec_password_policy', 'Password Policy')}
+            description={t(
+              'sec_password_policy_subtitle',
+              'Define password strength and expiry rules',
+            )}
           >
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 py-5 sm:grid-cols-2">
               <Field
-                label="Minimum Password Length"
-                hint="Recommended: 8 or more characters"
+                label={t('min_password_length', 'Minimum Password Length')}
+                hint={t(
+                  'min_password_length_hint',
+                  'Recommended: 8 or more characters',
+                )}
               >
                 <input
                   className={inputCls}
@@ -617,8 +709,11 @@ export default function SystemSettings() {
                 />
               </Field>
               <Field
-                label="Password Expiry (days)"
-                hint="Users must change password after this period"
+                label={t('password_expiry', 'Password Expiry (days)')}
+                hint={t(
+                  'password_expiry_hint',
+                  'Users must change password after this period',
+                )}
               >
                 <input
                   className={inputCls}
@@ -633,8 +728,11 @@ export default function SystemSettings() {
             </div>
             <SettingRow
               icon={RefreshCcw}
-              title="Enforce Password Expiry"
-              description="Force users to change their password periodically"
+              title={t('enforce_password_expiry', 'Enforce Password Expiry')}
+              description={t(
+                'enforce_password_expiry_desc',
+                'Force users to change their password periodically',
+              )}
             >
               <Toggle
                 checked={enforcePasswordExpiry}
@@ -651,13 +749,19 @@ export default function SystemSettings() {
       {activeTab === 'notifications' && (
         <div className="space-y-5">
           <SectionCard
-            title="Notification Channels"
-            description="Toggle notification delivery methods"
+            title={t('sec_notification_channels', 'Notification Channels')}
+            description={t(
+              'sec_notification_channels_subtitle',
+              'Toggle notification delivery methods',
+            )}
           >
             <SettingRow
               icon={Mail}
-              title="Email Notifications"
-              description="Send notifications via email for important events"
+              title={t('email_notifications', 'Email Notifications')}
+              description={t(
+                'email_notifications_desc',
+                'Send notifications via email for important events',
+              )}
             >
               <Toggle
                 checked={emailNotifs}
@@ -666,8 +770,11 @@ export default function SystemSettings() {
             </SettingRow>
             <SettingRow
               icon={Bell}
-              title="In-App Notifications"
-              description="Show real-time notifications within the system"
+              title={t('in_app_notifications', 'In-App Notifications')}
+              description={t(
+                'in_app_notifications_desc',
+                'Show real-time notifications within the system',
+              )}
             >
               <Toggle
                 checked={systemNotifs}
@@ -677,13 +784,19 @@ export default function SystemSettings() {
           </SectionCard>
 
           <SectionCard
-            title="Alert Types"
-            description="Choose which events trigger alerts"
+            title={t('sec_alert_types', 'Alert Types')}
+            description={t(
+              'sec_alert_types_subtitle',
+              'Choose which events trigger alerts',
+            )}
           >
             <SettingRow
               icon={CheckCircle}
-              title="Approval Alerts"
-              description="Notify when items require approval or are approved/rejected"
+              title={t('approval_alerts', 'Approval Alerts')}
+              description={t(
+                'approval_alerts_desc',
+                'Notify when items require approval or are approved/rejected',
+              )}
             >
               <Toggle
                 checked={approvalAlerts}
@@ -692,8 +805,11 @@ export default function SystemSettings() {
             </SettingRow>
             <SettingRow
               icon={Clock}
-              title="Deadline Alerts"
-              description="Alert users when deadlines are approaching or overdue"
+              title={t('deadline_alerts', 'Deadline Alerts')}
+              description={t(
+                'deadline_alerts_desc',
+                'Alert users when deadlines are approaching or overdue',
+              )}
             >
               <Toggle
                 checked={deadlineAlerts}
@@ -702,8 +818,11 @@ export default function SystemSettings() {
             </SettingRow>
             <SettingRow
               icon={Mail}
-              title="Daily Digest"
-              description="Send a daily summary email of all system activity"
+              title={t('daily_digest', 'Daily Digest')}
+              description={t(
+                'daily_digest_desc',
+                'Send a daily summary email of all system activity',
+              )}
             >
               <Toggle
                 checked={dailyDigest}
@@ -713,18 +832,27 @@ export default function SystemSettings() {
           </SectionCard>
 
           <SectionCard
-            title="Email Server (SMTP)"
-            description="Configure the outgoing mail server"
+            title={t('sec_email_server', 'Email Server (SMTP)')}
+            description={t(
+              'sec_email_server_subtitle',
+              'Configure the outgoing mail server',
+            )}
           >
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 py-5 sm:grid-cols-2">
-              <Field label="SMTP Host" hint="e.g. smtp.lams.gov.lk">
+              <Field
+                label={t('smtp_host', 'SMTP Host')}
+                hint="e.g. smtp.lams.gov.lk"
+              >
                 <input
                   className={inputCls}
                   value={smtpHost}
                   onChange={(e) => setSmtpHost(e.target.value)}
                 />
               </Field>
-              <Field label="SMTP Port" hint="Common ports: 25, 465, 587">
+              <Field
+                label={t('smtp_port', 'SMTP Port')}
+                hint="Common ports: 25, 465, 587"
+              >
                 <input
                   className={inputCls}
                   type="number"
@@ -741,13 +869,19 @@ export default function SystemSettings() {
       {activeTab === 'backup' && (
         <div className="space-y-5">
           <SectionCard
-            title="Automated Backup"
-            description="Schedule and configure database backups"
+            title={t('sec_automated_backup', 'Automated Backup')}
+            description={t(
+              'sec_automated_backup_subtitle',
+              'Schedule and configure database backups',
+            )}
           >
             <SettingRow
               icon={Database}
-              title="Automatic Backups"
-              description="Run scheduled backups of the entire database"
+              title={t('automatic_backups', 'Automatic Backups')}
+              description={t(
+                'automatic_backups_desc',
+                'Run scheduled backups of the entire database',
+              )}
             >
               <Toggle
                 checked={autoBackup}
@@ -755,7 +889,7 @@ export default function SystemSettings() {
               />
             </SettingRow>
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 py-5 sm:grid-cols-2">
-              <Field label="Backup Frequency">
+              <Field label={t('backup_frequency', 'Backup Frequency')}>
                 <select
                   className={inputCls}
                   value={backupFrequency}
@@ -769,8 +903,11 @@ export default function SystemSettings() {
                 </select>
               </Field>
               <Field
-                label="Retention Period (days)"
-                hint="Number of days to keep old backups"
+                label={t('retention_period', 'Retention Period (days)')}
+                hint={t(
+                  'retention_period_hint',
+                  'Number of days to keep old backups',
+                )}
               >
                 <input
                   className={inputCls}
@@ -786,8 +923,11 @@ export default function SystemSettings() {
           </SectionCard>
 
           <SectionCard
-            title="Manual Actions"
-            description="One-time maintenance operations"
+            title={t('sec_manual_actions', 'Manual Actions')}
+            description={t(
+              'sec_manual_actions_subtitle',
+              'One-time maintenance operations',
+            )}
           >
             <div className="flex flex-wrap gap-3 py-5">
               <button
@@ -797,12 +937,13 @@ export default function SystemSettings() {
               >
                 {creatingBackup ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Creating
-                    Database Backup...
+                    <Loader2 className="h-4 w-4 animate-spin" />{' '}
+                    {t('backing_up', 'Backing up...')}
                   </>
                 ) : (
                   <>
-                    <Database className="h-4 w-4" /> Backup Database
+                    <Database className="h-4 w-4" />{' '}
+                    {t('backup_database', 'Backup Database')}
                   </>
                 )}
               </button>
@@ -813,12 +954,13 @@ export default function SystemSettings() {
               >
                 {creatingFilesBackup ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Creating
-                    Uploads Backup...
+                    <Loader2 className="h-4 w-4 animate-spin" />{' '}
+                    {t('backing_up', 'Backing up...')}
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4" /> Backup Uploads
+                    <Upload className="h-4 w-4" />{' '}
+                    {t('backup_uploads', 'Backup Uploads')}
                   </>
                 )}
               </button>
@@ -829,12 +971,13 @@ export default function SystemSettings() {
               >
                 {clearingCache ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Clearing
-                    Cache...
+                    <Loader2 className="h-4 w-4 animate-spin" />{' '}
+                    {t('clearing_cache', 'Clearing Cache...')}
                   </>
                 ) : (
                   <>
-                    <RefreshCcw className="h-4 w-4" /> Clear Cache
+                    <RefreshCcw className="h-4 w-4" />{' '}
+                    {t('clear_cache', 'Clear Cache')}
                   </>
                 )}
               </button>
@@ -842,8 +985,11 @@ export default function SystemSettings() {
           </SectionCard>
 
           <SectionCard
-            title="Backup History"
-            description="Download or delete previous manual database and uploaded file backups"
+            title={t('sec_backup_history', 'Backup History')}
+            description={t(
+              'sec_backup_history_subtitle',
+              'Download or delete previous manual database and uploaded file backups',
+            )}
           >
             <div className="py-4">
               {loadingBackups ? (
@@ -854,11 +1000,16 @@ export default function SystemSettings() {
                 <div className="text-muted-foreground flex flex-col items-center justify-center py-8 text-center">
                   <Database className="mb-2 h-10 w-10 opacity-40" />
                   <p className="text-sm font-medium">
-                    No database or file backups found.
+                    {t(
+                      'no_backups_found',
+                      'No database or file backups found.',
+                    )}
                   </p>
                   <p className="mt-1 text-xs">
-                    Click "Backup Database" or "Backup Uploads" to create your
-                    first system backup.
+                    {t(
+                      'no_backups_hint',
+                      'Click "Backup Database" or "Backup Uploads" to create your first system backup.',
+                    )}
                   </p>
                 </div>
               ) : (
@@ -866,12 +1017,20 @@ export default function SystemSettings() {
                   <table className="w-full text-left text-sm">
                     <thead>
                       <tr className="border-border text-muted-foreground border-b text-xs uppercase tracking-wider">
-                        <th className="pb-3 font-semibold">File Name</th>
-                        <th className="pb-3 font-semibold">Type</th>
-                        <th className="pb-3 font-semibold">Created At</th>
-                        <th className="pb-3 font-semibold">File Size</th>
+                        <th className="pb-3 font-semibold">
+                          {t('col_file_name', 'File Name')}
+                        </th>
+                        <th className="pb-3 font-semibold">
+                          {t('col_type', 'Type')}
+                        </th>
+                        <th className="pb-3 font-semibold">
+                          {t('col_created_at', 'Created At')}
+                        </th>
+                        <th className="pb-3 font-semibold">
+                          {t('col_file_size', 'File Size')}
+                        </th>
                         <th className="pb-3 text-right font-semibold">
-                          Actions
+                          {t('col_actions', 'Actions')}
                         </th>
                       </tr>
                     </thead>
@@ -893,7 +1052,9 @@ export default function SystemSettings() {
                                     : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                                 }`}
                               >
-                                {isFilesBackup ? 'Uploaded Files' : 'Database'}
+                                {isFilesBackup
+                                  ? t('uploaded_files', 'Uploaded Files')
+                                  : t('database', 'Database')}
                               </span>
                             </td>
                             <td className="text-muted-foreground py-3.5">
@@ -917,7 +1078,10 @@ export default function SystemSettings() {
                                   onClick={() =>
                                     handleDownloadBackup(bk.filename)
                                   }
-                                  title="Download Backup"
+                                  title={t(
+                                    'download_backup',
+                                    'Download Backup',
+                                  )}
                                   className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
                                 >
                                   <Download className="h-4 w-4" />
@@ -928,7 +1092,10 @@ export default function SystemSettings() {
                                       handleRestoreBackup(bk.filename)
                                     }
                                     disabled={restoringBackup !== null}
-                                    title="Restore Backup"
+                                    title={t(
+                                      'restore_backup',
+                                      'Restore Backup',
+                                    )}
                                     className="text-muted-foreground hover:text-primary rounded p-1 transition-colors disabled:opacity-50"
                                   >
                                     {restoringBackup === bk.filename ? (
@@ -942,7 +1109,7 @@ export default function SystemSettings() {
                                   onClick={() =>
                                     handleDeleteBackup(bk.filename)
                                   }
-                                  title="Delete Backup"
+                                  title={t('delete_backup', 'Delete Backup')}
                                   className="text-muted-foreground hover:text-destructive rounded p-1 transition-colors"
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -960,13 +1127,19 @@ export default function SystemSettings() {
           </SectionCard>
 
           <SectionCard
-            title="Data Retention"
-            description="Configure how long historical data is kept"
+            title={t('sec_data_retention', 'Data Retention')}
+            description={t(
+              'sec_data_retention_subtitle',
+              'Configure how long historical data is kept',
+            )}
           >
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 py-5 sm:grid-cols-2">
               <Field
-                label="Audit Log Retention (days)"
-                hint="Logs older than this are automatically purged"
+                label={t('audit_log_retention', 'Audit Log Retention (days)')}
+                hint={t(
+                  'audit_log_retention_hint',
+                  'Logs older than this are automatically purged',
+                )}
               >
                 <input
                   className={inputCls}
@@ -981,13 +1154,19 @@ export default function SystemSettings() {
           </SectionCard>
 
           <SectionCard
-            title="Maintenance Mode"
-            description="Take the system offline for maintenance"
+            title={t('sec_maintenance_mode', 'Maintenance Mode')}
+            description={t(
+              'sec_maintenance_mode_subtitle',
+              'Take the system offline for maintenance',
+            )}
           >
             <SettingRow
               icon={Globe}
-              title="Enable Maintenance Mode"
-              description="Users will see a maintenance page and cannot access the system"
+              title={t('enable_maintenance_mode', 'Enable Maintenance Mode')}
+              description={t(
+                'enable_maintenance_mode_desc',
+                'Users will see a maintenance page and cannot access the system',
+              )}
             >
               <Toggle
                 checked={maintenanceMode}
@@ -998,8 +1177,10 @@ export default function SystemSettings() {
               <div className="py-3">
                 <div className="bg-destructive/5 border-destructive/20 text-destructive flex items-center gap-2 rounded-lg border p-3 text-xs">
                   <Info className="h-3.5 w-3.5 flex-shrink-0" />
-                  Maintenance mode is active. All non-admin users are currently
-                  locked out.
+                  {t(
+                    'maintenance_mode_active_desc',
+                    'Maintenance mode is active. All non-admin users are currently locked out.',
+                  )}
                 </div>
               </div>
             )}

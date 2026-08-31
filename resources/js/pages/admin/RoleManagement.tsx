@@ -12,6 +12,7 @@ import {
   Info,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import {
   getRoles,
@@ -300,6 +301,7 @@ const inputCls =
   'w-full px-3 py-2 border border-border rounded-lg bg-input-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors';
 
 export default function RoleManagement() {
+  const { t } = useTranslation();
   const [roles, setRoles] = useState<Role[]>([]);
   const [selectedRole, setSelectedRole] = useState<Role>(INITIAL_ROLES[0]);
   const [loading, setLoading] = useState(true);
@@ -433,11 +435,14 @@ export default function RoleManagement() {
     const errs: Record<string, string> = {};
 
     if (!form.name.trim()) {
-      errs.name = 'Role name is required';
+      errs.name = t('err_role_name_required', 'Role name is required');
     }
 
     if (!form.description.trim()) {
-      errs.description = 'Description is required';
+      errs.description = t(
+        'err_description_required',
+        'Description is required',
+      );
     }
 
     setErrors(errs);
@@ -521,7 +526,12 @@ export default function RoleManagement() {
         });
         setErrors(backendErrors);
       } else {
-        setErrors({ name: 'An error occurred while saving the role.' });
+        setErrors({
+          name: t(
+            'err_saving_role',
+            'An error occurred while saving the role.',
+          ),
+        });
       }
     } finally {
       progress.finish();
@@ -581,16 +591,19 @@ export default function RoleManagement() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1>Role Management</h1>
+          <h1>{t('role_mgmt_title', 'Role Management')}</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">
-            Configure roles, permissions and access levels
+            {t(
+              'role_mgmt_subtitle',
+              'Configure roles, permissions and access levels',
+            )}
           </p>
         </div>
         <button
           onClick={openAdd}
           className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors"
         >
-          <Plus className="h-4 w-4" /> Create Role
+          <Plus className="h-4 w-4" /> {t('create_role', 'Create Role')}
         </button>
       </div>
 
@@ -599,7 +612,10 @@ export default function RoleManagement() {
         {/* Left: role cards */}
         <div className="space-y-2">
           <p className="text-muted-foreground mb-3 px-1 text-xs uppercase tracking-wide">
-            {roles.length} Roles
+            {t('roles_count', ':count Roles').replace(
+              ':count',
+              String(roles.length),
+            )}
           </p>
           {roles.map((role) => (
             <div
@@ -621,12 +637,15 @@ export default function RoleManagement() {
                   <p className="truncate text-sm font-medium">{`${role.description} (${role.name})`}</p>
                   {role.isSystem && (
                     <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs">
-                      System
+                      {t('system', 'System')}
                     </span>
                   )}
                 </div>
                 <p className="text-muted-foreground mt-0.5 text-xs">
-                  {role.userCount} users
+                  {t('users_count', ':count users').replace(
+                    ':count',
+                    String(role.userCount),
+                  )}
                 </p>
               </div>
             </div>
@@ -650,7 +669,7 @@ export default function RoleManagement() {
                   <h3>{selectedRole.name}</h3>
                   {selectedRole.isSystem && (
                     <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs">
-                      System Role
+                      {t('system_role', 'System Role')}
                     </span>
                   )}
                 </div>
@@ -660,7 +679,10 @@ export default function RoleManagement() {
                 <div className="text-muted-foreground mt-2 flex items-center gap-1.5 text-sm">
                   <Users className="h-4 w-4" />
                   <span>
-                    {selectedRole.userCount} users assigned to this role
+                    {t(
+                      'users_assigned_desc',
+                      ':count users assigned to this role',
+                    ).replace(':count', String(selectedRole.userCount))}
                   </span>
                 </div>
               </div>
@@ -671,13 +693,13 @@ export default function RoleManagement() {
                   onClick={() => openEdit(selectedRole)}
                   className="border-border hover:bg-muted flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors"
                 >
-                  <Edit2 className="h-3.5 w-3.5" /> Edit
+                  <Edit2 className="h-3.5 w-3.5" /> {t('edit', 'Edit')}
                 </button>
                 <button
                   onClick={() => setDeleteId(selectedRole.id)}
                   className="border-destructive/30 text-destructive hover:bg-destructive/5 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors"
                 >
-                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                  <Trash2 className="h-3.5 w-3.5" /> {t('delete', 'Delete')}
                 </button>
               </div>
             )}
@@ -687,7 +709,7 @@ export default function RoleManagement() {
           <div className="p-6">
             <div className="mb-4 flex items-center justify-between">
               <h4 className="text-muted-foreground text-sm font-semibold uppercase tracking-wide">
-                Permissions
+                {t('permissions', 'Permissions')}
               </h4>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -708,10 +730,10 @@ export default function RoleManagement() {
                       <p
                         className={`text-sm font-medium ${granted ? 'text-foreground' : 'text-muted-foreground'}`}
                       >
-                        {perm.label}
+                        {t('perm_' + perm.key, perm.label)}
                       </p>
                       <p className="text-muted-foreground mt-0.5 text-xs">
-                        {perm.description}
+                        {t('perm_' + perm.key + '_desc', perm.description)}
                       </p>
                     </div>
                   </div>
@@ -726,9 +748,12 @@ export default function RoleManagement() {
       <div className="bg-card border-border overflow-hidden rounded-xl border">
         <div className="border-border flex items-center justify-between border-b px-6 py-4">
           <div>
-            <h3>Permissions Matrix</h3>
+            <h3>{t('permissions_matrix', 'Permissions Matrix')}</h3>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Compare and edit permissions across all roles
+              {t(
+                'permissions_matrix_subtitle',
+                'Compare and edit permissions across all roles',
+              )}
             </p>
           </div>
           {editingMatrix ? (
@@ -737,13 +762,14 @@ export default function RoleManagement() {
                 onClick={() => setEditingMatrix(false)}
                 className="border-border hover:bg-muted flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors"
               >
-                <X className="h-3.5 w-3.5" /> Cancel
+                <X className="h-3.5 w-3.5" /> {t('cancel', 'Cancel')}
               </button>
               <button
                 onClick={saveMatrix}
                 className="bg-primary hover:bg-primary/90 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-white transition-colors"
               >
-                <Save className="h-3.5 w-3.5" /> Save Matrix
+                <Save className="h-3.5 w-3.5" />{' '}
+                {t('save_matrix', 'Save Matrix')}
               </button>
             </div>
           ) : (
@@ -751,7 +777,8 @@ export default function RoleManagement() {
               onClick={startEditMatrix}
               className="border-border hover:bg-muted flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors"
             >
-              <Edit2 className="h-3.5 w-3.5" /> Edit Permissions
+              <Edit2 className="h-3.5 w-3.5" />{' '}
+              {t('edit_permissions', 'Edit Permissions')}
             </button>
           )}
         </div>
@@ -760,15 +787,15 @@ export default function RoleManagement() {
             <thead className="bg-muted/50 border-border border-b">
               <tr>
                 <th className="text-muted-foreground bg-muted/50 sticky left-0 min-w-[180px] px-4 py-3 text-left text-xs uppercase tracking-wide">
-                  Role
+                  {t('role', 'Role')}
                 </th>
                 {PERMISSIONS.map((p) => (
                   <th
                     key={p.key}
                     className="text-muted-foreground min-w-[80px] px-3 py-3 text-center text-xs uppercase tracking-wide"
-                    title={p.description}
+                    title={t('perm_' + p.key + '_desc', p.description)}
                   >
-                    {p.label}
+                    {t('perm_' + p.key, p.label)}
                   </th>
                 ))}
               </tr>
@@ -787,7 +814,7 @@ export default function RoleManagement() {
                       <span className="truncate font-medium">{role.name}</span>
                       {role.isSystem && (
                         <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs">
-                          Sys
+                          {t('system_short', 'Sys')}
                         </span>
                       )}
                     </div>
@@ -831,8 +858,10 @@ export default function RoleManagement() {
         {editingMatrix && (
           <div className="border-border bg-muted/20 text-muted-foreground flex items-center gap-2 border-t px-4 py-3 text-xs">
             <Info className="h-3.5 w-3.5 flex-shrink-0" />
-            Click checkboxes to toggle permissions. System roles cannot be
-            modified.
+            {t(
+              'matrix_hint',
+              'Click checkboxes to toggle permissions. System roles cannot be modified.',
+            )}
           </div>
         )}
       </div>
@@ -840,7 +869,11 @@ export default function RoleManagement() {
       {/* Add / Edit role modal */}
       {showModal && (
         <Modal
-          title={editingId ? 'Edit Role' : 'Create Role'}
+          title={
+            editingId
+              ? t('edit_role', 'Edit Role')
+              : t('create_role', 'Create Role')
+          }
           onClose={() => setShowModal(false)}
           wide
         >
@@ -848,11 +881,15 @@ export default function RoleManagement() {
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <label className="text-sm font-medium">
-                  Role Name <span className="text-destructive">*</span>
+                  {t('role_name', 'Role Name')}{' '}
+                  <span className="text-destructive">*</span>
                 </label>
                 <input
                   className={`${inputCls} mt-1`}
-                  placeholder="e.g. Gazette Officer"
+                  placeholder={t(
+                    'role_name_placeholder',
+                    'e.g. Gazette Officer',
+                  )}
                   value={form.name}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, name: e.target.value }))
@@ -866,12 +903,16 @@ export default function RoleManagement() {
               </div>
               <div className="col-span-2">
                 <label className="text-sm font-medium">
-                  Description <span className="text-destructive">*</span>
+                  {t('description', 'Description')}{' '}
+                  <span className="text-destructive">*</span>
                 </label>
                 <textarea
                   className={`${inputCls} mt-1 resize-none`}
                   rows={2}
-                  placeholder="Brief description of this role's responsibilities"
+                  placeholder={t(
+                    'description_placeholder',
+                    "Brief description of this role's responsibilities",
+                  )}
                   value={form.description}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, description: e.target.value }))
@@ -885,7 +926,7 @@ export default function RoleManagement() {
               </div>
               <div className="col-span-2">
                 <label className="mb-2 block text-sm font-medium">
-                  Badge Color
+                  {t('badge_color', 'Badge Color')}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {ROLE_COLORS.map((c) => (
@@ -903,7 +944,7 @@ export default function RoleManagement() {
             {/* Permissions in modal */}
             <div>
               <label className="mb-3 block text-sm font-medium">
-                Permissions
+                {t('permissions', 'Permissions')}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {PERMISSIONS.map((perm) => {
@@ -926,9 +967,11 @@ export default function RoleManagement() {
                         <Square className="text-muted-foreground/50 h-4 w-4 flex-shrink-0" />
                       )}
                       <div>
-                        <p className="text-sm font-medium">{perm.label}</p>
+                        <p className="text-sm font-medium">
+                          {t('perm_' + perm.key, perm.label)}
+                        </p>
                         <p className="text-muted-foreground text-xs">
-                          {perm.description}
+                          {t('perm_' + perm.key + '_desc', perm.description)}
                         </p>
                       </div>
                     </label>
@@ -942,14 +985,16 @@ export default function RoleManagement() {
                 onClick={() => setShowModal(false)}
                 className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors"
               >
-                <X className="h-4 w-4" /> Cancel
+                <X className="h-4 w-4" /> {t('cancel', 'Cancel')}
               </button>
               <button
                 onClick={handleSave}
                 className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors"
               >
                 <Save className="h-4 w-4" />{' '}
-                {editingId ? 'Save Changes' : 'Create Role'}
+                {editingId
+                  ? t('save_changes', 'Save Changes')
+                  : t('create_role', 'Create Role')}
               </button>
             </div>
           </div>
@@ -958,22 +1003,32 @@ export default function RoleManagement() {
 
       {/* Delete confirm */}
       {deleteId && (
-        <Modal title="Delete Role" onClose={() => setDeleteId(null)}>
+        <Modal
+          title={t('delete_role', 'Delete Role')}
+          onClose={() => setDeleteId(null)}
+        >
           <div className="p-6">
             <p className="text-muted-foreground mb-2 text-sm">
-              Delete{' '}
-              <strong>{roles.find((r) => r.id === deleteId)?.name}</strong>?
+              {t('confirm_role_delete_desc', 'Delete :name?').replace(
+                ':name',
+                roles.find((r) => r.id === deleteId)?.name || '',
+              )}
             </p>
             <p className="text-destructive bg-destructive/5 border-destructive/20 mb-5 rounded-lg border p-3 text-xs">
-              Warning: {roles.find((r) => r.id === deleteId)?.userCount} user(s)
-              are currently assigned this role. They must be reassigned first.
+              {t(
+                'role_delete_warning',
+                'Warning: :count user(s) are currently assigned this role. They must be reassigned first.',
+              ).replace(
+                ':count',
+                String(roles.find((r) => r.id === deleteId)?.userCount || 0),
+              )}
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setDeleteId(null)}
                 className="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm transition-colors"
               >
-                Cancel
+                {t('cancel', 'Cancel')}
               </button>
               <button
                 onClick={async () => {
@@ -1003,7 +1058,7 @@ export default function RoleManagement() {
                 }
                 className="bg-destructive hover:bg-destructive/90 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Delete Role
+                {t('delete_role', 'Delete Role')}
               </button>
             </div>
           </div>

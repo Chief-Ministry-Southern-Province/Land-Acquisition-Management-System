@@ -2,9 +2,11 @@ import { usePage, router } from '@inertiajs/react';
 import { AlertTriangle, Bell, CheckCircle2, Info, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 
 export default function Notifications() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState('all');
   const { props } = usePage();
   const auth = props.auth as any;
@@ -36,16 +38,19 @@ export default function Notifications() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Notifications</h1>
+          <h1>{t('notifications', 'Notifications')}</h1>
           <p className="text-muted-foreground mt-1">
-            System alerts and updates ({unreadCount} unread)
+            {t(
+              'notifications_subtitle',
+              'System alerts and updates (:count unread)',
+            ).replace(':count', String(unreadCount))}
           </p>
         </div>
         <button
           onClick={markAllAsRead}
           className="border-border hover:bg-muted cursor-pointer rounded-lg border px-4 py-2 transition-colors"
         >
-          Mark All as Read
+          {t('mark_all_as_read', 'Mark All as Read')}
         </button>
       </div>
 
@@ -53,12 +58,12 @@ export default function Notifications() {
       <div className="border-border border-b">
         <div className="flex gap-1 overflow-x-auto">
           {[
-            { id: 'all', label: 'All' },
-            { id: 'unread', label: 'Unread' },
-            { id: 'success', label: 'Success' },
-            { id: 'warning', label: 'Warnings' },
-            { id: 'error', label: 'Errors' },
-            { id: 'info', label: 'Info' },
+            { id: 'all', label: t('filter_all', 'All') },
+            { id: 'unread', label: t('filter_unread', 'Unread') },
+            { id: 'success', label: t('filter_success', 'Success') },
+            { id: 'warning', label: t('filter_warning', 'Warnings') },
+            { id: 'error', label: t('filter_error', 'Errors') },
+            { id: 'info', label: t('filter_info', 'Info') },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -122,7 +127,9 @@ export default function Notifications() {
         {filteredNotifications.length === 0 && (
           <div className="bg-card border-border rounded-lg border p-12 text-center">
             <Bell className="text-muted-foreground mx-auto mb-4 h-12 w-12 opacity-50" />
-            <p className="text-muted-foreground">No notifications</p>
+            <p className="text-muted-foreground">
+              {t('no_notifications', 'No notifications')}
+            </p>
           </div>
         )}
       </div>

@@ -14,6 +14,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { downloadDocument } from '@/services/documentManagementService';
 import {
@@ -36,6 +37,7 @@ interface ActionTarget {
 }
 
 export default function SecretaryApprovals() {
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<
@@ -62,12 +64,15 @@ export default function SecretaryApprovals() {
       console.error('Failed to fetch Secretary approvals:', err);
       showToast(
         'error',
-        'Failed to load project chief executive clearance cases.',
+        t(
+          'toast_failed_load_executive_clearance',
+          'Failed to load project chief executive clearance cases.',
+        ),
       );
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   useEffect(() => {
     Promise.resolve().then(() => {
@@ -81,7 +86,13 @@ export default function SecretaryApprovals() {
     }
 
     if (action === 'reject' && !comment.trim()) {
-      showToast('error', 'Rejection remark comment is required.');
+      showToast(
+        'error',
+        t(
+          'toast_rejection_remark_required',
+          'Rejection remark comment is required.',
+        ),
+      );
 
       return;
     }
@@ -93,13 +104,19 @@ export default function SecretaryApprovals() {
         await approveCase(actionTarget.type, actionTarget.id);
         showToast(
           'success',
-          `Successfully approved case ${actionTarget.displayId}.`,
+          t(
+            'toast_approved_case_success',
+            'Successfully approved case :id.',
+          ).replace(':id', actionTarget.displayId),
         );
       } else {
         await rejectCase(actionTarget.type, actionTarget.id, comment);
         showToast(
           'success',
-          `Case ${actionTarget.displayId} rejected and returned to DO.`,
+          t(
+            'toast_case_rejected_returned',
+            'Case :id rejected and returned to DO.',
+          ).replace(':id', actionTarget.displayId),
         );
       }
 
@@ -109,7 +126,10 @@ export default function SecretaryApprovals() {
       console.error(`Failed to ${action} case:`, err);
       const msg =
         err.response?.data?.message ||
-        `Failed to perform action on case ${actionTarget.displayId}`;
+        t(
+          'toast_failed_action_case',
+          'Failed to perform action on case :id',
+        ).replace(':id', actionTarget.displayId);
       showToast('error', msg);
     } finally {
       setLoading(false);
@@ -139,10 +159,19 @@ export default function SecretaryApprovals() {
   const handleDownload = async (docId: string, filename: string) => {
     try {
       await downloadDocument(docId, filename);
-      showToast('success', `Downloading document: ${filename}`);
+      showToast(
+        'success',
+        t(
+          'toast_downloading_document',
+          'Downloading document: :filename',
+        ).replace(':filename', filename),
+      );
     } catch (err) {
       console.error('Failed to download document:', err);
-      showToast('error', 'Failed to download document.');
+      showToast(
+        'error',
+        t('toast_failed_download_document', 'Failed to download document.'),
+      );
     }
   };
 
@@ -178,25 +207,25 @@ export default function SecretaryApprovals() {
 
   const stats = [
     {
-      title: 'Total Cases Received',
+      title: t('kpi_total_cases_received', 'Total Cases Received'),
       value: projects.length,
       icon: FolderKanban,
       color: 'primary' as const,
     },
     {
-      title: 'Pending SEC Action',
+      title: t('kpi_pending_sec_action', 'Pending SEC Action'),
       value: pendingProjects.length,
       icon: Clock,
       color: 'warning' as const,
     },
     {
-      title: 'Approved Cases',
+      title: t('kpi_approved_cases', 'Approved Cases'),
       value: approvedProjects.length,
       icon: ThumbsUp,
       color: 'success' as const,
     },
     {
-      title: 'Rejected Cases',
+      title: t('kpi_rejected_cases', 'Rejected Cases'),
       value: rejectedProjects.length,
       icon: ThumbsDown,
       color: 'secondary' as const,
@@ -204,20 +233,28 @@ export default function SecretaryApprovals() {
   ];
 
   const columns = [
-    { key: 'project_id', label: 'Project ID', sortable: true },
+    {
+      key: 'project_id',
+      label: t('col_project_id', 'Project ID'),
+      sortable: true,
+    },
     {
       key: 'title',
-      label: 'Project Title',
+      label: t('col_project_title', 'Project Title'),
       sortable: true,
-      render: (_val: any, row: any) => row.title || row.name || 'N/A',
+      render: (_val: any, row: any) => row.title || row.name || t('n_a', 'N/A'),
     },
-    { key: 'institution', label: 'Institution', sortable: true },
-    { key: 'purpose', label: 'Purpose', sortable: true },
+    {
+      key: 'institution',
+      label: t('col_institution', 'Institution'),
+      sortable: true,
+    },
+    { key: 'purpose', label: t('col_purpose', 'Purpose'), sortable: true },
     {
       key: 'landArea',
-      label: 'Land Area (A-R-P)',
+      label: t('col_land_area_arp', 'Land Area (A-R-P)'),
       render: (_val: any, row: any) =>
-        `${row.land_area_to_be_acquired_acers ?? 0} A, ${row.land_area_to_be_acquired_roods ?? 0} R, ${row.land_area_to_be_acquired_perches ?? 0} P`,
+        `${row.land_area_to_be_acquired_acers ?? 0} ${t('acres', 'A')}, ${row.land_area_to_be_acquired_roods ?? 0} ${t('roods', 'R')}, ${row.land_area_to_be_acquired_perches ?? 0} ${t('perches', 'P')}`,
     },
     {
       key: 'sec_status',
@@ -249,7 +286,7 @@ export default function SecretaryApprovals() {
         <button
           onClick={() => openDetailsModal(target)}
           className="hover:bg-muted rounded p-1.5 transition-colors"
-          title="Review details"
+          title={t('tooltip_review_details', 'Review details')}
         >
           <Eye className="h-4.5 w-4.5 text-muted-foreground" />
         </button>
@@ -258,14 +295,14 @@ export default function SecretaryApprovals() {
             <button
               onClick={() => openActionModal('approve', target)}
               className="rounded p-1.5 text-[#2E7D32] transition-colors hover:bg-[#2E7D32]/10"
-              title="Approve case"
+              title={t('tooltip_approve_case', 'Approve case')}
             >
               <CheckCircle className="h-4.5 w-4.5" />
             </button>
             <button
               onClick={() => openActionModal('reject', target)}
               className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
-              title="Reject & return to DO"
+              title={t('tooltip_reject_return_do', 'Reject & return to DO')}
             >
               <XCircle className="h-4.5 w-4.5" />
             </button>
@@ -299,10 +336,12 @@ export default function SecretaryApprovals() {
 
       {/* Header */}
       <div>
-        <h1>Chief Secretary Clearance</h1>
+        <h1>{t('sec_clearance_title', 'Chief Secretary Clearance')}</h1>
         <p className="text-muted-foreground mt-1">
-          Review or approve land acquisition projects escalated for Secretary
-          final executive clearance.
+          {t(
+            'sec_clearance_subtitle',
+            'Review or approve land acquisition projects escalated for Secretary final executive clearance.',
+          )}
         </p>
       </div>
 
@@ -317,21 +356,33 @@ export default function SecretaryApprovals() {
       <div className="border-border border-b">
         <div className="flex gap-1">
           {[
-            { id: 'all', label: 'All Cases', count: projects.length },
+            {
+              id: 'all',
+              label: t('tab_all_cases', 'All Cases (:count)').replace(
+                ':count',
+                String(projects.length),
+              ),
+            },
             {
               id: 'pending',
-              label: 'Pending SEC Action',
-              count: pendingProjects.length,
+              label: t(
+                'tab_pending_sec_action',
+                'Pending SEC Action (:count)',
+              ).replace(':count', String(pendingProjects.length)),
             },
             {
               id: 'approved',
-              label: 'Approved',
-              count: approvedProjects.length,
+              label: t('tab_approved_cases', 'Approved (:count)').replace(
+                ':count',
+                String(approvedProjects.length),
+              ),
             },
             {
               id: 'rejected',
-              label: 'Rejected (Returned)',
-              count: rejectedProjects.length,
+              label: t(
+                'tab_rejected_cases',
+                'Rejected (Returned) (:count)',
+              ).replace(':count', String(rejectedProjects.length)),
             },
           ].map((tab) => (
             <button
@@ -343,7 +394,7 @@ export default function SecretaryApprovals() {
                   : 'text-muted-foreground hover:text-foreground border-transparent'
               }`}
             >
-              {tab.label} ({tab.count})
+              {tab.label}
             </button>
           ))}
         </div>
@@ -373,26 +424,30 @@ export default function SecretaryApprovals() {
           <div className="bg-card border-border relative max-h-[90vh] w-full max-w-md space-y-4 rounded-xl border p-6 shadow-2xl">
             <div className="flex items-center gap-3 text-[#2E7D32]">
               <CheckCircle className="h-7 w-7" />
-              <h3>Confirm Secretary Approval</h3>
+              <h3>
+                {t('confirm_secretary_approval', 'Confirm Secretary Approval')}
+              </h3>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Are you sure you want to approve the project case{' '}
-              <strong>{actionTarget.displayId}</strong> ({actionTarget.title})?
-              This will grant final executive clearance for the land acquisition
-              project.
+              {t(
+                'confirm_sec_approval_desc',
+                'Are you sure you want to approve the project case :id (:title)? This will grant final executive clearance for the land acquisition project.',
+              )
+                .replace(':id', actionTarget.displayId)
+                .replace(':title', actionTarget.title)}
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 onClick={closeModal}
                 className="border-border bg-muted hover:bg-muted/80 rounded-lg border px-4 py-2 text-sm"
               >
-                Cancel
+                {t('cancel', 'Cancel')}
               </button>
               <button
                 onClick={() => handleAction('approve')}
                 className="flex items-center gap-1.5 rounded-lg bg-[#2E7D32] px-4 py-2 text-sm text-white hover:bg-[#2E7D32]/90"
               >
-                Confirm Approval
+                {t('btn_confirm_approval', 'Confirm Approval')}
               </button>
             </div>
           </div>
@@ -409,22 +464,28 @@ export default function SecretaryApprovals() {
           <div className="bg-card border-border relative max-h-[90vh] w-full max-w-md space-y-4 rounded-xl border p-6 shadow-2xl">
             <div className="text-destructive flex items-center gap-3">
               <XCircle className="h-7 w-7" />
-              <h3>Reject & Return to DO</h3>
+              <h3>{t('reject_return_to_do', 'Reject & Return to DO')}</h3>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Are you sure you want to reject project{' '}
-              <strong>{actionTarget.displayId}</strong>? This action will return
-              the case back to the **Development Officer (DO)** for
-              correction/re-verification.
+              {t(
+                'confirm_rejection_desc',
+                'Are you sure you want to reject project :id? This action will return the case back to the Development Officer (DO) for correction/re-verification.',
+              ).replace(':id', actionTarget.displayId)}
             </p>
             <div className="flex flex-col gap-1.5">
               <label className="text-muted-foreground text-xs font-semibold">
-                Reason for rejection (remitted to DO)
+                {t(
+                  'rejection_reason_label',
+                  'Reason for rejection (remitted to DO)',
+                )}
               </label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="State the justification or required corrections..."
+                placeholder={t(
+                  'rejection_reason_placeholder',
+                  'State the justification or required corrections...',
+                )}
                 rows={4}
                 className="border-border bg-input-background text-foreground focus:ring-primary/40 focus:border-primary w-full rounded-lg border px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2"
                 required
@@ -435,14 +496,14 @@ export default function SecretaryApprovals() {
                 onClick={closeModal}
                 className="border-border bg-muted hover:bg-muted/80 rounded-lg border px-4 py-2 text-sm"
               >
-                Cancel
+                {t('cancel', 'Cancel')}
               </button>
               <button
                 onClick={() => handleAction('reject')}
                 disabled={!comment.trim()}
                 className="bg-destructive hover:bg-destructive/90 rounded-lg px-4 py-2 text-sm text-white disabled:opacity-50"
               >
-                Reject Case
+                {t('btn_reject_case', 'Reject Case')}
               </button>
             </div>
           </div>
@@ -461,10 +522,16 @@ export default function SecretaryApprovals() {
             <div className="border-border flex items-center justify-between border-b px-6 py-4">
               <div>
                 <span className="text-primary text-xs font-bold uppercase tracking-wider">
-                  PROJECT ACQUISITION CHIEF SECRETARY CLEARANCE
+                  {t(
+                    'project_acquisition_chief_secretary_clearance',
+                    'PROJECT ACQUISITION CHIEF SECRETARY CLEARANCE',
+                  )}
                 </span>
                 <h3 className="text-foreground mt-0.5 text-xl font-bold">
-                  Review Case - {actionTarget.displayId}
+                  {t('review_case_title', 'Review Case - :id').replace(
+                    ':id',
+                    actionTarget.displayId,
+                  )}
                 </h3>
               </div>
               <button
@@ -481,28 +548,28 @@ export default function SecretaryApprovals() {
                 <div className="space-y-4">
                   <div>
                     <span className="text-muted-foreground text-xs font-bold uppercase">
-                      Project Title
+                      {t('col_project_title', 'Project Title')}
                     </span>
                     <p className="mt-0.5 text-base font-semibold">
                       {actionTarget.data.title ||
                         actionTarget.data.name ||
-                        'N/A'}
+                        t('n_a', 'N/A')}
                     </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground text-xs font-bold uppercase">
-                      Purpose / Objective
+                      {t('col_purpose', 'Purpose')}
                     </span>
                     <p className="text-foreground mt-0.5 leading-relaxed">
-                      {actionTarget.data.purpose || 'N/A'}
+                      {actionTarget.data.purpose || t('n_a', 'N/A')}
                     </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground text-xs font-bold uppercase">
-                      Requesting Institution
+                      {t('col_institution', 'Institution')}
                     </span>
                     <p className="mt-0.5 font-medium">
-                      {actionTarget.data.institution || 'N/A'}
+                      {actionTarget.data.institution || t('n_a', 'N/A')}
                     </p>
                     <p className="text-muted-foreground mt-0.5 text-xs">
                       {actionTarget.data.institution_address || ''}
@@ -513,38 +580,48 @@ export default function SecretaryApprovals() {
                 <div className="border-border space-y-4 border-l pl-6">
                   <div>
                     <span className="text-muted-foreground text-xs font-bold uppercase">
-                      Proposed Acquisition Area
+                      {t(
+                        'proposed_acquisition_area',
+                        'Proposed Acquisition Area',
+                      )}
                     </span>
                     <p className="mt-0.5 text-base font-semibold">
                       {actionTarget.data.land_area_to_be_acquired_acers ?? 0}{' '}
-                      Acres,{' '}
+                      {t('acres', 'Acres')},{' '}
                       {actionTarget.data.land_area_to_be_acquired_roods ?? 0}{' '}
-                      Roods,{' '}
+                      {t('roods', 'Roods')},{' '}
                       {actionTarget.data.land_area_to_be_acquired_perches ?? 0}{' '}
-                      Perches
+                      {t('perches', 'Perches')}
                     </p>
                     <p className="text-muted-foreground mt-0.5 text-xs font-medium">
-                      Total Area:{' '}
+                      {t('total_area_label', 'Total Area:')}{' '}
                       {actionTarget.data.full_land_area_to_be_acquired ?? 0}{' '}
-                      Perches
+                      {t('perches', 'Perches')}
                     </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground text-xs font-bold uppercase">
-                      Resettlement Required
+                      {t(
+                        'resettlement_required_label',
+                        'Resettlement Required',
+                      )}
                     </span>
                     <p className="mt-0.5 font-medium">
                       {actionTarget.data.are_residents_moved_temp
-                        ? 'Yes, Temporary Resettlement Required'
-                        : 'No'}
+                        ? t(
+                            'resettlement_temp_required',
+                            'Yes, Temporary Resettlement Required',
+                          )
+                        : t('value_no', 'No')}
                     </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground text-xs font-bold uppercase">
-                      Status Remarks / History
+                      {t('status_remarks_history', 'Status Remarks / History')}
                     </span>
                     <p className="text-muted-foreground bg-muted mt-0.5 whitespace-pre-line rounded p-2 text-xs">
-                      {actionTarget.data.remarks || 'No prior remarks.'}
+                      {actionTarget.data.remarks ||
+                        t('no_prior_remarks', 'No prior remarks.')}
                     </p>
                   </div>
                 </div>
@@ -553,18 +630,30 @@ export default function SecretaryApprovals() {
               {/* Linked Land Parcels Section */}
               <div className="border-border border-t pt-4">
                 <span className="text-muted-foreground text-xs font-bold uppercase">
-                  Associated Land Parcels
+                  {t('associated_land_parcels', 'Associated Land Parcels')}
                 </span>
                 <div className="border-border mt-2 overflow-x-auto rounded-lg border">
                   <table className="w-full border-collapse text-left text-xs">
                     <thead>
                       <tr className="bg-muted/40 border-border border-b">
-                        <th className="p-3 font-semibold">Parcel ID</th>
-                        <th className="p-3 font-semibold">Land Name</th>
-                        <th className="p-3 font-semibold">Location</th>
-                        <th className="p-3 font-semibold">Extent (A-R-P)</th>
-                        <th className="p-3 font-semibold">Estimated Value</th>
-                        <th className="p-3 font-semibold">Status</th>
+                        <th className="p-3 font-semibold">
+                          {t('col_parcel_id', 'Parcel ID')}
+                        </th>
+                        <th className="p-3 font-semibold">
+                          {t('col_land_name', 'Land Name')}
+                        </th>
+                        <th className="p-3 font-semibold">
+                          {t('col_location', 'Location')}
+                        </th>
+                        <th className="p-3 font-semibold">
+                          {t('col_extent_arp', 'Extent (A-R-P)')}
+                        </th>
+                        <th className="p-3 font-semibold">
+                          {t('col_estimated_value', 'Estimated Value')}
+                        </th>
+                        <th className="p-3 font-semibold">
+                          {t('col_status', 'Status')}
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-border divide-y">
@@ -575,14 +664,16 @@ export default function SecretaryApprovals() {
                             <td className="p-3 font-semibold">
                               {parcel.parcel_id}
                             </td>
-                            <td className="p-3">{parcel.land_name || 'N/A'}</td>
+                            <td className="p-3">
+                              {parcel.land_name || t('n_a', 'N/A')}
+                            </td>
                             <td className="p-3">
                               {parcel.village
                                 ? `${parcel.village}, ${parcel.district}`
-                                : 'N/A'}
+                                : t('n_a', 'N/A')}
                             </td>
                             <td className="p-3">
-                              {`${parcel.land_size_acers ?? 0} A, ${parcel.land_size_roods ?? 0} R, ${parcel.land_size_perches ?? 0} P`}
+                              {`${parcel.land_size_acers ?? 0} ${t('acres', 'A')}, ${parcel.land_size_roods ?? 0} ${t('roods', 'R')}, ${parcel.land_size_perches ?? 0} ${t('perches', 'P')}`}
                             </td>
                             <td className="p-3 font-semibold text-[#2E7D32]">
                               {formatLKR(parcel.estimated_value || 0)}
@@ -598,8 +689,10 @@ export default function SecretaryApprovals() {
                             colSpan={6}
                             className="text-muted-foreground p-4 text-center"
                           >
-                            No land parcels are currently registered under this
-                            project.
+                            {t(
+                              'no_parcels_registered',
+                              'No land parcels are currently registered under this project.',
+                            )}
                           </td>
                         </tr>
                       )}
@@ -611,7 +704,10 @@ export default function SecretaryApprovals() {
               {/* Supporting Documents Section */}
               <div className="border-border border-t pt-4">
                 <span className="text-muted-foreground text-xs font-bold uppercase">
-                  Submitted Supporting Documents
+                  {t(
+                    'submitted_supporting_docs',
+                    'Submitted Supporting Documents',
+                  )}
                 </span>
                 <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {actionTarget.data.documents &&
@@ -626,7 +722,8 @@ export default function SecretaryApprovals() {
                             {doc.original_filename}
                           </p>
                           <p className="text-muted-foreground mt-0.5 text-xs">
-                            {doc.document_category} • {doc.file_size || 'N/A'}
+                            {doc.document_category} •{' '}
+                            {doc.file_size || t('n_a', 'N/A')}
                           </p>
                         </div>
                         <button
@@ -634,7 +731,10 @@ export default function SecretaryApprovals() {
                             handleDownload(doc.id, doc.original_filename)
                           }
                           className="bg-primary/10 text-primary hover:bg-primary/20 shrink-0 rounded p-2 transition-colors"
-                          title="Download document"
+                          title={t(
+                            'tooltip_download_document',
+                            'Download document',
+                          )}
                         >
                           <Download className="h-4 w-4" />
                         </button>
@@ -642,7 +742,10 @@ export default function SecretaryApprovals() {
                     ))
                   ) : (
                     <p className="text-muted-foreground col-span-2 text-xs">
-                      No documents have been uploaded for verification.
+                      {t(
+                        'no_documents_uploaded',
+                        'No documents have been uploaded for verification.',
+                      )}
                     </p>
                   )}
                 </div>
@@ -655,7 +758,7 @@ export default function SecretaryApprovals() {
                 onClick={closeModal}
                 className="border-border bg-muted hover:bg-muted/80 rounded-lg border px-4 py-2 text-sm"
               >
-                Close Review
+                {t('btn_close_review', 'Close Review')}
               </button>
               {actionTarget.data.sec_status === 'pending' && (
                 <>
@@ -664,14 +767,14 @@ export default function SecretaryApprovals() {
                     className="bg-destructive hover:bg-destructive/90 flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm text-white"
                   >
                     <XCircle className="h-4 w-4" />
-                    Reject & Return
+                    {t('btn_reject_return', 'Reject & Return')}
                   </button>
                   <button
                     onClick={() => openActionModal('approve', actionTarget)}
                     className="flex items-center gap-1.5 rounded-lg bg-[#2E7D32] px-4 py-2 text-sm text-white hover:bg-[#2E7D32]/90"
                   >
                     <CheckCircle className="h-4 w-4" />
-                    Approve Case
+                    {t('btn_approve_case', 'Approve Case')}
                   </button>
                 </>
               )}

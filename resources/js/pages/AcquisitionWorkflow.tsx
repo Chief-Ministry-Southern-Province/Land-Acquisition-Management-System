@@ -15,6 +15,7 @@ import {
 import { useEffect, useState } from 'react';
 import { SyncLoader } from 'react-spinners';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import api from '@/services/api';
 import { getProjects, getProject } from '@/services/projectsManagementService';
@@ -29,6 +30,7 @@ interface WorkflowStage {
 }
 
 export default function AcquisitionWorkflow() {
+  const { t } = useTranslation();
   const [projectsList, setProjectsList] = useState<Project[]>([]);
   const [selectedProjId, setSelectedProjId] = useState<string>('');
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
@@ -115,10 +117,10 @@ export default function AcquisitionWorkflow() {
     // Stage 1: Project Created
     const createdDate = formatDate(project.created_at || project.approvalDate);
     const stage1: WorkflowStage = {
-      name: 'Project Created',
+      name: t('stage_project_created', 'Project Created'),
       status: 'completed',
       date: createdDate,
-      officer: 'Development Officer',
+      officer: t('officer_development', 'Development Officer'),
     };
 
     // Stage 2: Land Identification
@@ -135,10 +137,10 @@ export default function AcquisitionWorkflow() {
           ? createdDate
           : '-';
     const stage2: WorkflowStage = {
-      name: 'Land Identification',
+      name: t('stage_land_identification', 'Land Identification'),
       status: landIdentStatus,
       date: landIdentDate,
-      officer: 'Development Officer',
+      officer: t('officer_development', 'Development Officer'),
     };
 
     // Stage 3: Survey
@@ -167,13 +169,13 @@ export default function AcquisitionWorkflow() {
         formatDate(project.updated_at)
       : '-';
     const stage3: WorkflowStage = {
-      name: 'Survey',
+      name: t('stage_survey', 'Survey'),
       status: surveyStatus,
       date:
         surveyDate === '-' && surveyCompleted
           ? formatDate(project.updated_at)
           : surveyDate,
-      officer: 'Survey Officer',
+      officer: t('officer_survey', 'Survey Officer'),
     };
 
     // Stage 4: Valuation
@@ -191,10 +193,10 @@ export default function AcquisitionWorkflow() {
     }
 
     const stage4: WorkflowStage = {
-      name: 'Valuation',
+      name: t('stage_valuation', 'Valuation'),
       status: valuationStatus,
       date: valuationCompleted ? formatDate(project.updated_at) : '-',
-      officer: 'Valuation Officer',
+      officer: t('officer_valuation', 'Valuation Officer'),
     };
 
     // Stage 5: Gazette Notice
@@ -223,13 +225,13 @@ export default function AcquisitionWorkflow() {
         formatDate(project.updated_at)
       : '-';
     const stage5: WorkflowStage = {
-      name: 'Gazette Notice',
+      name: t('stage_gazette_notice', 'Gazette Notice'),
       status: gazetteStatus,
       date:
         gazetteDate === '-' && gazetteCompleted
           ? formatDate(project.updated_at)
           : gazetteDate,
-      officer: 'Land Officer',
+      officer: t('officer_land', 'Land Officer'),
     };
 
     // Stage 6: Owner Notification
@@ -244,10 +246,10 @@ export default function AcquisitionWorkflow() {
     }
 
     const stage6: WorkflowStage = {
-      name: 'Owner Notification',
+      name: t('stage_owner_notification', 'Owner Notification'),
       status: ownerNotifStatus,
       date: ownerNotifCompleted ? formatDate(project.updated_at) : '-',
-      officer: 'Data Entry Operator',
+      officer: t('officer_data_entry', 'Data Entry Operator'),
     };
 
     // Stage 7: Compensation Calculation
@@ -267,10 +269,10 @@ export default function AcquisitionWorkflow() {
         )
       : '-';
     const stage7: WorkflowStage = {
-      name: 'Compensation Calculation',
+      name: t('stage_compensation_calculation', 'Compensation Calculation'),
       status: compCalcStatus,
       date: compCalcDate,
-      officer: 'Finance Officer',
+      officer: t('officer_finance', 'Finance Officer'),
       progress: compCalcStatus === 'active' ? 65 : undefined,
     };
 
@@ -289,12 +291,12 @@ export default function AcquisitionWorkflow() {
     }
 
     const stage8: WorkflowStage = {
-      name: 'Approval',
+      name: t('stage_approval', 'Approval'),
       status: approvalStatus,
       date: approvalCompleted
         ? formatDate(project.approvalDate || project.updated_at)
         : '-',
-      officer: 'Assistant Secretary',
+      officer: t('officer_assistant_secretary', 'Assistant Secretary'),
     };
 
     // Stage 9: Payment
@@ -317,10 +319,10 @@ export default function AcquisitionWorkflow() {
         )
       : '-';
     const stage9: WorkflowStage = {
-      name: 'Payment',
+      name: t('stage_payment', 'Payment'),
       status: paymentStatus,
       date: paymentDate,
-      officer: 'Finance Officer',
+      officer: t('officer_finance', 'Finance Officer'),
     };
 
     // Stage 10: Land Handover
@@ -335,10 +337,10 @@ export default function AcquisitionWorkflow() {
     }
 
     const stage10: WorkflowStage = {
-      name: 'Land Handover',
+      name: t('stage_land_handover', 'Land Handover'),
       status: handoverStatus,
       date: allAcquired ? formatDate(project.updated_at) : '-',
-      officer: 'Land Officer',
+      officer: t('officer_land', 'Land Officer'),
     };
 
     // Stage 11: Project Completion
@@ -352,7 +354,7 @@ export default function AcquisitionWorkflow() {
     }
 
     const stage11: WorkflowStage = {
-      name: 'Project Completion',
+      name: t('stage_project_completion', 'Project Completion'),
       status: projectCompStatus,
       date: isProjectCompleted ? formatDate(project.updated_at) : '-',
       officer: '-',
@@ -411,11 +413,13 @@ export default function AcquisitionWorkflow() {
       <div className="border-border flex flex-col gap-4 border-b pb-5 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Acquisition Workflow
+            {t('acquisition_workflow_title', 'Acquisition Workflow')}
           </h1>
           <p className="text-muted-foreground mt-1.5 text-sm md:text-base">
-            Select a project and track its progress across the standard 11
-            acquisition workflow stages.
+            {t(
+              'acquisition_workflow_subtitle',
+              'Select a project and track its progress across the standard 11 acquisition workflow stages.',
+            )}
           </p>
         </div>
       </div>
@@ -428,7 +432,7 @@ export default function AcquisitionWorkflow() {
               htmlFor="project-select"
               className="text-muted-foreground mb-2 block text-xs font-semibold uppercase tracking-wider"
             >
-              Select Acquisition Project
+              {t('select_acquisition_project', 'Select Acquisition Project')}
             </label>
             {loadingList ? (
               <div className="flex h-10 items-center pl-2">
@@ -437,7 +441,10 @@ export default function AcquisitionWorkflow() {
             ) : (
               <select
                 id="project-select"
-                title="Select Acquisition Project"
+                title={t(
+                  'select_acquisition_project',
+                  'Select Acquisition Project',
+                )}
                 className="bg-input-background border-border w-full rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors focus:border-[#2E7D32] focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                 value={selectedProjId}
                 onChange={(e) => {
@@ -450,7 +457,9 @@ export default function AcquisitionWorkflow() {
                   }
                 }}
               >
-                <option value="">-- Choose a Project --</option>
+                <option value="">
+                  {t('choose_a_project', '-- Choose a Project --')}
+                </option>
                 {projectsList.map((proj) => (
                   <option key={proj.id} value={proj.id}>
                     {proj.title || proj.name} ({proj.projectId})
@@ -465,10 +474,15 @@ export default function AcquisitionWorkflow() {
               <TrendingUp className="h-5 w-5 text-[#2E7D32]" />
               <div>
                 <div className="text-muted-foreground text-[10px] font-semibold uppercase tracking-wider">
-                  Workflow Progress
+                  {t('workflow_progress', 'Workflow Progress')}
                 </div>
                 <div className="text-foreground text-sm font-bold">
-                  {completedCount} of {stages.length} Stages Completed
+                  {t(
+                    'stages_completed',
+                    ':completed of :total Stages Completed',
+                  )
+                    .replace(':completed', String(completedCount))
+                    .replace(':total', String(stages.length))}
                 </div>
               </div>
             </div>
@@ -481,7 +495,7 @@ export default function AcquisitionWorkflow() {
         <div className="bg-card border-border flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-xl border">
           <SyncLoader size={12} color="#2E7D32" />
           <p className="text-muted-foreground text-sm">
-            Loading acquisition data...
+            {t('loading_acquisition_data', 'Loading acquisition data...')}
           </p>
         </div>
       ) : currentProject ? (
@@ -507,25 +521,26 @@ export default function AcquisitionWorkflow() {
               <div className="space-y-4">
                 <div>
                   <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
-                    Purpose
+                    {t('purpose', 'Purpose')}
                   </span>
                   <p className="text-sm leading-relaxed">
-                    {currentProject.purpose || 'No purpose declared'}
+                    {currentProject.purpose ||
+                      t('no_purpose_declared', 'No purpose declared')}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
-                      Institution
+                      {t('institution', 'Institution')}
                     </span>
                     <p className="text-sm font-medium">
-                      {currentProject.institution || 'N/A'}
+                      {currentProject.institution || t('n_a', 'N/A')}
                     </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
-                      Case Status
+                      {t('case_status_label', 'Case Status')}
                     </span>
                     <div className="mt-0.5">
                       <StatusBadge
@@ -537,17 +552,18 @@ export default function AcquisitionWorkflow() {
 
                 <div>
                   <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
-                    Total Land Area Required
+                    {t('total_land_area_required', 'Total Land Area Required')}
                   </span>
                   <div className="mt-1 flex items-center gap-2">
                     <span className="bg-muted border-border rounded-md border px-2 py-1 text-xs font-semibold">
-                      {currentProject.landAreaAcers ?? 0} Acers
+                      {currentProject.landAreaAcers ?? 0} {t('acres', 'Acres')}
                     </span>
                     <span className="bg-muted border-border rounded-md border px-2 py-1 text-xs font-semibold">
-                      {currentProject.landAreaRoods ?? 0} Roods
+                      {currentProject.landAreaRoods ?? 0} {t('roods', 'Roods')}
                     </span>
                     <span className="bg-muted border-border rounded-md border px-2 py-1 text-xs font-semibold">
-                      {currentProject.landAreaPerches ?? 0} Perches
+                      {currentProject.landAreaPerches ?? 0}{' '}
+                      {t('perches', 'Perches')}
                     </span>
                   </div>
                 </div>
@@ -559,7 +575,13 @@ export default function AcquisitionWorkflow() {
               <div className="border-border flex items-center gap-2 border-b pb-3">
                 <Layers className="h-5 w-5 text-[#2E7D32]" />
                 <h4 className="text-base font-bold">
-                  Land Parcels ({currentProject.landParcels?.length || 0})
+                  {t(
+                    'land_parcels_with_count',
+                    'Land Parcels (:count)',
+                  ).replace(
+                    ':count',
+                    String(currentProject.landParcels?.length || 0),
+                  )}
                 </h4>
               </div>
 
@@ -587,7 +609,7 @@ export default function AcquisitionWorkflow() {
                           {Number(
                             parcel.estimated_value || 0,
                           ).toLocaleString()}{' '}
-                          LKR
+                          {t('lkr_currency', 'LKR')}
                         </span>
                       </div>
                     </div>
@@ -596,7 +618,10 @@ export default function AcquisitionWorkflow() {
               ) : (
                 <div className="bg-muted/10 border-border rounded-lg border border-dashed p-6 text-center">
                   <p className="text-muted-foreground text-sm">
-                    No land parcels associated with this project.
+                    {t(
+                      'no_land_parcels_for_project',
+                      'No land parcels associated with this project.',
+                    )}
                   </p>
                 </div>
               )}
@@ -607,7 +632,10 @@ export default function AcquisitionWorkflow() {
               <div className="border-border flex items-center gap-2 border-b pb-3">
                 <FileText className="h-5 w-5 text-[#2E7D32]" />
                 <h4 className="text-base font-bold">
-                  Documents ({currentProject.documents?.length || 0})
+                  {t('documents_with_count', 'Documents (:count)').replace(
+                    ':count',
+                    String(currentProject.documents?.length || 0),
+                  )}
                 </h4>
               </div>
 
@@ -642,7 +670,10 @@ export default function AcquisitionWorkflow() {
               ) : (
                 <div className="bg-muted/10 border-border rounded-lg border border-dashed p-6 text-center">
                   <p className="text-muted-foreground text-sm">
-                    No uploaded documents found for this project.
+                    {t(
+                      'no_documents_for_project_workflow',
+                      'No uploaded documents found for this project.',
+                    )}
                   </p>
                 </div>
               )}
@@ -654,7 +685,9 @@ export default function AcquisitionWorkflow() {
             {/* Timeline Progress Bar Card */}
             <div className="bg-card border-border space-y-3 rounded-xl border p-5 shadow-sm">
               <div className="text-muted-foreground flex items-center justify-between text-xs font-semibold uppercase tracking-wider">
-                <span>Overall Status Tracker</span>
+                <span>
+                  {t('overall_status_tracker', 'Overall Status Tracker')}
+                </span>
                 <span className="font-bold text-[#2E7D32]">
                   {progressPercent}%
                 </span>
@@ -701,17 +734,17 @@ export default function AcquisitionWorkflow() {
                             </h4>
                             {isActive && (
                               <span className="shrink-0 rounded-full border border-[#FF9800]/30 bg-[#FF9800]/10 px-2.5 py-0.5 text-xs font-bold text-[#FF9800]">
-                                In Progress
+                                {t('in_progress', 'In Progress')}
                               </span>
                             )}
                             {isCompleted && (
                               <span className="shrink-0 rounded-full border border-[#2E7D32]/30 bg-[#2E7D32]/10 px-2.5 py-0.5 text-xs font-bold text-[#2E7D32]">
-                                Completed
+                                {t('completed', 'Completed')}
                               </span>
                             )}
                             {stage.status === 'pending' && (
                               <span className="bg-muted border-border text-muted-foreground shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold">
-                                Pending
+                                {t('pending', 'Pending')}
                               </span>
                             )}
                           </div>
@@ -720,7 +753,7 @@ export default function AcquisitionWorkflow() {
                             <div className="flex items-center gap-1.5">
                               <User className="text-muted-foreground h-3.5 w-3.5" />
                               <span className="text-muted-foreground">
-                                Officer:
+                                {t('workflow_officer_label', 'Officer:')}
                               </span>
                               <span className="text-foreground font-semibold">
                                 {stage.officer}
@@ -729,7 +762,7 @@ export default function AcquisitionWorkflow() {
                             <div className="flex items-center gap-1.5 sm:justify-end">
                               <Calendar className="text-muted-foreground h-3.5 w-3.5" />
                               <span className="text-muted-foreground">
-                                Date:
+                                {t('workflow_date_label', 'Date:')}
                               </span>
                               <span className="text-foreground font-semibold">
                                 {stage.date}
@@ -742,7 +775,7 @@ export default function AcquisitionWorkflow() {
                             <div className="border-border mt-3.5 border-t pt-3.5">
                               <div className="mb-1.5 flex items-center justify-between text-xs">
                                 <span className="text-muted-foreground font-medium">
-                                  Stage Progress:
+                                  {t('stage_progress_label', 'Stage Progress:')}
                                 </span>
                                 <span className="font-bold text-[#FF9800]">
                                   {stage.progress}%
@@ -758,18 +791,24 @@ export default function AcquisitionWorkflow() {
                           )}
 
                           {/* Approval workflow detail steps */}
-                          {stage.name === 'Approval' &&
+                          {stage.name === t('stage_approval', 'Approval') &&
                             stage.status !== 'pending' &&
                             currentProject && (
                               <div className="border-border mt-3.5 space-y-2 border-t pt-3.5">
                                 <div className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                                  Approval Status Details:
+                                  {t(
+                                    'approval_status_details',
+                                    'Approval Status Details:',
+                                  )}
                                 </div>
                                 <div className="flex flex-col gap-2.5">
                                   {/* DO */}
                                   <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
                                     <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      Development officer Status
+                                      {t(
+                                        'do_status_label',
+                                        'Development Officer Status',
+                                      )}
                                     </span>
                                     <span
                                       className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
@@ -779,14 +818,17 @@ export default function AcquisitionWorkflow() {
                                       }`}
                                     >
                                       {currentProject.doStatus === 'submitted'
-                                        ? 'Submitted'
-                                        : 'Draft'}
+                                        ? t('status_submitted', 'Submitted')
+                                        : t('status_draft', 'Draft')}
                                     </span>
                                   </div>
                                   {/* HOB */}
                                   <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
                                     <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      Head of Branch Status
+                                      {t(
+                                        'hob_status_label',
+                                        'Head of Branch Status',
+                                      )}
                                     </span>
                                     <span
                                       className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
@@ -798,13 +840,17 @@ export default function AcquisitionWorkflow() {
                                             : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
                                       }`}
                                     >
-                                      {currentProject.hobStatus || 'Pending'}
+                                      {currentProject.hobStatus ||
+                                        t('status_pending', 'Pending')}
                                     </span>
                                   </div>
                                   {/* AO */}
                                   <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
                                     <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      Administrative Officer Status
+                                      {t(
+                                        'ao_status_label',
+                                        'Administrative Officer Status',
+                                      )}
                                     </span>
                                     <span
                                       className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
@@ -816,13 +862,17 @@ export default function AcquisitionWorkflow() {
                                             : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
                                       }`}
                                     >
-                                      {currentProject.aoStatus || 'Pending'}
+                                      {currentProject.aoStatus ||
+                                        t('status_pending', 'Pending')}
                                     </span>
                                   </div>
                                   {/* AS */}
                                   <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
                                     <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      Assistant Secretary Status
+                                      {t(
+                                        'as_status_label',
+                                        'Assistant Secretary Status',
+                                      )}
                                     </span>
                                     <span
                                       className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
@@ -834,13 +884,17 @@ export default function AcquisitionWorkflow() {
                                             : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
                                       }`}
                                     >
-                                      {currentProject.asStatus || 'Pending'}
+                                      {currentProject.asStatus ||
+                                        t('status_pending', 'Pending')}
                                     </span>
                                   </div>
                                   {/* SAS */}
                                   <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
                                     <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      Senior Assistant Secretary Status
+                                      {t(
+                                        'sas_status_label',
+                                        'Senior Assistant Secretary Status',
+                                      )}
                                     </span>
                                     <span
                                       className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
@@ -852,13 +906,17 @@ export default function AcquisitionWorkflow() {
                                             : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
                                       }`}
                                     >
-                                      {currentProject.sasStatus || 'Pending'}
+                                      {currentProject.sasStatus ||
+                                        t('status_pending', 'Pending')}
                                     </span>
                                   </div>
                                   {/* SEC */}
                                   <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
                                     <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      Secretary Status
+                                      {t(
+                                        'sec_status_label',
+                                        'Secretary Status',
+                                      )}
                                     </span>
                                     <span
                                       className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
@@ -870,7 +928,8 @@ export default function AcquisitionWorkflow() {
                                             : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
                                       }`}
                                     >
-                                      {currentProject.secStatus || 'Pending'}
+                                      {currentProject.secStatus ||
+                                        t('status_pending', 'Pending')}
                                     </span>
                                   </div>
                                 </div>
@@ -892,12 +951,13 @@ export default function AcquisitionWorkflow() {
             <FolderOpen className="text-muted-foreground h-8 w-8" />
           </div>
           <h3 className="text-foreground text-xl font-bold">
-            Track Acquisition Progress
+            {t('track_acquisition_progress', 'Track Acquisition Progress')}
           </h3>
           <p className="text-muted-foreground mt-2 max-w-md text-sm leading-relaxed md:text-base">
-            Please choose a project from the dropdown menu above. LAMS will
-            automatically calculate and visualizes its complete land acquisition
-            progress across the 11 stages of the workflow.
+            {t(
+              'workflow_empty_description',
+              'Please choose a project from the dropdown menu above. LAMS will automatically calculate and visualizes its complete land acquisition progress across the 11 stages of the workflow.',
+            )}
           </p>
 
           {/* Quick Info Points */}
@@ -906,10 +966,13 @@ export default function AcquisitionWorkflow() {
               <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#2E7D32]" />
               <div>
                 <h5 className="text-foreground text-xs font-bold uppercase tracking-wide">
-                  11 Tracked Stages
+                  {t('info_tracked_stages_title', '11 Tracked Stages')}
                 </h5>
                 <p className="text-muted-foreground mt-1 text-[11px]">
-                  Covers creation, survey, valuation, and final handover.
+                  {t(
+                    'info_tracked_stages_desc',
+                    'Covers creation, survey, valuation, and final handover.',
+                  )}
                 </p>
               </div>
             </div>
@@ -917,10 +980,13 @@ export default function AcquisitionWorkflow() {
               <Layers className="mt-0.5 h-5 w-5 shrink-0 text-[#2E7D32]" />
               <div>
                 <h5 className="text-foreground text-xs font-bold uppercase tracking-wide">
-                  Parcels Inventory
+                  {t('info_parcels_inventory_title', 'Parcels Inventory')}
                 </h5>
                 <p className="text-muted-foreground mt-1 text-[11px]">
-                  Monitor associated land plots and estimated valuations.
+                  {t(
+                    'info_parcels_inventory_desc',
+                    'Monitor associated land plots and estimated valuations.',
+                  )}
                 </p>
               </div>
             </div>
@@ -928,10 +994,16 @@ export default function AcquisitionWorkflow() {
               <FileText className="mt-0.5 h-5 w-5 shrink-0 text-[#2E7D32]" />
               <div>
                 <h5 className="text-foreground text-xs font-bold uppercase tracking-wide">
-                  Documents Integration
+                  {t(
+                    'info_documents_integration_title',
+                    'Documents Integration',
+                  )}
                 </h5>
                 <p className="text-muted-foreground mt-1 text-[11px]">
-                  Cross-references surveys, gazette notices, and letters.
+                  {t(
+                    'info_documents_integration_desc',
+                    'Cross-references surveys, gazette notices, and letters.',
+                  )}
                 </p>
               </div>
             </div>
@@ -939,10 +1011,13 @@ export default function AcquisitionWorkflow() {
               <DollarSign className="mt-0.5 h-5 w-5 shrink-0 text-[#2E7D32]" />
               <div>
                 <h5 className="text-foreground text-xs font-bold uppercase tracking-wide">
-                  Compensations
+                  {t('info_compensations_title', 'Compensations')}
                 </h5>
                 <p className="text-muted-foreground mt-1 text-[11px]">
-                  Validates financial calculations and actual payment statuses.
+                  {t(
+                    'info_compensations_desc',
+                    'Validates financial calculations and actual payment statuses.',
+                  )}
                 </p>
               </div>
             </div>

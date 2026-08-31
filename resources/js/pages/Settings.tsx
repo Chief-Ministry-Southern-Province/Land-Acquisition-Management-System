@@ -9,10 +9,12 @@ import {
   X,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { getCurrentUser, changePassword } from '@/services/authService';
 
 export default function Settings() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('organization');
 
   // User Profile details
@@ -60,25 +62,40 @@ export default function Settings() {
 
   const handlePasswordChange = async () => {
     if (!currentPassword) {
-      showToast('error', 'Current password is required.');
+      showToast(
+        'error',
+        t('err_current_password_required', 'Current password is required.'),
+      );
 
       return;
     }
 
     if (!newPassword) {
-      showToast('error', 'New password is required.');
+      showToast(
+        'error',
+        t('err_new_password_required', 'New password is required.'),
+      );
 
       return;
     }
 
     if (newPassword.length < 8) {
-      showToast('error', 'New password must be at least 8 characters long.');
+      showToast(
+        'error',
+        t(
+          'err_new_password_length',
+          'New password must be at least 8 characters long.',
+        ),
+      );
 
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      showToast('error', 'New passwords do not match.');
+      showToast(
+        'error',
+        t('err_new_passwords_mismatch', 'New passwords do not match.'),
+      );
 
       return;
     }
@@ -90,7 +107,11 @@ export default function Settings() {
         new_password: newPassword,
         new_password_confirmation: confirmPassword,
       });
-      showToast('success', res.message || 'Password changed successfully.');
+      showToast(
+        'success',
+        res.message ||
+          t('msg_password_changed_success', 'Password changed successfully.'),
+      );
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -99,7 +120,8 @@ export default function Settings() {
       const errors = err.response?.data?.errors;
       const errorMsg = errors
         ? (Object.values(errors).flat()[0] as string)
-        : err.response?.data?.message || 'Failed to change password.';
+        : err.response?.data?.message ||
+          t('err_failed_change_password', 'Failed to change password.');
       showToast('error', errorMsg);
     } finally {
       setSaving(false);
@@ -110,15 +132,26 @@ export default function Settings() {
     if (activeTab === 'profile') {
       await handlePasswordChange();
     } else {
-      showToast('success', 'Settings updated successfully.');
+      showToast(
+        'success',
+        t('msg_settings_updated_success', 'Settings updated successfully.'),
+      );
     }
   };
 
   const tabs = [
-    { id: 'organization', label: 'Organization', icon: Building2 },
-    { id: 'workflow', label: 'Workflow', icon: FileText },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'profile', label: 'User Profile', icon: User },
+    {
+      id: 'organization',
+      label: t('tab_organization', 'Organization'),
+      icon: Building2,
+    },
+    { id: 'workflow', label: t('tab_workflow', 'Workflow'), icon: FileText },
+    {
+      id: 'notifications',
+      label: t('tab_notifications', 'Notifications'),
+      icon: Bell,
+    },
+    { id: 'profile', label: t('tab_user_profile', 'User Profile'), icon: User },
   ];
 
   return (
@@ -144,9 +177,9 @@ export default function Settings() {
       )}
 
       <div>
-        <h1>Settings</h1>
+        <h1>{t('settings_title', 'Settings')}</h1>
         <p className="text-muted-foreground mt-1">
-          Configure system preferences
+          {t('settings_subtitle', 'Configure system preferences')}
         </p>
       </div>
 
@@ -180,11 +213,11 @@ export default function Settings() {
           <div className="bg-card border-border rounded-lg border p-6">
             {activeTab === 'organization' && (
               <div className="space-y-6">
-                <h3>Organization Settings</h3>
+                <h3>{t('org_settings_title', 'Organization Settings')}</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="mb-2 block text-sm">
-                      Organization Name
+                      {t('label_org_name', 'Organization Name')}
                     </label>
                     <input
                       type="text"
@@ -193,7 +226,9 @@ export default function Settings() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm">Ministry</label>
+                    <label className="mb-2 block text-sm">
+                      {t('label_ministry', 'Ministry')}
+                    </label>
                     <input
                       type="text"
                       defaultValue="Ministry of Land and Land Development"
@@ -201,7 +236,9 @@ export default function Settings() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm">Address</label>
+                    <label className="mb-2 block text-sm">
+                      {t('label_address', 'Address')}
+                    </label>
                     <textarea
                       rows={3}
                       defaultValue="No. 123, Colombo Road, Colombo 07, Sri Lanka"
@@ -211,7 +248,7 @@ export default function Settings() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="mb-2 block text-sm">
-                        Contact Number
+                        {t('label_contact_number', 'Contact Number')}
                       </label>
                       <input
                         type="text"
@@ -220,7 +257,9 @@ export default function Settings() {
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-sm">Email</label>
+                      <label className="mb-2 block text-sm">
+                        {t('label_email', 'Email')}
+                      </label>
                       <input
                         type="email"
                         defaultValue="info@lams.gov.lk"
@@ -234,7 +273,7 @@ export default function Settings() {
 
             {activeTab === 'workflow' && (
               <div className="space-y-6">
-                <h3>Workflow Configuration</h3>
+                <h3>{t('workflow_config_title', 'Workflow Configuration')}</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="flex cursor-pointer items-center gap-2">
@@ -244,7 +283,10 @@ export default function Settings() {
                         className="h-4 w-4"
                       />
                       <span className="text-sm">
-                        Enable multi-level approval workflow
+                        {t(
+                          'label_enable_multilevel_workflow',
+                          'Enable multi-level approval workflow',
+                        )}
                       </span>
                     </label>
                   </div>
@@ -256,8 +298,10 @@ export default function Settings() {
                         className="h-4 w-4"
                       />
                       <span className="text-sm">
-                        Require legal officer approval for compensation above ₨
-                        20M
+                        {t(
+                          'label_require_legal_approval',
+                          'Require legal officer approval for compensation above LKR 20M',
+                        )}
                       </span>
                     </label>
                   </div>
@@ -269,7 +313,10 @@ export default function Settings() {
                         className="h-4 w-4"
                       />
                       <span className="text-sm">
-                        Auto-generate gazette notices after project approval
+                        {t(
+                          'label_autogenerate_gazette',
+                          'Auto-generate gazette notices after project approval',
+                        )}
                       </span>
                     </label>
                   </div>
@@ -277,13 +324,19 @@ export default function Settings() {
                     <label className="flex cursor-pointer items-center gap-2">
                       <input type="checkbox" className="h-4 w-4" />
                       <span className="text-sm">
-                        Send email notifications for approval requests
+                        {t(
+                          'label_send_email_notifications',
+                          'Send email notifications for approval requests',
+                        )}
                       </span>
                     </label>
                   </div>
                   <div>
                     <label className="mb-2 block text-sm">
-                      Default Disturbance Allowance (%)
+                      {t(
+                        'label_default_disturbance_allowance',
+                        'Default Disturbance Allowance (%)',
+                      )}
                     </label>
                     <input
                       type="number"
@@ -293,7 +346,10 @@ export default function Settings() {
                   </div>
                   <div>
                     <label className="mb-2 block text-sm">
-                      Default Statutory Payment (%)
+                      {t(
+                        'label_default_statutory_payment',
+                        'Default Statutory Payment (%)',
+                      )}
                     </label>
                     <input
                       type="number"
@@ -307,7 +363,9 @@ export default function Settings() {
 
             {activeTab === 'notifications' && (
               <div className="space-y-6">
-                <h3>Notification Settings</h3>
+                <h3>
+                  {t('notification_settings_title', 'Notification Settings')}
+                </h3>
                 <div className="space-y-4">
                   <div>
                     <label className="flex cursor-pointer items-center gap-2">
@@ -317,7 +375,10 @@ export default function Settings() {
                         className="h-4 w-4"
                       />
                       <span className="text-sm">
-                        Email notifications for approval requests
+                        {t(
+                          'label_email_notif_approval',
+                          'Email notifications for approval requests',
+                        )}
                       </span>
                     </label>
                   </div>
@@ -329,7 +390,10 @@ export default function Settings() {
                         className="h-4 w-4"
                       />
                       <span className="text-sm">
-                        SMS notifications for urgent matters
+                        {t(
+                          'label_sms_notif_urgent',
+                          'SMS notifications for urgent matters',
+                        )}
                       </span>
                     </label>
                   </div>
@@ -341,7 +405,10 @@ export default function Settings() {
                         className="h-4 w-4"
                       />
                       <span className="text-sm">
-                        Notify on upcoming court hearings (3 days before)
+                        {t(
+                          'label_notify_court_hearings',
+                          'Notify on upcoming court hearings (3 days before)',
+                        )}
                       </span>
                     </label>
                   </div>
@@ -353,14 +420,19 @@ export default function Settings() {
                         className="h-4 w-4"
                       />
                       <span className="text-sm">
-                        Notify on pending compensation payments
+                        {t(
+                          'label_notify_pending_payments',
+                          'Notify on pending compensation payments',
+                        )}
                       </span>
                     </label>
                   </div>
                   <div>
                     <label className="flex cursor-pointer items-center gap-2">
                       <input type="checkbox" className="h-4 w-4" />
-                      <span className="text-sm">Daily digest email</span>
+                      <span className="text-sm">
+                        {t('label_daily_digest_email', 'Daily digest email')}
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -369,12 +441,12 @@ export default function Settings() {
 
             {activeTab === 'profile' && (
               <div className="space-y-6">
-                <h3>User Profile</h3>
+                <h3>{t('profile_settings_title', 'User Profile')}</h3>
                 {loadingProfile ? (
                   <div className="flex flex-col items-center justify-center py-12">
                     <Loader2 className="text-primary h-8 w-8 animate-spin" />
                     <span className="text-muted-foreground mt-3 text-sm">
-                      Loading profile details...
+                      {t('msg_loading_profile', 'Loading profile details...')}
                     </span>
                   </div>
                 ) : profileData ? (
@@ -382,7 +454,7 @@ export default function Settings() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="mb-2 block text-sm font-medium">
-                          Full Name
+                          {t('label_full_name', 'Full Name')}
                         </label>
                         <input
                           type="text"
@@ -393,7 +465,7 @@ export default function Settings() {
                       </div>
                       <div>
                         <label className="mb-2 block text-sm font-medium">
-                          Email
+                          {t('label_profile_email', 'Email')}
                         </label>
                         <input
                           type="email"
@@ -406,12 +478,13 @@ export default function Settings() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="mb-2 block text-sm font-medium">
-                          Department
+                          {t('label_department', 'Department')}
                         </label>
                         <input
                           type="text"
                           value={
-                            profileData.department?.department_name || 'N/A'
+                            profileData.department?.department_name ||
+                            t('n_a', 'N/A')
                           }
                           disabled
                           className="bg-muted border-border w-full cursor-not-allowed rounded-lg border px-4 py-2 opacity-60"
@@ -419,14 +492,14 @@ export default function Settings() {
                       </div>
                       <div>
                         <label className="mb-2 block text-sm font-medium">
-                          Role
+                          {t('label_role', 'Role')}
                         </label>
                         <input
                           type="text"
                           value={
                             profileData.role?.description ||
                             profileData.role?.role_name ||
-                            'N/A'
+                            t('n_a', 'N/A')
                           }
                           disabled
                           className="bg-muted border-border w-full cursor-not-allowed rounded-lg border px-4 py-2 opacity-60"
@@ -434,11 +507,13 @@ export default function Settings() {
                       </div>
                     </div>
                     <div>
-                      <h4 className="mb-3 mt-6">Change Password</h4>
+                      <h4 className="mb-3 mt-6">
+                        {t('label_change_password', 'Change Password')}
+                      </h4>
                       <div className="space-y-3">
                         <div>
                           <label className="mb-2 block text-sm font-medium">
-                            Current Password
+                            {t('label_current_password', 'Current Password')}
                           </label>
                           <input
                             type="password"
@@ -450,19 +525,22 @@ export default function Settings() {
                         </div>
                         <div>
                           <label className="mb-2 block text-sm font-medium">
-                            New Password
+                            {t('label_new_password_profile', 'New Password')}
                           </label>
                           <input
                             type="password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
-                            placeholder="•••••••• (min 8 characters)"
+                            placeholder="••••••••"
                           />
                         </div>
                         <div>
                           <label className="mb-2 block text-sm font-medium">
-                            Confirm New Password
+                            {t(
+                              'label_confirm_new_password',
+                              'Confirm New Password',
+                            )}
                           </label>
                           <input
                             type="password"
@@ -477,7 +555,10 @@ export default function Settings() {
                   </div>
                 ) : (
                   <div className="text-destructive font-medium">
-                    Failed to load user profile. Please try again.
+                    {t(
+                      'err_failed_load_profile',
+                      'Failed to load user profile. Please try again.',
+                    )}
                   </div>
                 )}
               </div>
@@ -495,7 +576,11 @@ export default function Settings() {
                 ) : (
                   <Save className="h-5 w-5" />
                 )}
-                <span>{saving ? 'Saving...' : 'Save Changes'}</span>
+                <span>
+                  {saving
+                    ? t('btn_saving', 'Saving...')
+                    : t('btn_save_changes', 'Save Changes')}
+                </span>
               </button>
             </div>
           </div>

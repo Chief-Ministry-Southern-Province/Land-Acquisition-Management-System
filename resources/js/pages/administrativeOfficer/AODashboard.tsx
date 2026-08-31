@@ -70,15 +70,27 @@ export default function AODashboard() {
 
   // Status Distribution for BarChart
   const statusDistributionData = [
-    { name: 'Pending Review', value: pendingProjects.length, color: '#FF9800' },
-    { name: 'Approved', value: approvedProjects.length, color: '#2E7D32' },
-    { name: 'Rejected', value: rejectedProjects.length, color: '#DC2626' },
+    {
+      name: t('chart_pending_review', 'Pending Review'),
+      value: pendingProjects.length,
+      color: '#FF9800',
+    },
+    {
+      name: t('approved', 'Approved'),
+      value: approvedProjects.length,
+      color: '#2E7D32',
+    },
+    {
+      name: t('rejected', 'Rejected'),
+      value: rejectedProjects.length,
+      color: '#DC2626',
+    },
   ].filter((d) => d.value > 0);
 
   // Department / Requesting Institution Distribution for PieChart
   const institutionDistribution = projects.reduce(
     (acc: Record<string, number>, curr) => {
-      const inst = curr.institution || 'Other';
+      const inst = curr.institution || t('chart_other', 'Other');
       acc[inst] = (acc[inst] || 0) + 1;
 
       return acc;
@@ -98,26 +110,34 @@ export default function AODashboard() {
 
   // Table Columns config
   const pendingColumns = [
-    { key: 'project_id', label: 'Project ID', sortable: true },
+    {
+      key: 'project_id',
+      label: t('col_project_id', 'Project ID'),
+      sortable: true,
+    },
     {
       key: 'title',
-      label: 'Project Title',
+      label: t('col_project_title', 'Project Title'),
       sortable: true,
-      render: (_val: any, row: any) => row.title || row.name || 'N/A',
+      render: (_val: any, row: any) => row.title || row.name || t('n_a', 'N/A'),
     },
-    { key: 'institution', label: 'Institution', sortable: true },
+    {
+      key: 'institution',
+      label: t('col_institution', 'Institution'),
+      sortable: true,
+    },
     {
       key: 'landArea',
-      label: 'Land Area (A-R-P)',
+      label: t('col_land_area_arp', 'Land Area (A-R-P)'),
       render: (_val: any, row: any) =>
-        `${row.land_area_to_be_acquired_acers ?? 0} A, ${row.land_area_to_be_acquired_roods ?? 0} R, ${row.land_area_to_be_acquired_perches ?? 0} P`,
+        `${row.land_area_to_be_acquired_acers ?? 0} ${t('acres', 'A')}, ${row.land_area_to_be_acquired_roods ?? 0} ${t('roods', 'R')}, ${row.land_area_to_be_acquired_perches ?? 0} ${t('perches', 'P')}`,
     },
     {
       key: 'created_at',
-      label: 'Date Submitted',
+      label: t('created_at', 'Date Submitted'),
       sortable: true,
       render: (val: string) =>
-        val ? new Date(val).toLocaleDateString() : 'N/A',
+        val ? new Date(val).toLocaleDateString() : t('n_a', 'N/A'),
     },
   ];
 
@@ -143,25 +163,28 @@ export default function AODashboard() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Pending My Action"
+          title={t('kpi_pending_my_action', 'Pending My Action')}
           value={loading ? '...' : pendingProjects.length}
           icon={Clock}
           color="warning"
         />
         <StatCard
-          title="Approved Cases"
+          title={t('kpi_approved_cases', 'Approved Cases')}
           value={loading ? '...' : approvedProjects.length}
           icon={ThumbsUp}
           color="success"
         />
         <StatCard
-          title="Rejected Cases"
+          title={t('kpi_rejected_cases', 'Rejected Cases')}
           value={loading ? '...' : rejectedProjects.length}
           icon={ThumbsDown}
           color="secondary"
         />
         <StatCard
-          title="Land Parcels Under Review"
+          title={t(
+            'kpi_land_parcels_under_review',
+            'Land Parcels Under Review',
+          )}
           value={loading ? '...' : totalLandParcels}
           icon={Map}
           color="info"
@@ -177,7 +200,9 @@ export default function AODashboard() {
           <div className="bg-warning/10 text-warning mb-2 rounded-full p-3">
             <CheckSquare className="h-5 w-5" />
           </div>
-          <span className="text-xs font-medium">Review Pipeline</span>
+          <span className="text-xs font-medium">
+            {t('action_review_pipeline', 'Review Pipeline')}
+          </span>
         </button>
 
         <button
@@ -187,7 +212,9 @@ export default function AODashboard() {
           <div className="bg-primary/10 text-primary mb-2 rounded-full p-3">
             <MapPin className="h-5 w-5" />
           </div>
-          <span className="text-xs font-medium">GIS Map Viewer</span>
+          <span className="text-xs font-medium">
+            {t('action_gis_map_viewer', 'GIS Map Viewer')}
+          </span>
         </button>
 
         <button
@@ -197,7 +224,9 @@ export default function AODashboard() {
           <div className="bg-success/10 text-success mb-2 rounded-full p-3">
             <DollarSign className="h-5 w-5" />
           </div>
-          <span className="text-xs font-medium">Compensation</span>
+          <span className="text-xs font-medium">
+            {t('action_compensation', 'Compensation')}
+          </span>
         </button>
 
         <button
@@ -207,7 +236,9 @@ export default function AODashboard() {
           <div className="bg-info/10 text-info mb-2 rounded-full p-3">
             <FolderOpen className="h-5 w-5" />
           </div>
-          <span className="text-xs font-medium">Documents</span>
+          <span className="text-xs font-medium">
+            {t('action_documents', 'Documents')}
+          </span>
         </button>
       </div>
 
@@ -218,7 +249,10 @@ export default function AODashboard() {
           {statusDistributionData.length > 0 && (
             <div className="bg-card border-border rounded-lg border p-6">
               <h3 className="mb-4 text-sm font-semibold">
-                Branch Case Status Distribution
+                {t(
+                  'chart_status_distribution_title',
+                  'Branch Case Status Distribution',
+                )}
               </h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -229,7 +263,7 @@ export default function AODashboard() {
                     <Tooltip />
                     <Bar
                       dataKey="value"
-                      name="Projects Count"
+                      name={t('chart_projects_count_label', 'Projects Count')}
                       radius={[4, 4, 0, 0]}
                     >
                       {statusDistributionData.map((entry, index) => (
@@ -246,7 +280,10 @@ export default function AODashboard() {
           {institutionDistributionData.length > 0 && (
             <div className="bg-card border-border rounded-lg border p-6">
               <h3 className="mb-4 text-sm font-semibold">
-                Acquisitions by Requesting Institution
+                {t(
+                  'chart_institution_distribution_title',
+                  'Acquisitions by Requesting Institution',
+                )}
               </h3>
               <div className="flex h-64 flex-col items-center justify-center sm:flex-row">
                 <div className="h-48 w-48">
@@ -277,7 +314,11 @@ export default function AODashboard() {
                         style={{ backgroundColor: entry.color }}
                       />
                       <span className="max-w-[200px] truncate text-xs font-medium">
-                        {entry.name}: {entry.value} Case(s)
+                        {entry.name}:{' '}
+                        {t('chart_cases_label', ':count Case(s)').replace(
+                          ':count',
+                          String(entry.value),
+                        )}
                       </span>
                     </div>
                   ))}
@@ -295,17 +336,23 @@ export default function AODashboard() {
             {t('recent_pending_approvals', 'Awaiting Action Queue')}
           </h3>
           <span className="text-muted-foreground text-xs font-medium">
-            {pendingProjects.length} Pending
+            {t('count_pending', ':count Pending').replace(
+              ':count',
+              String(pendingProjects.length),
+            )}
           </span>
         </div>
         {loading ? (
           <div className="bg-card border-border text-muted-foreground flex h-48 items-center justify-center rounded-lg border text-sm">
-            Loading approvals queue...
+            {t('loading_approvals_queue', 'Loading approvals queue...')}
           </div>
         ) : pendingProjects.length === 0 ? (
           <div className="bg-card border-border text-muted-foreground flex h-48 flex-col items-center justify-center rounded-lg border text-sm">
             <FolderKanban className="text-muted-foreground/30 mb-2 h-8 w-8" />
-            No pending submissions awaiting AO action.
+            {t(
+              'no_pending_ao_action',
+              'No pending submissions awaiting AO action.',
+            )}
           </div>
         ) : (
           <DataTable

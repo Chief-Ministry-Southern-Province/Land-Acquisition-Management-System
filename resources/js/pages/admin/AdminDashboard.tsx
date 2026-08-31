@@ -5,28 +5,30 @@ import {
   FileText,
   AlertTriangle,
 } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const adminStats = [
     {
-      title: 'Active Users',
+      title: t('active_users', 'Active Users'),
       value: '12',
-      change: '+2 this week',
+      change: t('active_users_change', '+2 this week'),
       icon: Users,
       color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
     },
     {
-      title: 'System Logs (24h)',
+      title: t('system_logs_24h', 'System Logs (24h)'),
       value: '2,484',
-      change: 'Normal rate',
+      change: t('logs_normal_rate', 'Normal rate'),
       icon: Activity,
       color: 'bg-green-500/10 text-green-600 dark:text-green-400',
     },
     {
-      title: 'Pending Requests',
+      title: t('pending_requests', 'Pending Requests'),
       value: '5',
-      change: 'Needs review',
+      change: t('needs_review', 'Needs review'),
       icon: FileText,
       color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
     },
@@ -37,11 +39,13 @@ export default function AdminDashboard() {
       {/* Header Section */}
       <div className="flex flex-col gap-1">
         <h1 className="text-foreground text-2xl font-bold tracking-tight">
-          Admin Control Center
+          {t('admin_control_center', 'Admin Control Center')}
         </h1>
         <p className="text-muted-foreground text-sm">
-          Overview of system statistics, user activities, and main server
-          configuration options.
+          {t(
+            'admin_dashboard_subtitle',
+            'Overview of system statistics, user activities, and main server configuration options.',
+          )}
         </p>
       </div>
 
@@ -80,7 +84,7 @@ export default function AdminDashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         <div className="bg-card border-border space-y-4 rounded-xl border p-6 shadow-sm">
           <h2 className="text-foreground text-lg font-semibold">
-            Quick Management Actions
+            {t('quick_mgmt_actions', 'Quick Management Actions')}
           </h2>
           <div className="grid gap-4">
             <a
@@ -92,10 +96,13 @@ export default function AdminDashboard() {
               </div>
               <div className="space-y-1">
                 <h4 className="text-foreground text-sm font-medium">
-                  Create User Profile
+                  {t('create_user_profile', 'Create User Profile')}
                 </h4>
                 <p className="text-muted-foreground text-xs">
-                  Register new operational, financial, or management users.
+                  {t(
+                    'create_user_profile_desc',
+                    'Register new operational, financial, or management users.',
+                  )}
                 </p>
               </div>
             </a>
@@ -109,11 +116,13 @@ export default function AdminDashboard() {
               </div>
               <div className="space-y-1">
                 <h4 className="text-foreground text-sm font-medium">
-                  Configure System Access
+                  {t('configure_sys_access', 'Configure System Access')}
                 </h4>
                 <p className="text-muted-foreground text-xs">
-                  Modify permissions, reset passwords, or lock inactive
-                  profiles.
+                  {t(
+                    'configure_sys_access_desc',
+                    'Modify permissions, reset passwords, or lock inactive profiles.',
+                  )}
                 </p>
               </div>
             </a>
@@ -124,10 +133,10 @@ export default function AdminDashboard() {
         <div className="bg-card border-border space-y-4 rounded-xl border p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-foreground text-lg font-semibold">
-              Active Server Alerts
+              {t('active_server_alerts', 'Active Server Alerts')}
             </h2>
             <span className="rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600">
-              All Secure
+              {t('all_secure', 'All Secure')}
             </span>
           </div>
 
@@ -136,10 +145,13 @@ export default function AdminDashboard() {
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
               <div className="space-y-0.5">
                 <p className="text-foreground font-medium">
-                  High memory load warning
+                  {t('high_memory_load_warning', 'High memory load warning')}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  Database indices loading. Resolved automatically in 4m.
+                  {t(
+                    'high_memory_load_desc',
+                    'Database indices loading. Resolved automatically in 4m.',
+                  )}
                 </p>
               </div>
             </div>
@@ -147,11 +159,13 @@ export default function AdminDashboard() {
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-500" />
               <div className="space-y-0.5">
                 <p className="text-foreground font-medium">
-                  Daily backup verification
+                  {t('daily_backup_verification', 'Daily backup verification')}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  Database backup successfully synchronized to secondary
-                  storage.
+                  {t(
+                    'daily_backup_desc',
+                    'Database backup successfully synchronized to secondary storage.',
+                  )}
                 </p>
               </div>
             </div>

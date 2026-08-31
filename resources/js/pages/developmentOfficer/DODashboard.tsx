@@ -42,7 +42,7 @@ export default function DODashboard() {
   const { t } = useTranslation();
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
-  const username = user?.name || 'Officer';
+  const username = user?.name || t('officer', 'Officer');
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [landParcelsCount, setLandParcelsCount] = useState(0);
@@ -116,19 +116,29 @@ export default function DODashboard() {
   // Submit project to HOB review
   const handleSubmit = async (id: string, title: string) => {
     const confirmed = await confirmAction({
-      title: 'Submit Project',
-      text: `Are you sure you want to submit the project "${title}" to the Head of Branch (HOB) for review?`,
-      confirmButtonText: 'Submit',
+      title: t('submit_project', 'Submit Project'),
+      text: t(
+        'submit_project_confirm_text',
+        'Are you sure you want to submit the project ":title" to the Head of Branch (HOB) for review?',
+      ).replace(':title', title),
+      confirmButtonText: t('submit_btn', 'Submit'),
     });
 
     if (confirmed) {
       try {
         await submitProject(id);
-        toastSuccess('Project submitted successfully!');
+        toastSuccess(
+          t('project_submitted_success', 'Project submitted successfully!'),
+        );
         handleRefresh();
       } catch (error) {
         console.error('Failed to submit project:', error);
-        toastError('Failed to submit project. Please try again.');
+        toastError(
+          t(
+            'failed_submit_project_try_again',
+            'Failed to submit project. Please try again.',
+          ),
+        );
       }
     }
   };
@@ -139,51 +149,70 @@ export default function DODashboard() {
       project.caseStatus === 'completed' ||
       project.secStatus === 'approved'
     ) {
-      return { label: 'Approved', variant: 'success' as const };
+      return { label: t('approved', 'Approved'), variant: 'success' as const };
     }
 
     if (project.caseStatus === 'rejected') {
-      return { label: 'Rejected', variant: 'danger' as const };
+      return { label: t('rejected', 'Rejected'), variant: 'danger' as const };
     }
 
     if (project.hobStatus === 'pending') {
-      return { label: 'Pending HOB Review', variant: 'info' as const };
+      return {
+        label: t('pending_hob_review', 'Pending HOB Review'),
+        variant: 'info' as const,
+      };
     }
 
     if (project.aoStatus === 'pending') {
-      return { label: 'Pending AO Review', variant: 'info' as const };
+      return {
+        label: t('pending_ao_review', 'Pending AO Review'),
+        variant: 'info' as const,
+      };
     }
 
     if (project.asStatus === 'pending') {
-      return { label: 'Pending AS Review', variant: 'info' as const };
+      return {
+        label: t('pending_as_review', 'Pending AS Review'),
+        variant: 'info' as const,
+      };
     }
 
     if (project.sasStatus === 'pending') {
-      return { label: 'Pending SAS Review', variant: 'info' as const };
+      return {
+        label: t('pending_sas_review', 'Pending SAS Review'),
+        variant: 'info' as const,
+      };
     }
 
     if (project.secStatus === 'pending') {
-      return { label: 'Pending SEC Review', variant: 'info' as const };
+      return {
+        label: t('pending_sec_review', 'Pending SEC Review'),
+        variant: 'info' as const,
+      };
     }
 
-    return { label: 'In Review', variant: 'info' as const };
+    return { label: t('in_review', 'In Review'), variant: 'info' as const };
   };
 
   // Chart data calculations
   const statusDistributionData = [
-    { name: 'Drafts', value: draftProjects.length, color: '#1565C0' },
     {
-      name: 'Queried (Action Req)',
+      name: t('drafts', 'Drafts'),
+      value: draftProjects.length,
+      color: '#1565C0',
+    },
+    {
+      name: t('queried_action_req', 'Queried (Action Req)'),
       value: queriedProjects.length,
       color: '#FF9800',
     },
     {
-      name: 'In Review Chain',
+      name: t('in_review_chain', 'In Review Chain'),
       value: submittedProjects.length,
       color: '#0288D1',
     },
     {
-      name: 'Completed/Approved',
+      name: t('completed_approved', 'Completed/Approved'),
       value: completedProjects.length,
       color: '#2E7D32',
     },
@@ -191,7 +220,7 @@ export default function DODashboard() {
 
   const purposeDistribution = projects.reduce(
     (acc: Record<string, number>, curr) => {
-      const purpose = curr.purpose || 'Other';
+      const purpose = curr.purpose || t('other', 'Other');
       acc[purpose] = (acc[purpose] || 0) + 1;
 
       return acc;
@@ -211,41 +240,47 @@ export default function DODashboard() {
 
   // Table Columns config
   const draftColumns = [
-    { key: 'projectId', label: 'Project ID', sortable: true },
+    { key: 'projectId', label: t('project_id', 'Project ID'), sortable: true },
     {
       key: 'title',
-      label: 'Title',
+      label: t('title', 'Title'),
       sortable: true,
-      render: (_val: any, row: Project) => row.title || row.name || 'N/A',
+      render: (_val: any, row: Project) =>
+        row.title || row.name || t('n_a', 'N/A'),
     },
-    { key: 'purpose', label: 'Purpose', sortable: true },
+    { key: 'purpose', label: t('purpose', 'Purpose'), sortable: true },
     {
       key: 'landArea',
-      label: 'Land Area',
+      label: t('land_area', 'Land Area'),
       render: (_val: any, row: Project) =>
-        `${row.landAreaAcers ?? 0}A, ${row.landAreaRoods ?? 0}R, ${row.landAreaPerches ?? 0}P`,
+        `${row.landAreaAcers ?? 0}${t('ac_abbr', 'A')}, ${row.landAreaRoods ?? 0}${t('rd_abbr', 'R')}, ${row.landAreaPerches ?? 0}${t('per_abbr', 'P')}`,
     },
     {
       key: 'updated_at',
-      label: 'Last Edited',
+      label: t('last_edited', 'Last Edited'),
       sortable: true,
       render: (val: string) =>
-        val ? new Date(val).toLocaleDateString() : 'N/A',
+        val ? new Date(val).toLocaleDateString() : t('n_a', 'N/A'),
     },
   ];
 
   const inFlightColumns = [
-    { key: 'projectId', label: 'Project ID', sortable: true },
+    { key: 'projectId', label: t('project_id', 'Project ID'), sortable: true },
     {
       key: 'title',
-      label: 'Title',
+      label: t('title', 'Title'),
       sortable: true,
-      render: (_val: any, row: Project) => row.title || row.name || 'N/A',
+      render: (_val: any, row: Project) =>
+        row.title || row.name || t('n_a', 'N/A'),
     },
-    { key: 'institution', label: 'Requesting Institution', sortable: true },
+    {
+      key: 'institution',
+      label: t('requesting_institution', 'Requesting Institution'),
+      sortable: true,
+    },
     {
       key: 'workflowStatus',
-      label: 'Pipeline Position',
+      label: t('pipeline_position', 'Pipeline Position'),
       sortable: true,
       render: (_val: any, row: Project) => {
         const stage = getApprovalStage(row);
@@ -255,10 +290,10 @@ export default function DODashboard() {
     },
     {
       key: 'updated_at',
-      label: 'Submitted Date',
+      label: t('submitted_date', 'Submitted Date'),
       sortable: true,
       render: (val: string) =>
-        val ? new Date(val).toLocaleDateString() : 'N/A',
+        val ? new Date(val).toLocaleDateString() : t('n_a', 'N/A'),
     },
   ];
 
@@ -284,25 +319,25 @@ export default function DODashboard() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Draft Cases"
+          title={t('draft_cases', 'Draft Cases')}
           value={loading ? '...' : draftProjects.length}
           icon={FolderKanban}
           color="primary"
         />
         <StatCard
-          title="Action Required (Queries)"
+          title={t('action_required_queries', 'Action Required (Queries)')}
           value={loading ? '...' : queriedProjects.length}
           icon={AlertTriangle}
           color="warning"
         />
         <StatCard
-          title="Under Review"
+          title={t('under_review', 'Under Review')}
           value={loading ? '...' : submittedProjects.length}
           icon={Clock}
           color="info"
         />
         <StatCard
-          title="Total Land Parcels"
+          title={t('total_land_parcels', 'Total Land Parcels')}
           value={loading ? '...' : landParcelsCount}
           icon={Map}
           color="success"
@@ -318,7 +353,9 @@ export default function DODashboard() {
           <div className="bg-primary/10 text-primary mb-2 rounded-full p-3">
             <Plus className="h-5 w-5" />
           </div>
-          <span className="text-xs font-medium">Initiate Case</span>
+          <span className="text-xs font-medium">
+            {t('initiate_case', 'Initiate Case')}
+          </span>
         </button>
 
         <button
@@ -328,7 +365,9 @@ export default function DODashboard() {
           <div className="bg-success/10 text-success mb-2 rounded-full p-3">
             <MapPin className="h-5 w-5" />
           </div>
-          <span className="text-xs font-medium">Initiate Land Parcel</span>
+          <span className="text-xs font-medium">
+            {t('initiate_land_parcel', 'Initiate Land Parcel')}
+          </span>
         </button>
 
         <button
@@ -338,7 +377,9 @@ export default function DODashboard() {
           <div className="bg-info/10 text-info mb-2 rounded-full p-3">
             <Users className="h-5 w-5" />
           </div>
-          <span className="text-xs font-medium">Land Owners</span>
+          <span className="text-xs font-medium">
+            {t('land_owners_btn', 'Land Owners')}
+          </span>
         </button>
 
         <button
@@ -348,7 +389,9 @@ export default function DODashboard() {
           <div className="bg-warning/10 text-warning mb-2 rounded-full p-3">
             <FileText className="h-5 w-5" />
           </div>
-          <span className="text-xs font-medium">Case Documents</span>
+          <span className="text-xs font-medium">
+            {t('case_documents', 'Case Documents')}
+          </span>
         </button>
       </div>
 
@@ -358,8 +401,10 @@ export default function DODashboard() {
           <div className="mb-4 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 animate-pulse text-[#FF9800]" />
             <h3 className="text-base font-bold text-[#FF9800]">
-              Action Required: Queries returned for correction (
-              {queriedProjects.length})
+              {t(
+                'action_required_queries_title',
+                'Action Required: Queries returned for correction (:count)',
+              ).replace(':count', queriedProjects.length.toString())}
             </h3>
           </div>
           <div className="space-y-4">
@@ -370,7 +415,10 @@ export default function DODashboard() {
                 .filter((line) => line.includes('[Query'));
               const lastQuery =
                 queryLines[queryLines.length - 1] ||
-                'Revision requested by supervisor.';
+                t(
+                  'revision_requested_by_supervisor',
+                  'Revision requested by supervisor.',
+                );
 
               return (
                 <div
@@ -385,7 +433,9 @@ export default function DODashboard() {
                       <h4 className="text-sm font-bold">{project.title}</h4>
                     </div>
                     <div className="bg-warning/10 text-warning border-warning rounded-r border-l-4 px-3 py-2 text-xs">
-                      <span className="font-semibold">Correction Note:</span>{' '}
+                      <span className="font-semibold">
+                        {t('correction_note', 'Correction Note')}:
+                      </span>{' '}
                       {lastQuery.replace(/\[Query [A-Z]+\]:\s*/, '')}
                     </div>
                   </div>
@@ -395,7 +445,7 @@ export default function DODashboard() {
                       className="hover:bg-muted border-border flex cursor-pointer items-center gap-1.5 rounded border px-3 py-1.5 text-xs transition-colors"
                     >
                       <Eye className="h-3.5 w-3.5" />
-                      View
+                      {t('view', 'View')}
                     </button>
                     <button
                       onClick={() =>
@@ -404,7 +454,7 @@ export default function DODashboard() {
                       className="bg-warning hover:bg-warning/90 flex cursor-pointer items-center gap-1.5 rounded px-3 py-1.5 text-xs font-semibold text-white transition-colors"
                     >
                       <Edit className="h-3.5 w-3.5" />
-                      Edit & Re-submit
+                      {t('edit_re_submit', 'Edit & Re-submit')}
                     </button>
                   </div>
                 </div>
@@ -423,17 +473,20 @@ export default function DODashboard() {
               {t('my_draft_projects', 'My Draft Projects')}
             </h3>
             <span className="text-muted-foreground text-xs font-medium">
-              {draftProjects.length} Drafts
+              {draftProjects.length} {t('drafts_count', 'Drafts')}
             </span>
           </div>
           {loading ? (
             <div className="bg-card border-border text-muted-foreground flex h-48 items-center justify-center rounded-lg border text-sm">
-              Loading draft projects...
+              {t('loading_draft_projects', 'Loading draft projects...')}
             </div>
           ) : draftProjects.length === 0 ? (
             <div className="bg-card border-border text-muted-foreground flex h-48 flex-col items-center justify-center rounded-lg border text-sm">
               <FolderKanban className="text-muted-foreground/30 mb-2 h-8 w-8" />
-              No drafts in progress. Click "Initiate Case" to create one.
+              {t(
+                'no_drafts_in_progress',
+                'No drafts in progress. Click "Initiate Case" to create one.',
+              )}
             </div>
           ) : (
             <DataTable
@@ -448,7 +501,7 @@ export default function DODashboard() {
                       router.visit(`/projects/new?edit=${row.id}`);
                     }}
                     className="hover:bg-muted cursor-pointer rounded p-1.5 transition-colors"
-                    title="Edit"
+                    title={t('edit', 'Edit')}
                   >
                     <Edit className="text-muted-foreground hover:text-foreground h-4 w-4" />
                   </button>
@@ -458,7 +511,7 @@ export default function DODashboard() {
                       handleSubmit(row.id, row.title || row.name);
                     }}
                     className="hover:bg-success/15 hover:text-success cursor-pointer rounded p-1.5 transition-colors"
-                    title="Submit for Approval"
+                    title={t('submit_for_approval', 'Submit for Approval')}
                   >
                     <Send className="h-4 w-4" />
                   </button>
@@ -475,17 +528,21 @@ export default function DODashboard() {
               {t('in_flight_projects', 'Active Approval Tracking')}
             </h3>
             <span className="text-muted-foreground text-xs font-medium">
-              {submittedProjects.length} Pending Approval
+              {submittedProjects.length}{' '}
+              {t('pending_approval_count', 'Pending Approval')}
             </span>
           </div>
           {loading ? (
             <div className="bg-card border-border text-muted-foreground flex h-48 items-center justify-center rounded-lg border text-sm">
-              Loading in-flight projects...
+              {t('loading_in_flight_projects', 'Loading in-flight projects...')}
             </div>
           ) : submittedProjects.length === 0 ? (
             <div className="bg-card border-border text-muted-foreground flex h-48 flex-col items-center justify-center rounded-lg border text-sm">
               <Clock className="text-muted-foreground/30 mb-2 h-8 w-8" />
-              No submitted cases are currently under review.
+              {t(
+                'no_submitted_cases_under_review',
+                'No submitted cases are currently under review.',
+              )}
             </div>
           ) : (
             <DataTable
@@ -499,7 +556,7 @@ export default function DODashboard() {
                     router.visit(`/projects/${row.id}`);
                   }}
                   className="hover:bg-muted cursor-pointer rounded p-1.5 transition-colors"
-                  title="View Progress details"
+                  title={t('view_progress_details', 'View Progress details')}
                 >
                   <Eye className="text-muted-foreground hover:text-foreground h-4 w-4" />
                 </button>
@@ -516,7 +573,7 @@ export default function DODashboard() {
           {statusDistributionData.length > 0 && (
             <div className="bg-card border-border rounded-lg border p-6">
               <h3 className="mb-4 text-sm font-semibold">
-                Case Portfolio Breakdown
+                {t('case_portfolio_breakdown', 'Case Portfolio Breakdown')}
               </h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -527,7 +584,7 @@ export default function DODashboard() {
                     <Tooltip />
                     <Bar
                       dataKey="value"
-                      name="Projects Count"
+                      name={t('projects_count', 'Projects Count')}
                       radius={[4, 4, 0, 0]}
                     >
                       {statusDistributionData.map((entry, index) => (
@@ -544,7 +601,10 @@ export default function DODashboard() {
           {purposeDistributionData.length > 0 && (
             <div className="bg-card border-border rounded-lg border p-6">
               <h3 className="mb-4 text-sm font-semibold">
-                Land Acquisition by Purpose
+                {t(
+                  'land_acquisition_by_purpose',
+                  'Land Acquisition by Purpose',
+                )}
               </h3>
               <div className="flex h-64 flex-col items-center justify-center sm:flex-row">
                 <div className="h-48 w-48">
@@ -575,7 +635,8 @@ export default function DODashboard() {
                         style={{ backgroundColor: entry.color }}
                       />
                       <span className="text-xs font-medium">
-                        {entry.name}: {entry.value} Case(s)
+                        {entry.name}: {entry.value}{' '}
+                        {t('cases_plural', 'Case(s)')}
                       </span>
                     </div>
                   ))}
