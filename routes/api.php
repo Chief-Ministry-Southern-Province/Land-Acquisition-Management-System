@@ -20,6 +20,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SASApprovalController;
 use App\Http\Controllers\SECApprovalController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/test', function () {
@@ -60,6 +61,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('departments', [DepartmentController::class, 'index']);
     Route::get('departments/{id}', [DepartmentController::class, 'show']);
     Route::apiResource('audit-logs', AuditLogsController::class)->only(['index', 'show']);
+
+    // Reports Routes
+    Route::get('reports', [ReportController::class, 'getReportData'])->middleware('check.role:HOB,AO,AS,SAS,SEC');
+    Route::get('reports/export', [ReportController::class, 'exportReport'])->middleware('check.role:HOB,AO,AS,SAS,SEC');
 
     // Notifications Routes
     Route::get('notifications', [NotificationController::class, 'index']);
