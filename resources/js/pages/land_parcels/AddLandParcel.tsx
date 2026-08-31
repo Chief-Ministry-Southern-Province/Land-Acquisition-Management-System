@@ -607,7 +607,10 @@ export default function AddLandParcel() {
         (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
       )
     ) {
-      errs.nic = t('owner_exists_db_error', 'An owner with this NIC already exists in the database. Use search instead.');
+      errs.nic = t(
+        'owner_exists_db_error',
+        'An owner with this NIC already exists in the database. Use search instead.',
+      );
     }
 
     if (Object.keys(errs).length > 0) {
@@ -634,7 +637,12 @@ export default function AddLandParcel() {
 
   const handleSelectExistingOwner = (owner: PropertyOwner) => {
     if (selectedOwners.some((o) => o.nic === owner.nic)) {
-      toastError(t('owner_added_parcel_error', 'This owner is already added to the parcel.'));
+      toastError(
+        t(
+          'owner_added_parcel_error',
+          'This owner is already added to the parcel.',
+        ),
+      );
 
       return;
     }
@@ -694,7 +702,10 @@ export default function AddLandParcel() {
     }
 
     if (!form.divisionalSecretariat.trim()) {
-      errs.divisionalSecretariat = t('div_sec_required', 'Divisional Secretariat is required');
+      errs.divisionalSecretariat = t(
+        'div_sec_required',
+        'Divisional Secretariat is required',
+      );
     }
 
     if (!form.village.trim()) {
@@ -702,11 +713,17 @@ export default function AddLandParcel() {
     }
 
     if (!form.extentAcres.trim()) {
-      errs.extentAcres = t('extent_acres_required', 'Extent (acres) is required');
+      errs.extentAcres = t(
+        'extent_acres_required',
+        'Extent (acres) is required',
+      );
     }
 
     if (!form.landUseType) {
-      errs.landUseType = t('land_use_type_required', 'Land use type is required');
+      errs.landUseType = t(
+        'land_use_type_required',
+        'Land use type is required',
+      );
     }
 
     if (!form.tenureType) {
@@ -714,7 +731,12 @@ export default function AddLandParcel() {
     }
 
     if (selectedOwners.length === 0) {
-      toastError(t('min_one_owner_error', 'You must add or select at least one property owner.'));
+      toastError(
+        t(
+          'min_one_owner_error',
+          'You must add or select at least one property owner.',
+        ),
+      );
 
       return false;
     }
@@ -722,8 +744,14 @@ export default function AddLandParcel() {
     if (!planFile) {
       toastError(
         form.hasPlan
-          ? t('upload_copy_of_plan_error', 'You must upload a copy of the land parcel plan.')
-          : t('upload_simple_sketch_error', 'You must upload a simple sketch of the land parcel.'),
+          ? t(
+              'upload_copy_of_plan_error',
+              'You must upload a copy of the land parcel plan.',
+            )
+          : t(
+              'upload_simple_sketch_error',
+              'You must upload a simple sketch of the land parcel.',
+            ),
       );
 
       return false;
@@ -771,7 +799,12 @@ export default function AddLandParcel() {
 
       const payload = {
         parcel_id: form.landNumber,
-        land_name: form.landName || t('land_parcel_name_generated', 'Land Parcel {number}').replace('{number}', form.landNumber),
+        land_name:
+          form.landName ||
+          t('land_parcel_name_generated', 'Land Parcel {number}').replace(
+            '{number}',
+            form.landNumber,
+          ),
         province: form.province || t('southern_default', 'Southern'),
         district: form.district,
         division: form.divisionalSecretariat,
@@ -799,12 +832,17 @@ export default function AddLandParcel() {
         has_residential_houses: form.hasResidentialHouses,
         is_resident_owner: form.isResidentOwner,
         is_cultivated: form.isCultivated,
-        cultivation: form.isCultivated ? form.cultivation || t('n_a', 'N/A') : t('n_a', 'N/A'),
+        cultivation: form.isCultivated
+          ? form.cultivation || t('n_a', 'N/A')
+          : t('n_a', 'N/A'),
         cultivation_status: form.isCultivated
           ? form.cultivationStatus
           : 'unspecified',
         annual_income: form.isCultivated ? Number(form.annualIncome) || 0 : 0,
-        land_type: form.landType || form.landUseType || t('standard_land_type', 'Standard'),
+        land_type:
+          form.landType ||
+          form.landUseType ||
+          t('standard_land_type', 'Standard'),
         is_casehold: form.isCasehold,
         case_number: form.isCasehold ? form.caseNumber || null : null,
         case_start_date: form.isCasehold ? form.caseStartDate || null : null,
@@ -849,7 +887,9 @@ export default function AddLandParcel() {
         }
       }
 
-      toastSuccess(t('land_parcel_created_success', 'Land parcel created successfully!'));
+      toastSuccess(
+        t('land_parcel_created_success', 'Land parcel created successfully!'),
+      );
       router.visit('/land-parcels');
     } catch (error: any) {
       console.error('Failed to create land parcel:', error);
@@ -887,16 +927,25 @@ export default function AddLandParcel() {
           }
         });
         setErrors(backendErrors);
-        await alertInfo(t('validation_error_title', 'Validation Error'), errorMessages.join('\n'));
+        await alertInfo(
+          t('validation_error_title', 'Validation Error'),
+          errorMessages.join('\n'),
+        );
       } else if (error.response?.data?.message) {
         setErrors({ landNumber: error.response.data.message });
         toastError(`Error: ${error.response.data.message}`);
       } else {
         setErrors({
-          landNumber: t('generic_error_saving', 'An error occurred while saving the land parcel.'),
+          landNumber: t(
+            'generic_error_saving',
+            'An error occurred while saving the land parcel.',
+          ),
         });
         toastError(
-          t('save_parcel_error', 'An error occurred while saving the land parcel. Please verify your inputs.'),
+          t(
+            'save_parcel_error',
+            'An error occurred while saving the land parcel. Please verify your inputs.',
+          ),
         );
       }
     } finally {
@@ -1476,10 +1525,14 @@ export default function AddLandParcel() {
                                 : 'bg-blue-500/10 text-blue-600'
                             }`}
                           >
-                            {owner.isNew ? t('new_label', 'New') : t('existing_label', 'Existing')}
+                            {owner.isNew
+                              ? t('new_label', 'New')
+                              : t('existing_label', 'Existing')}
                           </span>
                           <span className="text-muted-foreground font-mono text-xs">
-                            {owner.isNew ? t('will_be_created', 'Will be created') : owner.ownerId}
+                            {owner.isNew
+                              ? t('will_be_created', 'Will be created')
+                              : owner.ownerId}
                           </span>
                         </div>
                         <h4 className="text-foreground text-sm font-semibold">
@@ -1785,7 +1838,10 @@ export default function AddLandParcel() {
                           type="button"
                           onClick={() => handleRemoveResident(idx)}
                           className="text-muted-foreground hover:text-destructive absolute right-3 top-3 transition-colors"
-                          title={t('remove_resident_tooltip', 'Remove Resident')}
+                          title={t(
+                            'remove_resident_tooltip',
+                            'Remove Resident',
+                          )}
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -2054,7 +2110,10 @@ export default function AddLandParcel() {
                         type="button"
                         onClick={() => handleRemoveQueuedFile(doc.id)}
                         className="text-muted-foreground hover:text-destructive p-1 transition-colors"
-                        title={t('remove_from_queue_tooltip', 'Remove from queue')}
+                        title={t(
+                          'remove_from_queue_tooltip',
+                          'Remove from queue',
+                        )}
                       >
                         <X className="h-4 w-4" />
                       </button>

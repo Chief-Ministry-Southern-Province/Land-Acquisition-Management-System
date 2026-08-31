@@ -43,7 +43,6 @@ import {
 } from '@/services/propertyOwnerManagement';
 import type { PropertyOwner } from '@/services/propertyOwnerManagement';
 
-
 const LAND_USE_TYPES = [
   'Agricultural',
   'Residential',
@@ -340,7 +339,10 @@ export default function EditLandParcel({ id }: { id: string }) {
 
     const confirmed = await confirmDialog({
       title: t('delete_document_title', 'Delete Document'),
-      text: t('delete_document_confirm_details', 'Are you sure you want to delete this document?'),
+      text: t(
+        'delete_document_confirm_details',
+        'Are you sure you want to delete this document?',
+      ),
     });
 
     if (!confirmed) {
@@ -351,7 +353,9 @@ export default function EditLandParcel({ id }: { id: string }) {
       setLoading(true);
       await deleteDocument(docId);
       await refreshDocuments();
-      toastSuccess(t('document_deleted_success', 'Document deleted successfully.'));
+      toastSuccess(
+        t('document_deleted_success', 'Document deleted successfully.'),
+      );
     } catch (error) {
       console.error('Failed to delete document:', error);
       toastError(t('failed_delete_document', 'Failed to delete document.'));
@@ -747,7 +751,12 @@ export default function EditLandParcel({ id }: { id: string }) {
 
   const handleSelectExistingOwner = (owner: PropertyOwner) => {
     if (selectedOwners.some((o) => o.nic === owner.nic)) {
-      toastError(t('owner_added_parcel_error', 'This owner is already added to the parcel.'));
+      toastError(
+        t(
+          'owner_added_parcel_error',
+          'This owner is already added to the parcel.',
+        ),
+      );
 
       return;
     }
@@ -807,7 +816,10 @@ export default function EditLandParcel({ id }: { id: string }) {
     }
 
     if (!form.divisionalSecretariat.trim()) {
-      errs.divisionalSecretariat = t('div_sec_required', 'Divisional Secretariat is required');
+      errs.divisionalSecretariat = t(
+        'div_sec_required',
+        'Divisional Secretariat is required',
+      );
     }
 
     if (!form.village.trim()) {
@@ -815,11 +827,17 @@ export default function EditLandParcel({ id }: { id: string }) {
     }
 
     if (!form.extentAcres.trim()) {
-      errs.extentAcres = t('extent_acres_required', 'Extent (acres) is required');
+      errs.extentAcres = t(
+        'extent_acres_required',
+        'Extent (acres) is required',
+      );
     }
 
     if (!form.landUseType) {
-      errs.landUseType = t('land_use_type_required', 'Land use type is required');
+      errs.landUseType = t(
+        'land_use_type_required',
+        'Land use type is required',
+      );
     }
 
     if (!form.tenureType) {
@@ -827,7 +845,12 @@ export default function EditLandParcel({ id }: { id: string }) {
     }
 
     if (selectedOwners.length === 0) {
-      toastError(t('min_one_owner_error', 'You must add or select at least one property owner.'));
+      toastError(
+        t(
+          'min_one_owner_error',
+          'You must add or select at least one property owner.',
+        ),
+      );
 
       return false;
     }
@@ -844,13 +867,23 @@ export default function EditLandParcel({ id }: { id: string }) {
 
     if (form.hasPlan) {
       if (!planFile && !existingPlanDoc) {
-        toastError(t('upload_copy_of_plan_error', 'You must upload a copy of the land parcel plan.'));
+        toastError(
+          t(
+            'upload_copy_of_plan_error',
+            'You must upload a copy of the land parcel plan.',
+          ),
+        );
 
         return false;
       }
     } else {
       if (!planFile && !existingSketchDoc) {
-        toastError(t('upload_simple_sketch_error', 'You must upload a simple sketch of the land parcel.'));
+        toastError(
+          t(
+            'upload_simple_sketch_error',
+            'You must upload a simple sketch of the land parcel.',
+          ),
+        );
 
         return false;
       }
@@ -969,7 +1002,9 @@ export default function EditLandParcel({ id }: { id: string }) {
         }
       }
 
-      toastSuccess(t('land_parcel_updated_success', 'Land parcel updated successfully!'));
+      toastSuccess(
+        t('land_parcel_updated_success', 'Land parcel updated successfully!'),
+      );
       router.visit(`/land-parcels/${id}`);
     } catch (error: any) {
       console.error('Failed to update land parcel:', error);
@@ -1007,16 +1042,25 @@ export default function EditLandParcel({ id }: { id: string }) {
           }
         });
         setErrors(backendErrors);
-        await alertInfo(t('validation_error_title', 'Validation Error'), errorMessages.join('\n'));
+        await alertInfo(
+          t('validation_error_title', 'Validation Error'),
+          errorMessages.join('\n'),
+        );
       } else if (error.response?.data?.message) {
         setErrors({ landNumber: error.response.data.message });
         toastError(`Error: ${error.response.data.message}`);
       } else {
         setErrors({
-          landNumber: t('generic_error_saving', 'An error occurred while saving the land parcel.'),
+          landNumber: t(
+            'generic_error_saving',
+            'An error occurred while saving the land parcel.',
+          ),
         });
         toastError(
-          t('save_parcel_error', 'An error occurred while saving the land parcel. Please verify your inputs.'),
+          t(
+            'save_parcel_error',
+            'An error occurred while saving the land parcel. Please verify your inputs.',
+          ),
         );
       }
     } finally {
@@ -1040,9 +1084,14 @@ export default function EditLandParcel({ id }: { id: string }) {
   if (unauthorized) {
     return (
       <div className="bg-destructive/10 border-destructive/30 text-destructive flex h-96 flex-col items-center justify-center gap-4 rounded-xl border p-6">
-        <p className="text-lg font-semibold">{t('access_denied', 'Access Denied')}</p>
+        <p className="text-lg font-semibold">
+          {t('access_denied', 'Access Denied')}
+        </p>
         <p className="text-sm">
-          {t('unauthorized_do_edit_info', 'Only Divisional/Development Officers (DO) can edit land parcel information.')}
+          {t(
+            'unauthorized_do_edit_info',
+            'Only Divisional/Development Officers (DO) can edit land parcel information.',
+          )}
         </p>
         <Link
           href={`/land-parcels/${id}`}
@@ -1057,9 +1106,14 @@ export default function EditLandParcel({ id }: { id: string }) {
   if (statusError) {
     return (
       <div className="bg-destructive/10 border-destructive/30 text-destructive flex h-96 flex-col items-center justify-center gap-4 rounded-xl border p-6">
-        <p className="text-lg font-semibold">{t('editing_restricted', 'Editing Restricted')}</p>
+        <p className="text-lg font-semibold">
+          {t('editing_restricted', 'Editing Restricted')}
+        </p>
         <p className="text-sm">
-          {t('only_available_status_editable', 'Only land parcels with status "available" can be edited.')}
+          {t(
+            'only_available_status_editable',
+            'Only land parcels with status "available" can be edited.',
+          )}
         </p>
         <Link
           href={`/land-parcels/${id}`}
@@ -1074,9 +1128,14 @@ export default function EditLandParcel({ id }: { id: string }) {
   if (!parcel && !loading && !unauthorized && !statusError) {
     return (
       <div className="bg-destructive/10 border-destructive/30 text-destructive flex h-96 flex-col items-center justify-center gap-4 rounded-xl border p-6">
-        <p className="text-lg font-semibold">{t('error_loading_parcel', 'Error Loading Parcel')}</p>
+        <p className="text-lg font-semibold">
+          {t('error_loading_parcel', 'Error Loading Parcel')}
+        </p>
         <p className="text-sm">
-          {t('failed_retrieve_parcel_details', 'Failed to retrieve land parcel details. Please try again later.')}
+          {t(
+            'failed_retrieve_parcel_details',
+            'Failed to retrieve land parcel details. Please try again later.',
+          )}
         </p>
         <Link
           href={`/land-parcels/${id}`}
@@ -1103,7 +1162,10 @@ export default function EditLandParcel({ id }: { id: string }) {
           <div>
             <h1>{t('edit_land_parcel', 'Edit Land Parcel')}</h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              {t('update_details_for_parcel_desc', 'Update details for land parcel #{number}').replace('{number}', form.landNumber)}
+              {t(
+                'update_details_for_parcel_desc',
+                'Update details for land parcel #{number}',
+              ).replace('{number}', form.landNumber)}
             </p>
           </div>
         </div>
@@ -1635,10 +1697,14 @@ export default function EditLandParcel({ id }: { id: string }) {
                                 : 'bg-blue-500/10 text-blue-600'
                             }`}
                           >
-                            {owner.isNew ? t('new_label', 'New') : t('existing_label', 'Existing')}
+                            {owner.isNew
+                              ? t('new_label', 'New')
+                              : t('existing_label', 'Existing')}
                           </span>
                           <span className="text-muted-foreground font-mono text-xs">
-                            {owner.isNew ? t('will_be_created', 'Will be created') : owner.ownerId}
+                            {owner.isNew
+                              ? t('will_be_created', 'Will be created')
+                              : owner.ownerId}
                           </span>
                         </div>
                         <h4 className="text-foreground text-sm font-semibold">
@@ -1944,7 +2010,10 @@ export default function EditLandParcel({ id }: { id: string }) {
                           type="button"
                           onClick={() => handleRemoveResident(idx)}
                           className="text-muted-foreground hover:text-destructive absolute right-3 top-3 transition-colors"
-                          title={t('remove_resident_tooltip', 'Remove Resident')}
+                          title={t(
+                            'remove_resident_tooltip',
+                            'Remove Resident',
+                          )}
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -2243,7 +2312,10 @@ export default function EditLandParcel({ id }: { id: string }) {
                           className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
                           title={
                             doc.isQueued
-                              ? t('remove_from_queue_tooltip', 'Remove from queue')
+                              ? t(
+                                  'remove_from_queue_tooltip',
+                                  'Remove from queue',
+                                )
                               : t('delete_permanently', 'Delete permanently')
                           }
                         >

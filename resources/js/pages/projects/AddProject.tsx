@@ -963,7 +963,8 @@ export default function AddProject() {
             </div>
             {autoOwners.length > 0 && (
               <span className="bg-secondary rounded-full px-2.5 py-0.5 text-xs font-medium text-white">
-                {autoOwners.length} {autoOwners.length !== 1 ? t('owners') : t('owner')}
+                {autoOwners.length}{' '}
+                {autoOwners.length !== 1 ? t('owners') : t('owner')}
               </span>
             )}
           </div>
@@ -1283,8 +1284,8 @@ export default function AddProject() {
                             )}
                           </div>
                           <p className="text-muted-foreground mt-0.5 text-xs">
-                            {t('category')}: {doc.category} • {t('size')}: {doc.size} • {t('date')}:{' '}
-                            {doc.uploadDate}
+                            {t('category')}: {doc.category} • {t('size')}:{' '}
+                            {doc.size} • {t('date')}: {doc.uploadDate}
                           </p>
                         </div>
                       </div>

@@ -66,17 +66,25 @@ export default function LandParcelList() {
 
       if (res.failures && res.failures.length > 0) {
         const failedCount = res.failures.length;
-        const msg = t('import_partial_success_msg', 'Successfully imported {imported} land parcels. {failed} rows failed validation.')
+        const msg = t(
+          'import_partial_success_msg',
+          'Successfully imported {imported} land parcels. {failed} rows failed validation.',
+        )
           .replace('{imported}', res.imported_count.toString())
           .replace('{failed}', failedCount.toString());
         setImportMessage({ type: 'success', text: msg });
         await alertInfo(
           t('import_completed_failures', 'Import Completed with Failures'),
-          msg + '\n\n' + t('first_failure_label', 'First failure: ') + res.failures[0].errors.join(', '),
+          msg +
+            '\n\n' +
+            t('first_failure_label', 'First failure: ') +
+            res.failures[0].errors.join(', '),
         );
       } else {
-        const msg = t('import_success_count', 'Successfully imported all {count} land parcels!')
-          .replace('{count}', res.imported_count.toString());
+        const msg = t(
+          'import_success_count',
+          'Successfully imported all {count} land parcels!',
+        ).replace('{count}', res.imported_count.toString());
         setImportMessage({ type: 'success', text: msg });
         toastSuccess(msg);
       }
@@ -90,7 +98,10 @@ export default function LandParcelList() {
       if (error.response?.status === 422) {
         const data = error.response.data;
         const failedCount = data.failures?.length || 0;
-        const msg = t('import_failed_validation', 'Import failed: {failed} rows had validation errors. {imported} land parcels were imported successfully.')
+        const msg = t(
+          'import_failed_validation',
+          'Import failed: {failed} rows had validation errors. {imported} land parcels were imported successfully.',
+        )
           .replace('{failed}', failedCount.toString())
           .replace('{imported}', data.imported_count.toString());
         setImportMessage({ type: 'error', text: msg });
@@ -99,7 +110,9 @@ export default function LandParcelList() {
 
         if (data.failures && data.failures.length > 0) {
           failureDetails =
-            '\n\n' + t('validation_failures_label', 'Validation failures:') + '\n' +
+            '\n\n' +
+            t('validation_failures_label', 'Validation failures:') +
+            '\n' +
             data.failures
               .slice(0, 5)
               .map(
@@ -109,11 +122,19 @@ export default function LandParcelList() {
               .join('\n');
 
           if (data.failures.length > 5) {
-            failureDetails += `\n` + t('and_more_failures', '... and {count} more failures.').replace('{count}', (data.failures.length - 5).toString());
+            failureDetails +=
+              `\n` +
+              t('and_more_failures', '... and {count} more failures.').replace(
+                '{count}',
+                (data.failures.length - 5).toString(),
+              );
           }
         }
 
-        await alertInfo(t('import_failed', 'Import Failed'), msg + failureDetails);
+        await alertInfo(
+          t('import_failed', 'Import Failed'),
+          msg + failureDetails,
+        );
 
         // Refresh list if partial records were imported
         if (data.imported_count > 0) {
@@ -130,7 +151,10 @@ export default function LandParcelList() {
       } else {
         const errorMsg =
           error.response?.data?.message ||
-          t('default_import_error', 'Failed to import land parcels. Please check the file format.');
+          t(
+            'default_import_error',
+            'Failed to import land parcels. Please check the file format.',
+          );
         setImportMessage({ type: 'error', text: errorMsg });
         toastError(errorMsg);
       }
@@ -144,7 +168,11 @@ export default function LandParcelList() {
   };
 
   const columns = [
-    { key: 'parcel_id', label: t('land_number', 'Land Number'), sortable: true },
+    {
+      key: 'parcel_id',
+      label: t('land_number', 'Land Number'),
+      sortable: true,
+    },
     {
       key: 'land_name',
       label: t('land_name_header', 'Land Name'),
@@ -170,7 +198,8 @@ export default function LandParcelList() {
       key: 'land_type',
       label: t('land_type', 'Land Type'),
       sortable: true,
-      render: (value: string | null) => value || t('standard_land_type', 'Standard'),
+      render: (value: string | null) =>
+        value || t('standard_land_type', 'Standard'),
     },
     {
       key: 'owners',
@@ -327,10 +356,17 @@ export default function LandParcelList() {
               onClick={() => fileInputRef.current?.click()}
               disabled={importing}
               className="bg-muted hover:bg-muted/80 text-foreground flex items-center gap-2 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
-              title={t('import_excel_csv_desc', 'Import Land Parcels from Excel or CSV file')}
+              title={t(
+                'import_excel_csv_desc',
+                'Import Land Parcels from Excel or CSV file',
+              )}
             >
               <Upload className="h-5 w-5" />
-              <span>{importing ? t('importing', 'Importing...') : t('import', 'Import')}</span>
+              <span>
+                {importing
+                  ? t('importing', 'Importing...')
+                  : t('import', 'Import')}
+              </span>
             </button>
             <button
               onClick={() => {

@@ -566,13 +566,17 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
               <h3 className="mb-4">{t('project_overview')}</h3>
               <dl className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">{t('project_title_colon')}</dt>
+                  <dt className="text-muted-foreground">
+                    {t('project_title_colon')}
+                  </dt>
                   <dd className="font-semibold">
                     {project.title || project.name}
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">{t('institution_colon')}</dt>
+                  <dt className="text-muted-foreground">
+                    {t('institution_colon')}
+                  </dt>
                   <dd>{project.institution || t('n_a')}</dd>
                 </div>
                 <div className="flex justify-between">
@@ -584,7 +588,9 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">{t('purpose_colon')}</dt>
+                  <dt className="text-muted-foreground">
+                    {t('purpose_colon')}
+                  </dt>
                   <dd className="text-right">{project.purpose}</dd>
                 </div>
                 <div className="flex justify-between">
@@ -611,7 +617,9 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   <dd>{project.areResidentsMovedTemp ? t('yes') : t('no')}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">{t('approval_date_colon')}</dt>
+                  <dt className="text-muted-foreground">
+                    {t('approval_date_colon')}
+                  </dt>
                   <dd>{formatDate(project.approvalDate)}</dd>
                 </div>
               </dl>
@@ -778,9 +786,15 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   <tr className="bg-muted text-muted-foreground border-border border-b text-xs font-bold uppercase">
                     <th className="px-4 py-3">{t('parcel_id')}</th>
                     <th className="px-4 py-3">{t('name_location')}</th>
-                    <th className="px-4 py-3 text-center">{t('land_registered')}</th>
-                    <th className="px-4 py-3 text-center">{t('survey_plan')}</th>
-                    <th className="px-4 py-3 text-center">{t('valuation_report')}</th>
+                    <th className="px-4 py-3 text-center">
+                      {t('land_registered')}
+                    </th>
+                    <th className="px-4 py-3 text-center">
+                      {t('survey_plan')}
+                    </th>
+                    <th className="px-4 py-3 text-center">
+                      {t('valuation_report')}
+                    </th>
                     <th className="px-4 py-3 text-center">
                       {t('compensation_setup')}
                     </th>
@@ -961,7 +975,9 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
         <div className="space-y-4">
           <div className="bg-card border-border flex items-center justify-between rounded-lg border p-4">
             <div>
-              <h3 className="text-base font-semibold">{t('project_documents')}</h3>
+              <h3 className="text-base font-semibold">
+                {t('project_documents')}
+              </h3>
               <p className="text-muted-foreground text-sm">
                 {t('manage_upload_documents')}
               </p>

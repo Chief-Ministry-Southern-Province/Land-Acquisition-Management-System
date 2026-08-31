@@ -85,7 +85,10 @@ export default function LandOwnerList() {
         <div>
           <h1>{t('land_owners', 'Property Owners')}</h1>
           <p className="text-muted-foreground mt-1">
-            {t('manage_property_owners_desc', 'Manage property owner information')}
+            {t(
+              'manage_property_owners_desc',
+              'Manage property owner information',
+            )}
           </p>
         </div>
       </div>

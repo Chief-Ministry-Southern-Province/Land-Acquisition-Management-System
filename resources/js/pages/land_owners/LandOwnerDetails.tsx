@@ -63,7 +63,12 @@ export default function LandOwnerDetails({ id }: Props) {
         `Failed to export property owner profile as ${format}:`,
         error,
       );
-      toastError(t('failed_export_owner_profile', 'Failed to export property owner profile.'));
+      toastError(
+        t(
+          'failed_export_owner_profile',
+          'Failed to export property owner profile.',
+        ),
+      );
     } finally {
       setLoading(false);
     }
@@ -102,11 +107,18 @@ export default function LandOwnerDetails({ id }: Props) {
 
       setSelectedFile(null);
       setUploadProgress(null);
-      toastSuccess(t('document_uploaded_success', 'Document uploaded successfully!'));
+      toastSuccess(
+        t('document_uploaded_success', 'Document uploaded successfully!'),
+      );
       await fetchOwner();
     } catch (error) {
       console.error('Failed to upload document:', error);
-      toastError(t('failed_upload_document', 'Failed to upload document. Please try again.'));
+      toastError(
+        t(
+          'failed_upload_document',
+          'Failed to upload document. Please try again.',
+        ),
+      );
     } finally {
       setUploading(false);
       setUploadProgress(null);
@@ -125,7 +137,10 @@ export default function LandOwnerDetails({ id }: Props) {
   const handleDelete = async (docId: string) => {
     const confirmed = await confirmDialog({
       title: t('delete_document_title', 'Delete Document'),
-      text: t('delete_document_confirm_details', 'Are you sure you want to delete this document?'),
+      text: t(
+        'delete_document_confirm_details',
+        'Are you sure you want to delete this document?',
+      ),
     });
 
     if (!confirmed) {
@@ -134,7 +149,9 @@ export default function LandOwnerDetails({ id }: Props) {
 
     try {
       await deleteDocument(docId);
-      toastSuccess(t('document_deleted_success', 'Document deleted successfully!'));
+      toastSuccess(
+        t('document_deleted_success', 'Document deleted successfully!'),
+      );
       await fetchOwner();
     } catch (error) {
       console.error('Failed to delete document:', error);
@@ -184,7 +201,9 @@ export default function LandOwnerDetails({ id }: Props) {
         id: d.id,
         name: d.original_filename,
         category: getCategoryTranslation(d.document_category),
-        type: d.file_type ? d.file_type.toUpperCase().replace('.', '') : t('n_a', 'N/A'),
+        type: d.file_type
+          ? d.file_type.toUpperCase().replace('.', '')
+          : t('n_a', 'N/A'),
         uploadDate: d.upload_date || '-',
         size: d.file_size,
         storedFilename: d.stored_filename,
@@ -194,7 +213,10 @@ export default function LandOwnerDetails({ id }: Props) {
   if (loading) {
     return (
       <div className="text-muted-foreground flex h-96 items-center justify-center">
-        {t('loading_property_owner_details', 'Loading property owner details...')}
+        {t(
+          'loading_property_owner_details',
+          'Loading property owner details...',
+        )}
       </div>
     );
   }
@@ -223,7 +245,9 @@ export default function LandOwnerDetails({ id }: Props) {
           </Link>
           <div>
             <h1>{owner.name}</h1>
-            <p className="text-muted-foreground">{t('owner_id_colon', 'Owner ID:')} {owner.ownerId}</p>
+            <p className="text-muted-foreground">
+              {t('owner_id_colon', 'Owner ID:')} {owner.ownerId}
+            </p>
           </div>
         </div>
         <div className="relative">
@@ -270,22 +294,32 @@ export default function LandOwnerDetails({ id }: Props) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="bg-card border-border rounded-lg border p-6">
-          <h3 className="mb-4">{t('personal_information', 'Personal Information')}</h3>
+          <h3 className="mb-4">
+            {t('personal_information', 'Personal Information')}
+          </h3>
           <dl className="space-y-3">
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">{t('fullname_colon', 'Full Name:')}</dt>
+              <dt className="text-muted-foreground">
+                {t('fullname_colon', 'Full Name:')}
+              </dt>
               <dd>{owner.name}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">{t('nic_colon', 'NIC:')}</dt>
+              <dt className="text-muted-foreground">
+                {t('nic_colon', 'NIC:')}
+              </dt>
               <dd>{owner.nic || t('n_a', 'N/A')}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">{t('dob_colon', 'Date of Birth:')}</dt>
+              <dt className="text-muted-foreground">
+                {t('dob_colon', 'Date of Birth:')}
+              </dt>
               <dd>{owner.dateOfBirth ?? '-'}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">{t('occupation_colon', 'Occupation:')}</dt>
+              <dt className="text-muted-foreground">
+                {t('occupation_colon', 'Occupation:')}
+              </dt>
               <dd>{owner.occupation ?? '-'}</dd>
             </div>
           </dl>
@@ -295,15 +329,21 @@ export default function LandOwnerDetails({ id }: Props) {
           <h3 className="mb-4">{t('contact_details', 'Contact Details')}</h3>
           <dl className="space-y-3">
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">{t('contact_colon', 'Contact:')}</dt>
+              <dt className="text-muted-foreground">
+                {t('contact_colon', 'Contact:')}
+              </dt>
               <dd>{owner.contact || t('n_a', 'N/A')}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">{t('email_colon', 'Email:')}</dt>
+              <dt className="text-muted-foreground">
+                {t('email_colon', 'Email:')}
+              </dt>
               <dd>{owner.email || t('n_a', 'N/A')}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">{t('address_colon', 'Address:')}</dt>
+              <dt className="text-muted-foreground">
+                {t('address_colon', 'Address:')}
+              </dt>
               <dd className="text-right">{owner.address}</dd>
             </div>
           </dl>
@@ -313,10 +353,26 @@ export default function LandOwnerDetails({ id }: Props) {
           <h3 className="mb-4">{t('owned_parcels', 'Owned Parcels')}</h3>
           <DataTable
             columns={[
-              { key: 'parcelId', label: t('parcel_id_header', 'Parcel ID'), sortable: true },
-              { key: 'landNo', label: t('land_no_header', 'Land No'), sortable: true },
-              { key: 'village', label: t('village_header', 'Village'), sortable: true },
-              { key: 'extent', label: t('extent_header', 'Extent'), sortable: true },
+              {
+                key: 'parcelId',
+                label: t('parcel_id_header', 'Parcel ID'),
+                sortable: true,
+              },
+              {
+                key: 'landNo',
+                label: t('land_no_header', 'Land No'),
+                sortable: true,
+              },
+              {
+                key: 'village',
+                label: t('village_header', 'Village'),
+                sortable: true,
+              },
+              {
+                key: 'extent',
+                label: t('extent_header', 'Extent'),
+                sortable: true,
+              },
               {
                 key: 'status',
                 label: t('status_header', 'Status'),
@@ -331,7 +387,9 @@ export default function LandOwnerDetails({ id }: Props) {
         </div>
 
         <div className="bg-card border-border rounded-lg border p-6 lg:col-span-2">
-          <h3 className="mb-4">{t('compensation_history', 'Compensation History')}</h3>
+          <h3 className="mb-4">
+            {t('compensation_history', 'Compensation History')}
+          </h3>
           <DataTable
             columns={[
               {
@@ -339,10 +397,26 @@ export default function LandOwnerDetails({ id }: Props) {
                 label: t('compensation_id_header', 'Compensation ID'),
                 sortable: true,
               },
-              { key: 'parcel', label: t('parcel_header', 'Parcel'), sortable: true },
-              { key: 'amount', label: t('amount_header', 'Amount'), sortable: true },
-              { key: 'approvedDate', label: t('approved_date_header', 'Approved Date'), sortable: true },
-              { key: 'paymentDate', label: t('payment_date_header', 'Payment Date'), sortable: true },
+              {
+                key: 'parcel',
+                label: t('parcel_header', 'Parcel'),
+                sortable: true,
+              },
+              {
+                key: 'amount',
+                label: t('amount_header', 'Amount'),
+                sortable: true,
+              },
+              {
+                key: 'approvedDate',
+                label: t('approved_date_header', 'Approved Date'),
+                sortable: true,
+              },
+              {
+                key: 'paymentDate',
+                label: t('payment_date_header', 'Payment Date'),
+                sortable: true,
+              },
               {
                 key: 'status',
                 label: t('status_header', 'Status'),
@@ -382,7 +456,9 @@ export default function LandOwnerDetails({ id }: Props) {
                     <option value="Bank Account Details">
                       {t('bank_details_category', 'Bank Account Details')}
                     </option>
-                    <option value="Other">{t('other_category', 'Other')}</option>
+                    <option value="Other">
+                      {t('other_category', 'Other')}
+                    </option>
                   </select>
                 </div>
 
@@ -401,7 +477,12 @@ export default function LandOwnerDetails({ id }: Props) {
 
                           if (file) {
                             if (file.size > 10 * 1024 * 1024) {
-                              toastError(t('file_size_limit_error', 'File size exceeds the 10MB limit.'));
+                              toastError(
+                                t(
+                                  'file_size_limit_error',
+                                  'File size exceeds the 10MB limit.',
+                                ),
+                              );
                               e.target.value = '';
 
                               return;
@@ -415,7 +496,9 @@ export default function LandOwnerDetails({ id }: Props) {
                       />
                     </label>
                     <span className="text-muted-foreground max-w-xs truncate text-xs">
-                      {selectedFile ? selectedFile.name : t('no_file_selected', 'No file selected')}
+                      {selectedFile
+                        ? selectedFile.name
+                        : t('no_file_selected', 'No file selected')}
                     </span>
                     {selectedFile && !uploading && (
                       <button
@@ -437,7 +520,9 @@ export default function LandOwnerDetails({ id }: Props) {
                   className="bg-primary hover:bg-primary/90 flex h-[38px] min-w-[100px] items-center justify-center gap-2 rounded-lg px-6 py-2 text-xs font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Upload className="h-4 w-4" />
-                  {uploading ? t('uploading', 'Uploading...') : t('upload', 'Upload')}
+                  {uploading
+                    ? t('uploading', 'Uploading...')
+                    : t('upload', 'Upload')}
                 </button>
               </div>
 
@@ -464,10 +549,22 @@ export default function LandOwnerDetails({ id }: Props) {
 
           <DataTable
             columns={[
-              { key: 'name', label: t('document_name_header', 'Document Name'), sortable: true },
-              { key: 'category', label: t('category_header', 'Category'), sortable: true },
+              {
+                key: 'name',
+                label: t('document_name_header', 'Document Name'),
+                sortable: true,
+              },
+              {
+                key: 'category',
+                label: t('category_header', 'Category'),
+                sortable: true,
+              },
               { key: 'type', label: t('type_header', 'Type'), sortable: true },
-              { key: 'uploadDate', label: t('upload_date_header', 'Upload Date'), sortable: true },
+              {
+                key: 'uploadDate',
+                label: t('upload_date_header', 'Upload Date'),
+                sortable: true,
+              },
               { key: 'size', label: t('size_header', 'Size'), sortable: true },
             ]}
             data={documents}
