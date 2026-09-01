@@ -14,7 +14,8 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import UnifiedMap from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
@@ -273,10 +274,6 @@ export default function AddLandParcel() {
     { id: string; file: File; category: string }[]
   >([]);
 
-  // Google Map refs
-  const mapRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
-
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
   const userId = user?.id;
@@ -364,7 +361,44 @@ export default function AddLandParcel() {
     setShowNewResidentForm(false);
   };
 
+  const syncOwnerResidents = (
+    owners: any[],
+    hasHouses: boolean,
+    isResOwner: boolean,
+    prevResidents: any[],
+  ) => {
+    if (hasHouses && isResOwner) {
+      const nonOwnerResidents = prevResidents.filter(
+        (r) => r.relationship !== 'owner',
+      );
+
+      const ownerResidents = owners.map((owner) => ({
+        name: owner.name,
+        nic: owner.nic || null,
+        contact: owner.contact || null,
+        address: owner.address || null,
+        relationship: 'owner' as const,
+      }));
+
+      return [...ownerResidents, ...nonOwnerResidents];
+    }
+
+    return prevResidents.filter((r) => r.relationship !== 'owner');
+  };
+
   const handleRemoveResident = (index: number) => {
+    const residentToRemove = selectedResidents[index];
+
+    if (residentToRemove?.relationship === 'owner' && form.isResidentOwner) {
+      const remainingOwnerResidents = selectedResidents.filter(
+        (r, i) => i !== index && r.relationship === 'owner',
+      );
+
+      if (remainingOwnerResidents.length === 0) {
+        setForm((f) => ({ ...f, isResidentOwner: false }));
+      }
+    }
+
     setSelectedResidents((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -418,153 +452,13 @@ export default function AddLandParcel() {
     fetchData();
   }, []);
 
-  // Store initial form coordinates in a ref to prevent re-running map loader effect
-  const initialCoords = useRef({
-    latitude: form.latitude,
-    longitude: form.longitude,
-  });
-
-  // Load Google Maps API and initialize map
-  useEffect(() => {
-    const apiKey = (import.meta as any).env.VITE_GOOGLE_MAP_API_KEY || '';
-    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initAddLandParcelMapCallback`;
-
-    // Default center in Galle, Sri Lanka (Southern Province)
-    const defaultLat = 6.0535;
-    const defaultLng = 80.221;
-
-    (window as any).initAddLandParcelMapCallback = () => {
-      const mapContainer = document.getElementById('google-map-picker');
-
-      if (!mapContainer) {
-        return;
-      }
-
-      const initialLat =
-        parseFloat(initialCoords.current.latitude) || defaultLat;
-      const initialLng =
-        parseFloat(initialCoords.current.longitude) || defaultLng;
-      const center = { lat: initialLat, lng: initialLng };
-
-      const map = new (window as any).google.maps.Map(mapContainer, {
-        center: center,
-        zoom: 12,
-        mapTypeId: 'roadmap',
-      });
-      mapRef.current = map;
-
-      if (initialCoords.current.latitude && initialCoords.current.longitude) {
-        const marker = new (window as any).google.maps.Marker({
-          position: center,
-          map: map,
-          draggable: true,
-        });
-        marker.addListener('dragend', () => {
-          const pos = marker.getPosition();
-
-          if (pos) {
-            setForm((f) => ({
-              ...f,
-              latitude: pos.lat().toFixed(6),
-              longitude: pos.lng().toFixed(6),
-            }));
-          }
-        });
-        markerRef.current = marker;
-      }
-
-      // Add click listener on map to pin location
-      map.addListener('click', (e: any) => {
-        if (!e.latLng) {
-          return;
-        }
-
-        const clickedLat = e.latLng.lat();
-        const clickedLng = e.latLng.lng();
-
-        setForm((f) => ({
-          ...f,
-          latitude: clickedLat.toFixed(6),
-          longitude: clickedLng.toFixed(6),
-        }));
-      });
-    };
-
-    // Load script
-    if (!(window as any).google || !(window as any).google.maps) {
-      const existingScript = document.getElementById('google-maps-script');
-
-      if (!existingScript) {
-        const script = document.createElement('script');
-        script.id = 'google-maps-script';
-        script.src = scriptUrl;
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-      } else {
-        if (
-          typeof (window as any).initAddLandParcelMapCallback === 'function' &&
-          (window as any).google &&
-          (window as any).google.maps
-        ) {
-          (window as any).initAddLandParcelMapCallback();
-        }
-      }
-    } else {
-      (window as any).initAddLandParcelMapCallback();
-    }
-
-    return () => {
-      delete (window as any).initAddLandParcelMapCallback;
-    };
-  }, []);
-
-  // Update marker position and center map when latitude/longitude change manually
-  useEffect(() => {
-    if (
-      (window as any).google &&
-      (window as any).google.maps &&
-      mapRef.current
-    ) {
-      const lat = parseFloat(form.latitude);
-      const lng = parseFloat(form.longitude);
-
-      if (
-        !isNaN(lat) &&
-        !isNaN(lng) &&
-        lat >= -90 &&
-        lat <= 90 &&
-        lng >= -180 &&
-        lng <= 180
-      ) {
-        const newPos = { lat, lng };
-
-        if (markerRef.current) {
-          markerRef.current.setPosition(newPos);
-        } else {
-          const newMarker = new (window as any).google.maps.Marker({
-            position: newPos,
-            map: mapRef.current,
-            draggable: true,
-          });
-          newMarker.addListener('dragend', () => {
-            const pos = newMarker.getPosition();
-
-            if (pos) {
-              setForm((f) => ({
-                ...f,
-                latitude: pos.lat().toFixed(6),
-                longitude: pos.lng().toFixed(6),
-              }));
-            }
-          });
-          markerRef.current = newMarker;
-        }
-
-        mapRef.current.setCenter(newPos);
-      }
-    }
-  }, [form.latitude, form.longitude]);
+  const handleMapChange = (lat: string, lng: string) => {
+    setForm((f) => ({
+      ...f,
+      latitude: lat,
+      longitude: lng,
+    }));
+  };
 
   const set =
     (field: keyof FormData) =>
@@ -619,16 +513,24 @@ export default function AddLandParcel() {
       return;
     }
 
-    setSelectedOwners((prev) => [
-      ...prev,
-      {
-        isNew: true,
-        name: newOwnerForm.name.trim(),
-        nic: newOwnerForm.nic.trim(),
-        contact: newOwnerForm.contact.trim(),
-        address: newOwnerForm.address.trim(),
-      },
-    ]);
+    const newOwnerObj = {
+      isNew: true,
+      name: newOwnerForm.name.trim(),
+      nic: newOwnerForm.nic.trim(),
+      contact: newOwnerForm.contact.trim(),
+      address: newOwnerForm.address.trim(),
+    };
+
+    const newOwners = [...selectedOwners, newOwnerObj];
+    setSelectedOwners(newOwners);
+    setSelectedResidents((prev) =>
+      syncOwnerResidents(
+        newOwners,
+        form.hasResidentialHouses,
+        form.isResidentOwner,
+        prev,
+      ),
+    );
 
     setNewOwnerForm({ name: '', nic: '', contact: '', address: '' });
     setNewOwnerErrors({});
@@ -647,24 +549,41 @@ export default function AddLandParcel() {
       return;
     }
 
-    setSelectedOwners((prev) => [
-      ...prev,
-      {
-        id: owner.id,
-        ownerId: owner.ownerId,
-        isNew: false,
-        name: owner.name,
-        nic: owner.nic,
-        contact: owner.contact,
-        address: owner.address,
-      },
-    ]);
+    const newOwnerObj = {
+      id: owner.id,
+      ownerId: owner.ownerId,
+      isNew: false,
+      name: owner.name,
+      nic: owner.nic,
+      contact: owner.contact,
+      address: owner.address,
+    };
+
+    const newOwners = [...selectedOwners, newOwnerObj];
+    setSelectedOwners(newOwners);
+    setSelectedResidents((prev) =>
+      syncOwnerResidents(
+        newOwners,
+        form.hasResidentialHouses,
+        form.isResidentOwner,
+        prev,
+      ),
+    );
     setOwnerSearch('');
     setShowOwnerPicker(false);
   };
 
   const handleRemoveOwner = (index: number) => {
-    setSelectedOwners((prev) => prev.filter((_, i) => i !== index));
+    const newOwners = selectedOwners.filter((_, i) => i !== index);
+    setSelectedOwners(newOwners);
+    setSelectedResidents((prev) =>
+      syncOwnerResidents(
+        newOwners,
+        form.hasResidentialHouses,
+        form.isResidentOwner,
+        prev,
+      ),
+    );
   };
 
   const filteredExistingOwners = useMemo(() => {
@@ -1122,13 +1041,24 @@ export default function AddLandParcel() {
 
             <div className="mt-2 md:col-span-2 lg:col-span-3">
               <label className="text-foreground mb-1.5 block text-sm font-medium">
-                {t('google_map_title')}
+                {t(
+                  'google_map_title',
+                  'Map Location (Click map to pin / drag marker)',
+                )}
               </label>
               <div
-                id="google-map-picker"
-                className="border-border bg-muted/20 w-full overflow-hidden rounded-xl border"
+                className="border-border bg-muted/20 animate-in fade-in w-full overflow-hidden rounded-xl border"
                 style={{ minHeight: '320px', height: '320px' }}
-              />
+              >
+                <UnifiedMap
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                  zoom={12}
+                  editable={true}
+                  onChange={handleMapChange}
+                  height="100%"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1780,12 +1710,25 @@ export default function AddLandParcel() {
                   type="checkbox"
                   className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.hasResidentialHouses}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newIsResOwner = checked
+                      ? form.isResidentOwner
+                      : false;
                     setForm((f) => ({
                       ...f,
-                      hasResidentialHouses: e.target.checked,
-                    }))
-                  }
+                      hasResidentialHouses: checked,
+                      isResidentOwner: newIsResOwner,
+                    }));
+                    setSelectedResidents((prev) =>
+                      syncOwnerResidents(
+                        selectedOwners,
+                        checked,
+                        newIsResOwner,
+                        prev,
+                      ),
+                    );
+                  }}
                 />
                 <span className="text-foreground text-sm font-medium">
                   {t('is_land_has_residential_houses')}
@@ -1799,12 +1742,25 @@ export default function AddLandParcel() {
                   type="checkbox"
                   className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.isResidentOwner}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newHasHouses = checked
+                      ? true
+                      : form.hasResidentialHouses;
                     setForm((f) => ({
                       ...f,
-                      isResidentOwner: e.target.checked,
-                    }))
-                  }
+                      isResidentOwner: checked,
+                      hasResidentialHouses: newHasHouses,
+                    }));
+                    setSelectedResidents((prev) =>
+                      syncOwnerResidents(
+                        selectedOwners,
+                        newHasHouses,
+                        checked,
+                        prev,
+                      ),
+                    );
+                  }}
                 />
                 <span className="text-foreground text-sm font-medium">
                   {t('is_resident_owner')}

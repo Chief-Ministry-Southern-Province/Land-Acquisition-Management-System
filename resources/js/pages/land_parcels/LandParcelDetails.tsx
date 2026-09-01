@@ -18,6 +18,7 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import UnifiedMap from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
@@ -3246,13 +3247,14 @@ export default function LandParcelDetails({ id }: Props) {
             <div className="space-y-4 p-6">
               <div className="border-border relative h-96 w-full overflow-hidden rounded-lg border bg-[#cce4f2]">
                 {parcel.latitude && parcel.longitude ? (
-                  <iframe
-                    title={`Google Map for ${parcel.parcel_id}`}
-                    src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAP_API_KEY || ''}&q=${Number(parcel.latitude)},${Number(parcel.longitude)}&zoom=16`}
-                    className="absolute inset-0 h-full w-full border-0"
-                    allowFullScreen
-                    loading="lazy"
-                  ></iframe>
+                  <UnifiedMap
+                    latitude={parcel.latitude}
+                    longitude={parcel.longitude}
+                    zoom={16}
+                    showBoundaries={true}
+                    boundaryGeoJson={parcel.boundary_geojson}
+                    height="100%"
+                  />
                 ) : (
                   <div className="bg-linear-to-br absolute inset-0 flex items-center justify-center from-[#4a9f8f]/90 to-[#2d6b5f]/95 p-6 text-center text-white">
                     <div className="max-w-sm">

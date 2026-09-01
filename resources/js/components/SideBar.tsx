@@ -131,6 +131,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
         icon: CheckSquare,
         label: t('approvals'),
       },
+      { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
     ],
     AS: [
@@ -144,6 +145,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
         icon: CheckSquare,
         label: t('approvals'),
       },
+      { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
     ],
     SAS: [
@@ -157,6 +159,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
         icon: CheckSquare,
         label: t('approvals'),
       },
+      { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
     ],
     SEC: [
@@ -170,6 +173,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
         icon: CheckSquare,
         label: t('approvals'),
       },
+      { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
     ],
   };

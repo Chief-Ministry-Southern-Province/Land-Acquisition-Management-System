@@ -103,7 +103,7 @@ export default function LandParcelList() {
           'Import failed: {failed} rows had validation errors. {imported} land parcels were imported successfully.',
         )
           .replace('{failed}', failedCount.toString())
-          .replace('{imported}', data.imported_count.toString());
+          .replace('{imported}', (data.imported_count ?? 0).toString());
         setImportMessage({ type: 'error', text: msg });
 
         let failureDetails = '';
@@ -137,7 +137,7 @@ export default function LandParcelList() {
         );
 
         // Refresh list if partial records were imported
-        if (data.imported_count > 0) {
+        if (data.imported_count && data.imported_count > 0) {
           try {
             const data = await getLandParcels();
             setParcels(data);

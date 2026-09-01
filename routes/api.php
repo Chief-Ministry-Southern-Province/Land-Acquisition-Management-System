@@ -16,6 +16,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\PropertyOwnerController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SASApprovalController;
 use App\Http\Controllers\SECApprovalController;
@@ -59,6 +60,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('documents', DocumentsController::class);
     Route::get('departments', [DepartmentController::class, 'index']);
     Route::get('departments/{id}', [DepartmentController::class, 'show']);
+    Route::apiResource('audit-logs', AuditLogsController::class)->only(['index', 'show']);
+
+    // Reports Routes
+    Route::get('reports', [ReportController::class, 'getReportData'])->middleware('check.role:HOB,AO,AS,SAS,SEC');
+    Route::get('reports/export', [ReportController::class, 'exportReport'])->middleware('check.role:HOB,AO,AS,SAS,SEC');
 
     // Notifications Routes
     Route::get('notifications', [NotificationController::class, 'index']);
@@ -136,7 +142,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('departments/{id}', [DepartmentController::class, 'update']);
         Route::delete('departments/{id}', [DepartmentController::class, 'destroy']);
         Route::apiResource('roles', RoleController::class);
-        Route::apiResource('audit-logs', AuditLogsController::class);
+        Route::apiResource('audit-logs', AuditLogsController::class)->except(['index', 'show']);
 
         Route::get('/backups', [BackupController::class, 'index']);
         Route::post('/backups', [BackupController::class, 'create']);
