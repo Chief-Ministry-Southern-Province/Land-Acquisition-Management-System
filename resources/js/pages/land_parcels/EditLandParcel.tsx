@@ -424,7 +424,44 @@ export default function EditLandParcel({ id }: { id: string }) {
     setShowNewResidentForm(false);
   };
 
+  const syncOwnerResidents = (
+    owners: any[],
+    hasHouses: boolean,
+    isResOwner: boolean,
+    prevResidents: any[],
+  ) => {
+    if (hasHouses && isResOwner) {
+      const nonOwnerResidents = prevResidents.filter(
+        (r) => r.relationship !== 'owner',
+      );
+
+      const ownerResidents = owners.map((owner) => ({
+        name: owner.name,
+        nic: owner.nic || null,
+        contact: owner.contact || null,
+        address: owner.address || null,
+        relationship: 'owner' as const,
+      }));
+
+      return [...ownerResidents, ...nonOwnerResidents];
+    }
+
+    return prevResidents.filter((r) => r.relationship !== 'owner');
+  };
+
   const handleRemoveResident = (index: number) => {
+    const residentToRemove = selectedResidents[index];
+
+    if (residentToRemove?.relationship === 'owner' && form.isResidentOwner) {
+      const remainingOwnerResidents = selectedResidents.filter(
+        (r, i) => i !== index && r.relationship === 'owner',
+      );
+
+      if (remainingOwnerResidents.length === 0) {
+        setForm((f) => ({ ...f, isResidentOwner: false }));
+      }
+    }
+
     setSelectedResidents((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -580,16 +617,24 @@ export default function EditLandParcel({ id }: { id: string }) {
       return;
     }
 
-    setSelectedOwners((prev) => [
-      ...prev,
-      {
-        isNew: true,
-        name: newOwnerForm.name.trim(),
-        nic: newOwnerForm.nic.trim(),
-        contact: newOwnerForm.contact.trim(),
-        address: newOwnerForm.address.trim(),
-      },
-    ]);
+    const newOwnerObj = {
+      isNew: true,
+      name: newOwnerForm.name.trim(),
+      nic: newOwnerForm.nic.trim(),
+      contact: newOwnerForm.contact.trim(),
+      address: newOwnerForm.address.trim(),
+    };
+
+    const newOwners = [...selectedOwners, newOwnerObj];
+    setSelectedOwners(newOwners);
+    setSelectedResidents((prev) =>
+      syncOwnerResidents(
+        newOwners,
+        form.hasResidentialHouses,
+        form.isResidentOwner,
+        prev,
+      ),
+    );
 
     setNewOwnerForm({ name: '', nic: '', contact: '', address: '' });
     setNewOwnerErrors({});
@@ -608,24 +653,41 @@ export default function EditLandParcel({ id }: { id: string }) {
       return;
     }
 
-    setSelectedOwners((prev) => [
-      ...prev,
-      {
-        id: owner.id,
-        ownerId: owner.ownerId,
-        isNew: false,
-        name: owner.name,
-        nic: owner.nic,
-        contact: owner.contact,
-        address: owner.address,
-      },
-    ]);
+    const newOwnerObj = {
+      id: owner.id,
+      ownerId: owner.ownerId,
+      isNew: false,
+      name: owner.name,
+      nic: owner.nic,
+      contact: owner.contact,
+      address: owner.address,
+    };
+
+    const newOwners = [...selectedOwners, newOwnerObj];
+    setSelectedOwners(newOwners);
+    setSelectedResidents((prev) =>
+      syncOwnerResidents(
+        newOwners,
+        form.hasResidentialHouses,
+        form.isResidentOwner,
+        prev,
+      ),
+    );
     setOwnerSearch('');
     setShowOwnerPicker(false);
   };
 
   const handleRemoveOwner = (index: number) => {
-    setSelectedOwners((prev) => prev.filter((_, i) => i !== index));
+    const newOwners = selectedOwners.filter((_, i) => i !== index);
+    setSelectedOwners(newOwners);
+    setSelectedResidents((prev) =>
+      syncOwnerResidents(
+        newOwners,
+        form.hasResidentialHouses,
+        form.isResidentOwner,
+        prev,
+      ),
+    );
   };
 
   const filteredExistingOwners = useMemo(() => {
@@ -1808,12 +1870,25 @@ export default function EditLandParcel({ id }: { id: string }) {
                   type="checkbox"
                   className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.hasResidentialHouses}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newIsResOwner = checked
+                      ? form.isResidentOwner
+                      : false;
                     setForm((f) => ({
                       ...f,
-                      hasResidentialHouses: e.target.checked,
-                    }))
-                  }
+                      hasResidentialHouses: checked,
+                      isResidentOwner: newIsResOwner,
+                    }));
+                    setSelectedResidents((prev) =>
+                      syncOwnerResidents(
+                        selectedOwners,
+                        checked,
+                        newIsResOwner,
+                        prev,
+                      ),
+                    );
+                  }}
                 />
                 <span className="text-foreground text-sm font-medium">
                   Is land has residential houses
@@ -1827,12 +1902,25 @@ export default function EditLandParcel({ id }: { id: string }) {
                   type="checkbox"
                   className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.isResidentOwner}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newHasHouses = checked
+                      ? true
+                      : form.hasResidentialHouses;
                     setForm((f) => ({
                       ...f,
-                      isResidentOwner: e.target.checked,
-                    }))
-                  }
+                      isResidentOwner: checked,
+                      hasResidentialHouses: newHasHouses,
+                    }));
+                    setSelectedResidents((prev) =>
+                      syncOwnerResidents(
+                        selectedOwners,
+                        newHasHouses,
+                        checked,
+                        prev,
+                      ),
+                    );
+                  }}
                 />
                 <span className="text-foreground text-sm font-medium">
                   Are resident is owner
