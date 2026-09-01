@@ -1,4 +1,11 @@
-import { Calendar, Download, FileText, Filter, Printer, Loader2 } from 'lucide-react';
+import {
+  Calendar,
+  Download,
+  FileText,
+  Filter,
+  Printer,
+  Loader2,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import {
   ResponsiveContainer,
@@ -10,7 +17,7 @@ import {
   Legend as RechartsLegend,
   PieChart,
   Pie,
-  Cell
+  Cell,
 } from 'recharts';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
@@ -18,7 +25,14 @@ import api from '@/services/api';
 import { getProjects } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
-const CHART_COLORS = ['#2E7D32', '#d32f2f', '#fbc02d', '#0288d1', '#7b1fa2', '#c2185b'];
+const CHART_COLORS = [
+  '#2E7D32',
+  '#d32f2f',
+  '#fbc02d',
+  '#0288d1',
+  '#7b1fa2',
+  '#c2185b',
+];
 
 export default function Reports() {
   const { t } = useTranslation();
@@ -39,17 +53,26 @@ export default function Reports() {
     {
       id: 'project-progress',
       name: t('report_project_progress', 'Project Progress Report'),
-      description: t('report_project_progress_desc', 'Detailed progress of all acquisition projects'),
+      description: t(
+        'report_project_progress_desc',
+        'Detailed progress of all acquisition projects',
+      ),
     },
     {
       id: 'compensation',
       name: t('report_compensation', 'Compensation Report'),
-      description: t('report_compensation_desc', 'Summary of compensation calculations and payments'),
+      description: t(
+        'report_compensation_desc',
+        'Summary of compensation calculations and payments',
+      ),
     },
     {
       id: 'owner',
       name: t('report_owner', 'Owner Report'),
-      description: t('report_owner_desc', 'List of affected owners and their properties'),
+      description: t(
+        'report_owner_desc',
+        'List of affected owners and their properties',
+      ),
     },
     {
       id: 'parcel',
@@ -59,7 +82,10 @@ export default function Reports() {
     {
       id: 'financial',
       name: t('report_financial', 'Financial Report'),
-      description: t('report_financial_desc', 'Budget utilization and payment tracking'),
+      description: t(
+        'report_financial_desc',
+        'Budget utilization and payment tracking',
+      ),
     },
     {
       id: 'legal',
@@ -97,8 +123,8 @@ export default function Reports() {
             district: selectedDistrict,
             status: selectedStatus,
             date_from: dateFrom,
-            date_to: dateTo
-          }
+            date_to: dateTo,
+          },
         });
 
         if (active) {
@@ -118,7 +144,14 @@ export default function Reports() {
     return () => {
       active = false;
     };
-  }, [reportType, selectedProjectId, selectedDistrict, selectedStatus, dateFrom, dateTo]);
+  }, [
+    reportType,
+    selectedProjectId,
+    selectedDistrict,
+    selectedStatus,
+    dateFrom,
+    dateTo,
+  ]);
 
   // Export handlers
   const handleExport = (format: string) => {
@@ -129,7 +162,7 @@ export default function Reports() {
       district: selectedDistrict,
       status: selectedStatus,
       date_from: dateFrom,
-      date_to: dateTo
+      date_to: dateTo,
     });
     window.open(`/api/reports/export?${params.toString()}`, '_blank');
   };
@@ -139,20 +172,25 @@ export default function Reports() {
       const parts = cellValue.split(':');
       const badgeType = parts[1] || 'neutral';
       const badgeText = parts[2] || '';
-      
+
       let badgeClasses = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase ';
 
       if (badgeType === 'success') {
-badgeClasses += 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-} else if (badgeType === 'warning') {
-badgeClasses += 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-} else if (badgeType === 'danger') {
-badgeClasses += 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-} else if (badgeType === 'info') {
-badgeClasses += 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
-} else {
-badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400';
-}
+        badgeClasses +=
+          'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      } else if (badgeType === 'warning') {
+        badgeClasses +=
+          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      } else if (badgeType === 'danger') {
+        badgeClasses +=
+          'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      } else if (badgeType === 'info') {
+        badgeClasses +=
+          'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      } else {
+        badgeClasses +=
+          'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400';
+      }
 
       return <span className={badgeClasses}>{badgeText}</span>;
     }
@@ -164,18 +202,21 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
     <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6">
       {/* Page Title */}
       <div>
-        <h1 className="font-sans text-3xl font-bold tracking-tight text-foreground">
+        <h1 className="text-foreground font-sans text-3xl font-bold tracking-tight">
           {t('reports_title', 'Reports')}
         </h1>
         <p className="text-muted-foreground mt-1.5 text-sm md:text-base">
-          {t('reports_subtitle', 'Generate, preview, and export custom land acquisition reports')}
+          {t(
+            'reports_subtitle',
+            'Generate, preview, and export custom land acquisition reports',
+          )}
         </p>
       </div>
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
         {/* Left Column: Report Types */}
         <div className="bg-card border-border rounded-xl border p-4 shadow-sm">
-          <h3 className="text-foreground text-sm font-bold uppercase tracking-wider mb-4 px-1">
+          <h3 className="text-foreground mb-4 px-1 text-sm font-bold uppercase tracking-wider">
             {t('report_types_title', 'Report Types')}
           </h3>
           <div className="space-y-2">
@@ -185,17 +226,21 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
                 onClick={() => setReportType(type.id)}
                 className={`w-full rounded-lg px-3 py-3 text-left transition-all ${
                   reportType === type.id
-                    ? 'bg-[#2E7D32] text-white shadow-sm font-bold'
+                    ? 'bg-[#2E7D32] font-bold text-white shadow-sm'
                     : 'hover:bg-muted text-muted-foreground hover:text-foreground font-medium'
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <FileText className="mt-0.5 h-4.5 w-4.5 shrink-0" />
+                  <FileText className="h-4.5 w-4.5 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs uppercase tracking-wide">{type.name}</p>
+                    <p className="text-xs uppercase tracking-wide">
+                      {type.name}
+                    </p>
                     <p
-                      className={`mt-1 text-[10px] leading-normal font-normal ${
-                        reportType === type.id ? 'text-white/80' : 'text-muted-foreground/80'
+                      className={`mt-1 text-[10px] font-normal leading-normal ${
+                        reportType === type.id
+                          ? 'text-white/80'
+                          : 'text-muted-foreground/80'
                       }`}
                     >
                       {type.description}
@@ -211,14 +256,14 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
         <div className="space-y-6 lg:col-span-3">
           {/* Report Filters */}
           <div className="bg-card border-border rounded-xl border p-5 shadow-sm">
-            <h3 className="text-foreground flex items-center gap-2 text-sm font-bold uppercase tracking-wider mb-4 border-b border-border pb-3">
+            <h3 className="text-foreground border-border mb-4 flex items-center gap-2 border-b pb-3 text-sm font-bold uppercase tracking-wider">
               <Filter className="h-4 w-4 text-[#2E7D32]" />
               {t('report_filters_title', 'Report Parameters & Filters')}
             </h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {/* Date Range */}
               <div className="md:col-span-2">
-                <label className="text-muted-foreground block text-xs font-bold uppercase tracking-wider mb-1.5">
+                <label className="text-muted-foreground mb-1.5 block text-xs font-bold uppercase tracking-wider">
                   {t('filter_date_range', 'Date Range')}
                 </label>
                 <div className="flex gap-2">
@@ -245,7 +290,7 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
 
               {/* Project Filter */}
               <div>
-                <label className="text-muted-foreground block text-xs font-bold uppercase tracking-wider mb-1.5">
+                <label className="text-muted-foreground mb-1.5 block text-xs font-bold uppercase tracking-wider">
                   {t('filter_project', 'Project')}
                 </label>
                 <select
@@ -254,10 +299,12 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
                   disabled={loadingProjects}
                   className="bg-input-background border-border text-foreground w-full rounded-lg border px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#2E7D32] disabled:opacity-60"
                 >
-                  <option value="All Projects">{t('all_projects', 'All Projects')}</option>
+                  <option value="All Projects">
+                    {t('all_projects', 'All Projects')}
+                  </option>
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.project_id} - {p.title}
+                      {p.projectId} - {p.title}
                     </option>
                   ))}
                 </select>
@@ -265,7 +312,7 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
 
               {/* District Filter */}
               <div>
-                <label className="text-muted-foreground block text-xs font-bold uppercase tracking-wider mb-1.5">
+                <label className="text-muted-foreground mb-1.5 block text-xs font-bold uppercase tracking-wider">
                   {t('filter_district', 'District')}
                 </label>
                 <select
@@ -273,38 +320,62 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
                   onChange={(e) => setSelectedDistrict(e.target.value)}
                   className="bg-input-background border-border text-foreground w-full rounded-lg border px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                 >
-                  <option value="All Districts">{t('all_districts', 'All Districts')}</option>
+                  <option value="All Districts">
+                    {t('all_districts', 'All Districts')}
+                  </option>
                   <option value="Ampara">{t('ampara', 'Ampara')}</option>
-                  <option value="Anuradhapura">{t('anuradhapura', 'Anuradhapura')}</option>
+                  <option value="Anuradhapura">
+                    {t('anuradhapura', 'Anuradhapura')}
+                  </option>
                   <option value="Badulla">{t('badulla', 'Badulla')}</option>
-                  <option value="Batticaloa">{t('batticaloa', 'Batticaloa')}</option>
+                  <option value="Batticaloa">
+                    {t('batticaloa', 'Batticaloa')}
+                  </option>
                   <option value="Colombo">{t('colombo', 'Colombo')}</option>
                   <option value="Galle">{t('galle', 'Galle')}</option>
                   <option value="Gampaha">{t('gampaha', 'Gampaha')}</option>
-                  <option value="Hambantota">{t('hambantota', 'Hambantota')}</option>
+                  <option value="Hambantota">
+                    {t('hambantota', 'Hambantota')}
+                  </option>
                   <option value="Jaffna">{t('jaffna', 'Jaffna')}</option>
                   <option value="Kalutara">{t('kalutara', 'Kalutara')}</option>
                   <option value="Kandy">{t('kandy', 'Kandy')}</option>
                   <option value="Kegalle">{t('kegalle', 'Kegalle')}</option>
-                  <option value="Kilinochchi">{t('kilinochchi', 'Kilinochchi')}</option>
-                  <option value="Kurunegala">{t('kurunegala', 'Kurunegala')}</option>
+                  <option value="Kilinochchi">
+                    {t('kilinochchi', 'Kilinochchi')}
+                  </option>
+                  <option value="Kurunegala">
+                    {t('kurunegala', 'Kurunegala')}
+                  </option>
                   <option value="Mannar">{t('mannar', 'Mannar')}</option>
                   <option value="Matale">{t('matale', 'Matale')}</option>
                   <option value="Matara">{t('matara', 'Matara')}</option>
-                  <option value="Monaragala">{t('monaragala', 'Monaragala')}</option>
-                  <option value="Mullaitivu">{t('mullaitivu', 'Mullaitivu')}</option>
-                  <option value="Nuwara Eliya">{t('nuwara_eliya', 'Nuwara Eliya')}</option>
-                  <option value="Polonnaruwa">{t('polonnaruwa', 'Polonnaruwa')}</option>
+                  <option value="Monaragala">
+                    {t('monaragala', 'Monaragala')}
+                  </option>
+                  <option value="Mullaitivu">
+                    {t('mullaitivu', 'Mullaitivu')}
+                  </option>
+                  <option value="Nuwara Eliya">
+                    {t('nuwara_eliya', 'Nuwara Eliya')}
+                  </option>
+                  <option value="Polonnaruwa">
+                    {t('polonnaruwa', 'Polonnaruwa')}
+                  </option>
                   <option value="Puttalam">{t('puttalam', 'Puttalam')}</option>
-                  <option value="Ratnapura">{t('ratnapura', 'Ratnapura')}</option>
-                  <option value="Trincomalee">{t('trincomalee', 'Trincomalee')}</option>
+                  <option value="Ratnapura">
+                    {t('ratnapura', 'Ratnapura')}
+                  </option>
+                  <option value="Trincomalee">
+                    {t('trincomalee', 'Trincomalee')}
+                  </option>
                   <option value="Vavuniya">{t('vavuniya', 'Vavuniya')}</option>
                 </select>
               </div>
 
               {/* Status Filter */}
               <div>
-                <label className="text-muted-foreground block text-xs font-bold uppercase tracking-wider mb-1.5">
+                <label className="text-muted-foreground mb-1.5 block text-xs font-bold uppercase tracking-wider">
                   {t('filter_status', 'Status')}
                 </label>
                 <select
@@ -312,10 +383,16 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="bg-input-background border-border text-foreground w-full rounded-lg border px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                 >
-                  <option value="All Statuses">{t('all_statuses', 'All Statuses')}</option>
+                  <option value="All Statuses">
+                    {t('all_statuses', 'All Statuses')}
+                  </option>
                   <option value="Active">{t('status_active', 'Active')}</option>
-                  <option value="Completed">{t('status_completed', 'Completed / Acquired')}</option>
-                  <option value="Pending">{t('status_pending', 'Pending / Query')}</option>
+                  <option value="Completed">
+                    {t('status_completed', 'Completed / Acquired')}
+                  </option>
+                  <option value="Pending">
+                    {t('status_pending', 'Pending / Query')}
+                  </option>
                 </select>
               </div>
             </div>
@@ -323,14 +400,14 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
 
           {/* Export Options */}
           <div className="bg-card border-border rounded-xl border p-5 shadow-sm">
-            <h3 className="text-foreground text-sm font-bold uppercase tracking-wider mb-4 border-b border-border pb-3">
+            <h3 className="text-foreground border-border mb-4 border-b pb-3 text-sm font-bold uppercase tracking-wider">
               {t('export_options_title', 'Export Reports')}
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <button
                 onClick={() => handleExport('pdf')}
                 disabled={loadingReport || !reportData}
-                className="bg-[#2E7D32] hover:bg-[#2E7D32]/90 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold text-white transition-all disabled:opacity-40"
+                className="flex items-center justify-center gap-2 rounded-lg bg-[#2E7D32] px-4 py-2.5 text-xs font-semibold text-white transition-all hover:bg-[#2E7D32]/90 disabled:opacity-40"
               >
                 <Download className="h-4 w-4" />
                 <span>{t('export_pdf', 'Export as PDF')}</span>
@@ -338,7 +415,7 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
               <button
                 onClick={() => handleExport('excel')}
                 disabled={loadingReport || !reportData}
-                className="border-border hover:bg-muted flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-semibold text-foreground transition-all disabled:opacity-40"
+                className="border-border hover:bg-muted text-foreground flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-semibold transition-all disabled:opacity-40"
               >
                 <Download className="h-4 w-4 text-[#2E7D32]" />
                 <span>{t('export_excel', 'Export as Excel')}</span>
@@ -346,7 +423,7 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
               <button
                 onClick={() => handleExport('pdf')}
                 disabled={loadingReport || !reportData}
-                className="border-border hover:bg-muted flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-semibold text-foreground transition-all disabled:opacity-40"
+                className="border-border hover:bg-muted text-foreground flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-semibold transition-all disabled:opacity-40"
               >
                 <Printer className="h-4 w-4 text-[#2E7D32]" />
                 <span>{t('print_report', 'Print Report')}</span>
@@ -355,52 +432,79 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
           </div>
 
           {/* Report Preview */}
-          <div className="bg-card border-border rounded-xl border p-6 shadow-sm min-h-[400px] flex flex-col justify-start relative">
-            <h3 className="text-foreground text-sm font-bold uppercase tracking-wider mb-5">
+          <div className="bg-card border-border relative flex min-h-[400px] flex-col justify-start rounded-xl border p-6 shadow-sm">
+            <h3 className="text-foreground mb-5 text-sm font-bold uppercase tracking-wider">
               {t('report_preview_title', 'Report Preview')}
             </h3>
 
             {loadingReport ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-card/60 backdrop-blur-xs rounded-xl z-10">
+              <div className="bg-card/60 backdrop-blur-xs absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-xl">
                 <Loader2 className="h-8 w-8 animate-spin text-[#2E7D32]" />
-                <span className="text-xs font-semibold text-slate-500">{t('loading_report_preview', 'Loading report preview...')}</span>
+                <span className="text-xs font-semibold text-slate-500">
+                  {t('loading_report_preview', 'Loading report preview...')}
+                </span>
               </div>
             ) : null}
 
             {reportData ? (
-              <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="animate-in fade-in space-y-6 duration-200">
                 {/* Stats Cards summary grid */}
-                {reportData.summary && Object.keys(reportData.summary).length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {Object.entries(reportData.summary).map(([key, val]) => (
-                      <div key={key} className="bg-muted/30 border-border border p-4 rounded-xl">
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
-                          {key}
-                        </span>
-                        <span className="text-lg font-bold text-foreground block mt-1">
-                          {String(val)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {reportData.summary &&
+                  Object.keys(reportData.summary).length > 0 && (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                      {Object.entries(reportData.summary).map(([key, val]) => (
+                        <div
+                          key={key}
+                          className="bg-muted/30 border-border rounded-xl border p-4"
+                        >
+                          <span className="text-muted-foreground block text-[10px] font-bold uppercase tracking-wider">
+                            {key}
+                          </span>
+                          <span className="text-foreground mt-1 block text-lg font-bold">
+                            {String(val)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                 {/* Report Charts Visualization */}
                 {reportData.chart_data && reportData.chart_data.length > 0 && (
-                  <div className="bg-muted/20 border-border border p-4 rounded-xl">
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                  <div className="bg-muted/20 border-border rounded-xl border p-4">
+                    <h4 className="text-muted-foreground mb-3 text-xs font-bold uppercase tracking-wider">
                       {t('data_visualization', 'Data Visualization')}
                     </h4>
                     <div className="h-64 w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         {reportType === 'project-progress' ? (
                           <BarChart data={reportData.chart_data}>
-                            <XAxis dataKey="name" stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
-                            <YAxis stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
+                            <XAxis
+                              dataKey="name"
+                              stroke="#888888"
+                              fontSize={10}
+                              tickLine={false}
+                              axisLine={false}
+                            />
+                            <YAxis
+                              stroke="#888888"
+                              fontSize={10}
+                              tickLine={false}
+                              axisLine={false}
+                            />
                             <Tooltip />
                             <RechartsLegend verticalAlign="top" height={36} />
-                            <Bar dataKey="Total" fill="#2E7D32" name={t('total_parcels', 'Total Parcels')} radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="Acquired" fill="#d32f2f" name={t('acquired_parcels', 'Acquired')} radius={[4, 4, 0, 0]} />
+                            <Bar
+                              dataKey="Total"
+                              fill="#2E7D32"
+                              name={t('total_parcels', 'Total Parcels')}
+                              radius={[4, 4, 0, 0]}
+                            />
+                            <Bar
+                              dataKey="Acquired"
+                              fill="#d32f2f"
+                              name={t('acquired_parcels', 'Acquired')}
+                              radius={[4, 4, 0, 0]}
+                            />
                           </BarChart>
                         ) : (
                           <PieChart>
@@ -412,11 +516,26 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
                               outerRadius={80}
                               paddingAngle={5}
                               dataKey="value"
-                              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                              label={({
+                                name,
+                                percent,
+                              }: {
+                                name?: string;
+                                percent?: number;
+                              }) =>
+                                `${name ?? ''} (${((percent ?? 0) * 100).toFixed(0)}%)`
+                              }
                             >
-                              {reportData.chart_data.map((entry: any, index: number) => (
-                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                              ))}
+                              {reportData.chart_data.map(
+                                (entry: any, index: number) => (
+                                  <Cell
+                                    key={`cell-${index}`}
+                                    fill={
+                                      CHART_COLORS[index % CHART_COLORS.length]
+                                    }
+                                  />
+                                ),
+                              )}
                             </Pie>
                             <Tooltip />
                           </PieChart>
@@ -427,32 +546,49 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
                 )}
 
                 {/* Table Data Preview */}
-                <div className="overflow-x-auto border border-border rounded-xl">
-                  <table className="w-full text-left border-collapse">
+                <div className="border-border overflow-x-auto rounded-xl border">
+                  <table className="w-full border-collapse text-left">
                     <thead>
-                      <tr className="bg-muted/50 border-b border-border">
-                        {reportData.headers && reportData.headers.map((header: string, index: number) => (
-                          <th key={index} className="p-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                            {header}
-                          </th>
-                        ))}
+                      <tr className="bg-muted/50 border-border border-b">
+                        {reportData.headers &&
+                          reportData.headers.map(
+                            (header: string, index: number) => (
+                              <th
+                                key={index}
+                                className="text-muted-foreground p-3 text-xs font-bold uppercase tracking-wider"
+                              >
+                                {header}
+                              </th>
+                            ),
+                          )}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border text-xs">
+                    <tbody className="divide-border divide-y text-xs">
                       {reportData.rows && reportData.rows.length > 0 ? (
                         reportData.rows.map((row: any[], rowIndex: number) => (
-                          <tr key={rowIndex} className="hover:bg-muted/20 text-foreground">
+                          <tr
+                            key={rowIndex}
+                            className="hover:bg-muted/20 text-foreground"
+                          >
                             {row.map((cell: any, cellIndex: number) => (
                               <td key={cellIndex} className="p-3">
-                                {typeof cell === 'string' ? renderBadge(cell) : cell}
+                                {typeof cell === 'string'
+                                  ? renderBadge(cell)
+                                  : cell}
                               </td>
                             ))}
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={reportData.headers?.length || 1} className="p-8 text-center text-muted-foreground">
-                            {t('no_report_records', 'No records found matching the applied filters.')}
+                          <td
+                            colSpan={reportData.headers?.length || 1}
+                            className="text-muted-foreground p-8 text-center"
+                          >
+                            {t(
+                              'no_report_records',
+                              'No records found matching the applied filters.',
+                            )}
                           </td>
                         </tr>
                       )}
@@ -461,10 +597,17 @@ badgeClasses += 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slat
                 </div>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-12">
-                <FileText className="h-16 w-16 opacity-40 mb-3" />
-                <p className="text-base font-semibold">{t('no_preview_available', 'No Preview Available')}</p>
-                <p className="text-xs mt-1">{t('apply_filters_desc', 'Fill the parameters above and select report types to load results.')}</p>
+              <div className="text-muted-foreground flex flex-1 flex-col items-center justify-center py-12">
+                <FileText className="mb-3 h-16 w-16 opacity-40" />
+                <p className="text-base font-semibold">
+                  {t('no_preview_available', 'No Preview Available')}
+                </p>
+                <p className="mt-1 text-xs">
+                  {t(
+                    'apply_filters_desc',
+                    'Fill the parameters above and select report types to load results.',
+                  )}
+                </p>
               </div>
             )}
           </div>

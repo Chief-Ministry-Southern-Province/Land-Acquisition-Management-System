@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LandParcel;
 use App\Models\Projects;
 use App\Models\PropertyOwner;
+use App\Services\AuditLogService;
 use App\Services\ExportService;
 use App\Services\ImportService;
 use Illuminate\Http\Request;
@@ -159,6 +160,14 @@ class LandParcelController extends Controller
             }
 
             DB::commit();
+
+            AuditLogService::log(
+                userId: $user->id,
+                name: $user->name,
+                action: 'Create Land Parcel',
+                module: 'Land Parcels',
+                detail: "Created land parcel: {$landParcel->parcel_id}"
+            );
 
             $landParcel->load(['owners', 'project', 'residents', 'documents']);
 
@@ -337,6 +346,14 @@ class LandParcelController extends Controller
             }
         }
 
+        AuditLogService::log(
+            userId: $user->id,
+            name: $user->name,
+            action: 'Update Land Parcel',
+            module: 'Land Parcels',
+            detail: "Updated land parcel: {$landParcel->parcel_id}"
+        );
+
         $landParcel->load(['owners', 'project', 'residents', 'documents']);
 
         return response()->json([
@@ -367,6 +384,14 @@ class LandParcelController extends Controller
 
         $landParcel->delete();
 
+        AuditLogService::log(
+            userId: $user->id,
+            name: $user->name,
+            action: 'Delete Land Parcel',
+            module: 'Land Parcels',
+            detail: "Deleted land parcel: {$landParcel->parcel_id}"
+        );
+
         return response()->json([
             'message' => 'Land parcel deleted successfully',
         ], 204);
@@ -395,6 +420,16 @@ class LandParcelController extends Controller
                 'message' => 'Land parcel not found',
             ], 404);
         }
+
+        AuditLogService::log(
+            userId: $user->id,
+            name: $user->name,
+            action: 'Export Land Parcels',
+            module: 'Land Parcels',
+            detail: $id
+                ? 'Exported details of land parcel: '.$records->first()->parcel_id." in {$format} format"
+                : "Exported list of land parcels in {$format} format"
+        );
 
         $filename = $id
             ? 'land_parcel_'.$records->first()->parcel_id.'_'.date('Ymd_His')
@@ -801,6 +836,14 @@ class LandParcelController extends Controller
             );
 
             if ($result['success']) {
+                AuditLogService::log(
+                    userId: $user->id,
+                    name: $user->name,
+                    action: 'Import Land Parcels',
+                    module: 'Land Parcels',
+                    detail: "Successfully imported {$result['imported_count']} land parcels from uploaded file"
+                );
+
                 return response()->json([
                     'message' => 'Land parcels imported successfully',
                     'imported_count' => $result['imported_count'],

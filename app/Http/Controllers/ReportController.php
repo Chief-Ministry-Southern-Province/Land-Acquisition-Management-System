@@ -9,7 +9,6 @@ use App\Models\Projects;
 use App\Models\PropertyOwner;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
@@ -19,7 +18,7 @@ class ReportController extends Controller
     public function getReportData(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
@@ -38,7 +37,7 @@ class ReportController extends Controller
         $format = $request->query('format', 'pdf');
 
         $report = $this->generateReportData($request, $type);
-        $filename = str_replace(' ', '_', strtolower($report['title'])) . '_' . date('Ymd');
+        $filename = str_replace(' ', '_', strtolower($report['title'])).'_'.date('Ymd');
 
         if ($format === 'pdf') {
             return $exportService->export(
@@ -53,6 +52,7 @@ class ReportController extends Controller
 
         // For Excel / CSV, flatten rows and write
         $collection = collect($report['raw_rows'] ?? []);
+
         return $exportService->export(
             data: $collection,
             headings: $report['headers'],
@@ -77,7 +77,7 @@ class ReportController extends Controller
         if ($projectId && $projectId !== 'All Projects') {
             $proj = Projects::find($projectId);
             if ($proj) {
-                $projectName = $proj->project_id . ' - ' . $proj->title;
+                $projectName = $proj->project_id.' - '.$proj->title;
             }
         }
 
@@ -119,12 +119,12 @@ class ReportController extends Controller
                 $acquiredParcels = 0;
 
                 $report['headers'] = ['Project ID', 'Title', 'Institution', 'Target Area (Acres)', 'Total Parcels', 'Status', 'Workflow Progress'];
-                
+
                 foreach ($projects as $project) {
                     $parcels = LandParcel::where('project_id', $project->id)->get();
                     $pCount = count($parcels);
                     $aCount = $parcels->where('status', 'acquired')->count();
-                    
+
                     $totalParcels += $pCount;
                     $acquiredParcels += $aCount;
 
@@ -138,7 +138,7 @@ class ReportController extends Controller
                         number_format($project->full_land_area_to_be_acquired, 2),
                         $pCount,
                         $statusText,
-                        $pct . '% (' . $aCount . '/' . $pCount . ' Acquired)'
+                        $pct.'% ('.$aCount.'/'.$pCount.' Acquired)',
                     ];
 
                     $report['raw_rows'][] = [
@@ -148,13 +148,13 @@ class ReportController extends Controller
                         'Target Area (Acres)' => $project->full_land_area_to_be_acquired,
                         'Total Parcels' => $pCount,
                         'Status' => $project->sec_status === 'approved' ? 'Approved' : 'Active',
-                        'Workflow Progress' => $pct . '%'
+                        'Workflow Progress' => $pct.'%',
                     ];
 
                     $report['chart_data'][] = [
                         'name' => $project->project_id,
                         'Total' => $pCount,
-                        'Acquired' => $aCount
+                        'Acquired' => $aCount,
                     ];
                 }
 
@@ -162,7 +162,7 @@ class ReportController extends Controller
                     'Total Projects' => $totalProjects,
                     'Total Land Parcels' => $totalParcels,
                     'Acquired Parcels' => $acquiredParcels,
-                    'Overall Progress' => $totalParcels > 0 ? round(($acquiredParcels / $totalParcels) * 100) . '%' : '0%',
+                    'Overall Progress' => $totalParcels > 0 ? round(($acquiredParcels / $totalParcels) * 100).'%' : '0%',
                 ];
                 break;
 
@@ -209,7 +209,7 @@ class ReportController extends Controller
                         $projTitle,
                         $comp->approved_date ?: '-',
                         number_format($comp->amount, 2),
-                        $statusText
+                        $statusText,
                     ];
 
                     $report['raw_rows'][] = [
@@ -220,20 +220,20 @@ class ReportController extends Controller
                         'Project' => $projTitle,
                         'Approved Date' => $comp->approved_date ?: '-',
                         'Amount (LKR)' => $comp->amount,
-                        'Status' => ucfirst($comp->status)
+                        'Status' => ucfirst($comp->status),
                     ];
                 }
 
                 $report['chart_data'] = [
-                    ['name' => 'Paid', 'value' => (float)$paidAmount],
-                    ['name' => 'Pending', 'value' => (float)($totalAmount - $paidAmount)]
+                    ['name' => 'Paid', 'value' => (float) $paidAmount],
+                    ['name' => 'Pending', 'value' => (float) ($totalAmount - $paidAmount)],
                 ];
 
                 $report['summary'] = [
                     'Total Approved Awards' => count($compensations),
-                    'Total Compensation Value' => 'LKR ' . number_format($totalAmount, 2),
-                    'Total Paid' => 'LKR ' . number_format($paidAmount, 2),
-                    'Disbursed Ratio' => $totalAmount > 0 ? round(($paidAmount / $totalAmount) * 100) . '%' : '0%',
+                    'Total Compensation Value' => 'LKR '.number_format($totalAmount, 2),
+                    'Total Paid' => 'LKR '.number_format($paidAmount, 2),
+                    'Disbursed Ratio' => $totalAmount > 0 ? round(($paidAmount / $totalAmount) * 100).'%' : '0%',
                 ];
                 break;
 
@@ -259,7 +259,7 @@ class ReportController extends Controller
 
                 foreach ($owners as $owner) {
                     $parcels = $owner->landParcels;
-                    $parcelNames = $parcels->map(fn($p) => $p->parcel_id)->implode(', ');
+                    $parcelNames = $parcels->map(fn ($p) => $p->parcel_id)->implode(', ');
                     $sumComp = $owner->compensations->sum('amount');
                     $totalAwards += $sumComp;
 
@@ -270,7 +270,7 @@ class ReportController extends Controller
                         $owner->address,
                         $owner->contact,
                         $parcelNames ?: '-',
-                        number_format($sumComp, 2)
+                        number_format($sumComp, 2),
                     ];
 
                     $report['raw_rows'][] = [
@@ -280,20 +280,20 @@ class ReportController extends Controller
                         'Address' => $owner->address,
                         'Contact' => $owner->contact,
                         'Parcels Owned' => $parcelNames ?: '-',
-                        'Total Award (LKR)' => $sumComp
+                        'Total Award (LKR)' => $sumComp,
                     ];
 
                     if ($sumComp > 0) {
                         $report['chart_data'][] = [
                             'name' => $owner->name,
-                            'value' => (float)$sumComp
+                            'value' => (float) $sumComp,
                         ];
                     }
                 }
 
                 $report['summary'] = [
                     'Total Affected Owners' => count($owners),
-                    'Total Compensations Payout' => 'LKR ' . number_format($totalAwards, 2),
+                    'Total Compensations Payout' => 'LKR '.number_format($totalAwards, 2),
                 ];
                 break;
 
@@ -333,7 +333,7 @@ class ReportController extends Controller
                         $parcel->land_size_acers ?: '0',
                         number_format($parcel->estimated_value, 2),
                         $parcel->land_type ?: 'Standard',
-                        $statusText
+                        $statusText,
                     ];
 
                     $report['raw_rows'][] = [
@@ -344,27 +344,27 @@ class ReportController extends Controller
                         'Extent (Acres)' => $parcel->land_size_acers ?: 0,
                         'Est. Value (LKR)' => $parcel->estimated_value,
                         'Land Type' => $parcel->land_type ?: 'Standard',
-                        'Status' => ucfirst($parcel->status)
+                        'Status' => ucfirst($parcel->status),
                     ];
                 }
 
                 $report['chart_data'] = [
                     ['name' => 'Acquired', 'value' => $parcels->where('status', 'acquired')->count()],
                     ['name' => 'Pending', 'value' => $parcels->where('status', 'pending')->count()],
-                    ['name' => 'Available', 'value' => $parcels->where('status', 'available')->count()]
+                    ['name' => 'Available', 'value' => $parcels->where('status', 'available')->count()],
                 ];
 
                 $report['summary'] = [
                     'Total Land Parcels' => count($parcels),
                     'Acquired Parcels' => $parcels->where('status', 'acquired')->count(),
                     'Pending Parcels' => $parcels->where('status', 'pending')->count(),
-                    'Total Estimated Value' => 'LKR ' . number_format($totalVal, 2),
+                    'Total Estimated Value' => 'LKR '.number_format($totalVal, 2),
                 ];
                 break;
 
             case 'financial':
                 $report['title'] = 'Financial Report';
-                
+
                 // Summarize based on payments
                 $payQuery = Payment::with('compensation.landParcel');
                 if ($projectId && $projectId !== 'All Projects') {
@@ -394,7 +394,7 @@ class ReportController extends Controller
                         ucfirst($pay->payment_method),
                         $pay->payment_date ? $pay->payment_date->format('Y-m-d') : '-',
                         number_format($pay->amount_paid, 2),
-                        $statusText
+                        $statusText,
                     ];
 
                     $report['raw_rows'][] = [
@@ -404,7 +404,7 @@ class ReportController extends Controller
                         'Payment Method' => ucfirst($pay->payment_method),
                         'Payment Date' => $pay->payment_date ? $pay->payment_date->format('Y-m-d') : '-',
                         'Amount Paid (LKR)' => $pay->amount_paid,
-                        'Status' => ucfirst($pay->status)
+                        'Status' => ucfirst($pay->status),
                     ];
                 }
 
@@ -421,29 +421,29 @@ class ReportController extends Controller
                 $bankData = [];
                 foreach ($payments as $p) {
                     $bank = $p->bank_name ?: 'Other';
-                    if (!isset($bankData[$bank])) {
+                    if (! isset($bankData[$bank])) {
                         $bankData[$bank] = 0;
                     }
-                    $bankData[$bank] += (float)$p->amount_paid;
+                    $bankData[$bank] += (float) $p->amount_paid;
                 }
                 foreach ($bankData as $bank => $total) {
                     $report['chart_data'][] = [
                         'name' => $bank,
-                        'value' => $total
+                        'value' => $total,
                     ];
                 }
 
                 $report['summary'] = [
                     'Total Payments Executed' => count($payments),
-                    'Total Compensation Value' => 'LKR ' . number_format($compTotal, 2),
-                    'Total Paid Value' => 'LKR ' . number_format($totalPaid, 2),
-                    'Budget Spent Ratio' => $compTotal > 0 ? round(($totalPaid / $compTotal) * 100) . '%' : '0%',
+                    'Total Compensation Value' => 'LKR '.number_format($compTotal, 2),
+                    'Total Paid Value' => 'LKR '.number_format($totalPaid, 2),
+                    'Budget Spent Ratio' => $compTotal > 0 ? round(($totalPaid / $compTotal) * 100).'%' : '0%',
                 ];
                 break;
 
             case 'legal':
                 $report['title'] = 'Legal Case Report';
-                
+
                 // Fetch parcels where is_casehold is true
                 $query = LandParcel::where('is_casehold', true)->with('project');
 
@@ -472,7 +472,7 @@ class ReportController extends Controller
                         $parcel->case_start_date ? $parcel->case_start_date->format('Y-m-d') : '-',
                         $parcel->case_end_date ? $parcel->case_end_date->format('Y-m-d') : '-',
                         $statusText,
-                        $parcel->remarks ?: '-'
+                        $parcel->remarks ?: '-',
                     ];
 
                     $report['raw_rows'][] = [
@@ -483,13 +483,13 @@ class ReportController extends Controller
                         'Case Start Date' => $parcel->case_start_date ? $parcel->case_start_date->format('Y-m-d') : '-',
                         'Case End Date' => $parcel->case_end_date ? $parcel->case_end_date->format('Y-m-d') : '-',
                         'Case Status' => ucfirst($parcel->case_status ?: 'Active'),
-                        'Remarks' => $parcel->remarks ?: '-'
+                        'Remarks' => $parcel->remarks ?: '-',
                     ];
                 }
 
                 $report['chart_data'] = [
                     ['name' => 'Active', 'value' => $parcels->where('case_status', 'active')->count() + $parcels->where('case_status', null)->count()],
-                    ['name' => 'Resolved', 'value' => $parcels->where('case_status', 'resolved')->count()]
+                    ['name' => 'Resolved', 'value' => $parcels->where('case_status', 'resolved')->count()],
                 ];
 
                 $report['summary'] = [

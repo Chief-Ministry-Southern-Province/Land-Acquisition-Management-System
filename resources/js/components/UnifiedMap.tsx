@@ -406,6 +406,8 @@ export default function UnifiedMap({
       setMapInitialized(true);
     }, 0);
 
+    const markersMap = googleMarkersMapRef.current;
+
     return () => {
       // Clean up listeners if any
       if (googleMapRef.current) {
@@ -414,7 +416,7 @@ export default function UnifiedMap({
 
       googleMapRef.current = null;
       googleMarkerRef.current = null;
-      googleMarkersMapRef.current.clear();
+      markersMap.clear();
       setTimeout(() => {
         setMapInitialized(false);
       }, 0);
