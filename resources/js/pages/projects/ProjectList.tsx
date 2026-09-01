@@ -14,7 +14,7 @@ import {
 import type { Project } from '@/services/projectsManagementService';
 
 export default function ProjectList() {
-  const { locale } = useTranslation();
+  const { locale, t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,18 +48,18 @@ export default function ProjectList() {
 
   const handleDelete = async (id: string, name: string) => {
     const confirmed = await confirmDialog({
-      title: 'Delete Project',
-      text: `Are you sure you want to delete project "${name}"?`,
+      title: t('delete_project'),
+      text: `${t('delete_project_confirm')} "${name}"?`,
     });
 
     if (confirmed) {
       try {
         await deleteProject(id);
         setProjects((prev) => prev.filter((p) => p.id !== id));
-        toastSuccess('Project deleted successfully.');
+        toastSuccess(t('project_deleted_success'));
       } catch (error) {
         console.error('Failed to delete project:', error);
-        toastError('Failed to delete project. Please try again.');
+        toastError(t('project_delete_failed'));
       }
     }
   };
@@ -67,25 +67,25 @@ export default function ProjectList() {
   const columns = [
     {
       key: 'projectId',
-      label: 'Project ID',
+      label: t('project_id'),
       sortable: true,
       filterable: false,
     },
     {
       key: 'title',
-      label: 'Project Title',
+      label: t('project_title_label'),
       sortable: true,
       filterable: false,
-      render: (_val: any, row: any) => row.title || row.name || 'N/A',
+      render: (_val: any, row: any) => row.title || row.name || t('n_a'),
     },
     {
       key: 'institution',
-      label: 'Institution',
+      label: t('institution'),
       sortable: true,
       render: (_val: any, row: any) => (
         <div className="flex flex-col">
           <span className="text-foreground font-medium">
-            {row.institution || 'N/A'}
+            {row.institution || t('n_a')}
           </span>
           {row.institutionAddress && (
             <span
@@ -98,10 +98,10 @@ export default function ProjectList() {
         </div>
       ),
     },
-    { key: 'purpose', label: 'Purpose', sortable: true },
+    { key: 'purpose', label: t('purpose'), sortable: true },
     {
       key: 'landArea',
-      label: 'Land Area (A-R-P)',
+      label: t('land_area_arp'),
       sortable: true,
       filterable: false,
       render: (_val: any, row: any) => (
@@ -112,7 +112,7 @@ export default function ProjectList() {
           </span>
           {row.fullLandArea !== undefined && row.fullLandArea !== null && (
             <span className="text-muted-foreground mt-0.5 text-xs">
-              Total: {row.fullLandArea} Perches
+              {t('total_label')}: {row.fullLandArea} {t('perches')}
             </span>
           )}
         </div>
@@ -120,40 +120,40 @@ export default function ProjectList() {
     },
     {
       key: 'approvalDate',
-      label: 'Approval Date',
+      label: t('approval_date'),
       sortable: true,
       filterable: false,
       render: (value: string | null) =>
-        value ? new Date(value).toLocaleDateString() : 'N/A',
+        value ? new Date(value).toLocaleDateString() : t('n_a'),
     },
     {
       key: 'remarks',
-      label: 'Remarks',
+      label: t('remarks'),
       sortable: true,
       filterable: false,
-      render: (value: string | null) => value || 'N/A',
+      render: (value: string | null) => value || t('n_a'),
     },
     {
       key: 'status',
-      label: 'Status',
+      label: t('status'),
       sortable: true,
       render: (value: string) => <StatusBadge status={value} />,
     },
     {
       key: 'created_at',
-      label: 'Created At',
+      label: t('created_at'),
       sortable: true,
       filterable: false,
       render: (value: string) =>
-        value ? new Date(value).toLocaleDateString() : 'N/A',
+        value ? new Date(value).toLocaleDateString() : t('n_a'),
     },
     {
       key: 'updated_at',
-      label: 'Updated At',
+      label: t('updated_at'),
       sortable: true,
       filterable: false,
       render: (value: string) =>
-        value ? new Date(value).toLocaleDateString() : 'N/A',
+        value ? new Date(value).toLocaleDateString() : t('n_a'),
     },
   ];
 
@@ -175,7 +175,7 @@ export default function ProjectList() {
             router.visit(`/projects/${row.id}`);
           }}
           className="hover:bg-muted rounded p-1.5 transition-colors"
-          title="View"
+          title={t('view')}
         >
           <Eye className="h-4 w-4" />
         </button>
@@ -186,7 +186,7 @@ export default function ProjectList() {
               router.visit(`/projects/new?edit=${row.id}`);
             }}
             className="hover:bg-muted rounded p-1.5 transition-colors"
-            title="Edit"
+            title={t('edit')}
           >
             <Edit className="h-4 w-4" />
           </button>
@@ -198,7 +198,7 @@ export default function ProjectList() {
               handleDelete(row.id, row.name);
             }}
             className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
-            title="Delete"
+            title={t('delete')}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -212,9 +212,9 @@ export default function ProjectList() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1>Projects</h1>
+          <h1>{t('projects')}</h1>
           <p className="text-muted-foreground mt-1">
-            Manage land acquisition projects
+            {t('manage_land_acquisition_projects')}
           </p>
         </div>
         {userRole === 'DO' && (
@@ -223,7 +223,7 @@ export default function ProjectList() {
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
           >
             <Plus className="h-5 w-5" />
-            <span>Add Project</span>
+            <span>{t('add_project')}</span>
           </button>
         )}
       </div>
@@ -231,7 +231,7 @@ export default function ProjectList() {
       {/* Projects Table */}
       {loading ? (
         <div className="bg-card border-border text-muted-foreground flex h-64 items-center justify-center rounded-lg border">
-          Loading projects...
+          {t('loading_projects')}
         </div>
       ) : (
         <DataTable

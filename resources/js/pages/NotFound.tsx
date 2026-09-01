@@ -1,7 +1,10 @@
 import { router } from '@inertiajs/react';
 import { Home, LogIn, ArrowLeft, Unlink } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function NotFound() {
+  const { t } = useTranslation();
+
   return (
     <div className="from-primary to-primary/80 bg-linear-to-br relative flex min-h-screen items-center justify-center overflow-hidden">
       {/* Decorative floating circles */}
@@ -22,11 +25,14 @@ function NotFound() {
           <h1 className="text-primary/20 mb-2 select-none text-8xl font-extrabold leading-none">
             404
           </h1>
-          <h2 className="mb-2 text-2xl font-semibold">Page Not Found</h2>
+          <h2 className="mb-2 text-2xl font-semibold">
+            {t('error_404_title', 'Page Not Found')}
+          </h2>
           <p className="text-muted-foreground mx-auto mb-8 max-w-xs text-sm">
-            Sorry, the page you are looking for doesn't exist or has been moved.
-            Please check the URL or navigate back using one of the options
-            below.
+            {t(
+              'not_found_description',
+              "Sorry, the page you are looking for doesn't exist or has been moved. Please check the URL or navigate back using one of the options below.",
+            )}
           </p>
 
           {/* Divider */}
@@ -40,7 +46,7 @@ function NotFound() {
               className="border-border hover:bg-muted inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-3 text-sm font-medium transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              Go Back
+              {t('go_back', 'Go Back')}
             </button>
 
             <button
@@ -49,7 +55,7 @@ function NotFound() {
               className="border-border hover:bg-muted inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-3 text-sm font-medium transition-colors"
             >
               <LogIn className="h-4 w-4" />
-              Sign In
+              {t('sign_in', 'Sign In')}
             </button>
 
             <button
@@ -58,15 +64,20 @@ function NotFound() {
               className="bg-primary hover:bg-primary/90 inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-medium text-white transition-colors"
             >
               <Home className="h-4 w-4" />
-              Dashboard
+              {t('dashboard', 'Dashboard')}
             </button>
           </div>
 
           {/* Footer note */}
           <div className="bg-muted/50 mt-8 rounded-lg p-4">
             <p className="text-muted-foreground text-xs">
-              <strong>Land Acquisition Management System</strong> — Government
-              of Sri Lanka
+              <strong>
+                {t(
+                  'Land_Acquisition_Management_System',
+                  'Land Acquisition Management System',
+                )}
+              </strong>{' '}
+              — {t('government_of_sri_lanka', 'Government of Sri Lanka')}
             </p>
           </div>
         </div>

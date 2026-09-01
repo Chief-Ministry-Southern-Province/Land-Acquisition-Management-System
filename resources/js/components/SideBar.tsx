@@ -61,17 +61,33 @@ export default function SideBar({ items }: SideBarProps = {}) {
       {
         path: '/dashboard',
         icon: LayoutDashboard,
-        label: 'Admin Dashboard',
+        label: t('admin_dashboard', 'Admin Dashboard'),
       },
       {
         path: '/user-management',
         icon: UserCog,
-        label: 'User Management',
+        label: t('user_mgmt_title', 'User Management'),
       },
-      { path: '/departments', icon: Building2, label: 'Departments' },
-      { path: '/roles', icon: Shield, label: 'Roles & Permissions' },
-      { path: '/audit-log', icon: History, label: 'Audit Logs' },
-      { path: '/settings', icon: Settings, label: 'System Settings' },
+      {
+        path: '/departments',
+        icon: Building2,
+        label: t('departments', 'Departments'),
+      },
+      {
+        path: '/roles',
+        icon: Shield,
+        label: t('roles_permissions', 'Roles & Permissions'),
+      },
+      {
+        path: '/audit-log',
+        icon: History,
+        label: t('audit_logs', 'Audit Logs'),
+      },
+      {
+        path: '/settings',
+        icon: Settings,
+        label: t('sys_settings_title', 'System Settings'),
+      },
     ],
     DO: [
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
@@ -115,6 +131,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
         icon: CheckSquare,
         label: t('approvals'),
       },
+      { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
     ],
     AS: [
@@ -128,6 +145,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
         icon: CheckSquare,
         label: t('approvals'),
       },
+      { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
     ],
     SAS: [
@@ -141,6 +159,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
         icon: CheckSquare,
         label: t('approvals'),
       },
+      { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
     ],
     SEC: [
@@ -154,6 +173,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
         icon: CheckSquare,
         label: t('approvals'),
       },
+      { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
     ],
   };
@@ -173,9 +193,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
             className="h-9 w-9 rounded bg-white object-contain p-0.5 shadow-sm"
           />
           <span className="text-xs font-semibold uppercase leading-snug tracking-wide text-white">
-            Land Acquisition
-            <br />
-            Management
+            {t('system_brand', 'Land Acquisition Management')}
           </span>
         </div>
       </div>

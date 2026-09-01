@@ -91,7 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::inertia('/gis-maps', 'GisMapList')->middleware('check.role:DO,HOB,AO,AS,SAS,SEC')->name('gis-maps');
 
     // Reports routes
-    Route::inertia('/reports', 'Reports')->name('reports');
+    Route::inertia('/reports', 'Reports')->middleware('check.role:HOB,AO,AS,SAS,SEC')->name('reports');
 
     // Workflow routes
     Route::inertia('/acquisition-workflow', 'AcquisitionWorkflow')->name('acquisition-workflow');

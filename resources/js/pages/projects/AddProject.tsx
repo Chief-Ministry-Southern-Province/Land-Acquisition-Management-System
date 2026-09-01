@@ -337,7 +337,7 @@ export default function AddProject() {
       await downloadDocument(docId, filename);
     } catch (error) {
       console.error('Failed to download document:', error);
-      toastError('Failed to download document.');
+      toastError(t('document_download_failed'));
     }
   };
 
@@ -349,8 +349,8 @@ export default function AddProject() {
     }
 
     const confirmed = await confirmDialog({
-      title: 'Delete Document',
-      text: 'Are you sure you want to delete this document permanently?',
+      title: t('delete_document'),
+      text: t('delete_document_confirm'),
     });
 
     if (!confirmed) {
@@ -361,10 +361,10 @@ export default function AddProject() {
       setLoadingProject(true);
       await deleteDocument(docId);
       await refreshDocuments();
-      toastSuccess('Document deleted successfully.');
+      toastSuccess(t('document_deleted_success'));
     } catch (error) {
       console.error('Failed to delete document:', error);
-      toastError('Failed to delete document.');
+      toastError(t('document_delete_failed'));
     } finally {
       setLoadingProject(false);
     }
@@ -478,11 +478,11 @@ export default function AddProject() {
     const errs: Partial<Record<keyof ProjectForm, string>> = {};
 
     if (!form.name.trim()) {
-      errs.name = 'Project name is required';
+      errs.name = t('project_name_required');
     }
 
     if (!form.purpose.trim()) {
-      errs.purpose = 'Purpose / description is required';
+      errs.purpose = t('purpose_description_required');
     }
 
     // Removed Start Date, Estimated Completion, Project Manager, Manager Contact, Manager Email validation.
@@ -556,7 +556,7 @@ export default function AddProject() {
         router.visit('/projects');
       } catch (error) {
         console.error('Failed to save project and upload documents:', error);
-        toastError('Failed to save project. Please check form details.');
+        toastError(t('project_save_failed'));
       } finally {
         setLoadingProject(false);
       }
@@ -566,7 +566,7 @@ export default function AddProject() {
   if (loadingProject) {
     return (
       <div className="bg-card border-border text-muted-foreground flex h-64 items-center justify-center rounded-lg border">
-        Loading project details for editing...
+        {t('loading_project_details')}
       </div>
     );
   }
@@ -579,16 +579,16 @@ export default function AddProject() {
           <button
             onClick={() => router.visit('/projects')}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
-            title="Back to Projects"
+            title={t('back_to_projects')}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1>{editId ? 'Edit Project' : 'Add New Project'}</h1>
+            <h1>{editId ? t('edit_project') : t('create_project')}</h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
               {editId
-                ? 'Update land acquisition project details'
-                : 'Create a land acquisition project and assign parcels with owners'}
+                ? t('update_land_acquisition_project')
+                : t('create_land_acquisition_project')}
             </p>
           </div>
         </div>
@@ -598,14 +598,14 @@ export default function AddProject() {
             onClick={() => router.visit('/projects')}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors"
           >
-            <X className="h-4 w-4" /> Cancel
+            <X className="h-4 w-4" /> {t('cancel')}
           </button>
           <button
             type="submit"
             form="add-project-form"
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors"
           >
-            <Save className="h-4 w-4" /> Save Project
+            <Save className="h-4 w-4" /> {t('save_project')}
           </button>
         </div>
       </div>
@@ -620,16 +620,16 @@ export default function AddProject() {
         <div className="bg-card border-border rounded-xl border p-6">
           <SectionHeader
             icon={FolderKanban}
-            title="Project Details"
-            subtitle="Core information about the acquisition project"
+            title={t('project_details')}
+            subtitle={t('project_subtitle')}
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <Field label="Project Title / Name" required>
+              <Field label={t('project_title')} required>
                 <input
                   className={inputCls}
-                  placeholder="e.g. Southern Highway Expansion Phase 3"
+                  placeholder={`${t('example')} ${t('project_title_example')}`}
                   value={form.name || form.title}
                   onChange={(e) => {
                     setForm((f) => ({
@@ -643,7 +643,7 @@ export default function AddProject() {
               </Field>
             </div>
 
-            <Field label="Requesting Institution">
+            <Field label={t('requesting_institution')}>
               <select
                 className={inputCls}
                 title="Select Requesting Institution"
@@ -658,7 +658,7 @@ export default function AddProject() {
                   }));
                 }}
               >
-                <option value="">-- Select Department --</option>
+                <option value="">{t('select_department')}</option>
                 {departments.map((dept) => (
                   <option key={dept.id} value={dept.name}>
                     {dept.name}
@@ -672,10 +672,10 @@ export default function AddProject() {
             </Field>
 
             <div className="lg:col-span-3">
-              <Field label="Institution Address">
+              <Field label={t('institution_address')}>
                 <input
                   className={inputCls}
-                  placeholder="Official address of requesting institution"
+                  placeholder={t('institution_address_placeholder')}
                   value={form.institutionAddress}
                   onChange={set('institutionAddress')}
                 />
@@ -683,7 +683,7 @@ export default function AddProject() {
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-3 lg:grid-cols-4">
-              <Field label="Acquiring Land Area — Acres">
+              <Field label={`${t('acquiring_land_area')} — ${t('acres')}`}>
                 <input
                   className={inputCls}
                   type="number"
@@ -695,7 +695,7 @@ export default function AddProject() {
                 />
               </Field>
 
-              <Field label="Acquiring Land Area — Roods">
+              <Field label={`${t('acquiring_land_area')} — ${t('roods')}`}>
                 <input
                   className={inputCls}
                   type="number"
@@ -707,7 +707,7 @@ export default function AddProject() {
                 />
               </Field>
 
-              <Field label="Acquiring Land Area — Perches">
+              <Field label={`${t('acquiring_land_area')} — ${t('perches')}`}>
                 <input
                   className={inputCls}
                   type="number"
@@ -719,7 +719,9 @@ export default function AddProject() {
                 />
               </Field>
 
-              <Field label="Full Acquiring Land Size (Perches)">
+              <Field
+                label={`${t('full_acquiring_land_size')} (${t('perches')})`}
+              >
                 <input
                   className={`${inputCls} bg-muted/30 cursor-not-allowed font-medium`}
                   type="text"
@@ -735,11 +737,11 @@ export default function AddProject() {
             </div>
 
             <div className="lg:col-span-3">
-              <Field label="Purpose / Description" required>
+              <Field label={t('purpose_description')} required>
                 <textarea
                   className={`${inputCls} resize-none`}
                   rows={3}
-                  placeholder="Describe the purpose of this land acquisition project"
+                  placeholder={t('describe_purpose')}
                   value={form.purpose}
                   onChange={set('purpose')}
                 />
@@ -771,11 +773,10 @@ export default function AddProject() {
                 </div>
                 <div className="space-y-1">
                   <span className="text-foreground text-sm font-medium">
-                    Are residents moved to temporary habitat?
+                    {t('are_residents_moved_to_temporary_habitat')}
                   </span>
                   <p className="text-muted-foreground text-xs leading-relaxed">
-                    Check this option if residents affected by the project have
-                    been relocated to temporary housing.
+                    {t('are_residents_moved_to_temporary_habitat_info')}
                   </p>
                 </div>
               </label>
@@ -784,11 +785,11 @@ export default function AddProject() {
             {/* Removed Start Date, Estimated Completion, Total Budget, Project Manager, Manager Contact, Manager Email since they are not in the database table */}
 
             <div className="lg:col-span-3">
-              <Field label="Remarks">
+              <Field label={t('remarks')}>
                 <textarea
                   className={`${inputCls} resize-none`}
                   rows={2}
-                  placeholder="Any additional notes"
+                  placeholder={t('remarks_placeholder')}
                   value={form.remarks}
                   onChange={set('remarks')}
                 />
@@ -811,15 +812,15 @@ export default function AddProject() {
               </div>
               <div className="text-left">
                 <p className="text-foreground text-sm font-semibold uppercase tracking-wide">
-                  Land Parcels
+                  {t('land_parcels')}
                 </p>
                 <p className="text-muted-foreground mt-0.5 text-xs">
-                  Select parcels to include in this project
+                  {t('select_parcels_to_include_in_this_project')}
                 </p>
               </div>
               {selectedParcelIds.size > 0 && (
                 <span className="bg-primary ml-2 rounded-full px-2.5 py-0.5 text-xs font-medium text-white">
-                  {selectedParcelIds.size} selected
+                  {selectedParcelIds.size} {t('selected')}
                 </span>
               )}
             </div>
@@ -838,7 +839,7 @@ export default function AddProject() {
                   <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                   <input
                     className={`${inputCls} pl-9`}
-                    placeholder="Search by ID, survey no, district, village…"
+                    placeholder={t('search_by_id_survey_no_district_village')}
                     value={parcelSearch}
                     onChange={(e) => setParcelSearch(e.target.value)}
                   />
@@ -849,11 +850,11 @@ export default function AddProject() {
               <div className="divide-border max-h-80 divide-y overflow-y-auto">
                 {loadingParcels ? (
                   <p className="text-muted-foreground px-6 py-8 text-center text-sm">
-                    Loading land parcels...
+                    {t('loading_land_parcels')}
                   </p>
                 ) : filteredParcels.length === 0 ? (
                   <p className="text-muted-foreground px-6 py-8 text-center text-sm">
-                    No parcels match your search.
+                    {t('no_parcels_match_your_search')}
                   </p>
                 ) : (
                   filteredParcels.map((parcel) => {
@@ -882,13 +883,13 @@ export default function AddProject() {
                         <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 md:grid-cols-4">
                           <div>
                             <p className="text-muted-foreground text-xs">
-                              Parcel ID
+                              {t('parcel_id')}
                             </p>
                             <p className="font-medium">{parcel.parcel_id}</p>
                           </div>
                           <div>
                             <p className="text-muted-foreground text-xs">
-                              District / Village
+                              {`${t('district')} / ${t('village')}`}
                             </p>
                             <p>
                               {parcel.district}, {parcel.village}
@@ -896,7 +897,7 @@ export default function AddProject() {
                           </div>
                           <div>
                             <p className="text-muted-foreground text-xs">
-                              Extent
+                              {t('extent')}
                             </p>
                             <p>
                               {parcel.extent_acers} ac, {parcel.extent_perches}{' '}
@@ -905,7 +906,7 @@ export default function AddProject() {
                           </div>
                           <div>
                             <p className="text-muted-foreground text-xs">
-                              Status
+                              {t('status')}
                             </p>
                             <StatusBadge status={parcel.status} />
                           </div>
@@ -920,7 +921,7 @@ export default function AddProject() {
               {selectedParcels.length > 0 && (
                 <div className="border-border bg-muted/20 border-t px-6 py-3">
                   <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
-                    Selected Parcels — Total extent: {totalExtent}
+                    {t('selected_parcels_total_extent')} {totalExtent}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedParcels.map((p) => (
@@ -933,7 +934,7 @@ export default function AddProject() {
                           type="button"
                           onClick={() => removeParcel(p.id)}
                           className="hover:text-destructive transition-colors"
-                          title={`Remove ${p.parcel_id}`}
+                          title={`${t('remove_parcel')} ${p.parcel_id}`}
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -954,15 +955,16 @@ export default function AddProject() {
             </div>
             <div className="flex-1">
               <p className="text-foreground text-sm font-semibold uppercase tracking-wide">
-                Property Owners
+                {t('land_owners')}
               </p>
               <p className="text-muted-foreground mt-0.5 text-xs">
-                Automatically populated from selected land parcels
+                {t('automatically_populated_from_selected_land_parcels')}
               </p>
             </div>
             {autoOwners.length > 0 && (
               <span className="bg-secondary rounded-full px-2.5 py-0.5 text-xs font-medium text-white">
-                {autoOwners.length} owner{autoOwners.length !== 1 ? 's' : ''}
+                {autoOwners.length}{' '}
+                {autoOwners.length !== 1 ? t('owners') : t('owner')}
               </span>
             )}
           </div>
@@ -973,8 +975,7 @@ export default function AddProject() {
                 <Users className="text-muted-foreground h-5 w-5" />
               </div>
               <p className="text-muted-foreground text-sm">
-                Select land parcels above to automatically populate property
-                owners.
+                {t('select_parcels_above_to_populate_owners')}
               </p>
             </div>
           ) : (
@@ -986,7 +987,7 @@ export default function AddProject() {
                 >
                   <div>
                     <p className="text-muted-foreground mb-0.5 text-xs">
-                      Owner
+                      {t('owner')}
                     </p>
                     <p className="text-sm font-medium">{owner.name}</p>
                     <p className="text-muted-foreground mt-0.5 text-xs">
@@ -995,7 +996,7 @@ export default function AddProject() {
                   </div>
                   <div>
                     <p className="text-muted-foreground mb-0.5 text-xs">
-                      NIC / Contact
+                      {t('nic_contact')}
                     </p>
                     <p className="text-sm">{owner.nic}</p>
                     <p className="text-muted-foreground mt-0.5 text-xs">
@@ -1004,13 +1005,13 @@ export default function AddProject() {
                   </div>
                   <div>
                     <p className="text-muted-foreground mb-0.5 text-xs">
-                      Address
+                      {t('address')}
                     </p>
                     <p className="text-sm">{owner.address}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground mb-0.5 text-xs">
-                      Linked Parcels
+                      {t('linked_parcels')}
                     </p>
                     <div className="mt-0.5 flex flex-wrap gap-1">
                       {owner.parcelIds.map((pid: string) => (
@@ -1033,8 +1034,8 @@ export default function AddProject() {
         <div className="bg-card border-border rounded-xl border p-6">
           <SectionHeader
             icon={CheckSquare}
-            title="Recommendations & Decisions"
-            subtitle="Reports, recommendations, and decisions"
+            title={t('recommendations_and_decisions')}
+            subtitle={t('recommendations_and_decisions_subtitle')}
           />
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -1229,18 +1230,17 @@ export default function AddProject() {
                   </div>
                   <div>
                     <p className="text-foreground text-sm font-semibold uppercase tracking-wide">
-                      Project Documents
+                      {t('project_documents')}
                     </p>
                     <p className="text-muted-foreground mt-0.5 text-xs">
-                      Attach documents to this project. Queued files will be
-                      uploaded when you save the project.
+                      {t('attach_documents_to_project')}
                     </p>
                   </div>
                 </div>
                 <div>
                   <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-white transition-colors">
                     <Upload className="h-3.5 w-3.5" />
-                    <span>Select File</span>
+                    <span>{t('select_file')}</span>
                     <input
                       type="file"
                       className="hidden"
@@ -1258,7 +1258,7 @@ export default function AddProject() {
                     <FolderKanban className="text-muted-foreground h-5 w-5" />
                   </div>
                   <p className="text-muted-foreground text-sm">
-                    No documents selected or uploaded for this project yet.
+                    {t('no_documents_for_project')}
                   </p>
                 </div>
               ) : (
@@ -1279,13 +1279,13 @@ export default function AddProject() {
                             </p>
                             {doc.isQueued && (
                               <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
-                                Queued
+                                {t('queued')}
                               </span>
                             )}
                           </div>
                           <p className="text-muted-foreground mt-0.5 text-xs">
-                            Category: {doc.category} • Size: {doc.size} • Date:{' '}
-                            {doc.uploadDate}
+                            {t('category')}: {doc.category} • {t('size')}:{' '}
+                            {doc.size} • {t('date')}: {doc.uploadDate}
                           </p>
                         </div>
                       </div>
@@ -1295,7 +1295,7 @@ export default function AddProject() {
                             type="button"
                             onClick={() => handleDownload(doc.id, doc.name)}
                             className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
-                            title="Download"
+                            title={t('download')}
                           >
                             <Download className="h-4 w-4" />
                           </button>
@@ -1306,8 +1306,8 @@ export default function AddProject() {
                           className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
                           title={
                             doc.isQueued
-                              ? 'Remove from queue'
-                              : 'Delete permanently'
+                              ? t('remove_from_queue')
+                              : t('delete_permanently')
                           }
                         >
                           <Trash2 className="h-4 w-4" />
@@ -1328,13 +1328,13 @@ export default function AddProject() {
             onClick={() => router.visit('/projects')}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors"
           >
-            <X className="h-4 w-4" /> Cancel
+            <X className="h-4 w-4" /> {t('cancel')}
           </button>
           <button
             type="submit"
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm text-white transition-colors"
           >
-            <Save className="h-4 w-4" /> Save Project
+            <Save className="h-4 w-4" /> {t('save_project')}
           </button>
         </div>
       </form>

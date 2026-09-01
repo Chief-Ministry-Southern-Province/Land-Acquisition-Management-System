@@ -10,6 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import {
   getDepartments,
@@ -83,6 +84,7 @@ function Field({
 }
 
 export default function DepartmentManagement() {
+  const { t } = useTranslation();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -141,15 +143,15 @@ export default function DepartmentManagement() {
     const errs: Record<string, string> = {};
 
     if (!form.name.trim()) {
-      errs.name = 'Department name is required';
+      errs.name = t('err_dep_name_required', 'Department name is required');
     }
 
     if (!form.code.trim()) {
-      errs.code = 'Department code is required';
+      errs.code = t('err_dep_code_required', 'Department code is required');
     }
 
     if (!form.head.trim()) {
-      errs.head = 'Department head is required';
+      errs.head = t('err_dep_head_required', 'Department head is required');
     }
 
     setErrors(errs);
@@ -232,16 +234,19 @@ export default function DepartmentManagement() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1>Department Management</h1>
+          <h1>{t('dep_mgmt_title', 'Department Management')}</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">
-            Manage organisational departments and their heads
+            {t(
+              'dep_mgmt_subtitle',
+              'Manage organisational departments and their heads',
+            )}
           </p>
         </div>
         <button
           onClick={openAdd}
           className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors"
         >
-          <Plus className="h-4 w-4" /> Add Department
+          <Plus className="h-4 w-4" /> {t('add_department', 'Add Department')}
         </button>
       </div>
 
@@ -253,7 +258,7 @@ export default function DepartmentManagement() {
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">
-              Total Departments
+              {t('total_departments', 'Total Departments')}
             </p>
             <p className="text-2xl font-semibold">{departments.length}</p>
           </div>
@@ -264,7 +269,7 @@ export default function DepartmentManagement() {
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">
-              Active
+              {t('active', 'Active')}
             </p>
             <p className="text-2xl font-semibold">{activeDeps}</p>
           </div>
@@ -275,7 +280,7 @@ export default function DepartmentManagement() {
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">
-              Total Staff
+              {t('total_staff', 'Total Staff')}
             </p>
             <p className="text-2xl font-semibold">{totalUsers}</p>
           </div>
@@ -287,7 +292,7 @@ export default function DepartmentManagement() {
         <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
         <input
           className={`${inputCls} pl-9`}
-          placeholder="Search departments…"
+          placeholder={t('search_departments', 'Search departments…')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -300,15 +305,15 @@ export default function DepartmentManagement() {
             <thead className="bg-muted/50 border-border border-b">
               <tr>
                 {[
-                  'Dept. ID',
-                  'Name',
-                  'Code',
-                  'Head of Department',
-                  'Email',
-                  'Phone',
-                  'Staff',
-                  'Status',
-                  'Actions',
+                  t('col_dept_id', 'Dept. ID'),
+                  t('col_name', 'Name'),
+                  t('col_code', 'Code'),
+                  t('col_dept_head', 'Head of Department'),
+                  t('email', 'Email'),
+                  t('phone', 'Phone'),
+                  t('col_staff', 'Staff'),
+                  t('status', 'Status'),
+                  t('col_actions', 'Actions'),
                 ].map((h) => (
                   <th
                     key={h}
@@ -326,7 +331,7 @@ export default function DepartmentManagement() {
                     colSpan={9}
                     className="text-muted-foreground px-4 py-10 text-center text-sm"
                   >
-                    Loading departments...
+                    {t('loading_departments', 'Loading departments...')}
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
@@ -335,7 +340,7 @@ export default function DepartmentManagement() {
                     colSpan={9}
                     className="text-muted-foreground px-4 py-10 text-center text-sm"
                   >
-                    No departments found.
+                    {t('no_departments_found', 'No departments found.')}
                   </td>
                 </tr>
               ) : (
@@ -350,7 +355,10 @@ export default function DepartmentManagement() {
                     <td className="px-4 py-3">
                       <p className="text-sm font-medium">{dep.name}</p>
                       <p className="text-muted-foreground mt-0.5 text-xs">
-                        Staff Members: {dep.userCount}
+                        {t(
+                          'staff_members_count',
+                          'Staff Members: :count',
+                        ).replace(':count', String(dep.userCount))}
                       </p>
                     </td>
                     <td className="px-4 py-3">
@@ -372,7 +380,9 @@ export default function DepartmentManagement() {
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${dep.status === 'active' ? 'bg-secondary/10 text-secondary' : 'bg-muted text-muted-foreground'}`}
                       >
-                        {dep.status === 'active' ? 'Active' : 'Inactive'}
+                        {dep.status === 'active'
+                          ? t('active', 'Active')
+                          : t('inactive', 'Inactive')}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -380,14 +390,14 @@ export default function DepartmentManagement() {
                         <button
                           onClick={() => openEdit(dep)}
                           className="hover:bg-muted rounded p-1.5 transition-colors"
-                          title="Edit"
+                          title={t('edit', 'Edit')}
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => setDeleteId(dep.id)}
                           className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
-                          title="Delete"
+                          title={t('delete', 'Delete')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -404,16 +414,23 @@ export default function DepartmentManagement() {
       {/* Add / Edit modal */}
       {showModal && (
         <Modal
-          title={editingId ? 'Edit Department' : 'Add Department'}
+          title={
+            editingId
+              ? t('edit_department', 'Edit Department')
+              : t('add_department', 'Add Department')
+          }
           onClose={() => setShowModal(false)}
         >
           <div className="space-y-4 p-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <Field label="Department Name" required>
+                <Field label={t('department_name', 'Department Name')} required>
                   <input
                     className={inputCls}
-                    placeholder="e.g. Survey Division"
+                    placeholder={t(
+                      'survey_division_placeholder',
+                      'e.g. Survey Division',
+                    )}
                     value={form.name}
                     onChange={set('name')}
                   />
@@ -424,7 +441,7 @@ export default function DepartmentManagement() {
                   )}
                 </Field>
               </div>
-              <Field label="Department Code" required>
+              <Field label={t('department_code', 'Department Code')} required>
                 <input
                   className={`${inputCls} uppercase`}
                   placeholder="e.g. SD"
@@ -438,20 +455,20 @@ export default function DepartmentManagement() {
                   </span>
                 )}
               </Field>
-              <Field label="Status">
+              <Field label={t('status', 'Status')}>
                 <select
                   className={inputCls}
                   value={form.status}
                   onChange={set('status')}
                 >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="active">{t('active', 'Active')}</option>
+                  <option value="inactive">{t('inactive', 'Inactive')}</option>
                 </select>
               </Field>
-              <Field label="Head of Department" required>
+              <Field label={t('col_dept_head', 'Head of Department')} required>
                 <input
                   className={inputCls}
-                  placeholder="Full name"
+                  placeholder={t('full_name_placeholder', 'Full name')}
                   value={form.head}
                   onChange={set('head')}
                 />
@@ -461,7 +478,7 @@ export default function DepartmentManagement() {
                   </span>
                 )}
               </Field>
-              <Field label="Email">
+              <Field label={t('email', 'Email')}>
                 <input
                   className={inputCls}
                   type="email"
@@ -471,7 +488,7 @@ export default function DepartmentManagement() {
                 />
               </Field>
               <div className="col-span-2">
-                <Field label="Phone">
+                <Field label={t('phone', 'Phone')}>
                   <input
                     className={inputCls}
                     type="tel"
@@ -482,7 +499,7 @@ export default function DepartmentManagement() {
                 </Field>
               </div>
               <div className="col-span-2">
-                <Field label="Staff Members">
+                <Field label={t('col_staff', 'Staff Members')}>
                   <input
                     type="number"
                     className={inputCls}
@@ -499,14 +516,16 @@ export default function DepartmentManagement() {
                 onClick={() => setShowModal(false)}
                 className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors"
               >
-                <X className="h-4 w-4" /> Cancel
+                <X className="h-4 w-4" /> {t('cancel', 'Cancel')}
               </button>
               <button
                 onClick={handleSave}
                 className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors"
               >
                 <Save className="h-4 w-4" />{' '}
-                {editingId ? 'Save Changes' : 'Add Department'}
+                {editingId
+                  ? t('save_changes', 'Save Changes')
+                  : t('add_department', 'Add Department')}
               </button>
             </div>
           </div>
@@ -515,27 +534,32 @@ export default function DepartmentManagement() {
 
       {/* Delete confirm */}
       {deleteId && (
-        <Modal title="Confirm Delete" onClose={() => setDeleteId(null)}>
+        <Modal
+          title={t('confirm_delete', 'Confirm Delete')}
+          onClose={() => setDeleteId(null)}
+        >
           <div className="p-6">
             <p className="text-muted-foreground mb-5 text-sm">
-              Are you sure you want to delete{' '}
-              <strong>
-                {departments.find((d) => d.id === deleteId)?.name}
-              </strong>
-              ? This action cannot be undone.
+              {t(
+                'confirm_dep_delete_desc',
+                'Are you sure you want to delete :name? This action cannot be undone.',
+              ).replace(
+                ':name',
+                departments.find((d) => d.id === deleteId)?.name || '',
+              )}
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setDeleteId(null)}
                 className="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm transition-colors"
               >
-                Cancel
+                {t('cancel', 'Cancel')}
               </button>
               <button
                 onClick={() => handleDelete(deleteId)}
                 className="bg-destructive hover:bg-destructive/90 rounded-lg px-4 py-2 text-sm text-white transition-colors"
               >
-                Delete
+                {t('delete', 'Delete')}
               </button>
             </div>
           </div>

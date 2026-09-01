@@ -14,7 +14,8 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import UnifiedMap from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
@@ -273,10 +274,6 @@ export default function AddLandParcel() {
     { id: string; file: File; category: string }[]
   >([]);
 
-  // Google Map refs
-  const mapRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
-
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
   const userId = user?.id;
@@ -333,7 +330,7 @@ export default function AddLandParcel() {
     const errs: any = {};
 
     if (!newResidentForm.name.trim()) {
-      errs.name = 'Resident name is required';
+      errs.name = t('resident_name_required', 'Resident name is required');
     }
 
     if (Object.keys(errs).length > 0) {
@@ -364,7 +361,44 @@ export default function AddLandParcel() {
     setShowNewResidentForm(false);
   };
 
+  const syncOwnerResidents = (
+    owners: any[],
+    hasHouses: boolean,
+    isResOwner: boolean,
+    prevResidents: any[],
+  ) => {
+    if (hasHouses && isResOwner) {
+      const nonOwnerResidents = prevResidents.filter(
+        (r) => r.relationship !== 'owner',
+      );
+
+      const ownerResidents = owners.map((owner) => ({
+        name: owner.name,
+        nic: owner.nic || null,
+        contact: owner.contact || null,
+        address: owner.address || null,
+        relationship: 'owner' as const,
+      }));
+
+      return [...ownerResidents, ...nonOwnerResidents];
+    }
+
+    return prevResidents.filter((r) => r.relationship !== 'owner');
+  };
+
   const handleRemoveResident = (index: number) => {
+    const residentToRemove = selectedResidents[index];
+
+    if (residentToRemove?.relationship === 'owner' && form.isResidentOwner) {
+      const remainingOwnerResidents = selectedResidents.filter(
+        (r, i) => i !== index && r.relationship === 'owner',
+      );
+
+      if (remainingOwnerResidents.length === 0) {
+        setForm((f) => ({ ...f, isResidentOwner: false }));
+      }
+    }
+
     setSelectedResidents((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -418,153 +452,13 @@ export default function AddLandParcel() {
     fetchData();
   }, []);
 
-  // Store initial form coordinates in a ref to prevent re-running map loader effect
-  const initialCoords = useRef({
-    latitude: form.latitude,
-    longitude: form.longitude,
-  });
-
-  // Load Google Maps API and initialize map
-  useEffect(() => {
-    const apiKey = (import.meta as any).env.VITE_GOOGLE_MAP_API_KEY || '';
-    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initAddLandParcelMapCallback`;
-
-    // Default center in Galle, Sri Lanka (Southern Province)
-    const defaultLat = 6.0535;
-    const defaultLng = 80.221;
-
-    (window as any).initAddLandParcelMapCallback = () => {
-      const mapContainer = document.getElementById('google-map-picker');
-
-      if (!mapContainer) {
-        return;
-      }
-
-      const initialLat =
-        parseFloat(initialCoords.current.latitude) || defaultLat;
-      const initialLng =
-        parseFloat(initialCoords.current.longitude) || defaultLng;
-      const center = { lat: initialLat, lng: initialLng };
-
-      const map = new (window as any).google.maps.Map(mapContainer, {
-        center: center,
-        zoom: 12,
-        mapTypeId: 'roadmap',
-      });
-      mapRef.current = map;
-
-      if (initialCoords.current.latitude && initialCoords.current.longitude) {
-        const marker = new (window as any).google.maps.Marker({
-          position: center,
-          map: map,
-          draggable: true,
-        });
-        marker.addListener('dragend', () => {
-          const pos = marker.getPosition();
-
-          if (pos) {
-            setForm((f) => ({
-              ...f,
-              latitude: pos.lat().toFixed(6),
-              longitude: pos.lng().toFixed(6),
-            }));
-          }
-        });
-        markerRef.current = marker;
-      }
-
-      // Add click listener on map to pin location
-      map.addListener('click', (e: any) => {
-        if (!e.latLng) {
-          return;
-        }
-
-        const clickedLat = e.latLng.lat();
-        const clickedLng = e.latLng.lng();
-
-        setForm((f) => ({
-          ...f,
-          latitude: clickedLat.toFixed(6),
-          longitude: clickedLng.toFixed(6),
-        }));
-      });
-    };
-
-    // Load script
-    if (!(window as any).google || !(window as any).google.maps) {
-      const existingScript = document.getElementById('google-maps-script');
-
-      if (!existingScript) {
-        const script = document.createElement('script');
-        script.id = 'google-maps-script';
-        script.src = scriptUrl;
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-      } else {
-        if (
-          typeof (window as any).initAddLandParcelMapCallback === 'function' &&
-          (window as any).google &&
-          (window as any).google.maps
-        ) {
-          (window as any).initAddLandParcelMapCallback();
-        }
-      }
-    } else {
-      (window as any).initAddLandParcelMapCallback();
-    }
-
-    return () => {
-      delete (window as any).initAddLandParcelMapCallback;
-    };
-  }, []);
-
-  // Update marker position and center map when latitude/longitude change manually
-  useEffect(() => {
-    if (
-      (window as any).google &&
-      (window as any).google.maps &&
-      mapRef.current
-    ) {
-      const lat = parseFloat(form.latitude);
-      const lng = parseFloat(form.longitude);
-
-      if (
-        !isNaN(lat) &&
-        !isNaN(lng) &&
-        lat >= -90 &&
-        lat <= 90 &&
-        lng >= -180 &&
-        lng <= 180
-      ) {
-        const newPos = { lat, lng };
-
-        if (markerRef.current) {
-          markerRef.current.setPosition(newPos);
-        } else {
-          const newMarker = new (window as any).google.maps.Marker({
-            position: newPos,
-            map: mapRef.current,
-            draggable: true,
-          });
-          newMarker.addListener('dragend', () => {
-            const pos = newMarker.getPosition();
-
-            if (pos) {
-              setForm((f) => ({
-                ...f,
-                latitude: pos.lat().toFixed(6),
-                longitude: pos.lng().toFixed(6),
-              }));
-            }
-          });
-          markerRef.current = newMarker;
-        }
-
-        mapRef.current.setCenter(newPos);
-      }
-    }
-  }, [form.latitude, form.longitude]);
+  const handleMapChange = (lat: string, lng: string) => {
+    setForm((f) => ({
+      ...f,
+      latitude: lat,
+      longitude: lng,
+    }));
+  };
 
   const set =
     (field: keyof FormData) =>
@@ -579,19 +473,19 @@ export default function AddLandParcel() {
     const errs: any = {};
 
     if (!newOwnerForm.name.trim()) {
-      errs.name = 'Name is required';
+      errs.name = t('owner_name_required', 'Name is required');
     }
 
     if (!newOwnerForm.nic.trim()) {
-      errs.nic = 'NIC is required';
+      errs.nic = t('owner_nic_required', 'NIC is required');
     }
 
     if (!newOwnerForm.contact.trim()) {
-      errs.contact = 'Contact is required';
+      errs.contact = t('owner_contact_required', 'Contact is required');
     }
 
     if (!newOwnerForm.address.trim()) {
-      errs.address = 'Address is required';
+      errs.address = t('owner_address_required', 'Address is required');
     }
 
     if (
@@ -599,7 +493,7 @@ export default function AddLandParcel() {
         (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
       )
     ) {
-      errs.nic = 'This owner is already added';
+      errs.nic = t('owner_added_error', 'This owner is already added');
     }
 
     if (
@@ -607,8 +501,10 @@ export default function AddLandParcel() {
         (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
       )
     ) {
-      errs.nic =
-        'An owner with this NIC already exists in the database. Use search instead.';
+      errs.nic = t(
+        'owner_exists_db_error',
+        'An owner with this NIC already exists in the database. Use search instead.',
+      );
     }
 
     if (Object.keys(errs).length > 0) {
@@ -617,16 +513,24 @@ export default function AddLandParcel() {
       return;
     }
 
-    setSelectedOwners((prev) => [
-      ...prev,
-      {
-        isNew: true,
-        name: newOwnerForm.name.trim(),
-        nic: newOwnerForm.nic.trim(),
-        contact: newOwnerForm.contact.trim(),
-        address: newOwnerForm.address.trim(),
-      },
-    ]);
+    const newOwnerObj = {
+      isNew: true,
+      name: newOwnerForm.name.trim(),
+      nic: newOwnerForm.nic.trim(),
+      contact: newOwnerForm.contact.trim(),
+      address: newOwnerForm.address.trim(),
+    };
+
+    const newOwners = [...selectedOwners, newOwnerObj];
+    setSelectedOwners(newOwners);
+    setSelectedResidents((prev) =>
+      syncOwnerResidents(
+        newOwners,
+        form.hasResidentialHouses,
+        form.isResidentOwner,
+        prev,
+      ),
+    );
 
     setNewOwnerForm({ name: '', nic: '', contact: '', address: '' });
     setNewOwnerErrors({});
@@ -635,29 +539,51 @@ export default function AddLandParcel() {
 
   const handleSelectExistingOwner = (owner: PropertyOwner) => {
     if (selectedOwners.some((o) => o.nic === owner.nic)) {
-      toastError('This owner is already added to the parcel.');
+      toastError(
+        t(
+          'owner_added_parcel_error',
+          'This owner is already added to the parcel.',
+        ),
+      );
 
       return;
     }
 
-    setSelectedOwners((prev) => [
-      ...prev,
-      {
-        id: owner.id,
-        ownerId: owner.ownerId,
-        isNew: false,
-        name: owner.name,
-        nic: owner.nic,
-        contact: owner.contact,
-        address: owner.address,
-      },
-    ]);
+    const newOwnerObj = {
+      id: owner.id,
+      ownerId: owner.ownerId,
+      isNew: false,
+      name: owner.name,
+      nic: owner.nic,
+      contact: owner.contact,
+      address: owner.address,
+    };
+
+    const newOwners = [...selectedOwners, newOwnerObj];
+    setSelectedOwners(newOwners);
+    setSelectedResidents((prev) =>
+      syncOwnerResidents(
+        newOwners,
+        form.hasResidentialHouses,
+        form.isResidentOwner,
+        prev,
+      ),
+    );
     setOwnerSearch('');
     setShowOwnerPicker(false);
   };
 
   const handleRemoveOwner = (index: number) => {
-    setSelectedOwners((prev) => prev.filter((_, i) => i !== index));
+    const newOwners = selectedOwners.filter((_, i) => i !== index);
+    setSelectedOwners(newOwners);
+    setSelectedResidents((prev) =>
+      syncOwnerResidents(
+        newOwners,
+        form.hasResidentialHouses,
+        form.isResidentOwner,
+        prev,
+      ),
+    );
   };
 
   const filteredExistingOwners = useMemo(() => {
@@ -687,35 +613,49 @@ export default function AddLandParcel() {
     const errs: Partial<Record<keyof FormData, string>> = {};
 
     if (!form.landNumber.trim()) {
-      errs.landNumber = 'Land Number is required';
+      errs.landNumber = t('land_number_required', 'Land Number is required');
     }
 
     if (!form.district) {
-      errs.district = 'District is required';
+      errs.district = t('district_required', 'District is required');
     }
 
     if (!form.divisionalSecretariat.trim()) {
-      errs.divisionalSecretariat = 'Divisional Secretariat is required';
+      errs.divisionalSecretariat = t(
+        'div_sec_required',
+        'Divisional Secretariat is required',
+      );
     }
 
     if (!form.village.trim()) {
-      errs.village = 'Village is required';
+      errs.village = t('village_required', 'Village is required');
     }
 
     if (!form.extentAcres.trim()) {
-      errs.extentAcres = 'Extent (acres) is required';
+      errs.extentAcres = t(
+        'extent_acres_required',
+        'Extent (acres) is required',
+      );
     }
 
     if (!form.landUseType) {
-      errs.landUseType = 'Land use type is required';
+      errs.landUseType = t(
+        'land_use_type_required',
+        'Land use type is required',
+      );
     }
 
     if (!form.tenureType) {
-      errs.tenureType = 'Tenure type is required';
+      errs.tenureType = t('tenure_type_required', 'Tenure type is required');
     }
 
     if (selectedOwners.length === 0) {
-      toastError('You must add or select at least one property owner.');
+      toastError(
+        t(
+          'min_one_owner_error',
+          'You must add or select at least one property owner.',
+        ),
+      );
 
       return false;
     }
@@ -723,8 +663,14 @@ export default function AddLandParcel() {
     if (!planFile) {
       toastError(
         form.hasPlan
-          ? 'You must upload a copy of the land parcel plan.'
-          : 'You must upload a simple sketch of the land parcel.',
+          ? t(
+              'upload_copy_of_plan_error',
+              'You must upload a copy of the land parcel plan.',
+            )
+          : t(
+              'upload_simple_sketch_error',
+              'You must upload a simple sketch of the land parcel.',
+            ),
       );
 
       return false;
@@ -772,8 +718,13 @@ export default function AddLandParcel() {
 
       const payload = {
         parcel_id: form.landNumber,
-        land_name: form.landName || 'Land Parcel ' + form.landNumber,
-        province: form.province || 'Southern',
+        land_name:
+          form.landName ||
+          t('land_parcel_name_generated', 'Land Parcel {number}').replace(
+            '{number}',
+            form.landNumber,
+          ),
+        province: form.province || t('southern_default', 'Southern'),
         district: form.district,
         division: form.divisionalSecretariat,
         divisional_secretariat: form.divisionalSecretariat,
@@ -800,12 +751,17 @@ export default function AddLandParcel() {
         has_residential_houses: form.hasResidentialHouses,
         is_resident_owner: form.isResidentOwner,
         is_cultivated: form.isCultivated,
-        cultivation: form.isCultivated ? form.cultivation || 'N/A' : 'N/A',
+        cultivation: form.isCultivated
+          ? form.cultivation || t('n_a', 'N/A')
+          : t('n_a', 'N/A'),
         cultivation_status: form.isCultivated
           ? form.cultivationStatus
           : 'unspecified',
         annual_income: form.isCultivated ? Number(form.annualIncome) || 0 : 0,
-        land_type: form.landType || form.landUseType || 'Standard',
+        land_type:
+          form.landType ||
+          form.landUseType ||
+          t('standard_land_type', 'Standard'),
         is_casehold: form.isCasehold,
         case_number: form.isCasehold ? form.caseNumber || null : null,
         case_start_date: form.isCasehold ? form.caseStartDate || null : null,
@@ -850,7 +806,9 @@ export default function AddLandParcel() {
         }
       }
 
-      toastSuccess('Land parcel created successfully!');
+      toastSuccess(
+        t('land_parcel_created_success', 'Land parcel created successfully!'),
+      );
       router.visit('/land-parcels');
     } catch (error: any) {
       console.error('Failed to create land parcel:', error);
@@ -888,16 +846,25 @@ export default function AddLandParcel() {
           }
         });
         setErrors(backendErrors);
-        await alertInfo('Validation Error', errorMessages.join('\n'));
+        await alertInfo(
+          t('validation_error_title', 'Validation Error'),
+          errorMessages.join('\n'),
+        );
       } else if (error.response?.data?.message) {
         setErrors({ landNumber: error.response.data.message });
         toastError(`Error: ${error.response.data.message}`);
       } else {
         setErrors({
-          landNumber: 'An error occurred while saving the land parcel.',
+          landNumber: t(
+            'generic_error_saving',
+            'An error occurred while saving the land parcel.',
+          ),
         });
         toastError(
-          'An error occurred while saving the land parcel. Please verify your inputs.',
+          t(
+            'save_parcel_error',
+            'An error occurred while saving the land parcel. Please verify your inputs.',
+          ),
         );
       }
     } finally {
@@ -918,7 +885,7 @@ export default function AddLandParcel() {
           <button
             onClick={() => router.visit('/land-parcels')}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
-            title="Back to Land Parcels"
+            title={t('back_to_land_parcels', 'Back to Land Parcels')}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -1074,13 +1041,24 @@ export default function AddLandParcel() {
 
             <div className="mt-2 md:col-span-2 lg:col-span-3">
               <label className="text-foreground mb-1.5 block text-sm font-medium">
-                {t('google_map_title')}
+                {t(
+                  'google_map_title',
+                  'Map Location (Click map to pin / drag marker)',
+                )}
               </label>
               <div
-                id="google-map-picker"
-                className="border-border bg-muted/20 w-full overflow-hidden rounded-xl border"
+                className="border-border bg-muted/20 animate-in fade-in w-full overflow-hidden rounded-xl border"
                 style={{ minHeight: '320px', height: '320px' }}
-              />
+              >
+                <UnifiedMap
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                  zoom={12}
+                  editable={true}
+                  onChange={handleMapChange}
+                  height="100%"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1464,7 +1442,7 @@ export default function AddLandParcel() {
                         type="button"
                         onClick={() => handleRemoveOwner(idx)}
                         className="text-muted-foreground hover:text-destructive absolute right-3 top-3 transition-colors"
-                        title="Remove Owner"
+                        title={t('remove_owner_tooltip', 'Remove Owner')}
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -1477,23 +1455,27 @@ export default function AddLandParcel() {
                                 : 'bg-blue-500/10 text-blue-600'
                             }`}
                           >
-                            {owner.isNew ? 'New' : 'Existing'}
+                            {owner.isNew
+                              ? t('new_label', 'New')
+                              : t('existing_label', 'Existing')}
                           </span>
                           <span className="text-muted-foreground font-mono text-xs">
-                            {owner.isNew ? 'Will be created' : owner.ownerId}
+                            {owner.isNew
+                              ? t('will_be_created', 'Will be created')
+                              : owner.ownerId}
                           </span>
                         </div>
                         <h4 className="text-foreground text-sm font-semibold">
                           {owner.name}
                         </h4>
                         <p className="text-muted-foreground mt-1 text-xs">
-                          NIC: {owner.nic}
+                          {t('nic', 'NIC')}: {owner.nic}
                         </p>
                         <p className="text-muted-foreground font-mono text-xs">
-                          Contact: {owner.contact}
+                          {t('contact', 'Contact')}: {owner.contact}
                         </p>
                         <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
-                          Address: {owner.address}
+                          {t('address', 'Address')}: {owner.address}
                         </p>
                       </div>
                     </div>
@@ -1728,12 +1710,25 @@ export default function AddLandParcel() {
                   type="checkbox"
                   className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.hasResidentialHouses}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newIsResOwner = checked
+                      ? form.isResidentOwner
+                      : false;
                     setForm((f) => ({
                       ...f,
-                      hasResidentialHouses: e.target.checked,
-                    }))
-                  }
+                      hasResidentialHouses: checked,
+                      isResidentOwner: newIsResOwner,
+                    }));
+                    setSelectedResidents((prev) =>
+                      syncOwnerResidents(
+                        selectedOwners,
+                        checked,
+                        newIsResOwner,
+                        prev,
+                      ),
+                    );
+                  }}
                 />
                 <span className="text-foreground text-sm font-medium">
                   {t('is_land_has_residential_houses')}
@@ -1747,12 +1742,25 @@ export default function AddLandParcel() {
                   type="checkbox"
                   className="border-border text-primary focus:ring-primary/40 h-4 w-4 rounded"
                   checked={form.isResidentOwner}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newHasHouses = checked
+                      ? true
+                      : form.hasResidentialHouses;
                     setForm((f) => ({
                       ...f,
-                      isResidentOwner: e.target.checked,
-                    }))
-                  }
+                      isResidentOwner: checked,
+                      hasResidentialHouses: newHasHouses,
+                    }));
+                    setSelectedResidents((prev) =>
+                      syncOwnerResidents(
+                        selectedOwners,
+                        newHasHouses,
+                        checked,
+                        prev,
+                      ),
+                    );
+                  }}
                 />
                 <span className="text-foreground text-sm font-medium">
                   {t('is_resident_owner')}
@@ -1786,7 +1794,10 @@ export default function AddLandParcel() {
                           type="button"
                           onClick={() => handleRemoveResident(idx)}
                           className="text-muted-foreground hover:text-destructive absolute right-3 top-3 transition-colors"
-                          title="Remove Resident"
+                          title={t(
+                            'remove_resident_tooltip',
+                            'Remove Resident',
+                          )}
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -2055,7 +2066,10 @@ export default function AddLandParcel() {
                         type="button"
                         onClick={() => handleRemoveQueuedFile(doc.id)}
                         className="text-muted-foreground hover:text-destructive p-1 transition-colors"
-                        title="Remove from queue"
+                        title={t(
+                          'remove_from_queue_tooltip',
+                          'Remove from queue',
+                        )}
                       >
                         <X className="h-4 w-4" />
                       </button>
