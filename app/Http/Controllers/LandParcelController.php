@@ -527,6 +527,7 @@ class LandParcelController extends Controller
         $columnMap = [
             'parcel_id' => 'Land Number',
             'land_name' => 'Land Name',
+            'province' => 'Province',
             'district' => 'District',
             'divisional_secretariat' => 'Division',
             'grama_niladari_division' => 'GN Division',
@@ -537,6 +538,21 @@ class LandParcelController extends Controller
             'estimated_value' => 'Estimated Value',
             'is_casehold' => 'Casehold',
             'is_donated' => 'Donated',
+            'has_plan' => 'Has Plan',
+            'plan_number' => 'Plan Number',
+            'parcel_numbers' => 'Parcel Numbers',
+            'boundaries_north' => 'North Boundary',
+            'boundaries_south' => 'South Boundary',
+            'boundaries_east' => 'East Boundary',
+            'boundaries_west' => 'West Boundary',
+            'has_residential_houses' => 'Has Residential Houses',
+            'is_resident_owner' => 'Is Resident Owner',
+            'is_cultivated' => 'Is Cultivated',
+            'cultivation' => 'Cultivation',
+            'cultivation_status' => 'Cultivation Status',
+            'annual_income' => 'Annual Income',
+            'latitude' => 'Latitude',
+            'longitude' => 'Longitude',
         ];
 
         $validationRules = [
@@ -549,6 +565,9 @@ class LandParcelController extends Controller
             'estimated_value' => 'nullable|string|max:255',
             'is_casehold' => 'nullable|string|max:255',
             'is_donated' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'annual_income' => 'nullable|numeric',
         ];
 
         $normalizeFields = [
@@ -557,17 +576,40 @@ class LandParcelController extends Controller
 
         $transform = function ($mappedData, $row) {
             return DB::transaction(function () use ($mappedData, $row) {
-                // 1. Resolve project
-                $projectField = null;
-                if (isset($row['associated_project'])) {
-                    $projectField = $row['associated_project'];
-                } elseif (isset($row['project'])) {
-                    $projectField = $row['project'];
+                // Helper for parsing booleans (Yes/No, True/False, 1/0)
+                $parseBool = function ($val, $default = false) {
+                    if ($val === null || $val === '') {
+                        return $default;
+                    }
+                    if (is_bool($val)) {
+                        return $val;
+                    }
+                    $str = strtolower(trim((string) $val));
+
+                    return in_array($str, ['yes', '1', 'true', 'y']);
+                };
+
+                // Helper to split values by semicolon or comma
+                $splitHelper = function ($value) {
+                    if (empty($value) || trim((string) $value) === 'N/A') {
+                        return [];
+                    }
+                    $strVal = (string) $value;
+                    $delimiter = strpos($strVal, ';') !== false ? ';' : ',';
+
+                    return array_values(array_filter(array_map('trim', explode($delimiter, $strVal))));
+                };
+
+                // Fallback parcel_id
+                if (empty($mappedData['parcel_id'])) {
+                    $mappedData['parcel_id'] = $row['parcel_id'] ?? ($row['land_no'] ?? ($row['land_number'] ?? null));
                 }
 
-                if ($projectField && trim($projectField) !== 'N/A') {
-                    $project = Projects::where('title', trim($projectField))
-                        ->orWhere('project_id', trim($projectField))
+                // 1. Resolve project
+                $projectField = $row['associated_project'] ?? ($row['project'] ?? ($row['project_id'] ?? null));
+                if ($projectField && trim((string) $projectField) !== 'N/A') {
+                    $project = Projects::where('title', trim((string) $projectField))
+                        ->orWhere('project_id', trim((string) $projectField))
                         ->first();
                     if ($project) {
                         $mappedData['project_id'] = $project->id;
@@ -580,11 +622,7 @@ class LandParcelController extends Controller
                 $perches = 0;
 
                 // Try combined Extent column first
-                $extentField = null;
-                if (isset($row['extent'])) {
-                    $extentField = $row['extent'];
-                }
-
+                $extentField = $row['extent'] ?? null;
                 if ($extentField) {
                     if (preg_match('/([\d\.]+)\s*(?:ac|acer|acres?)/i', $extentField, $matches)) {
                         $acers = (float) $matches[1];
@@ -618,9 +656,9 @@ class LandParcelController extends Controller
                     $perches = (float) $row['land_size_perches'];
                 }
 
-                $mappedData['land_name'] = $mappedData['land_name'] ?? ('Land Parcel '.$mappedData['parcel_id']);
-                $mappedData['province'] = $mappedData['province'] ?? 'Southern';
-                $mappedData['divisional_secretariat'] = $mappedData['divisional_secretariat'] ?? ($row['division'] ?? 'N/A');
+                $mappedData['land_name'] = $mappedData['land_name'] ?? ($row['land_name'] ?? ('Land Parcel '.$mappedData['parcel_id']));
+                $mappedData['province'] = $mappedData['province'] ?? ($row['province'] ?? 'Southern');
+                $mappedData['divisional_secretariat'] = $mappedData['divisional_secretariat'] ?? ($row['division'] ?? ($row['divisional_secretariat'] ?? 'N/A'));
 
                 // GN Division
                 $mappedData['grama_niladari_division'] = $mappedData['grama_niladari_division'] ?? ($row['gn_division'] ?? ($row['grama_niladhari_division'] ?? 'N/A'));
@@ -629,7 +667,7 @@ class LandParcelController extends Controller
                 }
 
                 // Land Type
-                $mappedData['land_type'] = $mappedData['land_type'] ?? ($row['land_type'] ?? 'Standard');
+                $mappedData['land_type'] = $mappedData['land_type'] ?? ($row['land_type'] ?? ($row['land_use_type'] ?? ($row['tenure_type'] ?? 'Standard')));
                 if (empty($mappedData['land_type'])) {
                     $mappedData['land_type'] = 'Standard';
                 }
@@ -637,24 +675,15 @@ class LandParcelController extends Controller
                 // Estimated Value
                 $estValue = $mappedData['estimated_value'] ?? ($row['estimated_value'] ?? 0);
                 if ($estValue !== null && $estValue !== '') {
-                    $cleanVal = preg_replace('/[^\d\.]/', '', $estValue);
+                    $cleanVal = preg_replace('/[^\d\.]/', '', (string) $estValue);
                     $mappedData['estimated_value'] = (float) $cleanVal;
                 } else {
                     $mappedData['estimated_value'] = 0;
                 }
 
                 // Casehold
-                $isCasehold = $mappedData['is_casehold'] ?? ($row['is_casehold'] ?? ($row['casehold'] ?? false));
-                if ($isCasehold !== null && $isCasehold !== '') {
-                    if (is_bool($isCasehold)) {
-                        $mappedData['is_casehold'] = $isCasehold;
-                    } else {
-                        $val = strtolower(trim($isCasehold));
-                        $mappedData['is_casehold'] = ($val === 'yes' || $val === '1' || $val === 'true');
-                    }
-                } else {
-                    $mappedData['is_casehold'] = false;
-                }
+                $isCaseholdRaw = $mappedData['is_casehold'] ?? ($row['is_casehold'] ?? ($row['casehold'] ?? false));
+                $mappedData['is_casehold'] = $parseBool($isCaseholdRaw, false);
 
                 // Casehold details
                 $mappedData['case_number'] = null;
@@ -663,43 +692,81 @@ class LandParcelController extends Controller
                 $mappedData['case_end_date'] = null;
                 if ($mappedData['is_casehold']) {
                     if (isset($row['case_number'])) {
-                        $mappedData['case_number'] = trim($row['case_number']);
+                        $mappedData['case_number'] = trim((string) $row['case_number']);
                     }
                     if (isset($row['case_status'])) {
-                        $mappedData['case_status'] = trim($row['case_status']);
+                        $mappedData['case_status'] = trim((string) $row['case_status']);
                     }
                     if (isset($row['case_start_date'])) {
-                        $mappedData['case_start_date'] = trim($row['case_start_date']);
+                        $mappedData['case_start_date'] = trim((string) $row['case_start_date']);
                     }
                     if (isset($row['case_end_date'])) {
-                        $mappedData['case_end_date'] = trim($row['case_end_date']);
+                        $mappedData['case_end_date'] = trim((string) $row['case_end_date']);
                     }
                 }
 
                 // Donated
-                $isDonated = $mappedData['is_donated'] ?? ($row['is_donated'] ?? ($row['donated'] ?? false));
-                if ($isDonated !== null && $isDonated !== '') {
-                    if (is_bool($isDonated)) {
-                        $mappedData['is_donated'] = $isDonated;
-                    } else {
-                        $val = strtolower(trim($isDonated));
-                        $mappedData['is_donated'] = ($val === 'yes' || $val === '1' || $val === 'true');
-                    }
-                } else {
-                    $mappedData['is_donated'] = false;
-                }
+                $isDonatedRaw = $mappedData['is_donated'] ?? ($row['is_donated'] ?? ($row['donated'] ?? false));
+                $mappedData['is_donated'] = $parseBool($isDonatedRaw, false);
 
+                // Land size
                 $mappedData['land_size_acers'] = $acers;
                 $mappedData['land_size_roods'] = $roods;
                 $mappedData['land_size_perches'] = $perches;
                 $mappedData['full_land_size'] = ($acers * 160) + ($roods * 40) + $perches;
-                $mappedData['has_plan'] = false;
-                $mappedData['parcel_numbers'] = [];
-                $mappedData['has_residential_houses'] = false;
-                $mappedData['is_resident_owner'] = false;
-                $mappedData['cultivation'] = 'N/A';
-                $mappedData['cultivation_status'] = 'fertile';
-                $mappedData['annual_income'] = 0;
+
+                // Survey Plan Details
+                $hasPlanRaw = $mappedData['has_plan'] ?? ($row['has_plan'] ?? ($row['plan_available'] ?? false));
+                $mappedData['has_plan'] = $parseBool($hasPlanRaw, false);
+                $mappedData['plan_number'] = $mappedData['plan_number'] ?? ($row['plan_number'] ?? ($row['plan_no'] ?? null));
+
+                $parcelNumsField = $mappedData['parcel_numbers'] ?? ($row['parcel_numbers'] ?? ($row['parcel_no'] ?? null));
+                if (is_array($parcelNumsField)) {
+                    $mappedData['parcel_numbers'] = $parcelNumsField;
+                } elseif ($parcelNumsField) {
+                    $mappedData['parcel_numbers'] = $splitHelper($parcelNumsField);
+                } else {
+                    $mappedData['parcel_numbers'] = [];
+                }
+
+                // Boundaries
+                $mappedData['boundaries_north'] = $mappedData['boundaries_north'] ?? ($row['boundaries_north'] ?? ($row['north_boundary'] ?? null));
+                $mappedData['boundaries_south'] = $mappedData['boundaries_south'] ?? ($row['boundaries_south'] ?? ($row['south_boundary'] ?? null));
+                $mappedData['boundaries_east'] = $mappedData['boundaries_east'] ?? ($row['boundaries_east'] ?? ($row['east_boundary'] ?? null));
+                $mappedData['boundaries_west'] = $mappedData['boundaries_west'] ?? ($row['boundaries_west'] ?? ($row['west_boundary'] ?? null));
+
+                // Residential Info
+                $hasResHousesRaw = $mappedData['has_residential_houses'] ?? ($row['has_residential_houses'] ?? ($row['residential_houses'] ?? false));
+                $mappedData['has_residential_houses'] = $parseBool($hasResHousesRaw, false);
+
+                $isResOwnerRaw = $mappedData['is_resident_owner'] ?? ($row['is_resident_owner'] ?? ($row['resident_owner'] ?? false));
+                $mappedData['is_resident_owner'] = $parseBool($isResOwnerRaw, false);
+
+                // Cultivation Info
+                $isCultivatedRaw = $mappedData['is_cultivated'] ?? ($row['is_cultivated'] ?? ($row['cultivated'] ?? false));
+                $mappedData['is_cultivated'] = $parseBool($isCultivatedRaw, false);
+                $mappedData['cultivation'] = $mappedData['cultivation'] ?? ($row['cultivation'] ?? 'N/A');
+
+                $cultStatus = strtolower(trim((string) ($mappedData['cultivation_status'] ?? ($row['cultivation_status'] ?? 'fertile'))));
+                if (in_array($cultStatus, ['fertile', 'mid', 'infertile', 'unspecified'])) {
+                    $mappedData['cultivation_status'] = $cultStatus;
+                } else {
+                    $mappedData['cultivation_status'] = 'fertile';
+                }
+
+                $incomeVal = $mappedData['annual_income'] ?? ($row['annual_income'] ?? 0);
+                if ($incomeVal !== null && $incomeVal !== '') {
+                    $cleanInc = preg_replace('/[^\d\.]/', '', (string) $incomeVal);
+                    $mappedData['annual_income'] = (float) $cleanInc;
+                } else {
+                    $mappedData['annual_income'] = 0;
+                }
+
+                // Coordinates
+                $latVal = $mappedData['latitude'] ?? ($row['latitude'] ?? null);
+                $lngVal = $mappedData['longitude'] ?? ($row['longitude'] ?? null);
+                $mappedData['latitude'] = ($latVal !== null && $latVal !== '') ? (float) $latVal : null;
+                $mappedData['longitude'] = ($lngVal !== null && $lngVal !== '') ? (float) $lngVal : null;
 
                 // 3. Handle default status
                 if (empty($mappedData['status'])) {
