@@ -15,7 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
-import UnifiedMap from '@/components/UnifiedMap';
+import UnifiedMap, { isWithinSriLanka } from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
@@ -647,6 +647,26 @@ export default function AddLandParcel() {
 
     if (!form.tenureType) {
       errs.tenureType = t('tenure_type_required', 'Tenure type is required');
+    }
+
+    if (form.latitude || form.longitude) {
+      const lat = parseFloat(form.latitude);
+      const lng = parseFloat(form.longitude);
+
+      if (isNaN(lat) || isNaN(lng) || !isWithinSriLanka(lat, lng)) {
+        errs.latitude = t(
+          'location_outside_sri_lanka',
+          'Coordinates must be strictly within Sri Lanka boundaries (Lat: 5.7 to 10.0, Lng: 79.3 to 82.0)',
+        );
+        toastError(
+          t(
+            'location_outside_sri_lanka',
+            'Coordinates must be strictly within Sri Lanka boundaries (Lat: 5.7 to 10.0, Lng: 79.3 to 82.0)',
+          ),
+        );
+
+        return false;
+      }
     }
 
     if (selectedOwners.length === 0) {

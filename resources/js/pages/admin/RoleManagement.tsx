@@ -12,6 +12,7 @@ import {
   Info,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import {
@@ -581,7 +582,13 @@ export default function RoleManagement() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"></div>
+        <LoadingSpinner
+          type="ring"
+          variant="secondary"
+          size="lg"
+          label={t('loading_roles', 'Loading system roles & matrix...')}
+          centered
+        />
       </div>
     );
   }

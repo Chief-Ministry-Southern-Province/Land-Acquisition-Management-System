@@ -1,7 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import {
   KeyRound,
-  Loader2,
   ArrowLeft,
   ShieldCheck,
   Eye,
@@ -9,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface ResetPasswordProps {
@@ -227,7 +227,7 @@ function ResetPassword() {
                 className="bg-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <LoadingSpinner type="pulse" variant="white" size="xs" />
                 ) : (
                   <KeyRound className="h-5 w-5" />
                 )}

@@ -1,11 +1,4 @@
-import {
-  Calendar,
-  Download,
-  FileText,
-  Filter,
-  Printer,
-  Loader2,
-} from 'lucide-react';
+import { Calendar, Download, FileText, Filter, Printer } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import {
   ResponsiveContainer,
@@ -19,6 +12,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import api from '@/services/api';
@@ -113,7 +107,7 @@ export default function Reports() {
   // Fetch Report Data
   useEffect(() => {
     let active = true;
-    const fetchReport = async () => {
+    const timer = setTimeout(async () => {
       try {
         setLoadingReport(true);
         const response = await api.get('/api/reports', {
@@ -137,12 +131,11 @@ export default function Reports() {
           setLoadingReport(false);
         }
       }
-    };
-
-    fetchReport();
+    }, 300);
 
     return () => {
       active = false;
+      clearTimeout(timer);
     };
   }, [
     reportType,
@@ -167,8 +160,8 @@ export default function Reports() {
     window.open(`/api/reports/export?${params.toString()}`, '_blank');
   };
 
-  const renderBadge = (cellValue: string) => {
-    if (cellValue.startsWith('badge:')) {
+  const renderBadge = (cellValue: any) => {
+    if (typeof cellValue === 'string' && cellValue.startsWith('badge:')) {
       const parts = cellValue.split(':');
       const badgeType = parts[1] || 'neutral';
       const badgeText = parts[2] || '';
@@ -438,11 +431,17 @@ export default function Reports() {
             </h3>
 
             {loadingReport ? (
-              <div className="bg-card/60 backdrop-blur-xs absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-xl">
-                <Loader2 className="h-8 w-8 animate-spin text-[#2E7D32]" />
-                <span className="text-xs font-semibold text-slate-500">
-                  {t('loading_report_preview', 'Loading report preview...')}
-                </span>
+              <div className="bg-card/80 backdrop-blur-xs absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-xl">
+                <LoadingSpinner
+                  type="ring"
+                  variant="secondary"
+                  size="md"
+                  label={t(
+                    'loading_report_preview',
+                    'Loading report preview...',
+                  )}
+                  centered
+                />
               </div>
             ) : null}
 
@@ -475,7 +474,13 @@ export default function Reports() {
                       {t('data_visualization', 'Data Visualization')}
                     </h4>
                     <div className="h-64 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer
+                        key={reportType}
+                        width="100%"
+                        height={260}
+                        minWidth={0}
+                        minHeight={0}
+                      >
                         {reportType === 'project-progress' ? (
                           <BarChart data={reportData.chart_data}>
                             <XAxis
@@ -512,8 +517,8 @@ export default function Reports() {
                               data={reportData.chart_data}
                               cx="50%"
                               cy="50%"
-                              innerRadius={60}
-                              outerRadius={80}
+                              innerRadius={50}
+                              outerRadius={75}
                               paddingAngle={5}
                               dataKey="value"
                               label={({
@@ -523,7 +528,9 @@ export default function Reports() {
                                 name?: string;
                                 percent?: number;
                               }) =>
-                                `${name ?? ''} (${((percent ?? 0) * 100).toFixed(0)}%)`
+                                percent != null && !isNaN(percent)
+                                  ? `${name ?? ''} (${(percent * 100).toFixed(0)}%)`
+                                  : `${name ?? ''}`
                               }
                             >
                               {reportData.chart_data.map(

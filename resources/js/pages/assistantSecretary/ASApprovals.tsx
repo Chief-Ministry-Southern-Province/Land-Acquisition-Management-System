@@ -401,18 +401,14 @@ export default function ASApprovals() {
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="flex h-64 items-center justify-center">
-          <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
-        </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={getFilteredData()}
-          actions={actions}
-          pageSize={10}
-        />
-      )}
+      <DataTable
+        columns={columns}
+        data={getFilteredData()}
+        actions={actions}
+        pageSize={10}
+        loading={loading}
+        loadingMessage="Loading assistant secretary pending approvals..."
+      />
 
       {/* Approve Modal */}
       {activeModal === 'approve' && actionTarget && (

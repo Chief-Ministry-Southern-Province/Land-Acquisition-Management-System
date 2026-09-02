@@ -3,12 +3,12 @@ import {
   Bell,
   Building2,
   FileText,
-  Loader2,
   Save,
   User,
   X,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { getCurrentUser, changePassword } from '@/services/authService';
@@ -444,10 +444,16 @@ export default function Settings() {
                 <h3>{t('profile_settings_title', 'User Profile')}</h3>
                 {loadingProfile ? (
                   <div className="flex flex-col items-center justify-center py-12">
-                    <Loader2 className="text-primary h-8 w-8 animate-spin" />
-                    <span className="text-muted-foreground mt-3 text-sm">
-                      {t('msg_loading_profile', 'Loading profile details...')}
-                    </span>
+                    <LoadingSpinner
+                      type="pulse"
+                      variant="secondary"
+                      size="md"
+                      label={t(
+                        'msg_loading_profile',
+                        'Loading profile details...',
+                      )}
+                      centered
+                    />
                   </div>
                 ) : profileData ? (
                   <div className="space-y-4">
@@ -572,7 +578,7 @@ export default function Settings() {
                 className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-6 py-3 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {saving ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <LoadingSpinner type="pulse" variant="white" size="xs" />
                 ) : (
                   <Save className="h-5 w-5" />
                 )}
