@@ -18,10 +18,10 @@ import {
   Trash2,
   AlertCircle,
   X,
-  Loader2,
   RotateCcw,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog } from '@/lib/alerts';
@@ -937,7 +937,7 @@ export default function SystemSettings() {
               >
                 {creatingBackup ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />{' '}
+                    <LoadingSpinner type="beat" variant="primary" size="xs" />{' '}
                     {t('backing_up', 'Backing up...')}
                   </>
                 ) : (
@@ -954,7 +954,7 @@ export default function SystemSettings() {
               >
                 {creatingFilesBackup ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />{' '}
+                    <LoadingSpinner type="beat" variant="primary" size="xs" />{' '}
                     {t('backing_up', 'Backing up...')}
                   </>
                 ) : (
@@ -971,7 +971,7 @@ export default function SystemSettings() {
               >
                 {clearingCache ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />{' '}
+                    <LoadingSpinner type="beat" variant="primary" size="xs" />{' '}
                     {t('clearing_cache', 'Clearing Cache...')}
                   </>
                 ) : (
@@ -994,7 +994,7 @@ export default function SystemSettings() {
             <div className="py-4">
               {loadingBackups ? (
                 <div className="flex items-center justify-center py-6">
-                  <Loader2 className="text-primary h-8 w-8 animate-spin" />
+                  <LoadingSpinner type="sync" variant="secondary" size="md" />
                 </div>
               ) : backups.length === 0 ? (
                 <div className="text-muted-foreground flex flex-col items-center justify-center py-8 text-center">
@@ -1099,7 +1099,11 @@ export default function SystemSettings() {
                                     className="text-muted-foreground hover:text-primary rounded p-1 transition-colors disabled:opacity-50"
                                   >
                                     {restoringBackup === bk.filename ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      <LoadingSpinner
+                                        type="clip"
+                                        variant="primary"
+                                        size="xs"
+                                      />
                                     ) : (
                                       <RotateCcw className="h-4 w-4" />
                                     )}

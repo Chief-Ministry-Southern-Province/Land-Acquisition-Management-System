@@ -19,8 +19,8 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { SyncLoader } from 'react-spinners';
 import { DataTable } from '@/components/ui/DataTable';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
@@ -657,10 +657,16 @@ export default function DocumentList() {
       {/* Main Grid View */}
       {loading ? (
         <div className="bg-card border-border flex min-h-[350px] flex-col items-center justify-center gap-3 rounded-xl border">
-          <SyncLoader size={12} color="#2E7D32" />
-          <p className="text-muted-foreground text-sm">
-            {t('loading_documents_inventory', 'Loading documents inventory...')}
-          </p>
+          <LoadingSpinner
+            type="grid"
+            variant="secondary"
+            size="md"
+            label={t(
+              'loading_documents_inventory',
+              'Loading documents inventory...',
+            )}
+            centered
+          />
         </div>
       ) : (
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
@@ -901,7 +907,7 @@ export default function DocumentList() {
                 >
                   {uploadLoading ? (
                     <>
-                      <SyncLoader size={4} color="#ffffff" />
+                      <LoadingSpinner type="beat" variant="white" size="xs" />
                       <span>{t('btn_uploading', 'Uploading...')}</span>
                     </>
                   ) : (

@@ -1,7 +1,6 @@
 import { router } from '@inertiajs/react';
 import { Edit, Plus, Shield, Trash2 } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
-import { SyncLoader } from 'react-spinners';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -219,14 +218,13 @@ export default function UserManagement() {
         </div>
       )}
 
-      {isLoading ? (
-        <div className="text-muted-foreground flex h-40 items-center justify-center gap-3 text-lg">
-          <SyncLoader size={14} color="#494949" />
-          <span>{t('loading_users', 'Loading users')}</span>
-        </div>
-      ) : (
-        <DataTable columns={columns} data={users} actions={actions} />
-      )}
+      <DataTable
+        columns={columns}
+        data={users}
+        actions={actions}
+        loading={isLoading}
+        loadingMessage={t('loading_users', 'Loading users')}
+      />
     </div>
   );
 }

@@ -29,6 +29,7 @@ export interface UserResponse {
     email: string;
     department_id: number;
     role_id: number;
+    signature?: string | null;
     role?: {
       id: number;
       role_name: string;
@@ -50,6 +51,11 @@ export interface ChangePasswordData {
 
 export interface ChangePasswordResponse {
   message?: string;
+}
+
+export interface SignatureResponse {
+  message?: string;
+  user?: UserResponse['user'];
 }
 
 /**
@@ -104,6 +110,19 @@ export const changePassword = async (
     '/api/auth/change-password',
     data,
   );
+
+  return response.data;
+};
+
+/**
+ * Updates or removes the current logged-in user's electronic signature.
+ */
+export const updateSignature = async (
+  signature: string | null,
+): Promise<SignatureResponse> => {
+  const response = await api.post<SignatureResponse>('/api/auth/signature', {
+    signature,
+  });
 
   return response.data;
 };

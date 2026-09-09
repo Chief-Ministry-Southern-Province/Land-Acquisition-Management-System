@@ -1,7 +1,26 @@
 import L from 'leaflet';
 import React, { useEffect, useRef, useState } from 'react';
+import Swal from 'sweetalert2';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useMapProvider } from '@/hooks/useMapProvider';
 import type { LandParcel } from '@/services/landParcelManagementService';
+
+// Sri Lanka Geographic Bounding Box Limits
+export const SRI_LANKA_BOUNDS = {
+  minLat: 5.7,
+  maxLat: 10.0,
+  minLng: 79.3,
+  maxLng: 82.0,
+};
+
+export const isWithinSriLanka = (lat: number, lng: number): boolean => {
+  return (
+    lat >= SRI_LANKA_BOUNDS.minLat &&
+    lat <= SRI_LANKA_BOUNDS.maxLat &&
+    lng >= SRI_LANKA_BOUNDS.minLng &&
+    lng <= SRI_LANKA_BOUNDS.maxLng
+  );
+};
 
 interface UnifiedMapProps {
   latitude?: number | string | null;
@@ -113,10 +132,18 @@ export default function UnifiedMap({
       leafletMapRef.current = null;
     }
 
-    // Initialize Map
+    // Initialize Map with Sri Lanka boundary constraints
+    const sriLankaBounds = L.latLngBounds(
+      [SRI_LANKA_BOUNDS.minLat, SRI_LANKA_BOUNDS.minLng],
+      [SRI_LANKA_BOUNDS.maxLat, SRI_LANKA_BOUNDS.maxLng],
+    );
+
     const map = L.map(mapContainerRef.current, {
       zoomControl: true,
       attributionControl: true,
+      maxBounds: sriLankaBounds,
+      maxBoundsViscosity: 1.0,
+      minZoom: 7,
     }).setView([currentLat, currentLng], zoom);
 
     leafletMapRef.current = map;
@@ -127,6 +154,18 @@ export default function UnifiedMap({
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
+
+    const notifyOutOfBounds = () => {
+      Swal.fire({
+        title: 'Location Out of Bounds',
+        text: 'Selection is restricted strictly within Sri Lanka boundaries.',
+        icon: 'warning',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+      });
+    };
 
     // If single marker (not multi-parcel list)
     if (parcels.length === 0) {
@@ -139,6 +178,17 @@ export default function UnifiedMap({
         if (editable && onChange) {
           marker.on('dragend', () => {
             const latLng = marker.getLatLng();
+
+            if (!isWithinSriLanka(latLng.lat, latLng.lng)) {
+              notifyOutOfBounds();
+
+              if (latitude && longitude) {
+                marker.setLatLng([currentLat, currentLng]);
+              }
+
+              return;
+            }
+
             onChange(latLng.lat.toFixed(6), latLng.lng.toFixed(6));
           });
         }
@@ -150,6 +200,13 @@ export default function UnifiedMap({
       if (editable && onChange) {
         map.on('click', (e) => {
           const latLng = e.latlng;
+
+          if (!isWithinSriLanka(latLng.lat, latLng.lng)) {
+            notifyOutOfBounds();
+
+            return;
+          }
+
           onChange(latLng.lat.toFixed(6), latLng.lng.toFixed(6));
         });
       }
@@ -357,7 +414,7 @@ export default function UnifiedMap({
       return;
     }
 
-    // Initialize Map
+    // Initialize Map with Sri Lanka restriction boundaries
     const map = new google.maps.Map(mapContainerRef.current, {
       center: { lat: currentLat, lng: currentLng },
       zoom: zoom,
@@ -366,9 +423,31 @@ export default function UnifiedMap({
       streetViewControl: false,
       mapTypeControl: true,
       zoomControl: true,
+      restriction: {
+        latLngBounds: {
+          north: SRI_LANKA_BOUNDS.maxLat,
+          south: SRI_LANKA_BOUNDS.minLat,
+          west: SRI_LANKA_BOUNDS.minLng,
+          east: SRI_LANKA_BOUNDS.maxLng,
+        },
+        strictBounds: true,
+      },
+      minZoom: 7,
     });
 
     googleMapRef.current = map;
+
+    const notifyGoogleOutOfBounds = () => {
+      Swal.fire({
+        title: 'Location Out of Bounds',
+        text: 'Selection is restricted strictly within Sri Lanka boundaries.',
+        icon: 'warning',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+      });
+    };
 
     // Single Marker rendering
     if (parcels.length === 0) {
@@ -385,7 +464,20 @@ export default function UnifiedMap({
             const pos = marker.getPosition();
 
             if (pos) {
-              onChange(pos.lat().toFixed(6), pos.lng().toFixed(6));
+              const lat = pos.lat();
+              const lng = pos.lng();
+
+              if (!isWithinSriLanka(lat, lng)) {
+                notifyGoogleOutOfBounds();
+
+                if (latitude && longitude) {
+                  marker.setPosition({ lat: currentLat, lng: currentLng });
+                }
+
+                return;
+              }
+
+              onChange(lat.toFixed(6), lng.toFixed(6));
             }
           });
         }
@@ -396,7 +488,16 @@ export default function UnifiedMap({
       if (editable && onChange) {
         map.addListener('click', (e: any) => {
           if (e.latLng) {
-            onChange(e.latLng.lat().toFixed(6), e.latLng.lng().toFixed(6));
+            const lat = e.latLng.lat();
+            const lng = e.latLng.lng();
+
+            if (!isWithinSriLanka(lat, lng)) {
+              notifyGoogleOutOfBounds();
+
+              return;
+            }
+
+            onChange(lat.toFixed(6), lng.toFixed(6));
           }
         });
       }
@@ -609,13 +710,14 @@ export default function UnifiedMap({
   // Loading indicator for provider initialization
   if (providerLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-slate-100 dark:bg-slate-900">
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#2E7D32] border-t-transparent"></div>
-          <span className="text-xs font-semibold text-slate-500">
-            Initializing maps...
-          </span>
-        </div>
+      <div className="bg-card text-foreground border-border flex h-full w-full items-center justify-center rounded-lg border p-6">
+        <LoadingSpinner
+          type="ring"
+          variant="secondary"
+          size="lg"
+          label="Initializing spatial GIS maps..."
+          centered
+        />
       </div>
     );
   }

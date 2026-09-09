@@ -12,7 +12,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { SyncLoader } from 'react-spinners';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import UnifiedMap from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -102,10 +102,13 @@ export default function GisMapList() {
 
       {loading ? (
         <div className="bg-card border-border flex min-h-[450px] flex-col items-center justify-center gap-3 rounded-xl border">
-          <SyncLoader size={12} color="#2E7D32" />
-          <p className="text-muted-foreground text-sm">
-            {t('loading_gis_data', 'Loading GIS data and maps...')}
-          </p>
+          <LoadingSpinner
+            type="grid"
+            variant="secondary"
+            size="md"
+            label={t('loading_gis_data', 'Loading GIS data and maps...')}
+            centered
+          />
         </div>
       ) : (
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
