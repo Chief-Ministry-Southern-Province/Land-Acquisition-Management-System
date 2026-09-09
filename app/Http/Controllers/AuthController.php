@@ -215,4 +215,47 @@ class AuthController extends Controller
             'message' => 'Password changed successfully',
         ], 200);
     }
+
+    /**
+     * Update or remove the authenticated user's electronic signature.
+     */
+    public function updateSignature(Request $request): JsonResponse
+    {
+        $request->validate([
+            'signature' => ['nullable', 'string'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $signature = $request->input('signature');
+
+        if ($signature !== null && $signature !== '') {
+            if (! preg_match('/^data:image\/(png|jpeg|jpg|webp);base64,/', $signature)) {
+                throw ValidationException::withMessages([
+                    'signature' => ['Invalid signature image format. Must be a valid image base64 data URI.'],
+                ]);
+            }
+
+            if (strlen($signature) > 3000000) {
+                throw ValidationException::withMessages([
+                    'signature' => ['Signature image size exceeds the 2MB limit.'],
+                ]);
+            }
+        }
+
+        $user->forceFill([
+            'signature' => $signature ?: null,
+        ])->save();
+
+        $user->load(['role', 'department']);
+
+        $action = $signature ? 'Update Signature' : 'Remove Signature';
+        AuditLogService::log($user->id, $user->name, $action, 'Authentication', "User {$user->name} updated electronic signature.");
+
+        return response()->json([
+            'message' => $signature ? 'Signature updated successfully' : 'Signature removed successfully',
+            'user' => $user,
+        ], 200);
+    }
 }

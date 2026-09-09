@@ -2,16 +2,26 @@ import {
   AlertCircle,
   Bell,
   Building2,
+  CheckCircle2,
   FileText,
+  PenTool,
   Save,
+  Trash2,
   User,
   X,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { SignatureCanvas } from '@/components/SignatureCanvas';
+import { SignatureUpload } from '@/components/SignatureUpload';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
-import { getCurrentUser, changePassword } from '@/services/authService';
+import { confirmDialog } from '@/lib/alerts';
+import {
+  getCurrentUser,
+  changePassword,
+  updateSignature,
+} from '@/services/authService';
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -20,6 +30,13 @@ export default function Settings() {
   // User Profile details
   const [profileData, setProfileData] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+
+  // E-Signature state
+  const [activeSignature, setActiveSignature] = useState<string | null>(null);
+  const [signatureInputMode, setSignatureInputMode] = useState<
+    'draw' | 'upload'
+  >('draw');
+  const [pendingSignature, setPendingSignature] = useState<string | null>(null);
 
   // Change Password state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -46,6 +63,7 @@ export default function Settings() {
 
       if (data.user) {
         setProfileData(data.user);
+        setActiveSignature(data.user.signature || null);
       }
     } catch (err) {
       console.error('Failed to fetch user details:', err);
@@ -128,9 +146,71 @@ export default function Settings() {
     }
   };
 
+  const handleSaveSignature = async (customSignature?: string | null) => {
+    const sigToSave =
+      customSignature !== undefined ? customSignature : pendingSignature;
+
+    try {
+      setSaving(true);
+      const res = await updateSignature(sigToSave);
+
+      showToast(
+        'success',
+        res.message ||
+          t(
+            'msg_signature_saved_success',
+            'Electronic signature updated successfully.',
+          ),
+      );
+
+      setActiveSignature(sigToSave);
+      setPendingSignature(null);
+      await fetchProfile();
+    } catch (err: any) {
+      console.error('Failed to update signature:', err);
+      const errorMsg =
+        err.response?.data?.message ||
+        t('err_failed_save_signature', 'Failed to save signature.');
+
+      showToast('error', errorMsg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteSignature = async () => {
+    const confirmed = await confirmDialog({
+      title: t('title_confirm_delete_signature', 'Delete Signature?'),
+      text: t(
+        'desc_confirm_delete_signature',
+        'Are you sure you want to remove your electronic signature? This action cannot be undone.',
+      ),
+      confirmButtonText: t('btn_confirm_delete', 'Delete Signature'),
+      cancelButtonText: t('btn_cancel', 'Cancel'),
+    });
+
+    if (confirmed) {
+      await handleSaveSignature(null);
+    }
+  };
+
   const handleSave = async () => {
     if (activeTab === 'profile') {
       await handlePasswordChange();
+    } else if (activeTab === 'signature') {
+      if (!pendingSignature) {
+        showToast(
+          'error',
+          t(
+            'err_no_signature_provided',
+            'Please draw or upload a signature before saving.',
+          ),
+        );
+
+        return;
+      }
+
+      await handleSaveSignature(pendingSignature);
     } else {
       showToast(
         'success',
@@ -152,6 +232,11 @@ export default function Settings() {
       icon: Bell,
     },
     { id: 'profile', label: t('tab_user_profile', 'User Profile'), icon: User },
+    {
+      id: 'signature',
+      label: t('tab_e_signature', 'E-Signature'),
+      icon: PenTool,
+    },
   ];
 
   return (
@@ -570,11 +655,165 @@ export default function Settings() {
               </div>
             )}
 
+            {activeTab === 'signature' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="flex items-center gap-2">
+                    <span>
+                      {t('signature_settings_title', 'Electronic Signature')}
+                    </span>
+                  </h3>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    {t(
+                      'signature_settings_subtitle',
+                      'Create and manage your digital signature for official approvals and document signing.',
+                    )}
+                  </p>
+                </div>
+
+                {loadingProfile ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <LoadingSpinner
+                      type="pulse"
+                      variant="secondary"
+                      size="md"
+                      label={t(
+                        'msg_loading_signature',
+                        'Loading signature status...',
+                      )}
+                      centered
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Active Saved Signature */}
+                    {activeSignature ? (
+                      <div className="border-border bg-input-background/50 rounded-xl border p-5">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-[#2E7D32]" />
+                              <span className="text-sm font-semibold">
+                                {t(
+                                  'label_signature_active',
+                                  'Active Signature Registered',
+                                )}
+                              </span>
+                            </div>
+                            <p className="text-muted-foreground text-xs">
+                              {t(
+                                'label_signature_encrypted_note',
+                                'Stored with AES-256 encryption at rest.',
+                              )}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleDeleteSignature}
+                            disabled={saving}
+                            className="border-destructive/30 text-destructive hover:bg-destructive/10 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span>
+                              {t('btn_remove_signature', 'Remove Signature')}
+                            </span>
+                          </button>
+                        </div>
+
+                        <div className="border-border/60 bg-card mt-4 flex h-32 items-center justify-center rounded-lg border p-3 shadow-sm">
+                          <img
+                            src={activeSignature}
+                            alt="Current E-Signature"
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border-border bg-muted/30 rounded-xl border p-4 text-center">
+                        <p className="text-muted-foreground text-sm font-medium">
+                          {t(
+                            'msg_no_signature_yet',
+                            'No electronic signature set yet.',
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Create / Update Signature Form */}
+                    <div className="space-y-4 pt-2">
+                      <div className="border-border flex items-center justify-between border-b pb-3">
+                        <h4 className="text-sm font-semibold">
+                          {activeSignature
+                            ? t(
+                                'label_update_signature',
+                                'Update Your Signature',
+                              )
+                            : t(
+                                'label_create_signature',
+                                'Add Electronic Signature',
+                              )}
+                        </h4>
+
+                        {/* Toggle Mode Buttons */}
+                        <div className="bg-muted flex rounded-lg p-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSignatureInputMode('draw');
+                              setPendingSignature(null);
+                            }}
+                            className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
+                              signatureInputMode === 'draw'
+                                ? 'bg-card text-foreground shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                          >
+                            {t('btn_mode_draw', 'Draw Signature')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSignatureInputMode('upload');
+                              setPendingSignature(null);
+                            }}
+                            className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
+                              signatureInputMode === 'upload'
+                                ? 'bg-card text-foreground shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                          >
+                            {t('btn_mode_upload', 'Upload Image')}
+                          </button>
+                        </div>
+                      </div>
+
+                      {signatureInputMode === 'draw' ? (
+                        <SignatureCanvas
+                          key="draw-canvas"
+                          onSignatureChange={setPendingSignature}
+                        />
+                      ) : (
+                        <SignatureUpload
+                          key="upload-input"
+                          onSignatureChange={setPendingSignature}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Save Button */}
             <div className="border-border mt-6 border-t pt-6">
               <button
                 onClick={handleSave}
-                disabled={saving || (activeTab === 'profile' && loadingProfile)}
+                disabled={
+                  saving ||
+                  (activeTab === 'profile' && loadingProfile) ||
+                  (activeTab === 'signature' && loadingProfile)
+                }
                 className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-6 py-3 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {saving ? (

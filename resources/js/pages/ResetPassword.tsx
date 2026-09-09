@@ -1,11 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import {
-  KeyRound,
-  ArrowLeft,
-  ShieldCheck,
-  Eye,
-  EyeOff,
-} from 'lucide-react';
+import { KeyRound, ArrowLeft, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
