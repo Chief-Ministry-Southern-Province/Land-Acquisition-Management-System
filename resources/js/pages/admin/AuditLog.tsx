@@ -1,4 +1,4 @@
-import { Calendar, Filter, Loader2 } from 'lucide-react';
+import { Calendar, Filter } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
@@ -223,18 +223,13 @@ export default function AuditLog() {
         </div>
       )}
 
-      {/* Loading State */}
-      {loading ? (
-        <div className="bg-card border-border flex items-center justify-center rounded-lg border p-12">
-          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
-          <span className="text-muted-foreground ml-3">
-            {t('loading_audit_logs', 'Loading audit logs...')}
-          </span>
-        </div>
-      ) : (
-        /* Audit Logs Table */
-        <DataTable columns={columns} data={auditLogs} />
-      )}
+      {/* Audit Logs Table */}
+      <DataTable
+        columns={columns}
+        data={auditLogs}
+        loading={loading}
+        loadingMessage={t('loading_audit_logs', 'Loading audit logs...')}
+      />
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { router } from '@inertiajs/react';
-import { Mail, Loader2, ArrowLeft, KeyRound } from 'lucide-react';
+import { Mail, ArrowLeft, KeyRound } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
 
 function ForgotPassword() {
@@ -136,7 +137,7 @@ function ForgotPassword() {
                 className="bg-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <LoadingSpinner type="pulse" variant="white" size="xs" />
                 ) : (
                   <Mail className="h-5 w-5" />
                 )}

@@ -1,6 +1,5 @@
 import { router } from '@inertiajs/react';
 import {
-  Loader2,
   ShieldCheck,
   User,
   Lock,
@@ -12,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
 import { login } from '@/services/authService';
 
@@ -290,7 +290,7 @@ function LoginScreen() {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <LoadingSpinner type="pulse" variant="white" size="xs" />
                   <span>{t('signing_in') || 'Signing in...'}</span>
                 </>
               ) : (

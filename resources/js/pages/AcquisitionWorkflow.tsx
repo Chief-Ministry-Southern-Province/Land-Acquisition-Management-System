@@ -13,7 +13,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { SyncLoader } from 'react-spinners';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
@@ -436,7 +436,7 @@ export default function AcquisitionWorkflow() {
             </label>
             {loadingList ? (
               <div className="flex h-10 items-center pl-2">
-                <SyncLoader size={6} color="#2E7D32" />
+                <LoadingSpinner type="sync" variant="secondary" size="xs" />
               </div>
             ) : (
               <select
@@ -493,10 +493,13 @@ export default function AcquisitionWorkflow() {
       {/* Main Container */}
       {loadingDetails ? (
         <div className="bg-card border-border flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-xl border">
-          <SyncLoader size={12} color="#2E7D32" />
-          <p className="text-muted-foreground text-sm">
-            {t('loading_acquisition_data', 'Loading acquisition data...')}
-          </p>
+          <LoadingSpinner
+            type="pulse"
+            variant="secondary"
+            size="md"
+            label={t('loading_acquisition_data', 'Loading acquisition data...')}
+            centered
+          />
         </div>
       ) : currentProject ? (
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">

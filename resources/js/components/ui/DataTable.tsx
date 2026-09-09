@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Filter, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 interface Column {
   key: string;
@@ -15,6 +16,8 @@ interface DataTableProps {
   searchable?: boolean;
   filterable?: boolean;
   exportable?: boolean;
+  loading?: boolean;
+  loadingMessage?: string;
   onExport?: (format: 'pdf' | 'excel' | 'csv') => void;
   onRowClick?: (row: any) => void;
   actions?: (row: any) => React.ReactNode;
@@ -27,6 +30,8 @@ export function DataTable({
   searchable = true,
   filterable = true,
   exportable = true,
+  loading = false,
+  loadingMessage,
   onExport,
   onRowClick,
   actions,
@@ -288,7 +293,22 @@ export function DataTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {paginatedData.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td
+                  colSpan={columns.length + (actions ? 1 : 0)}
+                  className="px-6 py-12 text-center"
+                >
+                  <LoadingSpinner
+                    type="sync"
+                    variant="secondary"
+                    size="md"
+                    label={loadingMessage || "Loading table data..."}
+                    centered
+                  />
+                </td>
+              </tr>
+            ) : paginatedData.length > 0 ? (
               paginatedData.map((row, rowIndex) => (
                 <tr
                   key={rowIndex}
