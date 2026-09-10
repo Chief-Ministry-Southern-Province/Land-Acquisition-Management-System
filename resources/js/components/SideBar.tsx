@@ -119,6 +119,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
       },
       { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
+      { path: '/settings', icon: Settings, label: t('settings') },
     ],
     AO: [
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
@@ -133,6 +134,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
       },
       { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
+      { path: '/settings', icon: Settings, label: t('settings') },
     ],
     AS: [
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
@@ -147,6 +149,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
       },
       { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
+      { path: '/settings', icon: Settings, label: t('settings') },
     ],
     SAS: [
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
@@ -161,6 +164,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
       },
       { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
+      { path: '/settings', icon: Settings, label: t('settings') },
     ],
     SEC: [
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
@@ -175,6 +179,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
       },
       { path: '/reports', icon: BarChart3, label: t('reports') },
       { path: '/notifications', icon: Bell, label: t('notifications') },
+      { path: '/settings', icon: Settings, label: t('settings') },
     ],
   };
 

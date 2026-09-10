@@ -12,17 +12,22 @@ export function useTheme() {
   });
 
   const setTheme = (newTheme: Theme) => {
-    localStorage.setItem('theme', newTheme);
-    setThemeState(newTheme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', newTheme);
+      setThemeState(newTheme);
+      window.dispatchEvent(
+        new CustomEvent('theme-change', { detail: newTheme }),
+      );
+    }
   };
 
   useEffect(() => {
     const root = window.document.documentElement;
 
-    const applyTheme = () => {
+    const applyTheme = (t: Theme) => {
       const isDark =
-        theme === 'dark' ||
-        (theme === 'system' &&
+        t === 'dark' ||
+        (t === 'system' &&
           window.matchMedia('(prefers-color-scheme: dark)').matches);
 
       if (isDark) {
@@ -32,17 +37,33 @@ export function useTheme() {
       }
     };
 
-    applyTheme();
+    applyTheme(theme);
 
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const listener = () => applyTheme();
-      mediaQuery.addEventListener('change', listener);
+    const handleThemeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<Theme>;
+      const nextTheme =
+        customEvent.detail ||
+        (localStorage.getItem('theme') as Theme) ||
+        'system';
+      setThemeState(nextTheme);
+    };
 
-      return () => {
-        mediaQuery.removeEventListener('change', listener);
-      };
-    }
+    window.addEventListener('theme-change', handleThemeChange);
+    window.addEventListener('storage', handleThemeChange);
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemChange = () => {
+      if (theme === 'system') {
+        applyTheme('system');
+      }
+    };
+    mediaQuery.addEventListener('change', handleSystemChange);
+
+    return () => {
+      window.removeEventListener('theme-change', handleThemeChange);
+      window.removeEventListener('storage', handleThemeChange);
+      mediaQuery.removeEventListener('change', handleSystemChange);
+    };
   }, [theme]);
 
   return { theme, setTheme };
