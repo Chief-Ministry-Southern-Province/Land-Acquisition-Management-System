@@ -59,6 +59,8 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|max:255|unique:users,email,'.$id,
+            'phone' => 'nullable|string|max:255',
+            'notification_preference' => 'nullable|string|in:email,sms,both,none',
             'role_id' => 'required|integer',
             'department_id' => 'required|integer',
         ]);

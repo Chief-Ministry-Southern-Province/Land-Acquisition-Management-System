@@ -21,6 +21,7 @@ import {
   getCurrentUser,
   changePassword,
   updateSignature,
+  updateNotificationPreference,
 } from '@/services/authService';
 
 export default function Settings() {
@@ -30,6 +31,9 @@ export default function Settings() {
   // User Profile details
   const [profileData, setProfileData] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+
+  // Notification preference state
+  const [notifPref, setNotifPref] = useState<'email' | 'sms' | 'both' | 'none'>('email');
 
   // E-Signature state
   const [activeSignature, setActiveSignature] = useState<string | null>(null);
@@ -64,6 +68,9 @@ export default function Settings() {
       if (data.user) {
         setProfileData(data.user);
         setActiveSignature(data.user.signature || null);
+        if (data.user.notification_preference) {
+          setNotifPref(data.user.notification_preference);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch user details:', err);
@@ -197,6 +204,32 @@ export default function Settings() {
   const handleSave = async () => {
     if (activeTab === 'profile') {
       await handlePasswordChange();
+    } else if (activeTab === 'notifications') {
+      try {
+        setSaving(true);
+        const res = await updateNotificationPreference(notifPref);
+        showToast(
+          'success',
+          res.message ||
+            t(
+              'msg_notif_pref_updated',
+              'Notification preference saved successfully.',
+            ),
+        );
+        await fetchProfile();
+      } catch (err: any) {
+        console.error('Failed to update notification preference:', err);
+        showToast(
+          'error',
+          err.response?.data?.message ||
+            t(
+              'err_failed_save_notif_pref',
+              'Failed to save notification preferences.',
+            ),
+        );
+      } finally {
+        setSaving(false);
+      }
     } else if (activeTab === 'signature') {
       if (!pendingSignature) {
         showToast(
@@ -448,9 +481,123 @@ export default function Settings() {
 
             {activeTab === 'notifications' && (
               <div className="space-y-6">
-                <h3>
-                  {t('notification_settings_title', 'Notification Settings')}
-                </h3>
+                <div>
+                  <h3>
+                    {t('notification_settings_title', 'Notification Settings')}
+                  </h3>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    {t('notification_settings_subtitle', 'Choose how you prefer to receive automated system alerts and workflow updates.')}
+                  </p>
+                </div>
+
+                {/* Preferred Delivery Method */}
+                <div className="border-border bg-input-background/30 rounded-xl border p-5 space-y-4">
+                  <h4 className="text-sm font-semibold">
+                    {t('label_delivery_preference', 'Preferred Notification Channel')}
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition-all ${
+                        notifPref === 'email'
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border hover:bg-muted/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="notification_preference"
+                        value="email"
+                        checked={notifPref === 'email'}
+                        onChange={() => setNotifPref('email')}
+                        className="mt-0.5 h-4 w-4 text-primary"
+                      />
+                      <div>
+                        <span className="block text-sm font-medium">
+                          {t('option_email_only', 'Email Only')}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          {t('desc_email_only', 'Receive approval and case alerts via email')}
+                        </span>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition-all ${
+                        notifPref === 'sms'
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border hover:bg-muted/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="notification_preference"
+                        value="sms"
+                        checked={notifPref === 'sms'}
+                        onChange={() => setNotifPref('sms')}
+                        className="mt-0.5 h-4 w-4 text-primary"
+                      />
+                      <div>
+                        <span className="block text-sm font-medium">
+                          {t('option_sms_only', 'SMS Only')}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          {t('desc_sms_only', 'Receive text messages on your mobile device')}
+                        </span>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition-all ${
+                        notifPref === 'both'
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border hover:bg-muted/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="notification_preference"
+                        value="both"
+                        checked={notifPref === 'both'}
+                        onChange={() => setNotifPref('both')}
+                        className="mt-0.5 h-4 w-4 text-primary"
+                      />
+                      <div>
+                        <span className="block text-sm font-medium">
+                          {t('option_both', 'Both Email & SMS')}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          {t('desc_both', 'Receive notifications on both channels')}
+                        </span>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition-all ${
+                        notifPref === 'none'
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border hover:bg-muted/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="notification_preference"
+                        value="none"
+                        checked={notifPref === 'none'}
+                        onChange={() => setNotifPref('none')}
+                        className="mt-0.5 h-4 w-4 text-primary"
+                      />
+                      <div>
+                        <span className="block text-sm font-medium">
+                          {t('option_none', 'None (Opt-Out)')}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          {t('desc_none', 'Mute all automated email & SMS notifications')}
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
                 <div className="space-y-4">
                   <div>
                     <label className="flex cursor-pointer items-center gap-2">
@@ -566,7 +713,18 @@ export default function Settings() {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="mb-2 block text-sm font-medium">
+                          {t('label_phone_number', 'Phone Number')}
+                        </label>
+                        <input
+                          type="text"
+                          value={profileData.phone || t('n_a', 'N/A')}
+                          disabled
+                          className="bg-muted border-border w-full cursor-not-allowed rounded-lg border px-4 py-2 opacity-60"
+                        />
+                      </div>
                       <div>
                         <label className="mb-2 block text-sm font-medium">
                           {t('label_department', 'Department')}

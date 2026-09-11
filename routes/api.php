@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/signature', [AuthController::class, 'updateSignature']);
+    Route::post('/notification-preference', [AuthController::class, 'updateNotificationPreference']);
 });
 
 // ─── Protected Routes (Authenticated) ─────────────────────────────────

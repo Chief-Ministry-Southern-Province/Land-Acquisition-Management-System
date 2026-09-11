@@ -9,6 +9,7 @@ export interface LoginResponse {
 export interface RegisterData {
   name: string;
   email: string;
+  phone?: string;
   password?: string;
   password_confirmation?: string;
   department_id: number;
@@ -27,6 +28,8 @@ export interface UserResponse {
     id: number;
     name: string;
     email: string;
+    phone?: string | null;
+    notification_preference?: 'email' | 'sms' | 'both' | 'none';
     department_id: number;
     role_id: number;
     signature?: string | null;
@@ -54,6 +57,11 @@ export interface ChangePasswordResponse {
 }
 
 export interface SignatureResponse {
+  message?: string;
+  user?: UserResponse['user'];
+}
+
+export interface NotificationPreferenceResponse {
   message?: string;
   user?: UserResponse['user'];
 }
@@ -126,3 +134,20 @@ export const updateSignature = async (
 
   return response.data;
 };
+
+/**
+ * Updates the current logged-in user's notification preference (email, sms, both, none).
+ */
+export const updateNotificationPreference = async (
+  notification_preference: 'email' | 'sms' | 'both' | 'none',
+): Promise<NotificationPreferenceResponse> => {
+  const response = await api.post<NotificationPreferenceResponse>(
+    '/api/auth/notification-preference',
+    {
+      notification_preference,
+    },
+  );
+
+  return response.data;
+};
+
