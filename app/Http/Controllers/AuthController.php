@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\AuditLogService;
+use App\Services\EmailService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,15 +25,21 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'nullable|string|min:8|confirmed',
             'department_id' => 'required|integer|exists:departments,id',
             'role_id' => 'required|integer|exists:roles,id',
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+        $plainPassword = $request->filled('password')
+            ? $request->input('password')
+            : Str::random(12);
+        $validated['password'] = Hash::make($plainPassword);
 
         $user = User::create($validated);
         $user->load(['role', 'department']);
+
+        // Send email notification to user with login credentials
+        EmailService::sendUserCreatedEmail($user, $plainPassword);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
