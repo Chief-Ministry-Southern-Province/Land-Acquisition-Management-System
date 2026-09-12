@@ -1,5 +1,5 @@
 import { Calendar, Download, FileText, Filter, Printer } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -13,11 +13,10 @@ import {
   Cell,
 } from 'recharts';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useProjectsQuery } from '@/hooks/queries/useProjectsQuery';
+import { useReportsQuery } from '@/hooks/queries/useReportsQuery';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
-import api from '@/services/api';
-import { getProjects } from '@/services/projectsManagementService';
-import type { Project } from '@/services/projectsManagementService';
 
 const CHART_COLORS = [
   '#2E7D32',
@@ -31,10 +30,6 @@ const CHART_COLORS = [
 export default function Reports() {
   const { t } = useTranslation();
   const [reportType, setReportType] = useState('project-progress');
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loadingProjects, setLoadingProjects] = useState(false);
-  const [reportData, setReportData] = useState<any>(null);
-  const [loadingReport, setLoadingReport] = useState(false);
 
   // Filters State
   const [dateFrom, setDateFrom] = useState('2024-01-01');
@@ -42,6 +37,20 @@ export default function Reports() {
   const [selectedProjectId, setSelectedProjectId] = useState('All Projects');
   const [selectedDistrict, setSelectedDistrict] = useState('All Districts');
   const [selectedStatus, setSelectedStatus] = useState('All Statuses');
+
+  // Cached Projects query
+  const { data: projects = [], isLoading: loadingProjects } =
+    useProjectsQuery();
+
+  // Cached Reports query
+  const { data: reportData, isLoading: loadingReport } = useReportsQuery({
+    type: reportType,
+    project_id: selectedProjectId,
+    district: selectedDistrict,
+    status: selectedStatus,
+    date_from: dateFrom,
+    date_to: dateTo,
+  });
 
   const reportTypes = [
     {
@@ -87,64 +96,6 @@ export default function Reports() {
       description: t('report_legal_desc', 'Active and closed legal cases'),
     },
   ];
-
-  // Fetch Projects List on Mount
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        setLoadingProjects(true);
-        const data = await getProjects();
-        setProjects(data);
-      } catch (err) {
-        console.error('Failed to load projects for reports:', err);
-      } finally {
-        setLoadingProjects(false);
-      }
-    };
-    fetchProjects();
-  }, []);
-
-  // Fetch Report Data
-  useEffect(() => {
-    let active = true;
-    const timer = setTimeout(async () => {
-      try {
-        setLoadingReport(true);
-        const response = await api.get('/api/reports', {
-          params: {
-            type: reportType,
-            project_id: selectedProjectId,
-            district: selectedDistrict,
-            status: selectedStatus,
-            date_from: dateFrom,
-            date_to: dateTo,
-          },
-        });
-
-        if (active) {
-          setReportData(response.data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch report data:', err);
-      } finally {
-        if (active) {
-          setLoadingReport(false);
-        }
-      }
-    }, 300);
-
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [
-    reportType,
-    selectedProjectId,
-    selectedDistrict,
-    selectedStatus,
-    dateFrom,
-    dateTo,
-  ]);
 
   // Export handlers
   const handleExport = (format: string) => {

@@ -6,6 +6,7 @@ import { NotificationBell } from '@/components/NotificationBell';
 import SideBar from '@/components/SideBar';
 import type { SideBarItem } from '@/components/SideBar';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
+import { useRealtimeCacheSync } from '@/hooks/useRealtimeCacheSync';
 import { useTranslation } from '@/hooks/useTranslation';
 
 type Props = {
@@ -14,7 +15,9 @@ type Props = {
 };
 
 export default function MainLayout({ children, sidebarItems }: Props) {
+  useRealtimeCacheSync();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
   const { locale } = useTranslation();
   const { url, props } = usePage();
   const auth = props.auth as any;

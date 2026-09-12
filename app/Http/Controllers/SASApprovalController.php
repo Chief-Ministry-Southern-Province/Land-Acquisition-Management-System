@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Projects;
 use App\Models\User;
 use App\Notifications\RealtimeSystemNotification;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -78,6 +79,7 @@ class SASApprovalController extends Controller
                     actionUrl: '/approval-workflow',
                     type: 'warning'
                 ));
+                EmailService::sendCasePendingApprovalEmail($sec, $project, 'Secretary (SEC) Review');
             }
         } else {
             // Case completed - notify DO, HOB, AO, AS
@@ -134,6 +136,7 @@ class SASApprovalController extends Controller
                 actionUrl: '/dashboard',
                 type: 'error'
             ));
+            EmailService::sendCaseDeniedEmail($u, $project, 'Senior Assistant Secretary (SAS)', $comment, 'rejected');
         }
 
         return response()->json(['message' => 'Project rejected and returned to DO successfully', 'project' => $project], 200);

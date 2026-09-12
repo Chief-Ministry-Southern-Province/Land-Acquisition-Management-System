@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\AOApprovalController;
 use App\Http\Controllers\ASApprovalController;
 use App\Http\Controllers\AuditLogsController;
@@ -43,6 +44,7 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/signature', [AuthController::class, 'updateSignature']);
+    Route::post('/notification-preference', [AuthController::class, 'updateNotificationPreference']);
 });
 
 // ─── Protected Routes (Authenticated) ─────────────────────────────────
@@ -135,6 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ─── Admin Only Routes ───────────────────────────────────────────
     Route::middleware('check.role:Admin')->group(function () {
+        Route::get('/admin/stats', [AdminStatsController::class, 'index']);
         Route::get('/users', [UserController::class, 'getAllUsers']);
         Route::put('/users/{id}', [UserController::class, 'updateUser']);
         Route::delete('/users/{id}', [UserController::class, 'deleteUser']);

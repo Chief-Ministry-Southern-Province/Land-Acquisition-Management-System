@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Projects;
 use App\Models\User;
 use App\Notifications\RealtimeSystemNotification;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -60,6 +61,7 @@ class HOBApprovalController extends Controller
                 actionUrl: '/approval-workflow',
                 type: 'success'
             ));
+            EmailService::sendCasePendingApprovalEmail($ao, $project, 'Administrative Officer (AO) Review');
         }
 
         return response()->json(['message' => 'Project approved successfully', 'project' => $project], 200);
@@ -98,6 +100,7 @@ class HOBApprovalController extends Controller
                 actionUrl: '/dashboard',
                 type: 'warning'
             ));
+            EmailService::sendCaseDeniedEmail($do, $project, 'Head of Branch (HOB)', $comment, 'queried');
         }
 
         return response()->json(['message' => 'Project queried successfully', 'project' => $project], 200);
@@ -136,6 +139,7 @@ class HOBApprovalController extends Controller
                 actionUrl: '/dashboard',
                 type: 'error'
             ));
+            EmailService::sendCaseDeniedEmail($do, $project, 'Head of Branch (HOB)', $comment, 'rejected');
         }
 
         return response()->json(['message' => 'Project rejected successfully', 'project' => $project], 200);

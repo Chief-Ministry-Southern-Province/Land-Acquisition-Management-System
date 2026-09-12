@@ -1,42 +1,24 @@
 import { router, usePage } from '@inertiajs/react';
 import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import {
+  useProjectsQuery,
+  useDeleteProjectMutation,
+} from '@/hooks/queries/useProjectsQuery';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
-import {
-  getProjects,
-  deleteProject,
-  exportProjects,
-} from '@/services/projectsManagementService';
-import type { Project } from '@/services/projectsManagementService';
+import { exportProjects } from '@/services/projectsManagementService';
 
 export default function ProjectList() {
   const { locale, t } = useTranslation();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: projects = [], isLoading: loading } = useProjectsQuery();
+  const deleteProjectMutation = useDeleteProjectMutation();
 
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
   const userRole = user?.role?.role_name || 'User';
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        setLoading(true);
-        const data = await getProjects();
-        setProjects(data);
-      } catch (error) {
-        console.error('Failed to fetch projects:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProjects();
-  }, []);
 
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     try {
@@ -54,8 +36,7 @@ export default function ProjectList() {
 
     if (confirmed) {
       try {
-        await deleteProject(id);
-        setProjects((prev) => prev.filter((p) => p.id !== id));
+        await deleteProjectMutation.mutateAsync(id);
         toastSuccess(t('project_deleted_success'));
       } catch (error) {
         console.error('Failed to delete project:', error);

@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { ArrowLeft, Eye, EyeOff, Info, Save, UserPlus, X } from 'lucide-react';
+import { ArrowLeft, Info, Save, UserPlus, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
@@ -16,7 +16,7 @@ export interface DepartmentOption {
 
 export interface AddUserFormValues {
   userName: string;
-  username: string;
+  phone: string;
   role: string;
   department: string;
   email: string;
@@ -37,6 +37,7 @@ export interface AddUserFormProps {
     id: number;
     name: string;
     email: string;
+    phone?: string | null;
     role_id: number;
     department_id: number;
     status: string;
@@ -47,7 +48,7 @@ type FormErrors = Partial<Record<keyof AddUserFormValues, string>>;
 
 const EMPTY_VALUES: AddUserFormValues = {
   userName: '',
-  username: '',
+  phone: '',
   role: '',
   department: '',
   email: '',
@@ -56,23 +57,17 @@ const EMPTY_VALUES: AddUserFormValues = {
   status: 'Active',
 };
 
-function validate(
-  values: AddUserFormValues,
-  isEditMode = false,
-  t: any,
-): FormErrors {
+function validate(values: AddUserFormValues, t: any): FormErrors {
   const errors: FormErrors = {};
 
   if (!values.userName.trim()) {
     errors.userName = t('err_user_name_required', 'User name is required.');
   }
 
-  if (!values.username.trim()) {
-    errors.username = t('err_username_required', 'Username is required.');
-  } else if (!/^[a-zA-Z0-9._-]{3,}$/.test(values.username.trim())) {
-    errors.username = t(
-      'err_username_invalid',
-      'Username must be at least 3 characters (letters, numbers, . _ -).',
+  if (values.phone.trim() && !/^\+?[0-9\s-]{7,15}$/.test(values.phone.trim())) {
+    errors.phone = t(
+      'err_phone_invalid',
+      'Please enter a valid phone number (e.g. +94771234567 or 0771234567).',
     );
   }
 
@@ -91,24 +86,6 @@ function validate(
     errors.email = t('err_email_required', 'Email is required.');
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
     errors.email = t('err_email_invalid', 'Enter a valid email address.');
-  }
-
-  if (!isEditMode) {
-    if (!values.password) {
-      errors.password = t('err_password_required', 'Password is required.');
-    } else if (values.password.length < 8) {
-      errors.password = t(
-        'err_password_len',
-        'Password must be at least 8 characters.',
-      );
-    }
-
-    if (values.confirmPassword !== values.password) {
-      errors.confirmPassword = t(
-        'err_passwords_dont_match',
-        'Passwords do not match.',
-      );
-    }
   }
 
   return errors;
@@ -196,7 +173,7 @@ export default function AddUserForm({
     if (userToEdit) {
       return {
         userName: userToEdit.name,
-        username: userToEdit.email.split('@')[0],
+        phone: userToEdit.phone || '',
         role: String(userToEdit.role_id),
         department: String(userToEdit.department_id),
         email: userToEdit.email,
@@ -212,7 +189,6 @@ export default function AddUserForm({
     return EMPTY_VALUES;
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [showPassword, setShowPassword] = useState(false);
 
   React.useEffect(() => {
     let active = true;
@@ -261,7 +237,7 @@ export default function AddUserForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setGeneralError(null);
-    const validationErrors = validate(values, isEditMode, t);
+    const validationErrors = validate(values, t);
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
@@ -274,26 +250,18 @@ export default function AddUserForm({
       setIsSubmittingInternal(true);
 
       try {
-        if (isEditMode) {
-          const payload = {
-            name: values.userName,
-            email: values.email,
-            department_id: Number(values.department),
-            role_id: Number(values.role),
-          };
+        const payload = {
+          name: values.userName,
+          email: values.email,
+          phone: values.phone.trim() || undefined,
+          department_id: Number(values.department),
+          role_id: Number(values.role),
+        };
 
+        if (isEditMode) {
           await updateUser(userToEdit.id, payload);
           router.visit('/user-management');
         } else {
-          const payload = {
-            name: values.userName,
-            email: values.email,
-            password: values.password,
-            password_confirmation: values.confirmPassword,
-            department_id: Number(values.department),
-            role_id: Number(values.role),
-          };
-
           await register(payload);
           router.visit('/user-management');
         }
@@ -310,6 +278,10 @@ export default function AddUserForm({
 
             if (data.errors.email) {
               formErrors.email = data.errors.email[0];
+            }
+
+            if (data.errors.phone) {
+              formErrors.phone = data.errors.phone[0];
             }
 
             if (data.errors.password) {
@@ -470,20 +442,24 @@ export default function AddUserForm({
               </Field>
             </div>
 
-            {/* Username */}
-            <Field label={t('username', 'Username')} required>
+            {/* Phone Number */}
+            <Field
+              label={t('phone_number', 'Phone Number')}
+              hint={t('hint_phone_sms', 'Used for receiving SMS notifications')}
+            >
               <input
-                id="username"
+                id="phone"
                 className={inputCls}
-                type="text"
-                placeholder={t('username_placeholder', 'e.g. kpsilva')}
-                value={values.username}
-                onChange={handleChange('username')}
+                type="tel"
+                placeholder={t(
+                  'phone_placeholder',
+                  'e.g. +94771234567 or 0771234567',
+                )}
+                value={values.phone}
+                onChange={handleChange('phone')}
                 disabled={isSubmitting}
               />
-              {errors.username && (
-                <span className={errCls}>{errors.username}</span>
-              )}
+              {errors.phone && <span className={errCls}>{errors.phone}</span>}
             </Field>
 
             {/* Email */}
@@ -550,66 +526,15 @@ export default function AddUserForm({
             </Field>
 
             {!isEditMode && (
-              <>
-                {/* Password */}
-                <Field
-                  label={t('password', 'Password')}
-                  required
-                  hint={t('password_hint', 'Must be at least 8 characters')}
-                >
-                  <div className="relative">
-                    <input
-                      id="password"
-                      className={`${inputCls} pr-10`}
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder={t(
-                        'password_placeholder',
-                        'At least 8 characters',
-                      )}
-                      value={values.password}
-                      onChange={handleChange('password')}
-                      disabled={isSubmitting}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((s) => !s)}
-                      className="text-muted-foreground hover:text-foreground absolute right-2.5 top-1/2 -translate-y-1/2 transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <span className={errCls}>{errors.password}</span>
+              <div className="border-primary/20 bg-primary/5 text-foreground flex items-center gap-3 rounded-lg border p-4 md:col-span-2">
+                <Info className="text-primary h-5 w-5 shrink-0" />
+                <p className="text-xs font-medium">
+                  {t(
+                    'auto_password_notice',
+                    'A random login password will be generated automatically and sent to the user via email.',
                   )}
-                </Field>
-
-                {/* Confirm Password */}
-                <Field
-                  label={t('confirm_password', 'Confirm Password')}
-                  required
-                >
-                  <input
-                    id="confirmPassword"
-                    className={inputCls}
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder={t(
-                      'confirm_password_placeholder',
-                      'Re-enter password',
-                    )}
-                    value={values.confirmPassword}
-                    onChange={handleChange('confirmPassword')}
-                    disabled={isSubmitting}
-                  />
-                  {errors.confirmPassword && (
-                    <span className={errCls}>{errors.confirmPassword}</span>
-                  )}
-                </Field>
-              </>
+                </p>
+              </div>
             )}
 
             {/* Status – full width */}

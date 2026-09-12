@@ -1,22 +1,25 @@
 import { router, usePage } from '@inertiajs/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Eye, MapPin, Plus, Upload, Pencil } from 'lucide-react';
-import { useEffect, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import {
+  useLandParcelsQuery,
+  LAND_PARCELS_QUERY_KEY,
+} from '@/hooks/queries/useLandParcelsQuery';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
 import {
-  getLandParcels,
   exportLandParcels,
   importLandParcels,
 } from '@/services/landParcelManagementService';
-import type { LandParcel } from '@/services/landParcelManagementService';
 
 export default function LandParcelList() {
   const { locale, t } = useTranslation();
-  const [parcels, setParcels] = useState<LandParcel[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: parcels = [], isLoading: loading } = useLandParcelsQuery();
+  const queryClient = useQueryClient();
   const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<{
     type: 'success' | 'error';
@@ -27,22 +30,6 @@ export default function LandParcelList() {
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
   const userRole = user?.role?.role_name || 'User';
-
-  useEffect(() => {
-    const fetchParcels = async () => {
-      try {
-        setLoading(true);
-        const data = await getLandParcels();
-        setParcels(data);
-      } catch (error) {
-        console.error('Failed to fetch land parcels:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchParcels();
-  }, []);
 
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     try {
@@ -89,9 +76,8 @@ export default function LandParcelList() {
         toastSuccess(msg);
       }
 
-      // Refresh list
-      const data = await getLandParcels();
-      setParcels(data);
+      // Refresh cache
+      queryClient.invalidateQueries({ queryKey: LAND_PARCELS_QUERY_KEY });
     } catch (error: any) {
       console.error('Failed to import land parcels:', error);
 
@@ -138,15 +124,7 @@ export default function LandParcelList() {
 
         // Refresh list if partial records were imported
         if (data.imported_count && data.imported_count > 0) {
-          try {
-            const data = await getLandParcels();
-            setParcels(data);
-          } catch (fetchError) {
-            console.error(
-              'Failed to refresh land parcels after partial import:',
-              fetchError,
-            );
-          }
+          queryClient.invalidateQueries({ queryKey: LAND_PARCELS_QUERY_KEY });
         }
       } else {
         const errorMsg =

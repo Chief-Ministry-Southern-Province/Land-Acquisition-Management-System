@@ -6,6 +6,7 @@ use App\Models\LandParcel;
 use App\Models\Projects;
 use App\Models\User;
 use App\Notifications\RealtimeSystemNotification;
+use App\Services\EmailService;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -355,6 +356,7 @@ class ProjectsController extends Controller
                 actionUrl: '/approval-workflow',
                 type: 'info'
             ));
+            EmailService::sendCasePendingApprovalEmail($hob, $project, 'Head of Branch (HOB) Review');
         }
 
         return response()->json([
