@@ -33,7 +33,9 @@ export default function Settings() {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   // Notification preference state
-  const [notifPref, setNotifPref] = useState<'email' | 'sms' | 'both' | 'none'>('email');
+  const [notifPref, setNotifPref] = useState<'email' | 'sms' | 'both' | 'none'>(
+    'email',
+  );
 
   // E-Signature state
   const [activeSignature, setActiveSignature] = useState<string | null>(null);
@@ -68,6 +70,7 @@ export default function Settings() {
       if (data.user) {
         setProfileData(data.user);
         setActiveSignature(data.user.signature || null);
+
         if (data.user.notification_preference) {
           setNotifPref(data.user.notification_preference);
         }
@@ -486,14 +489,20 @@ export default function Settings() {
                     {t('notification_settings_title', 'Notification Settings')}
                   </h3>
                   <p className="text-muted-foreground mt-1 text-sm">
-                    {t('notification_settings_subtitle', 'Choose how you prefer to receive automated system alerts and workflow updates.')}
+                    {t(
+                      'notification_settings_subtitle',
+                      'Choose how you prefer to receive automated system alerts and workflow updates.',
+                    )}
                   </p>
                 </div>
 
                 {/* Preferred Delivery Method */}
-                <div className="border-border bg-input-background/30 rounded-xl border p-5 space-y-4">
+                <div className="border-border bg-input-background/30 space-y-4 rounded-xl border p-5">
                   <h4 className="text-sm font-semibold">
-                    {t('label_delivery_preference', 'Preferred Notification Channel')}
+                    {t(
+                      'label_delivery_preference',
+                      'Preferred Notification Channel',
+                    )}
                   </h4>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <label
@@ -509,14 +518,17 @@ export default function Settings() {
                         value="email"
                         checked={notifPref === 'email'}
                         onChange={() => setNotifPref('email')}
-                        className="mt-0.5 h-4 w-4 text-primary"
+                        className="text-primary mt-0.5 h-4 w-4"
                       />
                       <div>
                         <span className="block text-sm font-medium">
                           {t('option_email_only', 'Email Only')}
                         </span>
                         <span className="text-muted-foreground text-xs">
-                          {t('desc_email_only', 'Receive approval and case alerts via email')}
+                          {t(
+                            'desc_email_only',
+                            'Receive approval and case alerts via email',
+                          )}
                         </span>
                       </div>
                     </label>
@@ -534,14 +546,17 @@ export default function Settings() {
                         value="sms"
                         checked={notifPref === 'sms'}
                         onChange={() => setNotifPref('sms')}
-                        className="mt-0.5 h-4 w-4 text-primary"
+                        className="text-primary mt-0.5 h-4 w-4"
                       />
                       <div>
                         <span className="block text-sm font-medium">
                           {t('option_sms_only', 'SMS Only')}
                         </span>
                         <span className="text-muted-foreground text-xs">
-                          {t('desc_sms_only', 'Receive text messages on your mobile device')}
+                          {t(
+                            'desc_sms_only',
+                            'Receive text messages on your mobile device',
+                          )}
                         </span>
                       </div>
                     </label>
@@ -559,14 +574,17 @@ export default function Settings() {
                         value="both"
                         checked={notifPref === 'both'}
                         onChange={() => setNotifPref('both')}
-                        className="mt-0.5 h-4 w-4 text-primary"
+                        className="text-primary mt-0.5 h-4 w-4"
                       />
                       <div>
                         <span className="block text-sm font-medium">
                           {t('option_both', 'Both Email & SMS')}
                         </span>
                         <span className="text-muted-foreground text-xs">
-                          {t('desc_both', 'Receive notifications on both channels')}
+                          {t(
+                            'desc_both',
+                            'Receive notifications on both channels',
+                          )}
                         </span>
                       </div>
                     </label>
@@ -584,14 +602,17 @@ export default function Settings() {
                         value="none"
                         checked={notifPref === 'none'}
                         onChange={() => setNotifPref('none')}
-                        className="mt-0.5 h-4 w-4 text-primary"
+                        className="text-primary mt-0.5 h-4 w-4"
                       />
                       <div>
                         <span className="block text-sm font-medium">
                           {t('option_none', 'None (Opt-Out)')}
                         </span>
                         <span className="text-muted-foreground text-xs">
-                          {t('desc_none', 'Mute all automated email & SMS notifications')}
+                          {t(
+                            'desc_none',
+                            'Mute all automated email & SMS notifications',
+                          )}
                         </span>
                       </div>
                     </label>

@@ -3,8 +3,6 @@
 namespace Tests\Unit;
 
 use App\Models\Projects;
-use App\Models\User;
-use App\Services\Sms\Contracts\SmsGatewayInterface;
 use App\Services\Sms\Gateways\GenericHttpGateway;
 use App\Services\Sms\Gateways\LogGateway;
 use App\Services\Sms\Gateways\TextItGateway;
@@ -57,11 +55,11 @@ class SmsServiceTest extends TestCase
         ]);
 
         Config::set('sms.gateways.textit', [
-            'api_key'  => 'eyJhbGciOiJIUzUxMiJ9.testkey',
+            'api_key' => 'eyJhbGciOiJIUzUxMiJ9.testkey',
             'endpoint' => 'https://api.textit.biz/',
         ]);
 
-        $gateway = new TextItGateway();
+        $gateway = new TextItGateway;
         // Pass number with '+' — gateway must strip it before sending
         $sent = $gateway->send('+94771234567', 'TextIt Test Message');
 
@@ -90,7 +88,7 @@ class SmsServiceTest extends TestCase
             'message_param' => 'message',
         ]);
 
-        $gateway = new GenericHttpGateway();
+        $gateway = new GenericHttpGateway;
         $sent = $gateway->send('+94771234567', 'Generic HTTP Test Message');
 
         $this->assertTrue($sent);
@@ -105,7 +103,7 @@ class SmsServiceTest extends TestCase
 
     public function test_sms_gateway_manager_resolves_and_caches_drivers()
     {
-        $manager = new SmsGatewayManager();
+        $manager = new SmsGatewayManager;
         $logDriver = $manager->driver('log');
         $textitDriver = $manager->driver('textit');
         $genericDriver = $manager->driver('generic_http');
@@ -121,7 +119,7 @@ class SmsServiceTest extends TestCase
         Log::shouldReceive('channel')->andReturnSelf();
         Log::shouldReceive('info')->once();
 
-        $project = new Projects();
+        $project = new Projects;
         $project->title = 'Test Southern Expressway Acquisition';
 
         $sent = SmsService::sendCasePendingApprovalSms('+94771234567', $project, 'HOB Review', 'log');

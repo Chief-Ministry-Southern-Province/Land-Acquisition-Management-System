@@ -150,4 +150,3 @@ export const updateNotificationPreference = async (
 
   return response.data;
 };
-

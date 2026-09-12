@@ -33,6 +33,7 @@ class TextItGateway implements SmsGatewayInterface
 
         if (empty($apiKey)) {
             Log::error('TextIt REST SMS failed: Missing API Key.');
+
             return false;
         }
 
@@ -40,27 +41,27 @@ class TextItGateway implements SmsGatewayInterface
         $recipient = ltrim($to, '+');
 
         // Ensure authorization header is prefixed with 'Basic '
-        $authHeader = str_starts_with($apiKey, 'Basic ') ? $apiKey : 'Basic ' . $apiKey;
+        $authHeader = str_starts_with($apiKey, 'Basic ') ? $apiKey : 'Basic '.$apiKey;
 
         try {
             $payload = [
-                'to'   => $recipient,
+                'to' => $recipient,
                 'text' => $message,
             ];
 
-            if (!empty($options['ref'])) {
+            if (! empty($options['ref'])) {
                 $payload['ref'] = substr($options['ref'], 0, 15);
             }
 
-            if (!empty($options['schd'])) {
+            if (! empty($options['schd'])) {
                 $payload['schd'] = $options['schd'];
             }
 
             $response = Http::timeout($timeout)
                 ->withHeaders([
                     'Authorization' => $authHeader,
-                    'Content-Type'  => 'application/json',
-                    'Accept'        => '*/*',
+                    'Content-Type' => 'application/json',
+                    'Accept' => '*/*',
                     'X-API-VERSION' => $apiVersion,
                 ])->post($endpoint, $payload);
 
@@ -68,21 +69,22 @@ class TextItGateway implements SmsGatewayInterface
 
             if ($response->successful()) {
                 Log::info("TextIt REST SMS sent successfully to {$recipient}", [
-                    'status'   => $response->status(),
+                    'status' => $response->status(),
                     'response' => $body,
                 ]);
+
                 return true;
             }
 
             Log::error("TextIt REST SMS dispatch failed: HTTP {$response->status()}", [
-                'to'       => $recipient,
+                'to' => $recipient,
                 'response' => $body,
             ]);
 
             return false;
         } catch (\Throwable $e) {
             Log::error("TextIt REST SMS exception: {$e->getMessage()}", [
-                'to'        => $recipient,
+                'to' => $recipient,
                 'exception' => $e,
             ]);
 

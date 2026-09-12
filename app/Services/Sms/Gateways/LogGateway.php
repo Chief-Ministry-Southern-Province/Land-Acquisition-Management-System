@@ -18,7 +18,7 @@ class LogGateway implements SmsGatewayInterface
     {
         $channel = $this->config['channel'] ?? null;
 
-        Log::channel($channel)->info("SMS Dispatched [LogGateway]", [
+        Log::channel($channel)->info('SMS Dispatched [LogGateway]', [
             'to' => $to,
             'message' => $message,
             'options' => $options,

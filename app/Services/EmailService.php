@@ -7,17 +7,16 @@ use App\Models\Projects;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use App\Services\SmsService;
 
 class EmailService
 {
     /**
      * Generic function to send an email using Blade templates and SMTP config from .env.
      *
-     * @param string|array $to Email address or array of email addresses
-     * @param string $subject Email subject line
-     * @param string $view Blade view name (e.g., 'emails.user_created')
-     * @param array $data View data array
+     * @param  string|array  $to  Email address or array of email addresses
+     * @param  string  $subject  Email subject line
+     * @param  string  $view  Blade view name (e.g., 'emails.user_created')
+     * @param  array  $data  View data array
      * @return bool True if email dispatched successfully, false otherwise
      */
     public static function sendEmail(string|array $to, string $subject, string $view, array $data = []): bool
@@ -47,8 +46,11 @@ class EmailService
      */
     public static function shouldSendEmail(?User $user): bool
     {
-        if (! $user) return true;
+        if (! $user) {
+            return true;
+        }
         $pref = $user->notification_preference ?? 'email';
+
         return in_array($pref, ['email', 'both']);
     }
 
@@ -57,8 +59,11 @@ class EmailService
      */
     public static function shouldSendSms(?User $user): bool
     {
-        if (! $user) return false;
+        if (! $user) {
+            return false;
+        }
         $pref = $user->notification_preference ?? 'email';
+
         return in_array($pref, ['sms', 'both']);
     }
 
@@ -77,7 +82,7 @@ class EmailService
             subject: 'Welcome to Land Acquisition Management System - Your Account Credentials',
             view: 'emails.user_created',
             data: [
-                'user'     => $user,
+                'user' => $user,
                 'password' => $plainPassword,
                 'loginUrl' => config('app.url'),
             ]
@@ -97,6 +102,7 @@ class EmailService
         $pref = $recipient->notification_preference ?? 'email';
         if ($pref === 'none') {
             Log::info("Skipping case pending notification for user {$recipient->id}: Preference is 'none'.");
+
             return false;
         }
 
@@ -111,12 +117,12 @@ class EmailService
                     'recipient' => $recipient,
                     'project' => $project,
                     'stageName' => $stageName,
-                    'actionUrl' => config('app.url') . '/approval-workflow',
+                    'actionUrl' => config('app.url').'/approval-workflow',
                 ]
             );
         }
 
-        if (static::shouldSendSms($recipient) || $sendSms || ($pref === 'email' && !$emailSent)) {
+        if (static::shouldSendSms($recipient) || $sendSms || ($pref === 'email' && ! $emailSent)) {
             SmsService::sendCasePendingApprovalSms($recipient, $project, $stageName);
         }
 
@@ -131,6 +137,7 @@ class EmailService
         $pref = $recipient->notification_preference ?? 'email';
         if ($pref === 'none') {
             Log::info("Skipping case denied notification for user {$recipient->id}: Preference is 'none'.");
+
             return false;
         }
 
@@ -148,12 +155,12 @@ class EmailService
                     'deniedByRole' => $deniedByRole,
                     'comment' => $comment,
                     'actionType' => $actionType,
-                    'actionUrl' => config('app.url') . '/dashboard',
+                    'actionUrl' => config('app.url').'/dashboard',
                 ]
             );
         }
 
-        if (static::shouldSendSms($recipient) || $sendSms || ($pref === 'email' && !$emailSent)) {
+        if (static::shouldSendSms($recipient) || $sendSms || ($pref === 'email' && ! $emailSent)) {
             SmsService::sendCaseDeniedSms($recipient, $project, $deniedByRole, $comment, $actionType);
         }
 

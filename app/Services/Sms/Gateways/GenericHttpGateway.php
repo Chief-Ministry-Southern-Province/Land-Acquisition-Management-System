@@ -28,7 +28,8 @@ class GenericHttpGateway implements SmsGatewayInterface
         );
 
         if (empty($url)) {
-            Log::error("GenericHttp SMS failed: Missing SMS Gateway Endpoint URL.");
+            Log::error('GenericHttp SMS failed: Missing SMS Gateway Endpoint URL.');
+
             return false;
         }
 
@@ -37,11 +38,11 @@ class GenericHttpGateway implements SmsGatewayInterface
             $messageParam => $message,
         ];
 
-        if (!empty($apiKey)) {
+        if (! empty($apiKey)) {
             $payload['api_key'] = $apiKey;
         }
 
-        if (!empty($options['extra_params']) && is_array($options['extra_params'])) {
+        if (! empty($options['extra_params']) && is_array($options['extra_params'])) {
             $payload = array_merge($payload, $options['extra_params']);
         }
 
@@ -58,6 +59,7 @@ class GenericHttpGateway implements SmsGatewayInterface
                 Log::info("GenericHttp SMS sent successfully to {$to}", [
                     'status' => $response->status(),
                 ]);
+
                 return true;
             }
 

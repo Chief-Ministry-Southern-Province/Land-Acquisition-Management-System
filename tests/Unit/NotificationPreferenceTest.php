@@ -2,7 +2,6 @@
 
 namespace Tests\Unit;
 
-use App\Models\Projects;
 use App\Models\User;
 use App\Services\EmailService;
 use App\Services\SmsService;

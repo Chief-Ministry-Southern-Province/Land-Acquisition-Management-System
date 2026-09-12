@@ -226,6 +226,7 @@ export default function UnifiedMap({
         setMapInitialized(false);
       }, 0);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provider, providerLoading]);
 
   // Sync Leaflet single marker position & zoom updates
@@ -274,6 +275,7 @@ export default function UnifiedMap({
         leafletMarkerRef.current = null;
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [latitude, longitude, zoom, editable, provider, parcels.length]);
 
   // Sync Leaflet GeoJSON layer
@@ -318,6 +320,7 @@ export default function UnifiedMap({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boundaryGeoJson, showBoundaries, provider, mapInitialized]);
 
   // Sync Leaflet multi-parcel markers
@@ -398,6 +401,7 @@ export default function UnifiedMap({
         map.setView(position, Math.max(map.getZoom(), 14));
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parcels, selectedParcelId, provider, mapInitialized]);
 
   // -------------------------------------------------------------
@@ -522,6 +526,7 @@ export default function UnifiedMap({
         setMapInitialized(false);
       }, 0);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provider, providerLoading]);
 
   // Sync Google single marker position and zoom
@@ -568,6 +573,7 @@ export default function UnifiedMap({
         googleMarkerRef.current = null;
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [latitude, longitude, zoom, editable, provider, parcels.length]);
 
   // Sync Google Maps GeoJSON layer
@@ -614,6 +620,7 @@ export default function UnifiedMap({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boundaryGeoJson, showBoundaries, provider, mapInitialized]);
 
   // Sync Google Maps multi-parcel markers
@@ -705,6 +712,7 @@ export default function UnifiedMap({
         map.setCenter(position);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parcels, selectedParcelId, provider, mapInitialized]);
 
   // Loading indicator for provider initialization

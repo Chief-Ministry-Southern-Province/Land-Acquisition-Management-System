@@ -5,30 +5,70 @@ import {
   FileText,
   AlertTriangle,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { getAdminStats } from '@/services/adminStatsService';
+import type { AdminStats } from '@/services/adminStatsService';
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
+  const [statsData, setStatsData] = useState<AdminStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    getAdminStats()
+      .then((data) => {
+        if (isMounted) {
+          setStatsData(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch admin stats:', err);
+
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const adminStats = [
     {
       title: t('active_users', 'Active Users'),
-      value: '12',
-      change: t('active_users_change', '+2 this week'),
+      value: isLoading
+        ? '...'
+        : (statsData?.active_users ?? 0).toLocaleString(),
+      change: statsData?.active_users_change
+        ? t('active_users_change', statsData.active_users_change)
+        : t('active_users_change', '+0 this week'),
       icon: Users,
       color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
     },
     {
       title: t('system_logs_24h', 'System Logs (24h)'),
-      value: '2,484',
-      change: t('logs_normal_rate', 'Normal rate'),
+      value: isLoading
+        ? '...'
+        : (statsData?.system_logs_24h ?? 0).toLocaleString(),
+      change: statsData?.logs_rate
+        ? t('logs_normal_rate', statsData.logs_rate)
+        : t('logs_normal_rate', 'Normal rate'),
       icon: Activity,
       color: 'bg-green-500/10 text-green-600 dark:text-green-400',
     },
     {
       title: t('pending_requests', 'Pending Requests'),
-      value: '5',
-      change: t('needs_review', 'Needs review'),
+      value: isLoading
+        ? '...'
+        : (statsData?.pending_requests ?? 0).toLocaleString(),
+      change: statsData?.pending_requests_change
+        ? t('needs_review', statsData.pending_requests_change)
+        : t('needs_review', 'Needs review'),
       icon: FileText,
       color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
     },

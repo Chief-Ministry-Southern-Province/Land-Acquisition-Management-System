@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\AOApprovalController;
 use App\Http\Controllers\ASApprovalController;
 use App\Http\Controllers\AuditLogsController;
@@ -136,6 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ─── Admin Only Routes ───────────────────────────────────────────
     Route::middleware('check.role:Admin')->group(function () {
+        Route::get('/admin/stats', [AdminStatsController::class, 'index']);
         Route::get('/users', [UserController::class, 'getAllUsers']);
         Route::put('/users/{id}', [UserController::class, 'updateUser']);
         Route::delete('/users/{id}', [UserController::class, 'deleteUser']);

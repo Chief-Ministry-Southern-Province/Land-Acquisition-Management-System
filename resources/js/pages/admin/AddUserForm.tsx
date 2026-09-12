@@ -57,11 +57,7 @@ const EMPTY_VALUES: AddUserFormValues = {
   status: 'Active',
 };
 
-function validate(
-  values: AddUserFormValues,
-  isEditMode = false,
-  t: any,
-): FormErrors {
+function validate(values: AddUserFormValues, t: any): FormErrors {
   const errors: FormErrors = {};
 
   if (!values.userName.trim()) {
@@ -193,7 +189,6 @@ export default function AddUserForm({
     return EMPTY_VALUES;
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [showPassword, setShowPassword] = useState(false);
 
   React.useEffect(() => {
     let active = true;
@@ -242,7 +237,7 @@ export default function AddUserForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setGeneralError(null);
-    const validationErrors = validate(values, isEditMode, t);
+    const validationErrors = validate(values, t);
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
@@ -258,7 +253,7 @@ export default function AddUserForm({
         const payload = {
           name: values.userName,
           email: values.email,
-          phone: values.phone || null,
+          phone: values.phone.trim() || undefined,
           department_id: Number(values.department),
           role_id: Number(values.role),
         };
@@ -448,19 +443,23 @@ export default function AddUserForm({
             </div>
 
             {/* Phone Number */}
-            <Field label={t('phone_number', 'Phone Number')} hint={t('hint_phone_sms', 'Used for receiving SMS notifications')}>
+            <Field
+              label={t('phone_number', 'Phone Number')}
+              hint={t('hint_phone_sms', 'Used for receiving SMS notifications')}
+            >
               <input
                 id="phone"
                 className={inputCls}
                 type="tel"
-                placeholder={t('phone_placeholder', 'e.g. +94771234567 or 0771234567')}
+                placeholder={t(
+                  'phone_placeholder',
+                  'e.g. +94771234567 or 0771234567',
+                )}
                 value={values.phone}
                 onChange={handleChange('phone')}
                 disabled={isSubmitting}
               />
-              {errors.phone && (
-                <span className={errCls}>{errors.phone}</span>
-              )}
+              {errors.phone && <span className={errCls}>{errors.phone}</span>}
             </Field>
 
             {/* Email */}

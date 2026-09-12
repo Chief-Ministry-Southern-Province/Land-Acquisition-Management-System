@@ -18,15 +18,12 @@ class SmsGatewayManager
 
     /**
      * Get an SMS gateway driver instance.
-     *
-     * @param string|null $name
-     * @return SmsGatewayInterface
      */
     public function driver(?string $name = null): SmsGatewayInterface
     {
         $name = $name ?: config('sms.default', 'log');
 
-        if (!isset($this->drivers[$name])) {
+        if (! isset($this->drivers[$name])) {
             $this->drivers[$name] = $this->resolve($name);
         }
 
@@ -35,9 +32,6 @@ class SmsGatewayManager
 
     /**
      * Resolve the requested SMS Gateway driver.
-     *
-     * @param string $name
-     * @return SmsGatewayInterface
      */
     protected function resolve(string $name): SmsGatewayInterface
     {
@@ -53,10 +47,6 @@ class SmsGatewayManager
 
     /**
      * Register a custom gateway driver instance or closure.
-     *
-     * @param string $name
-     * @param SmsGatewayInterface $driver
-     * @return void
      */
     public function extend(string $name, SmsGatewayInterface $driver): void
     {
