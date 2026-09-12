@@ -46,7 +46,7 @@ test('admin can fetch admin dashboard stats', function () {
         'title' => 'Test Project',
         'purpose' => 'Testing',
         'institution' => 'Test Inst',
-        'case_status' => 'Pending HOB',
+        'case_status' => 'pending',
     ]);
 
     $response = $this->actingAs($this->adminUser, 'sanctum')

@@ -19,7 +19,7 @@ class AdminStatsController extends Controller
 
         $systemLogs24h = AuditLogs::where('created_at', '>=', now()->subHours(24))->count();
 
-        $pendingRequests = Projects::where('case_status', 'LIKE', 'Pending%')->count();
+        $pendingRequests = Projects::where('case_status', 'pending')->count();
 
         return response()->json([
             'message' => 'Admin stats fetched successfully',
