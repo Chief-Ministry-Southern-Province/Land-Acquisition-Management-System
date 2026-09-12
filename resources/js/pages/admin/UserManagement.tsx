@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { Edit, Plus, Shield, Trash2 } from 'lucide-react';
+import { Edit, Plus, Shield, Trash2, UserCheck, UserX } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
@@ -47,7 +47,7 @@ export default function UserManagement() {
         department: u.department?.department_name || 'N/A',
         email: u.email,
         phone: u.phone || null,
-        status: 'active',
+        status: u.status || 'active',
         rawId: u.id,
         roleId: u.role?.id || 0,
         departmentId: u.department?.id || 0,
@@ -86,6 +86,8 @@ export default function UserManagement() {
         'confirm_user_delete_desc',
         'Are you sure you want to delete this user?',
       ),
+      confirmButtonText: t('delete', 'Delete'),
+      cancelButtonText: t('cancel', 'Cancel'),
     });
 
     if (!confirmed) {
@@ -95,12 +97,66 @@ export default function UserManagement() {
     try {
       setError(null);
       await deleteUser(rawId);
-      setUsers((prev) => prev.filter((u) => u.rawId !== rawId));
+      await fetchUsers();
       toastSuccess(t('toast_user_deleted', 'User deleted successfully.'));
     } catch (err: any) {
       console.error(err);
       const errMsg =
         err.message || t('toast_failed_delete_user', 'Failed to delete user.');
+      setError(errMsg);
+      toastError(errMsg);
+    }
+  };
+
+  const handleToggleStatus = async (user: any) => {
+    const newStatus = user.status === 'inactive' ? 'active' : 'inactive';
+    const isDeactivating = newStatus === 'inactive';
+
+    const confirmed = await confirmDialog({
+      title: isDeactivating
+        ? t('deactivate_user', 'Deactivate User')
+        : t('activate_user', 'Activate User'),
+      text: isDeactivating
+        ? t(
+            'confirm_user_deactivate_desc',
+            'Are you sure you want to deactivate this user account?',
+          )
+        : t(
+            'confirm_user_activate_desc',
+            'Are you sure you want to activate this user account?',
+          ),
+      confirmButtonText: isDeactivating
+        ? t('deactivate', 'Deactivate')
+        : t('activate', 'Activate'),
+      cancelButtonText: t('cancel', 'Cancel'),
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setError(null);
+      const payload = {
+        name: user.name,
+        email: user.email,
+        phone: user.phone || null,
+        role_id: user.roleId,
+        department_id: user.departmentId,
+        status: newStatus,
+      };
+      await updateUser(user.rawId, payload);
+      await fetchUsers();
+      toastSuccess(
+        isDeactivating
+          ? t('toast_user_deactivated', 'User deactivated successfully.')
+          : t('toast_user_activated', 'User activated successfully.'),
+      );
+    } catch (err: any) {
+      console.error(err);
+      const errMsg =
+        err.message ||
+        t('toast_failed_update_status', 'Failed to update user status.');
       setError(errMsg);
       toastError(errMsg);
     }
@@ -123,10 +179,12 @@ export default function UserManagement() {
         phone: values.phone || null,
         role_id: Number(values.role),
         department_id: Number(values.department),
+        status: values.status ? values.status.toLowerCase() : 'active',
       };
       await updateUser(editingUser.rawId, payload);
       await fetchUsers();
       setEditingUser(null);
+      toastSuccess(t('toast_user_updated', 'User updated successfully.'));
     } catch (err: any) {
       console.error(err);
       setError(
@@ -157,6 +215,25 @@ export default function UserManagement() {
         onClick={() => handleUpdate(row)}
       >
         <Edit className="h-4 w-4" />
+      </button>
+      <button
+        className={`rounded p-1.5 transition-colors ${
+          row.status === 'inactive'
+            ? 'hover:bg-success/10 text-success'
+            : 'text-amber-600 hover:bg-amber-500/10'
+        }`}
+        title={
+          row.status === 'inactive'
+            ? t('activate_user', 'Activate User')
+            : t('deactivate_user', 'Deactivate User')
+        }
+        onClick={() => handleToggleStatus(row)}
+      >
+        {row.status === 'inactive' ? (
+          <UserCheck className="h-4 w-4" />
+        ) : (
+          <UserX className="h-4 w-4" />
+        )}
       </button>
       <button
         className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"

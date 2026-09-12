@@ -29,7 +29,12 @@ class AuthController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'department_id' => 'required|integer|exists:departments,id',
             'role_id' => 'required|integer|exists:roles,id',
+            'status' => 'nullable|string|in:active,inactive,Active,Inactive',
         ]);
+
+        if (isset($validated['status'])) {
+            $validated['status'] = strtolower($validated['status']);
+        }
 
         $plainPassword = $request->filled('password')
             ? $request->input('password')
@@ -73,6 +78,16 @@ class AuthController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
+
+        if (strtolower($user->status ?? 'active') === 'inactive') {
+            Auth::logout();
+            $user->tokens()->delete();
+
+            throw ValidationException::withMessages([
+                'email' => ['Your account has been deactivated. Please contact an administrator.'],
+            ]);
+        }
+
         $user->load(['role', 'department']);
 
         $token = $user->createToken('auth_token')->plainTextToken;

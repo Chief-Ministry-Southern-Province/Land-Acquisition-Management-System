@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuditLogFailedCreations;
 use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -38,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureFrontendRequestsAreStateful::class,
         ], append: [
             SetLocale::class,
+            EnsureUserIsActive::class,
             AuditLogFailedCreations::class,
         ]);
 
