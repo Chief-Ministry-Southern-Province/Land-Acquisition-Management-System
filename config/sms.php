@@ -49,9 +49,12 @@ return [
         ],
 
         'textit' => [
-            'username' => env('TEXTIT_USERNAME', env('TEXTIT_USER_ID')),
+            'api_key' => env('TEXTIT_API_KEY') ?: env('TEXTIT_PASSWORD'),
+            'username' => env('TEXTIT_USERNAME') ?: env('TEXTIT_USER_ID'),
             'password' => env('TEXTIT_PASSWORD'),
-            'endpoint' => env('TEXTIT_ENDPOINT', 'https://www.textit.biz/sendmsg'),
+            'endpoint' => env('TEXTIT_ENDPOINT', 'https://api.textit.biz/'),
+            'api_version' => env('TEXTIT_API_VERSION', 'v1'),
+            'timeout' => (int) env('TEXTIT_TIMEOUT', 15),
         ],
 
         'generic_http' => [

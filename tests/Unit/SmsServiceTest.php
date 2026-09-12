@@ -53,25 +53,25 @@ class SmsServiceTest extends TestCase
     public function test_textit_gateway_dispatches_http_request()
     {
         Http::fake([
-            'https://www.textit.biz/sendmsg*' => Http::response('OK: 987654321', 200),
+            'https://api.textit.biz/*' => Http::response(['status' => 'success'], 200),
         ]);
 
         Config::set('sms.gateways.textit', [
-            'username' => 'test_user',
-            'password' => 'test_pass',
-            'endpoint' => 'https://www.textit.biz/sendmsg',
+            'api_key'  => 'eyJhbGciOiJIUzUxMiJ9.testkey',
+            'endpoint' => 'https://api.textit.biz/',
         ]);
 
         $gateway = new TextItGateway();
-        $sent = $gateway->send('0771234567', 'TextIt Test Message');
+        // Pass number with '+' — gateway must strip it before sending
+        $sent = $gateway->send('+94771234567', 'TextIt Test Message');
 
         $this->assertTrue($sent);
 
         Http::assertSent(function ($request) {
-            return str_contains($request->url(), 'www.textit.biz/sendmsg')
-                && $request['id'] === 'test_user'
-                && $request['pw'] === 'test_pass'
-                && $request['to'] === '0771234567'
+            return str_contains($request->url(), 'api.textit.biz')
+                && $request->hasHeader('Authorization', 'Basic eyJhbGciOiJIUzUxMiJ9.testkey')
+                && $request->hasHeader('X-API-VERSION', 'v1')
+                && $request['to'] === '94771234567'
                 && $request['text'] === 'TextIt Test Message';
         });
     }

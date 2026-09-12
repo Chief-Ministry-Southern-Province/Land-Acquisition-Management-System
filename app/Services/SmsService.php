@@ -103,6 +103,9 @@ class SmsService
             return false;
         }
 
+        // Normalize to international format for reliable SMS delivery
+        $phone = static::toInternationalFormat($phone) ?? $phone;
+
         $appName = config('app.name', 'LAM System');
         $message = "Welcome to {$appName}! Your account has been created. Email: {$user->email}, Password: {$plainPassword}. Login at: " . config('app.url');
 
@@ -200,7 +203,11 @@ class SmsService
 
         $phone = $user->phone ?? $user->phone_number ?? $user->department?->phone ?? null;
 
-        return $phone ? static::sanitizePhone((string) $phone) : null;
+        if (!$phone) {
+            return null;
+        }
+
+        return static::toInternationalFormat((string) $phone) ?? static::sanitizePhone((string) $phone);
     }
 
     /**
@@ -224,5 +231,43 @@ class SmsService
         }
 
         return $isPlus ? '+' . $digitsOnly : $digitsOnly;
+    }
+
+    /**
+     * Normalize a Sri Lankan local phone number to international E.164 format (+94).
+     * e.g. 0765230307 → +94765230307, 0771234567 → +94771234567
+     * Numbers already in international format (+94...) are returned unchanged.
+     *
+     * @param string $phone
+     * @return string|null
+     */
+    public static function toInternationalFormat(string $phone): ?string
+    {
+        $sanitized = static::sanitizePhone($phone);
+        if (empty($sanitized)) {
+            return null;
+        }
+
+        // Already in international format
+        if (str_starts_with($sanitized, '+')) {
+            return $sanitized;
+        }
+
+        // Local SL format: 07XXXXXXXX or 01XXXXXXXX → +94 7XXXXXXXX
+        if (str_starts_with($sanitized, '0') && strlen($sanitized) === 10) {
+            return '+94' . substr($sanitized, 1);
+        }
+
+        // If it's already 9 digits (without leading 0), prepend +94
+        if (!str_starts_with($sanitized, '94') && strlen($sanitized) === 9) {
+            return '+94' . $sanitized;
+        }
+
+        // If it starts with 94 without +, add +
+        if (str_starts_with($sanitized, '94') && strlen($sanitized) === 11) {
+            return '+' . $sanitized;
+        }
+
+        return $sanitized;
     }
 }

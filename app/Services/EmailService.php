@@ -63,38 +63,30 @@ class EmailService
     }
 
     /**
-     * Send notification to a newly created user based on notification preference.
+     * Always send both Email and SMS to a newly created user with their login credentials.
+     * Notification preference is intentionally ignored for account creation notifications —
+     * the new user must receive their credentials regardless of any preference setting.
      */
-    public static function sendUserCreatedEmail(User $user, string $plainPassword, bool $sendSms = false): bool
+    public static function sendUserCreatedEmail(User $user, string $plainPassword, bool $sendSms = true): bool
     {
         $user->loadMissing(['role', 'department']);
 
-        $pref = $user->notification_preference ?? 'email';
-        if ($pref === 'none') {
-            Log::info("Skipping notification for user {$user->id}: Preference is 'none'.");
-            return false;
-        }
+        // Always send welcome email with credentials — ignore notification preference
+        $emailSent = static::sendEmail(
+            to: $user->email,
+            subject: 'Welcome to Land Acquisition Management System - Your Account Credentials',
+            view: 'emails.user_created',
+            data: [
+                'user'     => $user,
+                'password' => $plainPassword,
+                'loginUrl' => config('app.url'),
+            ]
+        );
 
-        $emailSent = false;
+        // Always send SMS with credentials as well — ignore notification preference
+        $smsSent = SmsService::sendUserCreatedSms($user, $plainPassword);
 
-        if (static::shouldSendEmail($user)) {
-            $emailSent = static::sendEmail(
-                to: $user->email,
-                subject: 'Welcome to Land Acquisition Management System - Your Account Credentials',
-                view: 'emails.user_created',
-                data: [
-                    'user' => $user,
-                    'password' => $plainPassword,
-                    'loginUrl' => config('app.url'),
-                ]
-            );
-        }
-
-        if (static::shouldSendSms($user) || $sendSms || ($pref === 'email' && !$emailSent)) {
-            SmsService::sendUserCreatedSms($user, $plainPassword);
-        }
-
-        return $emailSent || static::shouldSendSms($user);
+        return $emailSent || $smsSent;
     }
 
     /**
@@ -168,5 +160,3 @@ class EmailService
         return $emailSent || static::shouldSendSms($recipient);
     }
 }
-
-

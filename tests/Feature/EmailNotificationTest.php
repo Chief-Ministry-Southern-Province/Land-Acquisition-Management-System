@@ -12,6 +12,7 @@ use function Pest\Laravel\postJson;
 
 beforeEach(function () {
     Mail::fake();
+    Http::fake();
 
     $this->department = Departments::firstOrCreate([
         'department_name' => 'Land Division',
@@ -73,10 +74,14 @@ test('generic sendEmail function sends email successfully', function () {
     });
 });
 
-test('user creation dispatches auto-generated password credentials email to user', function () {
+test('user creation dispatches auto-generated password credentials email and SMS to user', function () {
+    Log::shouldReceive('channel')->andReturnSelf();
+    Log::shouldReceive('info')->atLeast()->once();
+
     $payload = [
         'name' => 'John Officer',
         'email' => 'johnofficer@lams.gov.lk',
+        'phone' => '+94771234567',
         'department_id' => $this->department->id,
         'role_id' => $this->doRole->id,
     ];

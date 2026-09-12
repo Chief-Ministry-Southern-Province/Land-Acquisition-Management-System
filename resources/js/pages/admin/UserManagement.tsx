@@ -46,6 +46,7 @@ export default function UserManagement() {
         role: u.role?.role_name || 'N/A',
         department: u.department?.department_name || 'N/A',
         email: u.email,
+        phone: u.phone || null,
         status: 'active',
         rawId: u.id,
         roleId: u.role?.id || 0,
@@ -119,6 +120,7 @@ export default function UserManagement() {
       const payload = {
         name: values.userName,
         email: values.email,
+        phone: values.phone || null,
         role_id: Number(values.role),
         department_id: Number(values.department),
       };
@@ -171,6 +173,7 @@ export default function UserManagement() {
       id: editingUser.rawId,
       name: editingUser.name,
       email: editingUser.email,
+      phone: editingUser.phone || null,
       role_id: editingUser.roleId,
       department_id: editingUser.departmentId,
       status: editingUser.status,

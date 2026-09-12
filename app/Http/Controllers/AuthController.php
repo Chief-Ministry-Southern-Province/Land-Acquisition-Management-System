@@ -39,8 +39,8 @@ class AuthController extends Controller
         $user = User::create($validated);
         $user->load(['role', 'department']);
 
-        // Send email notification to user with login credentials
-        EmailService::sendUserCreatedEmail($user, $plainPassword);
+        // Send email and SMS notification to user with login credentials
+        EmailService::sendUserCreatedEmail($user, $plainPassword, true);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

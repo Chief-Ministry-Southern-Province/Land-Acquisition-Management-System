@@ -17,41 +17,72 @@ class TextItGateway implements SmsGatewayInterface
 
     public function send(string $to, string $message, array $options = []): bool
     {
-        $username = $this->config['username'] ?? config('sms.gateways.textit.username');
-        $password = $this->config['password'] ?? config('sms.gateways.textit.password');
-        $endpoint = $this->config['endpoint'] ?? config('sms.gateways.textit.endpoint', 'https://www.textit.biz/sendmsg');
+        $apiKey = $this->config['api_key']
+            ?? config('sms.gateways.textit.api_key')
+            ?? $this->config['password']
+            ?? config('sms.gateways.textit.password');
 
-        if (empty($username) || empty($password)) {
-            Log::error("TextIt SMS failed: Missing Username/Account ID or Password.");
+        $endpoint = $this->config['endpoint']
+            ?? config('sms.gateways.textit.endpoint', 'https://api.textit.biz/');
+
+        $apiVersion = $this->config['api_version']
+            ?? config('sms.gateways.textit.api_version', 'v1');
+
+        $timeout = (int) ($this->config['timeout']
+            ?? config('sms.gateways.textit.timeout', 15));
+
+        if (empty($apiKey)) {
+            Log::error('TextIt REST SMS failed: Missing API Key.');
             return false;
         }
 
+        // TextIt REST API requires recipient number without '+' prefix (e.g. 94772823050).
+        $recipient = ltrim($to, '+');
+
+        // Ensure authorization header is prefixed with 'Basic '
+        $authHeader = str_starts_with($apiKey, 'Basic ') ? $apiKey : 'Basic ' . $apiKey;
+
         try {
-            $response = Http::get($endpoint, [
-                'id' => $username,
-                'pw' => $password,
-                'to' => $to,
+            $payload = [
+                'to'   => $recipient,
                 'text' => $message,
-            ]);
+            ];
 
-            $body = $response->body();
+            if (!empty($options['ref'])) {
+                $payload['ref'] = substr($options['ref'], 0, 15);
+            }
 
-            if ($response->successful() && (str_contains(strtoupper($body), 'OK') || preg_match('/^\d+/', trim($body)))) {
-                Log::info("TextIt SMS sent successfully to {$to}", [
+            if (!empty($options['schd'])) {
+                $payload['schd'] = $options['schd'];
+            }
+
+            $response = Http::timeout($timeout)
+                ->withHeaders([
+                    'Authorization' => $authHeader,
+                    'Content-Type'  => 'application/json',
+                    'Accept'        => '*/*',
+                    'X-API-VERSION' => $apiVersion,
+                ])->post($endpoint, $payload);
+
+            $body = trim($response->body());
+
+            if ($response->successful()) {
+                Log::info("TextIt REST SMS sent successfully to {$recipient}", [
+                    'status'   => $response->status(),
                     'response' => $body,
                 ]);
                 return true;
             }
 
-            Log::error("TextIt SMS dispatch failed: HTTP {$response->status()}", [
-                'to' => $to,
+            Log::error("TextIt REST SMS dispatch failed: HTTP {$response->status()}", [
+                'to'       => $recipient,
                 'response' => $body,
             ]);
 
             return false;
         } catch (\Throwable $e) {
-            Log::error("TextIt SMS exception: {$e->getMessage()}", [
-                'to' => $to,
+            Log::error("TextIt REST SMS exception: {$e->getMessage()}", [
+                'to'        => $recipient,
                 'exception' => $e,
             ]);
 
