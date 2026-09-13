@@ -20,6 +20,7 @@ import { confirmDialog } from '@/lib/alerts';
 import {
   getCurrentUser,
   changePassword,
+  updateProfile,
   updateSignature,
   updateNotificationPreference,
 } from '@/services/authService';
@@ -31,6 +32,10 @@ export default function Settings() {
   // User Profile details
   const [profileData, setProfileData] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profileName, setProfileName] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [profilePhone, setProfilePhone] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
 
   // Notification preference state
   const [notifPref, setNotifPref] = useState<'email' | 'sms' | 'both' | 'none'>(
@@ -48,6 +53,7 @@ export default function Settings() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Toast feedback state
@@ -69,6 +75,9 @@ export default function Settings() {
 
       if (data.user) {
         setProfileData(data.user);
+        setProfileName(data.user.name || '');
+        setProfileEmail(data.user.email || '');
+        setProfilePhone(data.user.phone || '');
         setActiveSignature(data.user.signature || null);
 
         if (data.user.notification_preference) {
@@ -87,6 +96,54 @@ export default function Settings() {
       fetchProfile();
     });
   }, [fetchProfile]);
+
+  const handleProfileSave = async () => {
+    if (!profileName.trim()) {
+      showToast(
+        'error',
+        t('err_profile_name_required', 'Full name is required.'),
+      );
+
+      return;
+    }
+
+    if (!profileEmail.trim()) {
+      showToast(
+        'error',
+        t('err_profile_email_required', 'Email address is required.'),
+      );
+
+      return;
+    }
+
+    try {
+      setSavingProfile(true);
+      const res = await updateProfile({
+        name: profileName.trim(),
+        email: profileEmail.trim(),
+        phone: profilePhone.trim() || null,
+      });
+      showToast(
+        'success',
+        res.message ||
+          t(
+            'msg_profile_updated_success',
+            'Profile details updated successfully.',
+          ),
+      );
+      await fetchProfile();
+    } catch (err: any) {
+      console.error('Failed to update profile details:', err);
+      const errors = err.response?.data?.errors;
+      const errorMsg = errors
+        ? (Object.values(errors).flat()[0] as string)
+        : err.response?.data?.message ||
+          t('err_failed_update_profile', 'Failed to update profile details.');
+      showToast('error', errorMsg);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const handlePasswordChange = async () => {
     if (!currentPassword) {
@@ -129,7 +186,7 @@ export default function Settings() {
     }
 
     try {
-      setSaving(true);
+      setSavingPassword(true);
       const res = await changePassword({
         current_password: currentPassword,
         new_password: newPassword,
@@ -152,7 +209,7 @@ export default function Settings() {
           t('err_failed_change_password', 'Failed to change password.');
       showToast('error', errorMsg);
     } finally {
-      setSaving(false);
+      setSavingPassword(false);
     }
   };
 
@@ -693,8 +750,17 @@ export default function Settings() {
             )}
 
             {activeTab === 'profile' && (
-              <div className="space-y-6">
-                <h3>{t('profile_settings_title', 'User Profile')}</h3>
+              <div className="space-y-8">
+                <div>
+                  <h3>{t('profile_settings_title', 'User Profile')}</h3>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    {t(
+                      'profile_settings_subtitle',
+                      'Manage your profile details and security credentials.',
+                    )}
+                  </p>
+                </div>
+
                 {loadingProfile ? (
                   <div className="flex flex-col items-center justify-center py-12">
                     <LoadingSpinner
@@ -709,78 +775,132 @@ export default function Settings() {
                     />
                   </div>
                 ) : profileData ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="mb-2 block text-sm font-medium">
-                          {t('label_full_name', 'Full Name')}
-                        </label>
-                        <input
-                          type="text"
-                          value={profileData.name || ''}
-                          disabled
-                          className="bg-muted border-border w-full cursor-not-allowed rounded-lg border px-4 py-2 opacity-60"
-                        />
+                  <div className="space-y-8">
+                    {/* Profile Information Section */}
+                    <div className="border-border bg-card space-y-5 rounded-xl border p-5 shadow-sm">
+                      <div className="border-border border-b pb-3">
+                        <h4 className="text-foreground font-semibold">
+                          {t('title_profile_details', 'Profile Details')}
+                        </h4>
+                        <p className="text-muted-foreground text-xs">
+                          {t(
+                            'desc_profile_details',
+                            'Update your personal details and contact information.',
+                          )}
+                        </p>
                       </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-medium">
-                          {t('label_profile_email', 'Email')}
-                        </label>
-                        <input
-                          type="email"
-                          value={profileData.email || ''}
-                          disabled
-                          className="bg-muted border-border w-full cursor-not-allowed rounded-lg border px-4 py-2 opacity-60"
-                        />
+
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">
+                            {t('label_full_name', 'Full Name')}
+                          </label>
+                          <input
+                            type="text"
+                            value={profileName}
+                            onChange={(e) => setProfileName(e.target.value)}
+                            className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
+                            placeholder="John Doe"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">
+                            {t('label_profile_email', 'Email')}
+                          </label>
+                          <input
+                            type="email"
+                            value={profileEmail}
+                            onChange={(e) => setProfileEmail(e.target.value)}
+                            className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
+                            placeholder="user@example.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">
+                            {t('label_phone_number', 'Phone Number')}
+                          </label>
+                          <input
+                            type="text"
+                            value={profilePhone}
+                            onChange={(e) => setProfilePhone(e.target.value)}
+                            className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
+                            placeholder="+94 77 123 4567"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">
+                            {t('label_department', 'Department')}
+                          </label>
+                          <input
+                            type="text"
+                            value={
+                              profileData.department?.department_name ||
+                              t('n_a', 'N/A')
+                            }
+                            disabled
+                            className="bg-muted border-border w-full cursor-not-allowed rounded-lg border px-4 py-2 opacity-60"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">
+                            {t('label_role', 'Role')}
+                          </label>
+                          <input
+                            type="text"
+                            value={
+                              profileData.role?.description ||
+                              profileData.role?.role_name ||
+                              t('n_a', 'N/A')
+                            }
+                            disabled
+                            className="bg-muted border-border w-full cursor-not-allowed rounded-lg border px-4 py-2 opacity-60"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-2">
+                        <button
+                          type="button"
+                          onClick={handleProfileSave}
+                          disabled={savingProfile || loadingProfile}
+                          className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {savingProfile ? (
+                            <LoadingSpinner
+                              type="pulse"
+                              variant="white"
+                              size="xs"
+                            />
+                          ) : (
+                            <Save className="h-4 w-4" />
+                          )}
+                          <span>
+                            {savingProfile
+                              ? t('btn_saving_profile', 'Saving Profile...')
+                              : t('btn_save_profile', 'Save Profile Details')}
+                          </span>
+                        </button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="mb-2 block text-sm font-medium">
-                          {t('label_phone_number', 'Phone Number')}
-                        </label>
-                        <input
-                          type="text"
-                          value={profileData.phone || t('n_a', 'N/A')}
-                          disabled
-                          className="bg-muted border-border w-full cursor-not-allowed rounded-lg border px-4 py-2 opacity-60"
-                        />
+
+                    {/* Change Password Section */}
+                    <div className="border-border bg-card space-y-5 rounded-xl border p-5 shadow-sm">
+                      <div className="border-border border-b pb-3">
+                        <h4 className="text-foreground font-semibold">
+                          {t('label_change_password', 'Change Password')}
+                        </h4>
+                        <p className="text-muted-foreground text-xs">
+                          {t(
+                            'desc_change_password',
+                            'Ensure your account is using a long, random password to stay secure.',
+                          )}
+                        </p>
                       </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-medium">
-                          {t('label_department', 'Department')}
-                        </label>
-                        <input
-                          type="text"
-                          value={
-                            profileData.department?.department_name ||
-                            t('n_a', 'N/A')
-                          }
-                          disabled
-                          className="bg-muted border-border w-full cursor-not-allowed rounded-lg border px-4 py-2 opacity-60"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-medium">
-                          {t('label_role', 'Role')}
-                        </label>
-                        <input
-                          type="text"
-                          value={
-                            profileData.role?.description ||
-                            profileData.role?.role_name ||
-                            t('n_a', 'N/A')
-                          }
-                          disabled
-                          className="bg-muted border-border w-full cursor-not-allowed rounded-lg border px-4 py-2 opacity-60"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="mb-3 mt-6">
-                        {t('label_change_password', 'Change Password')}
-                      </h4>
-                      <div className="space-y-3">
+
+                      <div className="space-y-4">
                         <div>
                           <label className="mb-2 block text-sm font-medium">
                             {t('label_current_password', 'Current Password')}
@@ -793,33 +913,64 @@ export default function Settings() {
                             placeholder="••••••••"
                           />
                         </div>
-                        <div>
-                          <label className="mb-2 block text-sm font-medium">
-                            {t('label_new_password_profile', 'New Password')}
-                          </label>
-                          <input
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
-                            placeholder="••••••••"
-                          />
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <div>
+                            <label className="mb-2 block text-sm font-medium">
+                              {t('label_new_password_profile', 'New Password')}
+                            </label>
+                            <input
+                              type="password"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-2 block text-sm font-medium">
+                              {t(
+                                'label_confirm_new_password',
+                                'Confirm New Password',
+                              )}
+                            </label>
+                            <input
+                              type="password"
+                              value={confirmPassword}
+                              onChange={(e) =>
+                                setConfirmPassword(e.target.value)
+                              }
+                              className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
+                              placeholder="••••••••"
+                            />
+                          </div>
                         </div>
-                        <div>
-                          <label className="mb-2 block text-sm font-medium">
-                            {t(
-                              'label_confirm_new_password',
-                              'Confirm New Password',
-                            )}
-                          </label>
-                          <input
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
-                            placeholder="••••••••"
-                          />
-                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-2">
+                        <button
+                          type="button"
+                          onClick={handlePasswordChange}
+                          disabled={savingPassword || loadingProfile}
+                          className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {savingPassword ? (
+                            <LoadingSpinner
+                              type="pulse"
+                              variant="white"
+                              size="xs"
+                            />
+                          ) : (
+                            <Save className="h-4 w-4" />
+                          )}
+                          <span>
+                            {savingPassword
+                              ? t(
+                                  'btn_changing_password',
+                                  'Changing Password...',
+                                )
+                              : t('btn_change_password', 'Update Password')}
+                          </span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -984,29 +1135,29 @@ export default function Settings() {
               </div>
             )}
 
-            {/* Save Button */}
-            <div className="border-border mt-6 border-t pt-6">
-              <button
-                onClick={handleSave}
-                disabled={
-                  saving ||
-                  (activeTab === 'profile' && loadingProfile) ||
-                  (activeTab === 'signature' && loadingProfile)
-                }
-                className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-6 py-3 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {saving ? (
-                  <LoadingSpinner type="pulse" variant="white" size="xs" />
-                ) : (
-                  <Save className="h-5 w-5" />
-                )}
-                <span>
-                  {saving
-                    ? t('btn_saving', 'Saving...')
-                    : t('btn_save_changes', 'Save Changes')}
-                </span>
-              </button>
-            </div>
+            {/* Save Button for non-profile tabs */}
+            {activeTab !== 'profile' && (
+              <div className="border-border mt-6 border-t pt-6">
+                <button
+                  onClick={handleSave}
+                  disabled={
+                    saving || (activeTab === 'signature' && loadingProfile)
+                  }
+                  className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-6 py-3 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {saving ? (
+                    <LoadingSpinner type="pulse" variant="white" size="xs" />
+                  ) : (
+                    <Save className="h-5 w-5" />
+                  )}
+                  <span>
+                    {saving
+                      ? t('btn_saving', 'Saving...')
+                      : t('btn_save_changes', 'Save Changes')}
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
