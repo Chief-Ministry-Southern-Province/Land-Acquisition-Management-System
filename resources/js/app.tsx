@@ -1,8 +1,10 @@
 import { createInertiaApp } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { createRoot } from 'react-dom/client';
 import Swal from 'sweetalert2';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
+import { queryClient } from './lib/queryClient';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -70,7 +72,9 @@ createInertiaApp({
       const root = createRoot(el);
       root.render(
         <GlobalErrorBoundary>
-          <App {...props} />
+          <QueryClientProvider client={queryClient}>
+            <App {...props} />
+          </QueryClientProvider>
         </GlobalErrorBoundary>,
       );
     }

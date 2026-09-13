@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\AuditLogService;
+use App\Services\EmailService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,15 +25,27 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'phone' => 'nullable|string|max:255',
+            'password' => 'nullable|string|min:8|confirmed',
             'department_id' => 'required|integer|exists:departments,id',
             'role_id' => 'required|integer|exists:roles,id',
+            'status' => 'nullable|string|in:active,inactive,Active,Inactive',
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+        if (isset($validated['status'])) {
+            $validated['status'] = strtolower($validated['status']);
+        }
+
+        $plainPassword = $request->filled('password')
+            ? $request->input('password')
+            : Str::random(12);
+        $validated['password'] = Hash::make($plainPassword);
 
         $user = User::create($validated);
         $user->load(['role', 'department']);
+
+        // Send email and SMS notification to user with login credentials
+        EmailService::sendUserCreatedEmail($user, $plainPassword, true);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -65,6 +78,16 @@ class AuthController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
+
+        if (strtolower($user->status ?? 'active') === 'inactive') {
+            Auth::logout();
+            $user->tokens()->delete();
+
+            throw ValidationException::withMessages([
+                'email' => ['Your account has been deactivated. Please contact an administrator.'],
+            ]);
+        }
+
         $user->load(['role', 'department']);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -255,6 +278,34 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => $signature ? 'Signature updated successfully' : 'Signature removed successfully',
+            'user' => $user,
+        ], 200);
+    }
+
+    /**
+     * Update the authenticated user's notification delivery preference (email, sms, both, none).
+     */
+    public function updateNotificationPreference(Request $request): JsonResponse
+    {
+        $request->validate([
+            'notification_preference' => ['required', 'string', 'in:email,sms,both,none'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $preference = $request->input('notification_preference');
+
+        $user->forceFill([
+            'notification_preference' => $preference,
+        ])->save();
+
+        $user->load(['role', 'department']);
+
+        AuditLogService::log($user->id, $user->name, 'Update Notification Preference', 'Authentication', "User {$user->name} updated notification preference to {$preference}.");
+
+        return response()->json([
+            'message' => 'Notification preference updated successfully',
             'user' => $user,
         ], 200);
     }

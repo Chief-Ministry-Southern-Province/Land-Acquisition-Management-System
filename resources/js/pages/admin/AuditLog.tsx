@@ -1,19 +1,12 @@
 import { Calendar, Filter } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
+import { useAuditLogsQuery } from '@/hooks/queries/useAuditLogsQuery';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { DataTable } from '../../components/ui/DataTable';
-import { getAuditLogs } from '../../services/auditLogService';
-import type {
-  AuditLog as AuditLogType,
-  AuditLogFilters,
-} from '../../services/auditLogService';
 
 export default function AuditLog() {
   const { t } = useTranslation();
-  const [auditLogs, setAuditLogs] = useState<AuditLogType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Filter state
   const [userFilter, setUserFilter] = useState('');
@@ -21,93 +14,39 @@ export default function AuditLog() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  const fetchAuditLogs = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const filters = useMemo(
+    () => ({
+      user_id: userFilter || undefined,
+      module: moduleFilter || undefined,
+      date_from: dateFrom || undefined,
+      date_to: dateTo || undefined,
+    }),
+    [userFilter, moduleFilter, dateFrom, dateTo],
+  );
 
-    try {
-      const filters: AuditLogFilters = {};
+  const {
+    data: auditLogs = [],
+    isLoading: loading,
+    isError,
+    refetch,
+  } = useAuditLogsQuery(filters);
 
-      if (userFilter) {
-        filters.user_id = userFilter;
-      }
-
-      if (moduleFilter) {
-        filters.module = moduleFilter;
-      }
-
-      if (dateFrom) {
-        filters.date_from = dateFrom;
-      }
-
-      if (dateTo) {
-        filters.date_to = dateTo;
-      }
-
-      const data = await getAuditLogs(filters);
-      setAuditLogs(data);
-    } catch (err) {
-      console.error('Failed to fetch audit logs:', err);
-      setError(
-        t(
-          'toast_failed_load_audit_logs',
-          'Failed to load audit logs. Please try again.',
-        ),
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [userFilter, moduleFilter, dateFrom, dateTo, t]);
-
-  useEffect(() => {
-    let ignore = false;
-
-    const filters: AuditLogFilters = {};
-
-    if (userFilter) {
-      filters.user_id = userFilter;
-    }
-
-    if (moduleFilter) {
-      filters.module = moduleFilter;
-    }
-
-    if (dateFrom) {
-      filters.date_from = dateFrom;
-    }
-
-    if (dateTo) {
-      filters.date_to = dateTo;
-    }
-
-    getAuditLogs(filters)
-      .then((data) => {
-        if (!ignore) {
-          setAuditLogs(data);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!ignore) {
-          console.error('Failed to fetch audit logs:', err);
-          setError(
-            t(
-              'toast_failed_load_audit_logs',
-              'Failed to load audit logs. Please try again.',
-            ),
-          );
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [userFilter, moduleFilter, dateFrom, dateTo, t]);
+  const error = isError
+    ? t(
+        'toast_failed_load_audit_logs',
+        'Failed to load audit logs. Please try again.',
+      )
+    : null;
 
   // Get unique users and modules for filter dropdowns
-  const uniqueUsers = [...new Set(auditLogs.map((log) => log.user))];
-  const uniqueModules = [...new Set(auditLogs.map((log) => log.module))];
+  const uniqueUsers = useMemo(
+    () => [...new Set(auditLogs.map((log) => log.user))],
+    [auditLogs],
+  );
+  const uniqueModules = useMemo(
+    () => [...new Set(auditLogs.map((log) => log.module))],
+    [auditLogs],
+  );
 
   const columns = [
     {
@@ -216,7 +155,7 @@ export default function AuditLog() {
           {error}
           <button
             className="ml-2 underline hover:no-underline"
-            onClick={fetchAuditLogs}
+            onClick={() => refetch()}
           >
             {t('retry', 'Retry')}
           </button>

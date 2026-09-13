@@ -8,15 +8,21 @@ import {
   ArrowRight,
   HelpCircle,
   Globe,
+  Building2,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { login } from '@/services/authService';
 
 function LoginScreen() {
   const { t, locale } = useTranslation();
+  useTheme();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -50,7 +56,7 @@ function LoginScreen() {
             data.message ||
               t(
                 'login_failed',
-                'Sign in failed. Please check your credentials.',
+                'Sign in failed. Please check your official credentials.',
               ),
           );
         }
@@ -68,348 +74,374 @@ function LoginScreen() {
   };
 
   return (
-    <div className="bg-background flex min-h-screen flex-col md:flex-row">
-      {/* Left Pane - Hero Banner */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-slate-950 p-12 text-white md:flex md:w-[45%] lg:w-[50%] xl:w-[55%]">
-        {/* Background Image with Dark Overlay */}
-        <img
-          src="/images/login_city_bg.png"
-          alt="LAMS Background Image"
-          className="absolute inset-0 h-full w-full object-cover object-center opacity-35 mix-blend-luminosity"
-        />
-        <div className="bg-linear-to-br to-slate-950/98 absolute inset-0 z-10 from-blue-900/90 via-slate-950/95" />
-
-        {/* Content */}
-        <div className="relative z-20 flex h-full flex-col justify-between gap-12">
-          {/* Logo and Name */}
-          <div className="flex items-center gap-3">
-            <img
-              src="/logo.png"
-              alt="Land Acquisition Management Logo"
-              className="h-11 w-11 rounded-xl bg-white object-contain p-1 shadow-md shadow-blue-500/20"
-            />
-            <span className="text-2xl font-bold tracking-tight text-white">
-              Land Acquisition Management
-            </span>
-          </div>
-
-          {/* Slogan and Description */}
-          <div className="my-auto space-y-6">
-            <h2 className="max-w-lg text-4xl font-bold leading-tight tracking-tight text-white lg:text-5xl">
-              {t('digitalizing_nation')}{' '}
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-blue-400 text-transparent">
-                {t('land_acquisition')}
-              </span>
-            </h2>
-            <p className="max-w-md text-sm leading-relaxed text-slate-300 lg:text-base">
-              {t('platform_desc')}
-            </p>
-          </div>
-
-          {/* Statistics and Official Notice */}
-          <div className="space-y-8">
-            <div className="grid max-w-lg grid-cols-3 gap-6 border-t border-white/10 pt-8">
-              <div>
-                <div className="text-2xl font-bold text-white lg:text-3xl">
-                  4.8k+
-                </div>
-                <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 lg:text-xs">
-                  {t('processed_cases')}
-                </div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-white lg:text-3xl">
-                  99.9%
-                </div>
-                <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 lg:text-xs">
-                  {t('uptime_status')}
-                </div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-white lg:text-3xl">
-                  24/7
-                </div>
-                <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 lg:text-xs">
-                  {t('legal_audit')}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <Globe className="h-4 w-4 text-slate-400" />
-              <span>{t('official_gov_portal')}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Pane - Form & Credentials */}
-      <div className="bg-card relative flex w-full flex-col justify-between p-8 md:w-[55%] md:p-12 lg:w-[50%] lg:p-16 xl:w-[45%]">
-        {/* Language Selector */}
-        <div className="border-border/50 absolute right-6 top-6 flex items-center gap-1.5 rounded-full border bg-slate-100 p-1 dark:bg-slate-900">
-          <a
-            href="/lang/en"
-            className={`duration-250 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
-              locale === 'en'
-                ? 'shadow-xs bg-blue-600 text-white'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            EN
-          </a>
-          <a
-            href="/lang/si"
-            className={`duration-250 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
-              locale === 'si'
-                ? 'shadow-xs bg-blue-600 text-white'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            සිං
-          </a>
+    <div className="bg-background text-foreground selection:bg-primary selection:text-primary-foreground flex min-h-screen flex-col font-sans">
+      {/* Top Official Government Announcement Strip */}
+      <header className="bg-card border-border relative z-20 flex h-14 items-center justify-between overflow-visible border-b px-4 text-xs sm:px-6">
+        <div className="flex items-center gap-3">
+          <span className="text-foreground text-[11px] font-semibold uppercase tracking-wide sm:text-xs">
+            Government of Sri Lanka
+          </span>
+          <span className="text-muted-foreground hidden sm:inline">•</span>
+          <span className="text-muted-foreground hidden font-medium sm:inline">
+            Chief Ministry — Southern Province
+          </span>
         </div>
 
-        {/* Vertical alignment wrapper */}
-        <div className="mx-auto my-auto flex w-full max-w-md flex-col justify-center">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-foreground mb-2 text-2xl font-bold tracking-tight">
-              {t('personnel_sign_in')}
-            </h1>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              {t('enter_credentials_text')}
-            </p>
+        <div className="flex items-center gap-3">
+          <div className="text-muted-foreground hidden items-center gap-1.5 text-[11px] md:flex">
+            <Globe className="text-primary h-3.5 w-3.5" />
+            <span>Official Government Portal</span>
           </div>
 
-          {/* Secure Session Notice */}
-          <div className="mb-6 flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-900/30 dark:bg-blue-950/20">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
-            <div>
-              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300">
-                {t('secure_session')}
-              </h4>
-              <p className="mt-0.5 text-xs leading-relaxed text-blue-800 dark:text-blue-400/90">
-                {t('secure_session_text')}
-              </p>
-            </div>
-          </div>
+          {/* Theme Switcher */}
+          <ThemeSwitcher />
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 rounded-xl border border-red-200 bg-red-50/50 p-4 dark:border-red-900/30 dark:bg-red-950/20">
-              <p className="text-sm font-medium text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            </div>
-          )}
-
-          {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label className="text-muted-foreground mb-1.5 block text-xs font-semibold uppercase tracking-wider">
-                {/* {t('officer_id_username')} */}
-                {t('email_address')}
-              </label>
-              <div className="relative">
-                <span className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <User className="h-4.5 w-4.5" />
-                </span>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="bg-input-background border-border w-full rounded-xl border py-3 pl-10 pr-4 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/20"
-                  placeholder={t('email_placeholder')}
-                  // placeholder={t('username_placeholder')}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label className="text-muted-foreground block text-xs font-semibold uppercase tracking-wider">
-                  {t('security_password')}
-                </label>
-                <button
-                  type="button"
-                  onClick={() => router.visit('/forgot-password')}
-                  className="text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
-                >
-                  {t('forgot_password')}
-                </button>
-              </div>
-              <div className="relative">
-                <span className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Lock className="h-4.5 w-4.5" />
-                </span>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-input-background border-border w-full rounded-xl border py-3 pl-10 pr-10 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/20"
-                  placeholder="••••••••"
-                  required
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3 transition-colors"
-                  disabled={isLoading}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4.5 w-4.5" />
-                  ) : (
-                    <Eye className="h-4.5 w-4.5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex cursor-pointer items-center gap-2.5">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="border-border h-4 w-4 cursor-pointer rounded-md text-blue-600 transition-all focus:ring-blue-500/20"
-                  disabled={isLoading}
-                />
-                <span className="text-muted-foreground select-none text-sm font-medium">
-                  {t('remember_workstation')}
-                </span>
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white shadow-md shadow-blue-500/10 transition-all hover:bg-blue-700 hover:shadow-blue-500/20 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {isLoading ? (
-                <>
-                  <LoadingSpinner type="pulse" variant="white" size="xs" />
-                  <span>{t('signing_in') || 'Signing in...'}</span>
-                </>
-              ) : (
-                <>
-                  <span>{t('sign_in_to_dashboard')}</span>
-                  <ArrowRight className="h-5 w-5" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Help Center */}
-          <div className="text-muted-foreground border-border/40 mt-8 flex items-center justify-center gap-2 border-t pt-6 text-xs">
-            <HelpCircle className="text-muted-foreground/80 h-4 w-4" />
-            <span>{t('need_assistance')}</span>
+          {/* Language Switcher */}
+          <div className="flex gap-1.5">
             <a
-              href="#"
-              className="font-semibold text-blue-600 transition-colors hover:text-blue-700 hover:underline"
+              href="/lang/en"
+              className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
+                locale === 'en'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted hover:bg-muted/80 text-foreground'
+              }`}
             >
-              {t('contact_support')}
+              EN
+            </a>
+            <a
+              href="/lang/si"
+              className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
+                locale === 'si'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted hover:bg-muted/80 text-foreground'
+              }`}
+            >
+              සිං
             </a>
           </div>
+        </div>
+      </header>
 
-          {/* Emblems Section */}
-          <div className="mt-8 flex items-center justify-center gap-6">
-            {/* Emblem of Sri Lanka (Stylized SVG) */}
-            {/* <svg
-              width="36"
-              height="36"
-              viewBox="0 0 100 100"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="opacity-75 transition-opacity hover:opacity-100"
-            >
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                stroke="#D4AF37"
-                strokeWidth="4"
-                fill="#800000"
-              />
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                stroke="#D4AF37"
-                strokeWidth="1"
-                fill="none"
-                strokeDasharray="3 3"
-              />
-              <path
-                d="M40 55 L45 42 L55 42 L60 55 L55 58 L45 58 Z"
-                fill="#D4AF37"
-              />
-              <path
-                d="M45 42 L50 32 L55 42"
-                stroke="#D4AF37"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle cx="50" cy="48" r="3" fill="#D4AF37" />
-              <circle cx="32" cy="50" r="3" fill="#D4AF37" />
-              <path
-                d="M65 47 A 3 3 0 0 1 68 53"
-                stroke="#D4AF37"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg> */}
+      {/* Main Container */}
+      <div className="flex flex-1 flex-col md:flex-row">
+        {/* Left Pane - Government Portal Branding & Metrics */}
+        <div className="bg-muted/30 dark:bg-muted/10 border-border relative hidden flex-col justify-between overflow-hidden border-r p-8 md:flex md:w-[48%] lg:w-[52%] lg:p-12 xl:w-[55%] xl:p-16">
+          {/* Cadastral Grid Motif Overlay */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-15 dark:opacity-10"
+            style={{
+              backgroundImage: `radial-gradient(var(--primary) 1px, transparent 1px)`,
+              backgroundSize: '24px 24px',
+            }}
+          />
 
-            {/* Southern Province Emblem (Stylized SVG) */}
-            {/* <svg
-              width="36"
-              height="36"
-              viewBox="0 0 100 100"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="opacity-75 transition-opacity hover:opacity-100"
-            >
-              <polygon
-                points="50,10 90,80 10,80"
-                stroke="#D4AF37"
-                strokeWidth="4"
-                fill="#0E4C92"
-              />
-              <circle cx="50" cy="55" r="14" fill="#D4AF37" />
-              <path d="M50 30 L50 45" stroke="#D4AF37" strokeWidth="3" />
-              <circle cx="50" cy="30" r="4" fill="#D4AF37" />
-            </svg> */}
+          {/* Hero Content */}
+          <div className="relative z-10 flex h-full flex-col justify-between space-y-8">
+            {/* System Logo Bar */}
+            <div className="space-y-6">
+              <div className="bg-primary text-primary-foreground flex max-w-fit items-center gap-3.5 rounded-xl px-4 py-3 shadow-md">
+                <img
+                  src="/logo.png"
+                  alt="Land Acquisition Management Logo"
+                  className="h-10 w-10 shrink-0 rounded bg-white object-contain p-0.5 shadow-sm"
+                />
+                <div>
+                  <span className="block text-xs font-bold uppercase tracking-wider">
+                    {t('system_brand', 'Land Acquisition Management')}
+                  </span>
+                  <span className="text-primary-foreground/80 block text-[10px] font-medium">
+                    Chief Ministry — Southern Province
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Core Slogan & Info */}
+            <div className="my-auto max-w-lg space-y-6">
+              <div className="border-primary/20 bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
+                <Building2 className="h-3.5 w-3.5" />
+                <span>Southern Provincial Council Platform</span>
+              </div>
+
+              <h1 className="text-foreground text-3xl font-extrabold leading-tight tracking-tight lg:text-4xl xl:text-5xl">
+                {t('digitalizing_nation', 'Digitalizing Land Acquisition &')}
+                <span className="text-primary mt-1 block">
+                  {t('land_acquisition', 'Provincial Spatial Governance')}
+                </span>
+              </h1>
+
+              <p className="text-muted-foreground text-sm leading-relaxed lg:text-base">
+                {t(
+                  'platform_desc',
+                  'Centralized government portal for statutory land acquisitions, valuation tracking, public notices, and compensation workflows under the Land Acquisition Act.',
+                )}
+              </p>
+
+              {/* Trust Indicators */}
+              <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
+                <div className="text-foreground flex items-center gap-2 text-xs font-medium">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>Land Acquisition Act Cap 460</span>
+                </div>
+                <div className="text-foreground flex items-center gap-2 text-xs font-medium">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>Divisional Secretariat Integration</span>
+                </div>
+                <div className="text-foreground flex items-center gap-2 text-xs font-medium">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>Valuation Audit Compliance</span>
+                </div>
+                <div className="text-foreground flex items-center gap-2 text-xs font-medium">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>GIS Cadastral Survey Mapping</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Metrics & Notice */}
+            <div className="border-border space-y-6 border-t pt-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-card border-border shadow-xs rounded-xl border p-3.5">
+                  <div className="text-primary text-xl font-bold lg:text-2xl">
+                    4,800+
+                  </div>
+                  <div className="text-muted-foreground mt-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                    {t('processed_cases', 'Parcels Managed')}
+                  </div>
+                </div>
+                <div className="bg-card border-border shadow-xs rounded-xl border p-3.5">
+                  <div className="text-xl font-bold text-emerald-600 lg:text-2xl dark:text-emerald-400">
+                    99.9%
+                  </div>
+                  <div className="text-muted-foreground mt-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                    {t('uptime_status', 'Audit Verified')}
+                  </div>
+                </div>
+                <div className="bg-card border-border shadow-xs rounded-xl border p-3.5">
+                  <div className="text-foreground text-xl font-bold lg:text-2xl">
+                    24/7
+                  </div>
+                  <div className="text-muted-foreground mt-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                    {t('legal_audit', 'Legal Audit')}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-muted-foreground text-[11px] leading-snug">
+                Official Portal of Chief Ministry, Southern Provincial Council
+                Sri Lanka.
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="border-border/40 mx-auto mt-12 w-full max-w-md border-t pt-8 md:mt-0">
-          <div className="text-muted-foreground flex flex-col items-center justify-between gap-4 text-[10px] lg:flex-row">
-            <span className="text-center leading-relaxed lg:text-left">
-              &copy; 2026 Chief Ministry Office - Land Acquisition Management
-              System (LAMS)
-            </span>
-            <div className="flex shrink-0 gap-3 font-semibold">
-              <a href="#" className="hover:text-foreground transition-colors">
-                {t('support_desk')}
-              </a>
-              <span>•</span>
-              <a href="#" className="hover:text-foreground transition-colors">
-                {t('data_privacy')}
-              </a>
-              <span>•</span>
-              <a href="#" className="hover:text-foreground transition-colors">
-                {t('system_audit')}
+        {/* Right Pane - Authentication Form */}
+        <div className="bg-card relative flex flex-1 flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16">
+          <div className="mx-auto my-auto w-full max-w-md space-y-8 py-6">
+            {/* Header for Mobile / Main Form */}
+            <div>
+              {/* Mobile Header Logo */}
+              <div className="mb-6 flex items-center gap-3 md:hidden">
+                <div className="bg-primary text-primary-foreground flex items-center gap-2.5 rounded-lg px-3 py-2 shadow-sm">
+                  <img
+                    src="/logo.png"
+                    alt="Land Acquisition Management Logo"
+                    className="h-8 w-8 shrink-0 rounded bg-white object-contain p-0.5"
+                  />
+                  <span className="text-xs font-semibold uppercase tracking-wide">
+                    LAMS — Southern Province
+                  </span>
+                </div>
+              </div>
+
+              <div className="mb-2 flex items-center gap-2">
+                <span className="bg-primary ring-primary/20 inline-block h-2.5 w-2.5 rounded-full ring-4" />
+                <span className="text-primary text-xs font-bold uppercase tracking-wider">
+                  Officer Gateway
+                </span>
+              </div>
+
+              <h1 className="text-foreground text-2xl font-bold tracking-tight sm:text-3xl">
+                {t('personnel_sign_in', 'Personnel Sign In')}
+              </h1>
+              <p className="text-muted-foreground mt-1 text-xs leading-relaxed sm:text-sm">
+                {t(
+                  'enter_credentials_text',
+                  'Enter your official credentials to access the Land Acquisition Management System.',
+                )}
+              </p>
+            </div>
+
+            {/* Secure Session Notice */}
+            <div className="border-primary/20 bg-primary/5 flex items-start gap-3 rounded-xl border p-4">
+              <ShieldCheck className="text-primary mt-0.5 h-5 w-5 shrink-0" />
+              <div>
+                <h4 className="text-foreground text-xs font-semibold uppercase tracking-wider">
+                  {t('secure_session', 'Authorized Government Workstation')}
+                </h4>
+                <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
+                  {t(
+                    'secure_session_text',
+                    'Your authentication session is secured via TLS 1.3 encryption.',
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-3 rounded-xl border p-4 text-xs sm:text-sm">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+                <p className="font-medium leading-relaxed">{error}</p>
+              </div>
+            )}
+
+            {/* Login Form */}
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div>
+                <label className="text-muted-foreground mb-2 block text-xs font-semibold uppercase tracking-wider">
+                  {t('email_address', 'Official Email Address')}
+                </label>
+                <div className="relative">
+                  <span className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                    <User className="h-4.5 w-4.5" />
+                  </span>
+                  <input
+                    type="email"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="bg-input-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 w-full rounded-xl border py-3 pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-2"
+                    placeholder={t(
+                      'email_placeholder',
+                      'officer@southerndept.gov.lk',
+                    )}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-muted-foreground block text-xs font-semibold uppercase tracking-wider">
+                    {t('security_password', 'Security Password')}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => router.visit('/forgot-password')}
+                    className="text-primary text-xs font-semibold transition-colors hover:underline focus:outline-none"
+                  >
+                    {t('forgot_password', 'Forgot Password?')}
+                  </button>
+                </div>
+                <div className="relative">
+                  <span className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                    <Lock className="h-4.5 w-4.5" />
+                  </span>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-input-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 w-full rounded-xl border py-3 pl-10 pr-10 text-sm transition-all focus:outline-none focus:ring-2"
+                    placeholder="••••••••••••"
+                    required
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3.5 transition-colors focus:outline-none"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4.5 w-4.5" />
+                    ) : (
+                      <Eye className="h-4.5 w-4.5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex cursor-pointer select-none items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="border-border bg-input-background text-primary focus:ring-primary/20 h-4 w-4 cursor-pointer rounded"
+                    disabled={isLoading}
+                  />
+                  <span className="text-muted-foreground text-xs font-medium sm:text-sm">
+                    {t(
+                      'remember_workstation',
+                      'Remember this official workstation',
+                    )}
+                  </span>
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground group flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-semibold shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner type="pulse" variant="white" size="xs" />
+                    <span>{t('signing_in', 'Signing in...')}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>
+                      {t('sign_in_to_dashboard', 'Sign In to Dashboard')}
+                    </span>
+                    <ArrowRight className="h-4.5 w-4.5 transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Help Support Link */}
+            <div className="border-border text-muted-foreground flex items-center justify-center gap-2 border-t pt-6 text-xs">
+              <HelpCircle className="text-primary h-4 w-4 shrink-0" />
+              <span>{t('need_assistance', 'Need official assistance?')}</span>
+              <a
+                href="mailto:support@southerndept.gov.lk"
+                className="text-primary font-semibold transition-colors hover:underline"
+              >
+                {t('contact_support', 'Contact Support Desk')}
               </a>
             </div>
           </div>
-          <div className="text-muted-foreground/80 mt-3 flex items-center justify-center gap-1.5 text-[9px] font-semibold tracking-wider">
-            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></span>
-            <span>{t('production_environment')} v2.4.0</span>
-          </div>
+
+          {/* Footer */}
+          <footer className="border-border text-muted-foreground mx-auto w-full max-w-md space-y-3 border-t pt-6 text-[11px]">
+            <div className="flex flex-col items-center justify-between gap-2 text-center sm:flex-row sm:text-left">
+              <span>
+                &copy; 2026 Chief Ministry — Southern Provincial Council
+              </span>
+              <div className="flex items-center gap-3 font-medium">
+                <a href="#" className="hover:text-foreground transition-colors">
+                  {t('support_desk', 'Support')}
+                </a>
+                <span>•</span>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  {t('data_privacy', 'Privacy')}
+                </a>
+                <span>•</span>
+                <a href="#" className="hover:text-foreground transition-colors">
+                  {t('system_audit', 'Audit')}
+                </a>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 font-mono text-[10px]">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+              <span>
+                {t('production_environment', 'Production Environment')} v2.4.0
+              </span>
+            </div>
+          </footer>
         </div>
       </div>
     </div>
