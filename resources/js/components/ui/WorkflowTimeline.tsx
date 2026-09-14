@@ -115,56 +115,23 @@ function WorkflowTimeline({ project, compensations }: Props) {
     officer: 'Valuation Officer',
   };
 
-  // Stage 5: Gazette Notice
-  const section20Completed = !!project.section20Observation;
-  const hasGazetteDoc = documents.some(
-    (d) =>
-      d.document_category?.toLowerCase().includes('gazette') ||
-      d.original_filename?.toLowerCase().includes('gazette'),
-  );
-  const gazetteCompleted = section20Completed || hasGazetteDoc;
-  let gazetteStatus: 'completed' | 'active' | 'pending' = 'pending';
-  if (gazetteCompleted) {
-    gazetteStatus = 'completed';
-  } else if (valuationStatus === 'completed') {
-    gazetteStatus = 'active';
-  }
-  const gazetteDoc = documents.find(
-    (d) =>
-      d.document_category?.toLowerCase().includes('gazette') ||
-      d.original_filename?.toLowerCase().includes('gazette'),
-  );
-  const gazetteDate = gazetteCompleted
-    ? formatDate(gazetteDoc?.upload_date || gazetteDoc?.created_at) ||
-      formatDate(project.updated_at)
-    : '-';
-  const stage5: WorkflowStage = {
-    name: 'Gazette Notice',
-    status: gazetteStatus,
-    date:
-      gazetteDate === '-' && gazetteCompleted
-        ? formatDate(project.updated_at)
-        : gazetteDate,
-    officer: 'Land Officer',
-  };
-
-  // Stage 6: Owner Notification
+  // Stage 5: Owner Notification
   const hasOwners = parcels.some((p) => p.owners && p.owners.length > 0);
   const ownerNotifCompleted = hasOwners;
   let ownerNotifStatus: 'completed' | 'active' | 'pending' = 'pending';
   if (ownerNotifCompleted) {
     ownerNotifStatus = 'completed';
-  } else if (gazetteStatus === 'completed') {
+  } else if (valuationStatus === 'completed') {
     ownerNotifStatus = 'active';
   }
-  const stage6: WorkflowStage = {
+  const stage5: WorkflowStage = {
     name: 'Owner Notification',
     status: ownerNotifStatus,
     date: ownerNotifCompleted ? formatDate(project.updated_at) : '-',
     officer: 'Data Entry Operator',
   };
 
-  // Stage 7: Compensation Calculation
+  // Stage 6: Compensation Calculation
   const compensationCalculated = projectCompensations.length > 0;
   let compCalcStatus: 'completed' | 'active' | 'pending' = 'pending';
   if (compensationCalculated) {
@@ -178,7 +145,7 @@ function WorkflowTimeline({ project, compensations }: Props) {
           projectCompensations[0].created_at,
       )
     : '-';
-  const stage7: WorkflowStage = {
+  const stage6: WorkflowStage = {
     name: 'Compensation Calculation',
     status: compCalcStatus,
     date: compCalcDate,
@@ -186,7 +153,7 @@ function WorkflowTimeline({ project, compensations }: Props) {
     progress: compCalcStatus === 'active' ? 65 : undefined,
   };
 
-  // Stage 8: Approval
+  // Stage 7: Approval
   const approvalCompleted =
     project.caseStatus === 'completed' || project.secStatus === 'approved';
   let approvalStatus: 'completed' | 'active' | 'pending' = 'pending';
@@ -198,7 +165,7 @@ function WorkflowTimeline({ project, compensations }: Props) {
   ) {
     approvalStatus = 'active';
   }
-  const stage8: WorkflowStage = {
+  const stage7: WorkflowStage = {
     name: 'Approval',
     status: approvalStatus,
     date: approvalCompleted
@@ -207,7 +174,7 @@ function WorkflowTimeline({ project, compensations }: Props) {
     officer: 'Assistant Secretary',
   };
 
-  // Stage 9: Payment
+  // Stage 8: Payment
   const paymentCompleted =
     projectCompensations.length > 0 &&
     projectCompensations.every((c) => c.status === 'paid');
@@ -223,14 +190,14 @@ function WorkflowTimeline({ project, compensations }: Props) {
           projectCompensations[0].updated_at,
       )
     : '-';
-  const stage9: WorkflowStage = {
+  const stage8: WorkflowStage = {
     name: 'Payment',
     status: paymentStatus,
     date: paymentDate,
     officer: 'Finance Officer',
   };
 
-  // Stage 10: Land Handover
+  // Stage 9: Land Handover
   const allAcquired =
     parcels.length > 0 && parcels.every((p) => p.status === 'acquired');
   let handoverStatus: 'completed' | 'active' | 'pending' = 'pending';
@@ -239,14 +206,14 @@ function WorkflowTimeline({ project, compensations }: Props) {
   } else if (paymentStatus === 'completed') {
     handoverStatus = 'active';
   }
-  const stage10: WorkflowStage = {
+  const stage9: WorkflowStage = {
     name: 'Land Handover',
     status: handoverStatus,
     date: allAcquired ? formatDate(project.updated_at) : '-',
     officer: 'Land Officer',
   };
 
-  // Stage 11: Project Completion
+  // Stage 10: Project Completion
   const isProjectCompleted = project.caseStatus === 'completed';
   let projectCompStatus: 'completed' | 'active' | 'pending' = 'pending';
   if (isProjectCompleted) {
@@ -254,7 +221,7 @@ function WorkflowTimeline({ project, compensations }: Props) {
   } else if (handoverStatus === 'completed') {
     projectCompStatus = 'active';
   }
-  const stage11: WorkflowStage = {
+  const stage10: WorkflowStage = {
     name: 'Project Completion',
     status: projectCompStatus,
     date: isProjectCompleted ? formatDate(project.updated_at) : '-',
@@ -272,7 +239,6 @@ function WorkflowTimeline({ project, compensations }: Props) {
     stage8,
     stage9,
     stage10,
-    stage11,
   ];
 
   const completedCount = stages.filter((s) => s.status === 'completed').length;

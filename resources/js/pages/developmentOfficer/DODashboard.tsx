@@ -218,20 +218,20 @@ export default function DODashboard() {
     },
   ].filter((d) => d.value > 0);
 
-  const purposeDistribution = projects.reduce(
+  const institutionDistribution = projects.reduce(
     (acc: Record<string, number>, curr) => {
-      const purpose = curr.purpose || t('other', 'Other');
-      acc[purpose] = (acc[purpose] || 0) + 1;
+      const inst = curr.institution || t('chart_other', 'Other');
+      acc[inst] = (acc[inst] || 0) + 1;
 
       return acc;
     },
     {},
   );
 
-  const purposeDistributionData = Object.keys(purposeDistribution).map(
+  const institutionDistributionData = Object.keys(institutionDistribution).map(
     (key, idx) => ({
       name: key,
-      value: purposeDistribution[key],
+      value: institutionDistribution[key],
       color: ['#1565C0', '#2E7D32', '#FF9800', '#7C3AED', '#0891B2', '#DC2626'][
         idx % 6
       ],
@@ -597,13 +597,13 @@ export default function DODashboard() {
             </div>
           )}
 
-          {/* Acquisition Purpose */}
-          {purposeDistributionData.length > 0 && (
+          {/* Requesting Institution Distribution */}
+          {institutionDistributionData.length > 0 && (
             <div className="bg-card border-border rounded-lg border p-6">
               <h3 className="mb-4 text-sm font-semibold">
                 {t(
-                  'land_acquisition_by_purpose',
-                  'Land Acquisition by Purpose',
+                  'chart_institution_distribution_title',
+                  'Acquisitions by Requesting Institution',
                 )}
               </h3>
               <div className="flex h-64 flex-col items-center justify-center sm:flex-row">
@@ -611,7 +611,7 @@ export default function DODashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={purposeDistributionData}
+                        data={institutionDistributionData}
                         cx="50%"
                         cy="50%"
                         innerRadius={45}
@@ -619,7 +619,7 @@ export default function DODashboard() {
                         paddingAngle={4}
                         dataKey="value"
                       >
-                        {purposeDistributionData.map((entry, index) => (
+                        {institutionDistributionData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -627,14 +627,14 @@ export default function DODashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-4 flex flex-col gap-2 sm:ml-6 sm:mt-0">
-                  {purposeDistributionData.map((entry, idx) => (
+                <div className="mt-4 flex max-h-48 flex-col gap-2 overflow-y-auto sm:ml-6 sm:mt-0">
+                  {institutionDistributionData.map((entry, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <span
-                        className="inline-block h-3 w-3 rounded-full"
+                        className="inline-block h-3 w-3 flex-shrink-0 rounded-full"
                         style={{ backgroundColor: entry.color }}
                       />
-                      <span className="text-xs font-medium">
+                      <span className="max-w-[200px] truncate text-xs font-medium">
                         {entry.name}: {entry.value}{' '}
                         {t('cases_plural', 'Case(s)')}
                       </span>

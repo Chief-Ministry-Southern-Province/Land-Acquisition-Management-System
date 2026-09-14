@@ -94,6 +94,23 @@ test('can mark all notifications as read', function () {
     expect($this->hobUser->fresh()->unreadNotifications)->toHaveCount(0);
 });
 
+test('realtime system notification defines broadcast channels and payload', function () {
+    $notification = new RealtimeSystemNotification(
+        title: 'Workflow Step Completed',
+        message: 'Project PRJ-100 was approved.',
+        actionUrl: '/approval-workflow',
+        type: 'success'
+    );
+
+    expect($notification->via($this->hobUser))->toBe(['database', 'broadcast']);
+
+    $broadcastData = $notification->toBroadcast($this->hobUser)->data;
+    expect($broadcastData['title'])->toBe('Workflow Step Completed');
+    expect($broadcastData['message'])->toBe('Project PRJ-100 was approved.');
+    expect($broadcastData['type'])->toBe('success');
+    expect($broadcastData['action_url'])->toBe('/approval-workflow');
+});
+
 test('project submission triggers notification to HOB users', function () {
     Notification::fake();
 
@@ -119,3 +136,37 @@ test('project submission triggers notification to HOB users', function () {
         }
     );
 });
+
+test('HOB approval triggers notification to AO users', function () {
+    Notification::fake();
+
+    $aoRole = Roles::firstOrCreate(['role_name' => 'AO'], ['description' => 'Administrative Officer']);
+    $aoUser = User::factory()->create([
+        'department_id' => $this->department->id,
+        'role_id' => $aoRole->id,
+    ]);
+
+    $project = Projects::create([
+        'project_id' => 'PRJ-TEST-124',
+        'title' => 'HOB Approval Test Project',
+        'purpose' => 'Road Expansion',
+        'case_status' => 'pending',
+        'do_status' => 'submitted',
+        'hob_status' => 'pending',
+    ]);
+
+    $response = $this->actingAs($this->hobUser, 'sanctum')
+        ->postJson("/api/hob/approvals/project/{$project->id}/approve");
+
+    $response->assertStatus(200);
+
+    Notification::assertSentTo(
+        [$aoUser],
+        RealtimeSystemNotification::class,
+        function ($notification) use ($project) {
+            return $notification->title === 'Project Approved by HOB' &&
+                   str_contains($notification->message, $project->title);
+        }
+    );
+});
+

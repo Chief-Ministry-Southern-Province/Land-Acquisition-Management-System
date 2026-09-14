@@ -199,60 +199,25 @@ export default function AcquisitionWorkflow() {
       officer: t('officer_valuation', 'Valuation Officer'),
     };
 
-    // Stage 5: Gazette Notice
-    const section20Completed = !!project.section20Observation;
-    const hasGazetteDoc = documents.some(
-      (d) =>
-        d.document_category?.toLowerCase().includes('gazette') ||
-        d.original_filename?.toLowerCase().includes('gazette'),
-    );
-    const gazetteCompleted = section20Completed || hasGazetteDoc;
-    let gazetteStatus: 'completed' | 'active' | 'pending' = 'pending';
-
-    if (gazetteCompleted) {
-      gazetteStatus = 'completed';
-    } else if (valuationStatus === 'completed') {
-      gazetteStatus = 'active';
-    }
-
-    const gazetteDoc = documents.find(
-      (d) =>
-        d.document_category?.toLowerCase().includes('gazette') ||
-        d.original_filename?.toLowerCase().includes('gazette'),
-    );
-    const gazetteDate = gazetteCompleted
-      ? formatDate(gazetteDoc?.upload_date || gazetteDoc?.created_at) ||
-        formatDate(project.updated_at)
-      : '-';
-    const stage5: WorkflowStage = {
-      name: t('stage_gazette_notice', 'Gazette Notice'),
-      status: gazetteStatus,
-      date:
-        gazetteDate === '-' && gazetteCompleted
-          ? formatDate(project.updated_at)
-          : gazetteDate,
-      officer: t('officer_land', 'Land Officer'),
-    };
-
-    // Stage 6: Owner Notification
+    // Stage 5: Owner Notification
     const hasOwners = parcels.some((p) => p.owners && p.owners.length > 0);
     const ownerNotifCompleted = hasOwners;
     let ownerNotifStatus: 'completed' | 'active' | 'pending' = 'pending';
 
     if (ownerNotifCompleted) {
       ownerNotifStatus = 'completed';
-    } else if (gazetteStatus === 'completed') {
+    } else if (valuationStatus === 'completed') {
       ownerNotifStatus = 'active';
     }
 
-    const stage6: WorkflowStage = {
+    const stage5: WorkflowStage = {
       name: t('stage_owner_notification', 'Owner Notification'),
       status: ownerNotifStatus,
       date: ownerNotifCompleted ? formatDate(project.updated_at) : '-',
       officer: t('officer_data_entry', 'Data Entry Operator'),
     };
 
-    // Stage 7: Compensation Calculation
+    // Stage 6: Compensation Calculation
     const compensationCalculated = projectCompensations.length > 0;
     let compCalcStatus: 'completed' | 'active' | 'pending' = 'pending';
 
@@ -268,7 +233,7 @@ export default function AcquisitionWorkflow() {
             projectCompensations[0].created_at,
         )
       : '-';
-    const stage7: WorkflowStage = {
+    const stage6: WorkflowStage = {
       name: t('stage_compensation_calculation', 'Compensation Calculation'),
       status: compCalcStatus,
       date: compCalcDate,
@@ -276,7 +241,7 @@ export default function AcquisitionWorkflow() {
       progress: compCalcStatus === 'active' ? 65 : undefined,
     };
 
-    // Stage 8: Approval
+    // Stage 7: Approval
     const approvalCompleted =
       project.caseStatus === 'completed' || project.secStatus === 'approved';
     let approvalStatus: 'completed' | 'active' | 'pending' = 'pending';
@@ -290,7 +255,7 @@ export default function AcquisitionWorkflow() {
       approvalStatus = 'active';
     }
 
-    const stage8: WorkflowStage = {
+    const stage7: WorkflowStage = {
       name: t('stage_approval', 'Approval'),
       status: approvalStatus,
       date: approvalCompleted
@@ -299,7 +264,7 @@ export default function AcquisitionWorkflow() {
       officer: t('officer_assistant_secretary', 'Assistant Secretary'),
     };
 
-    // Stage 9: Payment
+    // Stage 8: Payment
     const hasCompensations = projectCompensations.length > 0;
     const paymentCompleted =
       hasCompensations &&
@@ -318,14 +283,14 @@ export default function AcquisitionWorkflow() {
             projectCompensations[0].updated_at,
         )
       : '-';
-    const stage9: WorkflowStage = {
+    const stage8: WorkflowStage = {
       name: t('stage_payment', 'Payment'),
       status: paymentStatus,
       date: paymentDate,
       officer: t('officer_finance', 'Finance Officer'),
     };
 
-    // Stage 10: Land Handover
+    // Stage 9: Land Handover
     const allAcquired =
       parcels.length > 0 && parcels.every((p) => p.status === 'acquired');
     let handoverStatus: 'completed' | 'active' | 'pending' = 'pending';
@@ -336,14 +301,14 @@ export default function AcquisitionWorkflow() {
       handoverStatus = 'active';
     }
 
-    const stage10: WorkflowStage = {
+    const stage9: WorkflowStage = {
       name: t('stage_land_handover', 'Land Handover'),
       status: handoverStatus,
       date: allAcquired ? formatDate(project.updated_at) : '-',
       officer: t('officer_land', 'Land Officer'),
     };
 
-    // Stage 11: Project Completion
+    // Stage 10: Project Completion
     const isProjectCompleted = project.caseStatus === 'completed';
     let projectCompStatus: 'completed' | 'active' | 'pending' = 'pending';
 
@@ -353,7 +318,7 @@ export default function AcquisitionWorkflow() {
       projectCompStatus = 'active';
     }
 
-    const stage11: WorkflowStage = {
+    const stage10: WorkflowStage = {
       name: t('stage_project_completion', 'Project Completion'),
       status: projectCompStatus,
       date: isProjectCompleted ? formatDate(project.updated_at) : '-',
@@ -371,7 +336,6 @@ export default function AcquisitionWorkflow() {
       stage8,
       stage9,
       stage10,
-      stage11,
     ];
   };
 
