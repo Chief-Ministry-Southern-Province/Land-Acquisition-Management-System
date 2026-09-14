@@ -126,7 +126,10 @@
     <div class="header">
         <table>
             <tr>
-                <td>
+                <td style="width: 60px; vertical-align: middle;">
+                    <img src="{{ public_path('logo.png') }}" style="height: 50px; width: auto;" alt="Logo">
+                </td>
+                <td style="vertical-align: middle; padding-left: 10px;">
                     <h1>{{ __('messages.land_parcels_report') }}</h1>
                     <p>{{ __('messages.Land_Acquisition_Management_System') }}</p>
                 </td>
