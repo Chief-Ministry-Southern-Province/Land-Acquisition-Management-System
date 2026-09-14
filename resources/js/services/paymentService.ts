@@ -1,4 +1,5 @@
 import api from './api';
+import type { Compensation } from './compensationService';
 import type { Document } from './projectsManagementService';
 
 export interface Payment {
@@ -15,6 +16,7 @@ export interface Payment {
   remarks?: string;
   created_at?: string;
   updated_at?: string;
+  compensation?: Compensation;
   document?: Document;
 }
 
