@@ -100,7 +100,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     ], 403);
                 }
 
-                return response()->view('errors.403', [], 403);
+                return redirect('/access-denied');
             }
 
             // 4. Handle Not Found
