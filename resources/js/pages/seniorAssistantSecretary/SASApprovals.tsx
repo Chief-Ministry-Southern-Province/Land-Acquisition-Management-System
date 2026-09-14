@@ -276,7 +276,9 @@ export default function SASApprovals() {
     const target: ActionTarget = {
       type: 'project',
       id: String(row.id),
-      displayId: row.project_id || `PRJ-${row.id}`,
+      displayId:
+        row.project_id ||
+        `PRJ/${new Date().getFullYear()}/${String(row.id).padStart(3, '0')}`,
       title: row.title || row.name || 'Untitled Project',
       data: row,
     };
