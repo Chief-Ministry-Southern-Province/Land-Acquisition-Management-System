@@ -66,6 +66,17 @@ export interface NotificationPreferenceResponse {
   user?: UserResponse['user'];
 }
 
+export interface UpdateProfileData {
+  name: string;
+  email: string;
+  phone?: string | null;
+}
+
+export interface UpdateProfileResponse {
+  message?: string;
+  user?: UserResponse['user'];
+}
+
 /**
  * Sends a login request to the API using the axios instance.
  *
@@ -146,6 +157,20 @@ export const updateNotificationPreference = async (
     {
       notification_preference,
     },
+  );
+
+  return response.data;
+};
+
+/**
+ * Updates the current logged-in user's profile details (name, email, phone).
+ */
+export const updateProfile = async (
+  data: UpdateProfileData,
+): Promise<UpdateProfileResponse> => {
+  const response = await api.put<UpdateProfileResponse>(
+    '/api/auth/profile',
+    data,
   );
 
   return response.data;

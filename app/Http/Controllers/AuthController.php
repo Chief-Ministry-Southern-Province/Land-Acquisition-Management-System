@@ -309,4 +309,34 @@ class AuthController extends Controller
             'user' => $user,
         ], 200);
     }
+
+    /**
+     * Update the authenticated user's profile details.
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'phone' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $user->forceFill([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+        ])->save();
+
+        $user->load(['role', 'department']);
+
+        AuditLogService::log($user->id, $user->name, 'Update Profile', 'Authentication', "User {$user->name} updated profile details.");
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'user' => $user,
+        ], 200);
+    }
 }
