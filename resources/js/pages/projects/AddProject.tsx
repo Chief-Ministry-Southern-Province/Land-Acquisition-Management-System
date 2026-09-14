@@ -36,8 +36,9 @@ import {
 import { getLandParcels } from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
 import {
-  createProject,
+  getProjects,
   getProject,
+  createProject,
   updateProject,
 } from '@/services/projectsManagementService';
 import type { Document } from '@/services/projectsManagementService';
@@ -188,17 +189,24 @@ export default function AddProject() {
   const userId = user?.id;
   const { t } = useTranslation();
 
-  // Fetch all parcels and departments
+  const [allProjects, setAllProjects] = useState<any[]>([]);
+
+  // Fetch all parcels, departments, and existing projects
   useEffect(() => {
     const init = async () => {
       try {
         setLoadingParcels(true);
-        const [parcelsData, deptsData] = await Promise.all([
+        const [parcelsData, deptsData, projectsData] = await Promise.all([
           getLandParcels(),
           getDepartments(),
+          getProjects(),
         ]);
         setAllParcels(parcelsData);
         setDepartments(deptsData);
+
+        if (projectsData) {
+          setAllProjects(projectsData);
+        }
       } catch (error) {
         console.error('Failed to fetch land parcels or departments:', error);
       } finally {
@@ -467,11 +475,52 @@ export default function AddProject() {
     return sum > 0 ? `${sum.toFixed(2)} acres` : '—';
   }, [selectedParcels]);
 
-  const generateProjectId = () => {
+  const generateProjectId = (existingProjects: any[] = allProjects) => {
     const year = new Date().getFullYear();
-    const rand = Math.floor(1000 + Math.random() * 9000);
+    const yearStr = String(year);
 
-    return `PRJ-${year}-${rand}`;
+    let maxIndex = 0;
+
+    existingProjects.forEach((p) => {
+      const pid = p.projectId || (p as any).project_id;
+
+      if (!pid) {
+        return;
+      }
+
+      const matchYearIndex = String(pid).match(
+        new RegExp(`PRJ[/.-]${yearStr}[/.-](\\d+)`, 'i'),
+      );
+
+      if (matchYearIndex) {
+        const num = parseInt(matchYearIndex[1], 10);
+
+        if (!isNaN(num) && num > maxIndex) {
+          maxIndex = num;
+        }
+      }
+    });
+
+    if (maxIndex === 0) {
+      const projectsInYear = existingProjects.filter((p) => {
+        const pid = p.projectId || (p as any).project_id;
+        const createdAt = p.created_at || (p as any).created_at;
+
+        return (
+          (pid && String(pid).includes(yearStr)) ||
+          (createdAt && String(createdAt).startsWith(yearStr))
+        );
+      });
+
+      if (projectsInYear.length > 0) {
+        maxIndex = projectsInYear.length;
+      }
+    }
+
+    const nextIndex = maxIndex + 1;
+    const paddedIndex = String(nextIndex).padStart(3, '0');
+
+    return `PRJ/${year}/${paddedIndex}`;
   };
 
   const validate = () => {

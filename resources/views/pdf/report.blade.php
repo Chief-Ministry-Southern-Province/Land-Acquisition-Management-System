@@ -126,7 +126,10 @@
     <div class="header">
         <table>
             <tr>
-                <td>
+                <td style="width: 60px; vertical-align: middle;">
+                    <img src="{{ public_path('logo.png') }}" style="height: 50px; width: auto;" alt="Logo">
+                </td>
+                <td style="vertical-align: middle; padding-left: 10px;">
                     <h1>{{ $title }}</h1>
                     <p>{{ $subtitle ?? 'Land Acquisition Management System (LAMS)' }}</p>
                 </td>

@@ -29,7 +29,12 @@ class AuthController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'department_id' => 'required|integer|exists:departments,id',
             'role_id' => 'required|integer|exists:roles,id',
+            'status' => 'nullable|string|in:active,inactive,Active,Inactive',
         ]);
+
+        if (isset($validated['status'])) {
+            $validated['status'] = strtolower($validated['status']);
+        }
 
         $plainPassword = $request->filled('password')
             ? $request->input('password')
@@ -73,6 +78,16 @@ class AuthController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
+
+        if (strtolower($user->status ?? 'active') === 'inactive') {
+            Auth::logout();
+            $user->tokens()->delete();
+
+            throw ValidationException::withMessages([
+                'email' => ['Your account has been deactivated. Please contact an administrator.'],
+            ]);
+        }
+
         $user->load(['role', 'department']);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -291,6 +306,36 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Notification preference updated successfully',
+            'user' => $user,
+        ], 200);
+    }
+
+    /**
+     * Update the authenticated user's profile details.
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'phone' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $user->forceFill([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+        ])->save();
+
+        $user->load(['role', 'department']);
+
+        AuditLogService::log($user->id, $user->name, 'Update Profile', 'Authentication', "User {$user->name} updated profile details.");
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
             'user' => $user,
         ], 200);
     }

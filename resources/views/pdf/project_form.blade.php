@@ -208,8 +208,8 @@
             <div class="form-header">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <td style="width: 75px; padding: 0;">
-                            <div class="emblem-box">{{ app()->getLocale() === 'si' ? 'රාජ්‍ය ලාංඡනය' : 'STATE EMBLEM' }}</div>
+                        <td style="width: 75px; padding: 0; vertical-align: middle;">
+                            <img src="{{ public_path('logo.png') }}" style="height: 60px; width: auto; max-width: 70px;" alt="Logo">
                         </td>
                         <td style="padding: 0; padding-left: 10px; vertical-align: middle;">
                             <h4 class="gov-title">{{ __('messages.republic_sri_lanka') }}</h4>

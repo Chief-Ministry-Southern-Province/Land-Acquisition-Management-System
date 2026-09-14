@@ -106,7 +106,9 @@ INSERT INTO land_parcel_property_owner (id, land_parcel_id, property_owner_id, c
 -- 11. Seed compensation table
 INSERT INTO compensation (id, owner_id, land_parcel_id, compensation_id, amount, approved_date, payment_date, status, created_at, updated_at) VALUES
 (1, 1, 1, 'COMP-3456', 15000000.00, '2024-05-10', '2024-05-15', 'paid', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(2, 2, 2, 'COMP-3457', 10800000.00, '2024-05-15', '2024-05-20', 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+(2, 2, 2, 'COMP-3457', 10800000.00, '2024-05-15', '2024-05-20', 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 3, 3, 'COMP-3458', 18000000.00, '2024-06-01', '2024-06-30', 'approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 2, 4, 'COMP-3459', 12000000.00, '2024-06-10', '2024-07-15', 'approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 12. Seed documents table
 INSERT INTO documents (id, user_id, project_id, original_filename, stored_filename, file_type, file_path, file_size, document_category, upload_date, created_at, updated_at) VALUES

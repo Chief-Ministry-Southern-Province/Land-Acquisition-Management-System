@@ -49,10 +49,11 @@ Route::middleware('auth:sanctum')->group(function () {
                 'AS' => inertia('assistantSecretary/ASApprovals'),
                 'SAS' => inertia('seniorAssistantSecretary/SASApprovals'),
                 'SEC' => inertia('secretary/SecretaryApprovals'),
-                default => abort(403),
+                default => redirect('/access-denied'),
             };
         }
-        abort(403);
+
+        return redirect('/access-denied');
     })->name('pending-approvals');
 
     Route::get('/settings', function (Request $request) {
@@ -149,6 +150,8 @@ Route::middleware(['auth:sanctum', 'check.role:SEC'])->group(function () {
     //
 });
 
+Route::inertia('/access-denied', 'AccessDenied')->name('access-denied');
+Route::inertia('/access-restricted', 'AccessDenied')->name('access-restricted');
 Route::inertia('/not-found', 'NotFound')->name('not-found');
 
 Route::fallback(function () {

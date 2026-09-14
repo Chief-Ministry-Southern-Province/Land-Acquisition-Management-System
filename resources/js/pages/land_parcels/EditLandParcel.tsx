@@ -479,8 +479,7 @@ export default function EditLandParcel({ id }: { id: string }) {
         ]);
 
         if (userRole !== 'DO') {
-          setUnauthorized(true);
-          setLoading(false);
+          router.visit('/access-denied');
 
           return;
         }

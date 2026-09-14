@@ -12,7 +12,7 @@ class PaymentController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Payment::with(['compensation', 'document']);
+        $query = Payment::with(['compensation.owner', 'compensation.landParcel', 'document']);
 
         if ($request->has('compensation_id')) {
             $query->where('compensation_id', $request->input('compensation_id'));
@@ -48,7 +48,7 @@ class PaymentController extends Controller
 
         return response()->json([
             'message' => 'Payment registered successfully',
-            'payment' => $payment,
+            'payment' => $payment->load(['compensation.owner', 'compensation.landParcel', 'document']),
         ], 201);
     }
 
@@ -57,7 +57,7 @@ class PaymentController extends Controller
      */
     public function show(string $id)
     {
-        $payment = Payment::with(['compensation', 'document'])->find($id);
+        $payment = Payment::with(['compensation.owner', 'compensation.landParcel', 'document'])->find($id);
 
         if (! $payment) {
             return response()->json([

@@ -27,7 +27,8 @@ class CheckRole
                     'message' => 'Unauthorized. User role not found.',
                 ], 403);
             }
-            abort(403, 'Unauthorized. User role not found.');
+
+            return redirect('/access-denied');
         }
 
         if (! in_array($user->role->role_name, $roles)) {
@@ -36,7 +37,8 @@ class CheckRole
                     'message' => 'Forbidden. You do not have the required role to access this resource.',
                 ], 403);
             }
-            abort(403, 'Forbidden. You do not have the required role to access this resource.');
+
+            return redirect('/access-denied');
         }
 
         return $next($request);

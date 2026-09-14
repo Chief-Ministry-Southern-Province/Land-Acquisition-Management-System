@@ -256,6 +256,7 @@ export default function AddUserForm({
           phone: values.phone.trim() || undefined,
           department_id: Number(values.department),
           role_id: Number(values.role),
+          status: values.status ? values.status.toLowerCase() : 'active',
         };
 
         if (isEditMode) {

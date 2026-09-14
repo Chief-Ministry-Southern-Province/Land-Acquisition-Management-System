@@ -137,7 +137,10 @@
     <div class="header">
         <table>
             <tr>
-                <td>
+                <td style="width: 60px; vertical-align: middle;">
+                    <img src="{{ public_path('logo.png') }}" style="height: 50px; width: auto;" alt="Logo">
+                </td>
+                <td style="vertical-align: middle; padding-left: 10px;">
                     <h1>{{ __('messages.property_owner_details') }}</h1>
                     <p>{{ __('messages.owner_id') }}: {{ $owner->owner_id }}</p>
                 </td>

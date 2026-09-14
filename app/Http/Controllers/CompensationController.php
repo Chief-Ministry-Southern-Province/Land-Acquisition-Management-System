@@ -14,7 +14,7 @@ class CompensationController extends Controller
     {
         return response()->json([
             'message' => 'Compensations fetched successfully',
-            'compensations' => Compensation::all(),
+            'compensations' => Compensation::with(['owner', 'landParcel', 'payments'])->get(),
         ], 200);
     }
 
@@ -37,7 +37,7 @@ class CompensationController extends Controller
 
         return response()->json([
             'message' => 'Compensation created successfully',
-            'compensation' => $compensation,
+            'compensation' => $compensation->load(['owner', 'landParcel', 'payments']),
         ], 201);
     }
 
@@ -46,7 +46,7 @@ class CompensationController extends Controller
      */
     public function show(string $id)
     {
-        $compensation = Compensation::find($id, ['*']);
+        $compensation = Compensation::with(['owner', 'landParcel', 'payments'])->find($id);
 
         if ($compensation) {
             return response()->json([

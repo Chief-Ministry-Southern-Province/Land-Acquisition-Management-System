@@ -14,7 +14,7 @@ class AdminStatsController extends Controller
      */
     public function index(): JsonResponse
     {
-        $activeUsers = User::count();
+        $activeUsers = User::where('status', '!=', 'inactive')->count();
         $usersThisWeek = User::where('created_at', '>=', now()->subDays(7))->count();
 
         $systemLogs24h = AuditLogs::where('created_at', '>=', now()->subHours(24))->count();
