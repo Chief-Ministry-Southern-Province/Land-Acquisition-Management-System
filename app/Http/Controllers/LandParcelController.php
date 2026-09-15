@@ -432,7 +432,7 @@ class LandParcelController extends Controller
         );
 
         $filename = $id
-            ? 'land_parcel_'.$records->first()->parcel_id.'_'.date('Ymd_His')
+            ? 'land_parcel_'.preg_replace('/[\/\\\\:\*\?"<>\|]+/', '_', $records->first()->parcel_id).'_'.date('Ymd_His')
             : 'land_parcels_'.date('Ymd_His');
 
         if ($format === 'pdf') {

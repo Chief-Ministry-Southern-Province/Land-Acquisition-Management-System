@@ -19,6 +19,8 @@ class ExportService
         ?string $pdfView = null,
         array $pdfData = []
     ) {
+        $filename = preg_replace('/[\/\\\\:\*\?"<>\|]+/', '_', $filename);
+
         return match ($format) {
             'csv' => $this->toCsv($data, $headings, $filename),
             'excel' => $this->toExcel($data, $headings, $filename),

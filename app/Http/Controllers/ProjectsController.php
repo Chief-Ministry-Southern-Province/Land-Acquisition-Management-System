@@ -394,7 +394,7 @@ class ProjectsController extends Controller
         }
 
         $filename = $id
-            ? 'project_'.$records->first()->project_id.'_'.date('Ymd_His')
+            ? 'project_'.preg_replace('/[\/\\\\:\*\?"<>\|]+/', '_', $records->first()->project_id).'_'.date('Ymd_His')
             : 'projects_'.date('Ymd_His');
 
         if ($format === 'pdf') {
