@@ -1,15 +1,16 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Writer\Csv;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-$spreadsheet = new Spreadsheet();
+$spreadsheet = new Spreadsheet;
 
 // ---------------------------------------------------------
 // Sheet 1: Land Parcels Import (Data Sheet)
@@ -63,7 +64,7 @@ $headers = [
 
 // Write Header Row
 foreach ($headers as $colIndex => $header) {
-    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+    $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
     $sheet1->setCellValue("{$colLetter}1", $header);
 }
 
@@ -91,7 +92,7 @@ $headerStyle = [
         ],
     ],
 ];
-$lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+$lastColLetter = Coordinate::stringFromColumnIndex(count($headers));
 $sheet1->getStyle("A1:{$lastColLetter}1")->applyFromArray($headerStyle);
 $sheet1->getRowDimension(1)->setRowHeight(30);
 
@@ -268,17 +269,17 @@ $sampleData = [
         'Yes',
         '6.0612',
         '80.2315',
-    ]
+    ],
 ];
 
 // Populate Data
 foreach ($sampleData as $rowIndex => $row) {
     $rowNum = $rowIndex + 2;
     foreach ($row as $colIndex => $val) {
-        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+        $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
         $sheet1->setCellValue("{$colLetter}{$rowNum}", $val);
     }
-    
+
     // Alternating background colors
     $rowBg = ($rowNum % 2 === 0) ? 'FFFFFF' : 'F8FAFC';
     $sheet1->getStyle("A{$rowNum}:{$lastColLetter}{$rowNum}")->applyFromArray([
@@ -309,10 +310,9 @@ foreach ($sampleData as $rowIndex => $row) {
 
 // Auto-fit column widths
 foreach (range(1, count($headers)) as $colIndex) {
-    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+    $colLetter = Coordinate::stringFromColumnIndex($colIndex);
     $sheet1->getColumnDimension($colLetter)->setAutoSize(true);
 }
-
 
 // ---------------------------------------------------------
 // Sheet 2: Instructions & Field Specifications
@@ -334,7 +334,7 @@ $sheet2->getStyle('A2')->applyFromArray([
 
 $instHeaders = ['Column Name', 'Required?', 'Data Type / Format', 'Description & Accepted Values', 'Sample Value'];
 foreach ($instHeaders as $colIndex => $h) {
-    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+    $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
     $sheet2->setCellValue("{$colLetter}4", $h);
 }
 
@@ -392,15 +392,15 @@ $fieldGuide = [
 foreach ($fieldGuide as $idx => $row) {
     $rowNum = $idx + 5;
     foreach ($row as $colIdx => $v) {
-        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx + 1);
+        $colLetter = Coordinate::stringFromColumnIndex($colIdx + 1);
         $sheet2->setCellValue("{$colLetter}{$rowNum}", $v);
     }
-    
+
     $isReq = ($row[1] === 'REQUIRED');
     $sheet2->getStyle("B{$rowNum}")->applyFromArray([
         'font' => ['bold' => true, 'color' => ['rgb' => $isReq ? 'DC2626' : '475569']],
     ]);
-    
+
     $sheet2->getStyle("A{$rowNum}:E{$rowNum}")->applyFromArray([
         'borders' => [
             'bottom' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']],
@@ -411,24 +411,24 @@ foreach ($fieldGuide as $idx => $row) {
 }
 
 foreach (range(1, 5) as $colIdx) {
-    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
+    $colLetter = Coordinate::stringFromColumnIndex($colIdx);
     $sheet2->getColumnDimension($colLetter)->setAutoSize(true);
 }
 
 // ---------------------------------------------------------
 // Save Files
 // ---------------------------------------------------------
-$baseDir = __DIR__ . '/..';
-$storageDir = $baseDir . '/storage/app/public/templates';
-if (!is_dir($storageDir)) {
+$baseDir = __DIR__.'/..';
+$storageDir = $baseDir.'/storage/app/public/templates';
+if (! is_dir($storageDir)) {
     mkdir($storageDir, 0755, true);
 }
 
-$xlsxPath1 = $baseDir . '/land_parcels_import_template.xlsx';
-$xlsxPath2 = $storageDir . '/land_parcels_import_template.xlsx';
+$xlsxPath1 = $baseDir.'/land_parcels_import_template.xlsx';
+$xlsxPath2 = $storageDir.'/land_parcels_import_template.xlsx';
 
-$csvPath1 = $baseDir . '/land_parcels_import_template.csv';
-$csvPath2 = $storageDir . '/land_parcels_import_template.csv';
+$csvPath1 = $baseDir.'/land_parcels_import_template.csv';
+$csvPath2 = $storageDir.'/land_parcels_import_template.csv';
 
 // Save XLSX
 $writerXlsx = new Xlsx($spreadsheet);

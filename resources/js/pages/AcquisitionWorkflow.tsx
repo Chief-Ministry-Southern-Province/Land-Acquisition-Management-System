@@ -19,7 +19,7 @@ import { useProjectsQuery } from '@/hooks/queries/useProjectsQuery';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import api from '@/services/api';
-import { getProjects, getProject } from '@/services/projectsManagementService';
+import { getProject } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
 interface WorkflowStage {
@@ -32,7 +32,8 @@ interface WorkflowStage {
 
 export default function AcquisitionWorkflow() {
   const { t } = useTranslation();
-  const { data: projectsList = [], isLoading: loadingList } = useProjectsQuery();
+  const { data: projectsList = [], isLoading: loadingList } =
+    useProjectsQuery();
   const [selectedProjId, setSelectedProjId] = useState<string>('');
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [compensations, setCompensations] = useState<any[]>([]);

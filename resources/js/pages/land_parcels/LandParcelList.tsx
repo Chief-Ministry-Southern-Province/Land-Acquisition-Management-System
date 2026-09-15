@@ -1,6 +1,13 @@
 import { router, usePage } from '@inertiajs/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Eye, MapPin, Plus, Upload, Pencil, FileSpreadsheet } from 'lucide-react';
+import {
+  Eye,
+  MapPin,
+  Plus,
+  Upload,
+  Pencil,
+  FileSpreadsheet,
+} from 'lucide-react';
 import { useState, useRef } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
