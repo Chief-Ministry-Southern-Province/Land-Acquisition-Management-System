@@ -511,6 +511,31 @@ class LandParcelController extends Controller
         );
     }
 
+    public function downloadTemplate(Request $request)
+    {
+        $format = strtolower($request->query('format', 'excel'));
+
+        if ($format === 'csv') {
+            $path = storage_path('app/public/templates/land_parcels_import_template.csv');
+            if (! file_exists($path)) {
+                $path = base_path('land_parcels_import_template.csv');
+            }
+
+            return response()->download($path, 'land_parcels_import_template.csv', [
+                'Content-Type' => 'text/csv',
+            ]);
+        }
+
+        $path = storage_path('app/public/templates/land_parcels_import_template.xlsx');
+        if (! file_exists($path)) {
+            $path = base_path('land_parcels_import_template.xlsx');
+        }
+
+        return response()->download($path, 'land_parcels_import_template.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
     public function import(Request $request, ImportService $importService)
     {
         $user = $request->user();
@@ -562,9 +587,9 @@ class LandParcelController extends Controller
             'status' => 'nullable|string|in:available,pending,acquired,Available,Pending,Acquired,AVAILABLE,PENDING,ACQUIRED',
             'grama_niladari_division' => 'nullable|string|max:255',
             'land_type' => 'nullable|string|max:255',
-            'estimated_value' => 'nullable|string|max:255',
-            'is_casehold' => 'nullable|string|max:255',
-            'is_donated' => 'nullable|string|max:255',
+            'estimated_value' => 'nullable|max:255',
+            'is_casehold' => 'nullable|max:255',
+            'is_donated' => 'nullable|max:255',
             'latitude' => 'nullable|numeric|between:5.7,10.0',
             'longitude' => 'nullable|numeric|between:79.3,82.0',
             'annual_income' => 'nullable|numeric',

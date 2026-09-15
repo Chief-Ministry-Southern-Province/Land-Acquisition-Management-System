@@ -12,7 +12,9 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class GenericImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithBatchInserts, WithChunkReading, WithHeadingRow, WithValidation
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+
+class GenericImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithBatchInserts, WithChunkReading, WithHeadingRow, WithValidation, WithMultipleSheets
 {
     use SkipsFailures;
 
@@ -26,6 +28,13 @@ class GenericImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithBatc
         protected array $normalizeFields = [],
         protected ?\Closure $transform = null,
     ) {}
+
+    public function sheets(): array
+    {
+        return [
+            0 => $this,
+        ];
+    }
 
     public function model(array $row)
     {

@@ -1,6 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Eye, MapPin, Plus, Upload, Pencil } from 'lucide-react';
+import { Eye, MapPin, Plus, Upload, Pencil, FileSpreadsheet } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
@@ -14,6 +14,7 @@ import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
 import {
   exportLandParcels,
   importLandParcels,
+  downloadLandParcelImportTemplate,
 } from '@/services/landParcelManagementService';
 
 export default function LandParcelList() {
@@ -330,6 +331,17 @@ export default function LandParcelList() {
               onChange={handleImport}
               disabled={importing}
             />
+            <button
+              onClick={() => downloadLandParcelImportTemplate('excel')}
+              className="bg-muted hover:bg-muted/80 text-foreground flex items-center gap-2 rounded-lg px-4 py-2 transition-colors"
+              title={t(
+                'download_template_desc',
+                'Download Excel template for land parcel import',
+              )}
+            >
+              <FileSpreadsheet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <span>{t('download_template', 'Download Template')}</span>
+            </button>
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={importing}

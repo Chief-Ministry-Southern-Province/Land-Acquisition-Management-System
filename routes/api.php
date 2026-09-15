@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('projects/{id}/submit', [ProjectsController::class, 'submit']);
     Route::apiResource('projects', ProjectsController::class);
     Route::get('land-parcels/export', [LandParcelController::class, 'export']);
+    Route::get('land-parcels/template', [LandParcelController::class, 'downloadTemplate']);
     Route::post('land-parcels/import', [LandParcelController::class, 'import']);
     Route::apiResource('land-parcels', LandParcelController::class);
     Route::get('property-owners/export', [PropertyOwnerController::class, 'export']);
