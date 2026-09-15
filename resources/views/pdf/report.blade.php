@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <title>{{ $title }}</title>
     <style>
-        @if(app()->getLocale() === 'si')
         body {
             font-family: 'notosanssinhala', sans-serif;
             color: #333333;
@@ -13,16 +12,6 @@
             margin: 0;
             padding: 0;
         }
-        @else
-        body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            color: #333333;
-            font-size: 11px;
-            line-height: 1.4;
-            margin: 0;
-            padding: 0;
-        }
-        @endif
         .header {
             margin-bottom: 20px;
             border-bottom: 2px solid #2E7D32;

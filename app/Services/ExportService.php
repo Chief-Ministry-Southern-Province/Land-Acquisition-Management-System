@@ -83,7 +83,9 @@ class ExportService
                     'useOTL' => 0xFF,
                 ],
             ],
-            'default_font' => app()->getLocale() === 'si' ? 'notosanssinhala' : '',
+            'default_font' => 'notosanssinhala',
+            'autoScriptToLang' => true,
+            'autoLanguageToFont' => true,
             'tempDir' => storage_path('framework'),
         ]);
 
