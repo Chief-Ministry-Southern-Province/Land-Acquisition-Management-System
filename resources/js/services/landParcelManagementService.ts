@@ -1,3 +1,6 @@
+import { LAND_PARCELS_QUERY_KEY } from '@/hooks/queries/useLandParcelsQuery';
+import { PROJECTS_QUERY_KEY } from '@/hooks/queries/useProjectsQuery';
+import { queryClient } from '@/lib/queryClient';
 import api from './api';
 import type { Document } from './projectsManagementService';
 import type { PropertyOwner } from './propertyOwnerManagement';
@@ -209,8 +212,12 @@ export const createLandParcel = async (
   },
 ): Promise<LandParcel> => {
   const response = await api.post('/api/land-parcels', mapToBackend(data));
+  const parcel = mapFromBackend(response.data.land_parcel);
 
-  return mapFromBackend(response.data.land_parcel);
+  queryClient.invalidateQueries({ queryKey: LAND_PARCELS_QUERY_KEY });
+  queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+
+  return parcel;
 };
 
 export const updateLandParcel = async (
@@ -220,12 +227,21 @@ export const updateLandParcel = async (
   },
 ): Promise<LandParcel> => {
   const response = await api.put(`/api/land-parcels/${id}`, mapToBackend(data));
+  const parcel = mapFromBackend(response.data.land_parcel);
 
-  return mapFromBackend(response.data.land_parcel);
+  queryClient.invalidateQueries({ queryKey: LAND_PARCELS_QUERY_KEY });
+  queryClient.invalidateQueries({
+    queryKey: [...LAND_PARCELS_QUERY_KEY, id],
+  });
+  queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+
+  return parcel;
 };
 
 export const deleteLandParcel = async (id: string): Promise<void> => {
   await api.delete(`/api/land-parcels/${id}`);
+  queryClient.invalidateQueries({ queryKey: LAND_PARCELS_QUERY_KEY });
+  queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
 };
 
 export const exportLandParcels = async (

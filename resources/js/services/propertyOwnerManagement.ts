@@ -1,3 +1,5 @@
+import { PROPERTY_OWNERS_QUERY_KEY } from '@/hooks/queries/useLandOwnersQuery';
+import { queryClient } from '@/lib/queryClient';
 import api from './api';
 import type { LandParcel } from './landParcelManagementService';
 import type { Document } from './projectsManagementService';
@@ -149,8 +151,11 @@ export const createPropertyOwner = async (
   data: Omit<PropertyOwner, 'id' | 'created_at' | 'updated_at'>,
 ): Promise<PropertyOwner> => {
   const response = await api.post('/api/property-owners', mapToBackend(data));
+  const owner = mapFromBackend(response.data.property_owner);
 
-  return mapFromBackend(response.data.property_owner);
+  queryClient.invalidateQueries({ queryKey: PROPERTY_OWNERS_QUERY_KEY });
+
+  return owner;
 };
 
 export const updatePropertyOwner = async (
@@ -161,12 +166,19 @@ export const updatePropertyOwner = async (
     `/api/property-owners/${id}`,
     mapToBackend(data),
   );
+  const owner = mapFromBackend(response.data.property_owner);
 
-  return mapFromBackend(response.data.property_owner);
+  queryClient.invalidateQueries({ queryKey: PROPERTY_OWNERS_QUERY_KEY });
+  queryClient.invalidateQueries({
+    queryKey: [...PROPERTY_OWNERS_QUERY_KEY, id],
+  });
+
+  return owner;
 };
 
 export const deletePropertyOwner = async (id: string): Promise<void> => {
   await api.delete(`/api/property-owners/${id}`);
+  queryClient.invalidateQueries({ queryKey: PROPERTY_OWNERS_QUERY_KEY });
 };
 
 export const exportPropertyOwners = async (
