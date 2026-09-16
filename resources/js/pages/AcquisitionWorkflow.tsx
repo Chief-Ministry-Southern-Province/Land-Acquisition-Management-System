@@ -15,10 +15,11 @@ import {
 import { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import { useProjectsQuery } from '@/hooks/queries/useProjectsQuery';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import api from '@/services/api';
-import { getProjects, getProject } from '@/services/projectsManagementService';
+import { getProject } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
 interface WorkflowStage {
@@ -31,28 +32,12 @@ interface WorkflowStage {
 
 export default function AcquisitionWorkflow() {
   const { t } = useTranslation();
-  const [projectsList, setProjectsList] = useState<Project[]>([]);
+  const { data: projectsList = [], isLoading: loadingList } =
+    useProjectsQuery();
   const [selectedProjId, setSelectedProjId] = useState<string>('');
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [compensations, setCompensations] = useState<any[]>([]);
-  const [loadingList, setLoadingList] = useState<boolean>(true);
   const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
-
-  // Fetch list of all projects on mount
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        setLoadingList(true);
-        const data = await getProjects();
-        setProjectsList(data);
-      } catch (error) {
-        console.error('Failed to fetch projects list:', error);
-      } finally {
-        setLoadingList(false);
-      }
-    };
-    fetchProjects();
-  }, []);
 
   // Fetch project details when project selection changes
   useEffect(() => {

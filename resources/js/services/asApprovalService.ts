@@ -1,3 +1,6 @@
+import { LAND_PARCELS_QUERY_KEY } from '@/hooks/queries/useLandParcelsQuery';
+import { PROJECTS_QUERY_KEY } from '@/hooks/queries/useProjectsQuery';
+import { queryClient } from '@/lib/queryClient';
 import api from './api';
 
 export interface PendingApprovalsResponse {
@@ -19,6 +22,9 @@ export const approveCase = async (
 ): Promise<any> => {
   const response = await api.post(`/api/as/approvals/${type}/${id}/approve`);
 
+  queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+  queryClient.invalidateQueries({ queryKey: LAND_PARCELS_QUERY_KEY });
+
   return response.data;
 };
 
@@ -30,6 +36,9 @@ export const rejectCase = async (
   const response = await api.post(`/api/as/approvals/${type}/${id}/reject`, {
     comment,
   });
+
+  queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+  queryClient.invalidateQueries({ queryKey: LAND_PARCELS_QUERY_KEY });
 
   return response.data;
 };

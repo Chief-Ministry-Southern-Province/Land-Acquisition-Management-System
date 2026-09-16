@@ -19,6 +19,8 @@ class ExportService
         ?string $pdfView = null,
         array $pdfData = []
     ) {
+        $filename = preg_replace('/[\/\\\\:\*\?"<>\|]+/', '_', $filename);
+
         return match ($format) {
             'csv' => $this->toCsv($data, $headings, $filename),
             'excel' => $this->toExcel($data, $headings, $filename),
@@ -81,7 +83,9 @@ class ExportService
                     'useOTL' => 0xFF,
                 ],
             ],
-            'default_font' => app()->getLocale() === 'si' ? 'notosanssinhala' : '',
+            'default_font' => 'notosanssinhala',
+            'autoScriptToLang' => true,
+            'autoLanguageToFont' => true,
             'tempDir' => storage_path('framework'),
         ]);
 

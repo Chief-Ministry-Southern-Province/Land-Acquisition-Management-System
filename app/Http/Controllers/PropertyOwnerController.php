@@ -166,7 +166,7 @@ class PropertyOwnerController extends Controller
         }
 
         $filename = $id
-            ? 'property_owner_'.$records->first()->owner_id.'_'.date('Ymd_His')
+            ? 'property_owner_'.preg_replace('/[\/\\\\:\*\?"<>\|]+/', '_', $records->first()->owner_id).'_'.date('Ymd_His')
             : 'property_owners_'.date('Ymd_His');
 
         if ($format === 'pdf') {
