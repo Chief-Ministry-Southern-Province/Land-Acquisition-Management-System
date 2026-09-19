@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <title>{{ __('messages.property_owner_details') }} - {{ $owner->owner_id }}</title>
     <style>
-        @if(app()->getLocale()==='si') body, table, th, td, div, p, span {
+        body, table, th, td, div, p, span {
             font-family: 'notosanssinhala', sans-serif;
         }
 
@@ -17,19 +17,7 @@
             padding: 20px;
         }
 
-        @else body, table, th, td, div, p, span {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            color: #333333;
-            font-size: 11px;
-            line-height: 1.5;
-            margin: 0;
-            padding: 20px;
-        }
-
-        @endif .header {
+        .header {
             margin-bottom: 25px;
             border-bottom: 2px solid #1a365d;
             padding-bottom: 15px;

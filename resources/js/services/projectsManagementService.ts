@@ -1,3 +1,5 @@
+import { PROJECTS_QUERY_KEY } from '@/hooks/queries/useProjectsQuery';
+import { queryClient } from '@/lib/queryClient';
 import api from './api';
 import type { LandParcel } from './landParcelManagementService';
 
@@ -195,8 +197,11 @@ export const createProject = async (
   },
 ): Promise<Project> => {
   const response = await api.post('/api/projects', mapToBackend(data));
+  const project = mapFromBackend(response.data.project);
 
-  return mapFromBackend(response.data.project);
+  queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+
+  return project;
 };
 
 export const updateProject = async (
@@ -206,18 +211,31 @@ export const updateProject = async (
   },
 ): Promise<Project> => {
   const response = await api.put(`/api/projects/${id}`, mapToBackend(data));
+  const project = mapFromBackend(response.data.project);
 
-  return mapFromBackend(response.data.project);
+  queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+  queryClient.invalidateQueries({
+    queryKey: [...PROJECTS_QUERY_KEY, id],
+  });
+
+  return project;
 };
 
 export const deleteProject = async (id: string): Promise<void> => {
   await api.delete(`/api/projects/${id}`);
+  queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
 };
 
 export const submitProject = async (id: string): Promise<Project> => {
   const response = await api.post(`/api/projects/${id}/submit`);
+  const project = mapFromBackend(response.data.project);
 
-  return mapFromBackend(response.data.project);
+  queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+  queryClient.invalidateQueries({
+    queryKey: [...PROJECTS_QUERY_KEY, id],
+  });
+
+  return project;
 };
 
 export const exportProjects = async (

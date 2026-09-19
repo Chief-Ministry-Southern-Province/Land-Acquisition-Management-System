@@ -9,7 +9,7 @@
             margin: 45px 36px 55px 36px;
         }
 
-        @if(app()->getLocale()==='si') body {
+        body {
             font-family: 'notosanssinhala', sans-serif;
             color: #1a1a1a;
             font-size: 9px;
@@ -18,16 +18,7 @@
             padding: 0;
         }
 
-        @else body {
-            font-family: 'Times New Roman', 'Noto Serif', Georgia, serif;
-            color: #1a1a1a;
-            font-size: 9px;
-            line-height: 1.4;
-            margin: 0;
-            padding: 0;
-        }
-
-        @endif .page-frame {
+        .page-frame {
             border: 3px double #2d2d2d;
             padding: 14px;
         }
@@ -67,9 +58,7 @@
             font-size: 7.5px;
             line-height: 1.2;
             padding-top: 18px;
-            @if(app()->getLocale()==='si') font-family: 'notosanssinhala', sans-serif;
-            @else font-family: 'Times New Roman', serif;
-            @endif
+            font-family: 'notosanssinhala', sans-serif;
         }
 
         .gov-title {
@@ -105,18 +94,14 @@
             border: 1px solid #2d2d2d;
             padding: 6px;
             background-color: #f5f5f5;
-            @if(app()->getLocale()==='si') font-family: 'notosanssinhala', sans-serif;
-            @else font-family: 'Courier New', monospace;
-            @endif
+            font-family: 'notosanssinhala', sans-serif;
             font-size: 9px;
             text-align: center;
         }
 
         .ref-box strong {
             display: block;
-            @if(app()->getLocale()==='si') font-family: 'notosanssinhala', sans-serif;
-            @else font-family: 'Times New Roman', serif;
-            @endif
+            font-family: 'notosanssinhala', sans-serif;
             font-size: 7.5px;
             letter-spacing: 0.5px;
             color: #2d2d2d;
@@ -192,9 +177,7 @@
             color: #666;
             border-top: 1px solid #ccc;
             padding-top: 6px;
-            @if(app()->getLocale()==='si') font-family: 'notosanssinhala', sans-serif;
-            @else font-family: 'Times New Roman', 'Noto Serif', Georgia, serif;
-            @endif
+            font-family: 'notosanssinhala', sans-serif;
         }
     </style>
 </head>
@@ -411,7 +394,7 @@
         </div>
     </div>
     
-    <div class="footer" style="font-family: {{ app()->getLocale() === 'si' ? 'notosanssinhala, sans-serif' : 'Times New Roman, serif' }};">
+    <div class="footer" style="font-family: 'notosanssinhala', sans-serif;">
         <div>{{ __('messages.Land_Acquisition_Management_System') }}</div>
         <div>{{ __('messages.confidential_page') }} 1</div>
     </div>
