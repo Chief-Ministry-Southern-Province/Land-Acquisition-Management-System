@@ -30,6 +30,10 @@ import {
   downloadDocument,
   deleteDocument,
 } from '@/services/documentManagementService';
+import {
+  getProjectProgress,
+  saveProjectProgress,
+} from '@/services/projectProgressService';
 import { getProjects, getProject } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
@@ -669,7 +673,35 @@ export default function MarkProgress() {
 
         setSelectedProject(projData);
 
-        // Load persisted checklist state for this project if available
+        // Fetch progress from backend 1-to-1 ProjectProgressService
+        try {
+          const res = await getProjectProgress(selectedProjectId);
+
+          if (
+            isMounted &&
+            res.progress?.stages &&
+            Array.isArray(res.progress.stages) &&
+            res.progress.stages.length > 0
+          ) {
+            setStages(res.progress.stages);
+
+            if (res.progress.last_saved_at) {
+              setLastSavedTime(
+                new Date(res.progress.last_saved_at).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                }),
+              );
+            }
+
+            return;
+          }
+        } catch (apiErr) {
+          console.warn('Backend progress service fetch notice:', apiErr);
+        }
+
+        // Load persisted checklist state from localStorage if backend has no record yet
         const storageKey = `lams_do_checklist_${selectedProjectId}`;
         const savedChecklist = localStorage.getItem(storageKey);
 
@@ -1010,6 +1042,18 @@ export default function MarkProgress() {
       const storageKey = `lams_do_checklist_${selectedProjectId}`;
 
       localStorage.setItem(storageKey, JSON.stringify(stages));
+
+      // Save to backend service via API (DO Authorized Only)
+      try {
+        const res = await saveProjectProgress(selectedProjectId, stages);
+
+        if (res.progress?.stages) {
+          setStages(res.progress.stages);
+        }
+      } catch (backendErr) {
+        console.warn('Saved locally, backend sync notice:', backendErr);
+      }
+
       const nowStr = new Date().toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
@@ -1666,13 +1710,7 @@ export default function MarkProgress() {
                     <div className="min-w-0 flex-1 space-y-2">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex min-w-0 items-center gap-2">
-                          <h4
-                            className={`truncate text-sm font-semibold ${
-                              item.isCompleted
-                                ? 'text-foreground line-through opacity-80'
-                                : 'text-foreground'
-                            }`}
-                          >
+                          <h4 className="text-foreground truncate text-sm font-semibold">
                             {item.title}
                           </h4>
                           {item.isMandatory && (
