@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Departments;
+use App\Models\LandParcel;
 use App\Models\Projects;
 use App\Models\Roles;
 use App\Models\User;
@@ -191,7 +192,7 @@ test('exporting single project PDF contains e-signatures of approving officers',
 });
 
 test('exporting individual land parcel PDF contains signature only of head of branch', function () {
-    $parcel = \App\Models\LandParcel::create([
+    $parcel = LandParcel::create([
         'parcel_id' => 'LND/2026/SIG001',
         'project_id' => $this->project->id,
         'land_name' => 'Signature Test Land',
@@ -224,7 +225,7 @@ test('exporting individual land parcel PDF contains signature only of head of br
 });
 
 test('signature block suppresses duplicate position title when officer user name matches generic role title', function () {
-    $parcel = \App\Models\LandParcel::create([
+    $parcel = LandParcel::create([
         'parcel_id' => 'LND/2026/SIG002',
         'project_id' => $this->project->id,
         'land_name' => 'Signature Duplicate Test Land',
@@ -279,5 +280,3 @@ test('signature block suppresses duplicate position title when officer user name
     expect($htmlWithRealUser)->toContain('K. L. Perera');
     expect($htmlWithRealUser)->toContain('Head of Branch (Land)');
 });
-
-

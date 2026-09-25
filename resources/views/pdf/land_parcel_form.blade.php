@@ -514,7 +514,7 @@
                             </div>
                             <div style="border-top: 1px solid #2d2d2d; padding-top: 2px;">
                                 @php
-                                    $hobRoleTitle = app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී' : 'Head of Branch';
+                                    $hobRoleTitle = app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී (ඉඩම්)' : 'Head of Branch (Land)';
                                 @endphp
                                 @if(!$isGenericName($hobUser->name, $hobRoleTitle))
                                     <p style="margin: 0; font-size: 8.5px; font-weight: bold; color: #1a1a1a;">{{ $hobUser->name }}</p>
@@ -527,7 +527,7 @@
                         @else
                             <div style="height: 44px;"></div>
                             <div style="border-top: 1px dashed #718096; padding-top: 2px;">
-                                <p style="margin: 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී' : 'Head of Branch' }}</p>
+                                <p style="margin: 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී (ඉඩම්)' : 'Head of Branch (Land)' }}</p>
                                 <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #718096;">
                                     {{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....
                                 </p>

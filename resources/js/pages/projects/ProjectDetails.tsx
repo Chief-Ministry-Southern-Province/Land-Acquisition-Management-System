@@ -8,6 +8,7 @@ import {
   Trash2,
   Upload,
   User,
+  Loader2,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
@@ -66,6 +67,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [dbCompensations, setDbCompensations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const { locale, t } = useTranslation();
 
@@ -198,7 +200,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   };
 
   const handleSubmitProject = async () => {
-    if (!project) {
+    if (!project || isSubmittingProject) {
       return;
     }
 
@@ -213,7 +215,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     }
 
     try {
-      setLoading(true);
+      setIsSubmittingProject(true);
       await submitProject(project.id);
       await fetchProjectDetails();
       toastSuccess(t('project_submitted_success'));
@@ -221,7 +223,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       console.error('Failed to submit project:', error);
       toastError(t('project_submit_failed'));
     } finally {
-      setLoading(false);
+      setIsSubmittingProject(false);
     }
   };
 
@@ -494,10 +496,19 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             (userRole === 'DO' || userRole === 'Admin') && (
               <button
                 onClick={handleSubmitProject}
-                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
+                disabled={isSubmittingProject}
+                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Send className="h-4 w-4" />
-                <span>{t('submit_project')}</span>
+                {isSubmittingProject ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                <span>
+                  {isSubmittingProject
+                    ? t('submitting', 'Submitting...')
+                    : t('submit_project')}
+                </span>
               </button>
             )}
         </div>
