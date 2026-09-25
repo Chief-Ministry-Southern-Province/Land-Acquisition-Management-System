@@ -478,26 +478,61 @@
                 @endif
             </div>
 
-            <!-- Signature Boxes -->
-            <table class="signature-table">
+            <!-- Signature Box: Head of Branch Only -->
+            @php
+                $project = $parcel->project;
+                $hobUser = $project?->hobApprovedBy;
+                $isGenericName = function(?string $name, string $roleTitle) {
+                    if (empty($name)) return true;
+                    $nameTrimmed = strtolower(trim($name));
+                    $titleTrimmed = strtolower(trim($roleTitle));
+                    $genericNames = [
+                        'head of branch', 'head of branch (land)', 'hob', 'hob officer', 'අංශ ප්‍රධානී', 'අංශ ප්‍රධානී (ඉඩම්)',
+                        'development officer', 'do', 'do officer', 'සංවර්ධන නිලධාරී',
+                        'administrative officer', 'ao', 'ao officer', 'පාලන නිලධාරී',
+                        'assistant secretary', 'as', 'as officer', 'සහකාර ලේකම්',
+                        'senior assistant secretary', 'sas', 'sas officer', 'ජ්‍යෙෂ්ඨ සහකාර ලේකම්',
+                        'secretary', 'sec', 'sec officer', 'ලේකම්',
+                        'system administrator', 'admin', 'admin user', 'test user'
+                    ];
+                    return $nameTrimmed === $titleTrimmed || in_array($nameTrimmed, $genericNames, true);
+                };
+            @endphp
+            <table style="width: 100%; border-collapse: collapse; margin-top: 25px;">
                 <tr>
-                    <td>
-                        <div class="signature-line"></div>
-                        <p class="signature-role">{{ app()->getLocale() === 'si' ? 'සංවර්ධන නිලධාරී' : 'Development Officer' }}</p>
-                        <p class="signature-meta">{{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....</p>
-                        <p class="seal-note">{{ app()->getLocale() === 'si' ? '(නිල මුද්‍රාව)' : '(Official Seal)' }}</p>
-                    </td>
-                    <td>
-                        <div class="signature-line"></div>
-                        <p class="signature-role">{{ app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී (ඉඩම්)' : 'Head of Branch (Land)' }}</p>
-                        <p class="signature-meta">{{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....</p>
-                        <p class="seal-note">{{ app()->getLocale() === 'si' ? '(නිල මුද්‍රාව)' : '(Official Seal)' }}</p>
-                    </td>
-                    <td>
-                        <div class="signature-line"></div>
-                        <p class="signature-role">{{ app()->getLocale() === 'si' ? 'පාලන නිලධාරී' : 'Administrative Officer' }}</p>
-                        <p class="signature-meta">{{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....</p>
-                        <p class="seal-note">{{ app()->getLocale() === 'si' ? '(නිල මුද්‍රාව)' : '(Official Seal)' }}</p>
+                    <td style="width: 60%;"></td>
+                    <td style="width: 40%; text-align: center; vertical-align: bottom; padding: 4px 6px;">
+                        @if($hobUser && strtolower($project?->hob_status) === 'approved')
+                            <div style="height: 44px; text-align: center; vertical-align: bottom; margin-bottom: 2px;">
+                                @if(!empty($hobUser->signature))
+                                    <img src="{{ $hobUser->signature }}" style="max-height: 40px; max-width: 150px; width: auto; height: auto;" />
+                                @else
+                                    <div style="font-size: 8.5px; font-weight: bold; color: #1e3a8a; font-style: italic; padding-top: 14px;">
+                                        (Digitally Approved)
+                                    </div>
+                                @endif
+                            </div>
+                            <div style="border-top: 1px solid #2d2d2d; padding-top: 2px;">
+                                @php
+                                    $hobRoleTitle = app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී' : 'Head of Branch';
+                                @endphp
+                                @if(!$isGenericName($hobUser->name, $hobRoleTitle))
+                                    <p style="margin: 0; font-size: 8.5px; font-weight: bold; color: #1a1a1a;">{{ $hobUser->name }}</p>
+                                @endif
+                                <p style="margin: 1px 0 0 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $hobRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #6b7280;">
+                                    {{ $project?->hob_approved_at ? $project->hob_approved_at->format('Y-m-d H:i') : '' }}
+                                </p>
+                            </div>
+                        @else
+                            <div style="height: 44px;"></div>
+                            <div style="border-top: 1px dashed #718096; padding-top: 2px;">
+                                <p style="margin: 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී' : 'Head of Branch' }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #718096;">
+                                    {{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....
+                                </p>
+                            </div>
+                        @endif
                     </td>
                 </tr>
             </table>

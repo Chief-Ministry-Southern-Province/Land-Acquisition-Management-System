@@ -391,6 +391,258 @@
                     <td style="font-weight: bold; color: #047857;">₨ {{ number_format($totalDisbursedPayments, 2) }}</td>
                 </tr>
             </table>
+            <!-- Section 5: Official Approvals & Signatures -->
+            <div class="section-title" style="margin-top: 15px;">{{ app()->getLocale() === 'si' ? 'නිල අනුමැතීන් සහ අත්සන්' : 'Official Approvals & Signatures' }}</div>
+            
+            <div style="font-size: 8px; color: #333333; border: 1px solid #cccccc; background-color: #f9f9f9; padding: 6px 8px; margin-bottom: 12px; text-align: justify;">
+                @if(app()->getLocale() === 'si')
+                මෙම ලේඛනය භූමි අත්පත් කරගැනීමේ පනතේ විධිවිධානවලට අනුකූලව නිකුත් කරනු ලබන අතර දකුණු පළාත් ප්‍රධාන අමාත්‍යාංශයේ භූමි අත්පත් කරගැනීමේ කළමනාකරණ පද්ධතිය (LAMS) මඟින් ජනනය කරන ලද නිල වාර්තාවක් වේ. මෙහි සටහන් කර ඇති තොරතුරු අත්සන් කරන ලද නිලධාරීන්ගේ දැනුම පරිදි සත්‍ය සහ නිවැරදි බව සහතික කෙරේ.
+                @else
+                This document is issued in accordance with the provisions of the Land Acquisition Act and constitutes an official record generated through the Land Acquisition Management System (LAMS) of the Chief Ministry of Southern Province. It is certified that the particulars recorded herein are true and correct to the best of the knowledge of the undersigned officers.
+                @endif
+            </div>
+
+            @php
+                $isGenericName = function(?string $name, string $roleTitle) {
+                    if (empty($name)) return true;
+                    $nameTrimmed = strtolower(trim($name));
+                    $titleTrimmed = strtolower(trim($roleTitle));
+                    $genericNames = [
+                        'head of branch', 'head of branch (land)', 'hob', 'hob officer', 'අංශ ප්‍රධානී', 'අංශ ප්‍රධානී (ඉඩම්)',
+                        'development officer', 'do', 'do officer', 'සංවර්ධන නිලධාරී',
+                        'administrative officer', 'ao', 'ao officer', 'පාලන නිලධාරී',
+                        'assistant secretary', 'as', 'as officer', 'සහකාර ලේකම්',
+                        'senior assistant secretary', 'sas', 'sas officer', 'ජ්‍යෙෂ්ඨ සහකාර ලේකම්',
+                        'secretary', 'sec', 'sec officer', 'ලේකම්',
+                        'system administrator', 'admin', 'admin user', 'test user'
+                    ];
+                    return $nameTrimmed === $titleTrimmed || in_array($nameTrimmed, $genericNames, true);
+                };
+            @endphp
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px;">
+                <!-- Row 1: DO, HOB, AO -->
+                <tr>
+                    <!-- Development Officer (DO) -->
+                    <td style="width: 33.33%; text-align: center; vertical-align: bottom; padding: 4px 6px;">
+                        @php
+                            $doUser = $project->submittedBy ?? ($project->approvedBy && strtolower($project->do_status) === 'submitted' ? $project->approvedBy : null);
+                            $doRoleTitle = app()->getLocale() === 'si' ? 'සංවර්ධන නිලධාරී' : 'Development Officer';
+                        @endphp
+                        @if($doUser && strtolower($project->do_status) === 'submitted')
+                            <div style="height: 44px; text-align: center; vertical-align: bottom; margin-bottom: 2px;">
+                                @if(!empty($doUser->signature))
+                                    <img src="{{ $doUser->signature }}" style="max-height: 40px; max-width: 130px; width: auto; height: auto;" />
+                                @else
+                                    <div style="font-size: 8.5px; font-weight: bold; color: #1e3a8a; font-style: italic; padding-top: 14px;">
+                                        (Digitally Submitted)
+                                    </div>
+                                @endif
+                            </div>
+                            <div style="border-top: 1px solid #2d2d2d; padding-top: 2px;">
+                                @if(!$isGenericName($doUser->name, $doRoleTitle))
+                                    <p style="margin: 0; font-size: 8.5px; font-weight: bold; color: #1a1a1a;">{{ $doUser->name }}</p>
+                                @endif
+                                <p style="margin: 1px 0 0 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $doRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #6b7280;">
+                                    {{ $project->submitted_at ? $project->submitted_at->format('Y-m-d H:i') : '' }}
+                                </p>
+                            </div>
+                        @else
+                            <div style="height: 44px;"></div>
+                            <div style="border-top: 1px dashed #718096; padding-top: 2px;">
+                                <p style="margin: 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $doRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #718096;">
+                                    {{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....
+                                </p>
+                            </div>
+                        @endif
+                    </td>
+
+                    <!-- Head of Branch (HOB) -->
+                    <td style="width: 33.33%; text-align: center; vertical-align: bottom; padding: 4px 6px;">
+                        @php
+                            $hobUser = $project->hobApprovedBy;
+                            $hobRoleTitle = app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී (ඉඩම්)' : 'Head of Branch (Land)';
+                        @endphp
+                        @if($hobUser && strtolower($project->hob_status) === 'approved')
+                            <div style="height: 44px; text-align: center; vertical-align: bottom; margin-bottom: 2px;">
+                                @if(!empty($hobUser->signature))
+                                    <img src="{{ $hobUser->signature }}" style="max-height: 40px; max-width: 130px; width: auto; height: auto;" />
+                                @else
+                                    <div style="font-size: 8.5px; font-weight: bold; color: #1e3a8a; font-style: italic; padding-top: 14px;">
+                                        (Digitally Approved)
+                                    </div>
+                                @endif
+                            </div>
+                            <div style="border-top: 1px solid #2d2d2d; padding-top: 2px;">
+                                @if(!$isGenericName($hobUser->name, $hobRoleTitle))
+                                    <p style="margin: 0; font-size: 8.5px; font-weight: bold; color: #1a1a1a;">{{ $hobUser->name }}</p>
+                                @endif
+                                <p style="margin: 1px 0 0 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $hobRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #6b7280;">
+                                    {{ $project->hob_approved_at ? $project->hob_approved_at->format('Y-m-d H:i') : '' }}
+                                </p>
+                            </div>
+                        @else
+                            <div style="height: 44px;"></div>
+                            <div style="border-top: 1px dashed #718096; padding-top: 2px;">
+                                <p style="margin: 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $hobRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #718096;">
+                                    {{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....
+                                </p>
+                            </div>
+                        @endif
+                    </td>
+
+                    <!-- Administrative Officer (AO) -->
+                    <td style="width: 33.33%; text-align: center; vertical-align: bottom; padding: 4px 6px;">
+                        @php
+                            $aoUser = $project->aoApprovedBy;
+                            $aoRoleTitle = app()->getLocale() === 'si' ? 'පාලන නිලධාරී' : 'Administrative Officer';
+                        @endphp
+                        @if($aoUser && strtolower($project->ao_status) === 'approved')
+                            <div style="height: 44px; text-align: center; vertical-align: bottom; margin-bottom: 2px;">
+                                @if(!empty($aoUser->signature))
+                                    <img src="{{ $aoUser->signature }}" style="max-height: 40px; max-width: 130px; width: auto; height: auto;" />
+                                @else
+                                    <div style="font-size: 8.5px; font-weight: bold; color: #1e3a8a; font-style: italic; padding-top: 14px;">
+                                        (Digitally Approved)
+                                    </div>
+                                @endif
+                            </div>
+                            <div style="border-top: 1px solid #2d2d2d; padding-top: 2px;">
+                                @if(!$isGenericName($aoUser->name, $aoRoleTitle))
+                                    <p style="margin: 0; font-size: 8.5px; font-weight: bold; color: #1a1a1a;">{{ $aoUser->name }}</p>
+                                @endif
+                                <p style="margin: 1px 0 0 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $aoRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #6b7280;">
+                                    {{ $project->ao_approved_at ? $project->ao_approved_at->format('Y-m-d H:i') : '' }}
+                                </p>
+                            </div>
+                        @else
+                            <div style="height: 44px;"></div>
+                            <div style="border-top: 1px dashed #718096; padding-top: 2px;">
+                                <p style="margin: 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $aoRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #718096;">
+                                    {{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....
+                                </p>
+                            </div>
+                        @endif
+                    </td>
+                </tr>
+
+                <!-- Row 2: AS, SAS, SEC -->
+                <tr>
+                    <!-- Assistant Secretary (AS) -->
+                    <td style="width: 33.33%; text-align: center; vertical-align: bottom; padding: 12px 6px 4px 6px;">
+                        @php
+                            $asUser = $project->asApprovedBy;
+                            $asRoleTitle = app()->getLocale() === 'si' ? 'සහකාර ලේකම්' : 'Assistant Secretary';
+                        @endphp
+                        @if($asUser && strtolower($project->as_status) === 'approved')
+                            <div style="height: 44px; text-align: center; vertical-align: bottom; margin-bottom: 2px;">
+                                @if(!empty($asUser->signature))
+                                    <img src="{{ $asUser->signature }}" style="max-height: 40px; max-width: 130px; width: auto; height: auto;" />
+                                @else
+                                    <div style="font-size: 8.5px; font-weight: bold; color: #1e3a8a; font-style: italic; padding-top: 14px;">
+                                        (Digitally Approved)
+                                    </div>
+                                @endif
+                            </div>
+                            <div style="border-top: 1px solid #2d2d2d; padding-top: 2px;">
+                                @if(!$isGenericName($asUser->name, $asRoleTitle))
+                                    <p style="margin: 0; font-size: 8.5px; font-weight: bold; color: #1a1a1a;">{{ $asUser->name }}</p>
+                                @endif
+                                <p style="margin: 1px 0 0 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $asRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #6b7280;">
+                                    {{ $project->as_approved_at ? $project->as_approved_at->format('Y-m-d H:i') : '' }}
+                                </p>
+                            </div>
+                        @else
+                            <div style="height: 44px;"></div>
+                            <div style="border-top: 1px dashed #718096; padding-top: 2px;">
+                                <p style="margin: 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $asRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #718096;">
+                                    {{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....
+                                </p>
+                            </div>
+                        @endif
+                    </td>
+
+                    <!-- Senior Assistant Secretary (SAS) -->
+                    <td style="width: 33.33%; text-align: center; vertical-align: bottom; padding: 12px 6px 4px 6px;">
+                        @php
+                            $sasUser = $project->sasApprovedBy;
+                            $sasRoleTitle = app()->getLocale() === 'si' ? 'ජ්‍යෙෂ්ඨ සහකාර ලේකම්' : 'Senior Assistant Secretary';
+                        @endphp
+                        @if($sasUser && strtolower($project->sas_status) === 'approved')
+                            <div style="height: 44px; text-align: center; vertical-align: bottom; margin-bottom: 2px;">
+                                @if(!empty($sasUser->signature))
+                                    <img src="{{ $sasUser->signature }}" style="max-height: 40px; max-width: 130px; width: auto; height: auto;" />
+                                @else
+                                    <div style="font-size: 8.5px; font-weight: bold; color: #1e3a8a; font-style: italic; padding-top: 14px;">
+                                        (Digitally Approved)
+                                    </div>
+                                @endif
+                            </div>
+                            <div style="border-top: 1px solid #2d2d2d; padding-top: 2px;">
+                                @if(!$isGenericName($sasUser->name, $sasRoleTitle))
+                                    <p style="margin: 0; font-size: 8.5px; font-weight: bold; color: #1a1a1a;">{{ $sasUser->name }}</p>
+                                @endif
+                                <p style="margin: 1px 0 0 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $sasRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #6b7280;">
+                                    {{ $project->sas_approved_at ? $project->sas_approved_at->format('Y-m-d H:i') : '' }}
+                                </p>
+                            </div>
+                        @else
+                            <div style="height: 44px;"></div>
+                            <div style="border-top: 1px dashed #718096; padding-top: 2px;">
+                                <p style="margin: 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $sasRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #718096;">
+                                    {{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....
+                                </p>
+                            </div>
+                        @endif
+                    </td>
+
+                    <!-- Secretary (SEC) -->
+                    <td style="width: 33.33%; text-align: center; vertical-align: bottom; padding: 12px 6px 4px 6px;">
+                        @php
+                            $secUser = $project->secApprovedBy;
+                            $secRoleTitle = app()->getLocale() === 'si' ? 'ලේකම්' : 'Secretary';
+                        @endphp
+                        @if($secUser && strtolower($project->sec_status) === 'approved')
+                            <div style="height: 44px; text-align: center; vertical-align: bottom; margin-bottom: 2px;">
+                                @if(!empty($secUser->signature))
+                                    <img src="{{ $secUser->signature }}" style="max-height: 40px; max-width: 130px; width: auto; height: auto;" />
+                                @else
+                                    <div style="font-size: 8.5px; font-weight: bold; color: #1e3a8a; font-style: italic; padding-top: 14px;">
+                                        (Digitally Approved)
+                                    </div>
+                                @endif
+                            </div>
+                            <div style="border-top: 1px solid #2d2d2d; padding-top: 2px;">
+                                @if(!$isGenericName($secUser->name, $secRoleTitle))
+                                    <p style="margin: 0; font-size: 8.5px; font-weight: bold; color: #1a1a1a;">{{ $secUser->name }}</p>
+                                @endif
+                                <p style="margin: 1px 0 0 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $secRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #6b7280;">
+                                    {{ $project->sec_approved_at ? $project->sec_approved_at->format('Y-m-d H:i') : '' }}
+                                </p>
+                            </div>
+                        @else
+                            <div style="height: 44px;"></div>
+                            <div style="border-top: 1px dashed #718096; padding-top: 2px;">
+                                <p style="margin: 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $secRoleTitle }}</p>
+                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #718096;">
+                                    {{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....
+                                </p>
+                            </div>
+                        @endif
+                    </td>
+                </tr>
+            </table>
+
         </div>
     </div>
     

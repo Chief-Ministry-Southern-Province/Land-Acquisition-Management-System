@@ -49,6 +49,8 @@ class HOBApprovalController extends Controller
         $project->ao_status = 'pending'; // Moves to Administrative Officer review
         $project->approval_date = now();
         $project->approved_by = $userId;
+        $project->hob_approved_by = $userId;
+        $project->hob_approved_at = now();
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[System]: Approved by Head of Branch';
         $project->save();
 

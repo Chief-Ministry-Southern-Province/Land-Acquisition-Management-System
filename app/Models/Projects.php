@@ -25,6 +25,18 @@ use Illuminate\Database\Eloquent\Model;
     'section26_final_recommendation',
     'approval_date',
     'approved_by',
+    'submitted_by',
+    'submitted_at',
+    'hob_approved_by',
+    'hob_approved_at',
+    'ao_approved_by',
+    'ao_approved_at',
+    'as_approved_by',
+    'as_approved_at',
+    'sas_approved_by',
+    'sas_approved_at',
+    'sec_approved_by',
+    'sec_approved_at',
     'case_status',
     'do_status',
     'hob_status',
@@ -43,6 +55,12 @@ class Projects extends Model
         'section24_decision_remarks' => 'boolean',
         'section26_final_recommendation' => 'boolean',
         'approval_date' => 'date',
+        'submitted_at' => 'datetime',
+        'hob_approved_at' => 'datetime',
+        'ao_approved_at' => 'datetime',
+        'as_approved_at' => 'datetime',
+        'sas_approved_at' => 'datetime',
+        'sec_approved_at' => 'datetime',
         'land_area_to_be_acquired_acers' => 'decimal:2',
         'land_area_to_be_acquired_roods' => 'decimal:2',
         'land_area_to_be_acquired_perches' => 'decimal:2',
@@ -62,5 +80,35 @@ class Projects extends Model
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function submittedBy()
+    {
+        return $this->belongsTo(User::class, 'submitted_by');
+    }
+
+    public function hobApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'hob_approved_by');
+    }
+
+    public function aoApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'ao_approved_by');
+    }
+
+    public function asApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'as_approved_by');
+    }
+
+    public function sasApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'sas_approved_by');
+    }
+
+    public function secApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'sec_approved_by');
     }
 }

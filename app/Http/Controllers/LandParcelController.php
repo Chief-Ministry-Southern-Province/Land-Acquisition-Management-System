@@ -409,7 +409,15 @@ class LandParcelController extends Controller
         $format = $request->query('format', 'pdf');
         $id = $request->query('id');
 
-        $query = LandParcel::with(['owners', 'project']);
+        $query = LandParcel::with([
+            'owners',
+            'project.submittedBy',
+            'project.hobApprovedBy',
+            'project.aoApprovedBy',
+            'project.asApprovedBy',
+            'project.sasApprovedBy',
+            'project.secApprovedBy',
+        ]);
         if ($id) {
             $query->where('id', $id);
         }

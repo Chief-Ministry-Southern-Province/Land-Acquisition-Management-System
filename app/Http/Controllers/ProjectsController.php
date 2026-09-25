@@ -152,7 +152,19 @@ class ProjectsController extends Controller
             ], 403);
         }
 
-        $project = Projects::with(['landParcels.owners', 'landParcels.surveys.document', 'landParcels.valuations.document', 'landParcels.compensations.payments.document', 'documents'])->find($id);
+        $project = Projects::with([
+            'landParcels.owners',
+            'landParcels.surveys.document',
+            'landParcels.valuations.document',
+            'landParcels.compensations.payments.document',
+            'documents',
+            'submittedBy',
+            'hobApprovedBy',
+            'aoApprovedBy',
+            'asApprovedBy',
+            'sasApprovedBy',
+            'secApprovedBy',
+        ])->find($id);
 
         if ($project) {
             return response()->json([
@@ -345,6 +357,8 @@ class ProjectsController extends Controller
 
         $project->do_status = 'submitted';
         $project->case_status = 'pending';
+        $project->submitted_by = $user ? $user->id : null;
+        $project->submitted_at = now();
         $project->save();
 
         // Notify Head of Branch (HOB) users
@@ -383,6 +397,12 @@ class ProjectsController extends Controller
                 'landParcels.owners',
                 'landParcels.valuations',
                 'landParcels.compensations.payments',
+                'submittedBy',
+                'hobApprovedBy',
+                'aoApprovedBy',
+                'asApprovedBy',
+                'sasApprovedBy',
+                'secApprovedBy',
             ]);
         }
         $records = $query->get();

@@ -50,6 +50,10 @@ class SECApprovalController extends Controller
 
         $project->sec_status = 'approved';
         $project->case_status = 'completed'; // Marks the project case as completed (fully approved)
+        $project->approval_date = now();
+        $project->approved_by = $userId;
+        $project->sec_approved_by = $userId;
+        $project->sec_approved_at = now();
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[System]: Approved by Secretary';
         $project->save();
 
