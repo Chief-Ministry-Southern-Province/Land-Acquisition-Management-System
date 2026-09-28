@@ -15,7 +15,9 @@ class RealtimeSystemNotification extends Notification implements ShouldQueue
         public string $title,
         public string $message,
         public ?string $actionUrl = null,
-        public string $type = 'info' // 'info' | 'success' | 'warning' | 'error'
+        public string $type = 'info', // 'info' | 'success' | 'warning' | 'error'
+        public ?string $projectId = null,
+        public ?string $notificationCategory = null
     ) {}
 
     /**
@@ -36,6 +38,8 @@ class RealtimeSystemNotification extends Notification implements ShouldQueue
             'message' => $this->message,
             'action_url' => $this->actionUrl,
             'type' => $this->type,
+            'project_id' => $this->projectId,
+            'notification_category' => $this->notificationCategory,
         ];
     }
 
@@ -50,6 +54,8 @@ class RealtimeSystemNotification extends Notification implements ShouldQueue
             'message' => $this->message,
             'action_url' => $this->actionUrl,
             'type' => $this->type,
+            'project_id' => $this->projectId,
+            'notification_category' => $this->notificationCategory,
             'created_at' => now()->toIso8601String(),
             'read_at' => null,
         ]);

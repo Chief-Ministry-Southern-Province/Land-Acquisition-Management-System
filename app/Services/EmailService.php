@@ -166,4 +166,39 @@ class EmailService
 
         return $emailSent || static::shouldSendSms($recipient);
     }
+
+    /**
+     * Send 3-month periodic checklist review reminder to Development Officer based on user preference.
+     */
+    public static function sendChecklistReminderEmail(User $recipient, Projects $project, int $monthsElapsed): bool
+    {
+        $pref = $recipient->notification_preference ?? 'email';
+        if ($pref === 'none') {
+            Log::info("Skipping checklist reminder for user {$recipient->id}: Preference is 'none'.");
+
+            return false;
+        }
+
+        $emailSent = false;
+
+        if (static::shouldSendEmail($recipient)) {
+            $emailSent = static::sendEmail(
+                to: $recipient->email,
+                subject: "[Reminder] Quarterly Checklist Update Required: {$project->title}",
+                view: 'emails.checklist_reminder',
+                data: [
+                    'recipient' => $recipient,
+                    'project' => $project,
+                    'monthsElapsed' => $monthsElapsed,
+                    'actionUrl' => config('app.url').'/development-officer/mark-progress?projectId='.$project->project_id,
+                ]
+            );
+        }
+
+        if (static::shouldSendSms($recipient) || ($pref === 'email' && ! $emailSent)) {
+            SmsService::sendChecklistReminderSms($recipient, $project, $monthsElapsed);
+        }
+
+        return $emailSent || static::shouldSendSms($recipient);
+    }
 }
