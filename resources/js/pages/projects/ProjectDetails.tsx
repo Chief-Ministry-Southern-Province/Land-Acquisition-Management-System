@@ -23,6 +23,7 @@ import {
   toastError,
   toastSuccess,
 } from '@/lib/alerts';
+import MarkProgress from '@/pages/developmentOfficer/MarkProgress';
 import api from '@/services/api';
 import {
   deleteDocument,
@@ -912,6 +913,11 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* Development Officer Progress Checklist */}
+          <div className="pt-4">
+            <MarkProgress projectId={project.id} />
           </div>
         </div>
       )}

@@ -18,6 +18,7 @@ import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useProjectsQuery } from '@/hooks/queries/useProjectsQuery';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import MarkProgress from '@/pages/developmentOfficer/MarkProgress';
 import api from '@/services/api';
 import { getProject } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
@@ -451,449 +452,468 @@ export default function AcquisitionWorkflow() {
           />
         </div>
       ) : currentProject ? (
-        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-          {/* Left Column: Project Insights */}
-          <div className="space-y-6 lg:col-span-5">
-            {/* Overview Card */}
-            <div className="bg-card border-border space-y-5 rounded-xl border p-6 shadow-sm">
-              <div className="border-border flex items-center gap-3 border-b pb-4">
-                <div className="rounded-lg bg-[#2E7D32]/10 p-2">
-                  <Building className="h-6 w-6 text-[#2E7D32]" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold leading-snug">
-                    {currentProject.title || currentProject.name}
-                  </h3>
-                  <p className="text-muted-foreground text-xs">
-                    {currentProject.projectId}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
-                    {t('purpose', 'Purpose')}
-                  </span>
-                  <p className="text-sm leading-relaxed">
-                    {currentProject.purpose ||
-                      t('no_purpose_declared', 'No purpose declared')}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+            {/* Left Column: Project Insights */}
+            <div className="space-y-6 lg:col-span-5">
+              {/* Overview Card */}
+              <div className="bg-card border-border space-y-5 rounded-xl border p-6 shadow-sm">
+                <div className="border-border flex items-center gap-3 border-b pb-4">
+                  <div className="rounded-lg bg-[#2E7D32]/10 p-2">
+                    <Building className="h-6 w-6 text-[#2E7D32]" />
+                  </div>
                   <div>
-                    <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
-                      {t('institution', 'Institution')}
-                    </span>
-                    <p className="text-sm font-medium">
-                      {currentProject.institution || t('n_a', 'N/A')}
+                    <h3 className="text-lg font-bold leading-snug">
+                      {currentProject.title || currentProject.name}
+                    </h3>
+                    <p className="text-muted-foreground text-xs">
+                      {currentProject.projectId}
                     </p>
                   </div>
+                </div>
+
+                <div className="space-y-4">
                   <div>
                     <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
-                      {t('case_status_label', 'Case Status')}
+                      {t('purpose', 'Purpose')}
                     </span>
-                    <div className="mt-0.5">
-                      <StatusBadge
-                        status={currentProject.caseStatus || 'draft'}
-                      />
+                    <p className="text-sm leading-relaxed">
+                      {currentProject.purpose ||
+                        t('no_purpose_declared', 'No purpose declared')}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
+                        {t('institution', 'Institution')}
+                      </span>
+                      <p className="text-sm font-medium">
+                        {currentProject.institution || t('n_a', 'N/A')}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
+                        {t('case_status_label', 'Case Status')}
+                      </span>
+                      <div className="mt-0.5">
+                        <StatusBadge
+                          status={currentProject.caseStatus || 'draft'}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div>
-                  <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
-                    {t('total_land_area_required', 'Total Land Area Required')}
-                  </span>
-                  <div className="mt-1 flex items-center gap-2">
-                    <span className="bg-muted border-border rounded-md border px-2 py-1 text-xs font-semibold">
-                      {currentProject.landAreaAcers ?? 0} {t('acres', 'Acres')}
+                  <div>
+                    <span className="text-muted-foreground mb-1 block text-xs font-semibold uppercase tracking-wider">
+                      {t(
+                        'total_land_area_required',
+                        'Total Land Area Required',
+                      )}
                     </span>
-                    <span className="bg-muted border-border rounded-md border px-2 py-1 text-xs font-semibold">
-                      {currentProject.landAreaRoods ?? 0} {t('roods', 'Roods')}
-                    </span>
-                    <span className="bg-muted border-border rounded-md border px-2 py-1 text-xs font-semibold">
-                      {currentProject.landAreaPerches ?? 0}{' '}
-                      {t('perches', 'Perches')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Land Parcels Card */}
-            <div className="bg-card border-border space-y-4 rounded-xl border p-6 shadow-sm">
-              <div className="border-border flex items-center gap-2 border-b pb-3">
-                <Layers className="h-5 w-5 text-[#2E7D32]" />
-                <h4 className="text-base font-bold">
-                  {t(
-                    'land_parcels_with_count',
-                    'Land Parcels (:count)',
-                  ).replace(
-                    ':count',
-                    String(currentProject.landParcels?.length || 0),
-                  )}
-                </h4>
-              </div>
-
-              {currentProject.landParcels &&
-              currentProject.landParcels.length > 0 ? (
-                <div className="max-h-[320px] space-y-3 overflow-y-auto pr-1">
-                  {currentProject.landParcels.map((parcel) => (
-                    <div
-                      key={parcel.id}
-                      className="bg-muted/40 border-border hover:bg-muted/70 flex flex-col gap-2 rounded-lg border p-3 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-foreground flex items-center gap-1.5 text-sm font-semibold">
-                          <MapPin className="text-muted-foreground h-3.5 w-3.5" />
-                          {parcel.land_name || parcel.parcel_id}
-                        </span>
-                        <StatusBadge status={parcel.status} />
-                      </div>
-                      <div className="text-muted-foreground flex items-center justify-between text-xs">
-                        <span>
-                          {parcel.village}, {parcel.district}
-                        </span>
-                        <span className="text-foreground flex items-center gap-0.5 font-medium">
-                          <DollarSign className="h-3 w-3" />
-                          {Number(
-                            parcel.estimated_value || 0,
-                          ).toLocaleString()}{' '}
-                          {t('lkr_currency', 'LKR')}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-muted/10 border-border rounded-lg border border-dashed p-6 text-center">
-                  <p className="text-muted-foreground text-sm">
-                    {t(
-                      'no_land_parcels_for_project',
-                      'No land parcels associated with this project.',
-                    )}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Documents Card */}
-            <div className="bg-card border-border space-y-4 rounded-xl border p-6 shadow-sm">
-              <div className="border-border flex items-center gap-2 border-b pb-3">
-                <FileText className="h-5 w-5 text-[#2E7D32]" />
-                <h4 className="text-base font-bold">
-                  {t('documents_with_count', 'Documents (:count)').replace(
-                    ':count',
-                    String(currentProject.documents?.length || 0),
-                  )}
-                </h4>
-              </div>
-
-              {currentProject.documents &&
-              currentProject.documents.length > 0 ? (
-                <div className="max-h-[240px] space-y-2 overflow-y-auto pr-1">
-                  {currentProject.documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="bg-muted/40 border-border hover:bg-muted/70 flex items-center justify-between rounded-lg border p-2.5 text-sm transition-colors"
-                    >
-                      <div className="flex min-w-0 items-center gap-2">
-                        <FileText className="h-4 w-4 shrink-0 text-red-500" />
-                        <div className="min-w-0">
-                          <p
-                            className="text-foreground truncate text-xs font-medium"
-                            title={doc.original_filename}
-                          >
-                            {doc.original_filename}
-                          </p>
-                          <p className="text-muted-foreground mt-0.5 text-[10px]">
-                            {doc.document_category} • {doc.file_size}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-muted-foreground shrink-0 pl-2 text-[10px] font-semibold">
-                        {doc.upload_date}
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="bg-muted border-border rounded-md border px-2 py-1 text-xs font-semibold">
+                        {currentProject.landAreaAcers ?? 0}{' '}
+                        {t('acres', 'Acres')}
+                      </span>
+                      <span className="bg-muted border-border rounded-md border px-2 py-1 text-xs font-semibold">
+                        {currentProject.landAreaRoods ?? 0}{' '}
+                        {t('roods', 'Roods')}
+                      </span>
+                      <span className="bg-muted border-border rounded-md border px-2 py-1 text-xs font-semibold">
+                        {currentProject.landAreaPerches ?? 0}{' '}
+                        {t('perches', 'Perches')}
                       </span>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              ) : (
-                <div className="bg-muted/10 border-border rounded-lg border border-dashed p-6 text-center">
-                  <p className="text-muted-foreground text-sm">
+              </div>
+
+              {/* Land Parcels Card */}
+              <div className="bg-card border-border space-y-4 rounded-xl border p-6 shadow-sm">
+                <div className="border-border flex items-center gap-2 border-b pb-3">
+                  <Layers className="h-5 w-5 text-[#2E7D32]" />
+                  <h4 className="text-base font-bold">
                     {t(
-                      'no_documents_for_project_workflow',
-                      'No uploaded documents found for this project.',
+                      'land_parcels_with_count',
+                      'Land Parcels (:count)',
+                    ).replace(
+                      ':count',
+                      String(currentProject.landParcels?.length || 0),
                     )}
-                  </p>
+                  </h4>
                 </div>
-              )}
+
+                {currentProject.landParcels &&
+                currentProject.landParcels.length > 0 ? (
+                  <div className="max-h-[320px] space-y-3 overflow-y-auto pr-1">
+                    {currentProject.landParcels.map((parcel) => (
+                      <div
+                        key={parcel.id}
+                        className="bg-muted/40 border-border hover:bg-muted/70 flex flex-col gap-2 rounded-lg border p-3 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-foreground flex items-center gap-1.5 text-sm font-semibold">
+                            <MapPin className="text-muted-foreground h-3.5 w-3.5" />
+                            {parcel.land_name || parcel.parcel_id}
+                          </span>
+                          <StatusBadge status={parcel.status} />
+                        </div>
+                        <div className="text-muted-foreground flex items-center justify-between text-xs">
+                          <span>
+                            {parcel.village}, {parcel.district}
+                          </span>
+                          <span className="text-foreground flex items-center gap-0.5 font-medium">
+                            <DollarSign className="h-3 w-3" />
+                            {Number(
+                              parcel.estimated_value || 0,
+                            ).toLocaleString()}{' '}
+                            {t('lkr_currency', 'LKR')}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-muted/10 border-border rounded-lg border border-dashed p-6 text-center">
+                    <p className="text-muted-foreground text-sm">
+                      {t(
+                        'no_land_parcels_for_project',
+                        'No land parcels associated with this project.',
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Documents Card */}
+              <div className="bg-card border-border space-y-4 rounded-xl border p-6 shadow-sm">
+                <div className="border-border flex items-center gap-2 border-b pb-3">
+                  <FileText className="h-5 w-5 text-[#2E7D32]" />
+                  <h4 className="text-base font-bold">
+                    {t('documents_with_count', 'Documents (:count)').replace(
+                      ':count',
+                      String(currentProject.documents?.length || 0),
+                    )}
+                  </h4>
+                </div>
+
+                {currentProject.documents &&
+                currentProject.documents.length > 0 ? (
+                  <div className="max-h-[240px] space-y-2 overflow-y-auto pr-1">
+                    {currentProject.documents.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="bg-muted/40 border-border hover:bg-muted/70 flex items-center justify-between rounded-lg border p-2.5 text-sm transition-colors"
+                      >
+                        <div className="flex min-w-0 items-center gap-2">
+                          <FileText className="h-4 w-4 shrink-0 text-red-500" />
+                          <div className="min-w-0">
+                            <p
+                              className="text-foreground truncate text-xs font-medium"
+                              title={doc.original_filename}
+                            >
+                              {doc.original_filename}
+                            </p>
+                            <p className="text-muted-foreground mt-0.5 text-[10px]">
+                              {doc.document_category} • {doc.file_size}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-muted-foreground shrink-0 pl-2 text-[10px] font-semibold">
+                          {doc.upload_date}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-muted/10 border-border rounded-lg border border-dashed p-6 text-center">
+                    <p className="text-muted-foreground text-sm">
+                      {t(
+                        'no_documents_for_project_workflow',
+                        'No uploaded documents found for this project.',
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column: Workflow Timeline */}
+            <div className="space-y-5 lg:col-span-7">
+              {/* Timeline Progress Bar Card */}
+              <div className="bg-card border-border space-y-3 rounded-xl border p-5 shadow-sm">
+                <div className="text-muted-foreground flex items-center justify-between text-xs font-semibold uppercase tracking-wider">
+                  <span>
+                    {t('overall_status_tracker', 'Overall Status Tracker')}
+                  </span>
+                  <span className="font-bold text-[#2E7D32]">
+                    {progressPercent}%
+                  </span>
+                </div>
+                <div className="bg-muted border-border h-3 overflow-hidden rounded-full border">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#2E7D32]/80 to-[#2E7D32] transition-all duration-700 ease-out"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Steps Timeline Details */}
+              <div className="bg-card border-border rounded-xl border p-6 shadow-sm">
+                <div className="relative">
+                  {/* Vertical Timeline Connection Line */}
+                  <div className="bg-border absolute bottom-6 left-4 top-4 w-0.5"></div>
+
+                  {/* Workflow Steps */}
+                  <div className="space-y-6">
+                    {stages.map((stage, index) => {
+                      const isCompleted = stage.status === 'completed';
+                      const isActive = stage.status === 'active';
+
+                      return (
+                        <div
+                          key={index}
+                          className="group relative flex items-start gap-5"
+                        >
+                          {/* Icon Node */}
+                          <div className="relative z-10 shrink-0 transform transition-transform duration-200 group-hover:scale-105">
+                            {getStatusIcon(stage.status)}
+                          </div>
+
+                          {/* Step Card Content */}
+                          <div
+                            className={`flex-1 rounded-xl border-2 p-4 shadow-sm transition-all duration-300 ${getStatusColor(stage.status)}`}
+                          >
+                            <div className="mb-2.5 flex items-center justify-between gap-3">
+                              <h4
+                                className={`text-base font-bold tracking-tight ${isCompleted ? 'text-foreground' : isActive ? 'text-[#FF9800]' : 'text-muted-foreground'}`}
+                              >
+                                {stage.name}
+                              </h4>
+                              {isActive && (
+                                <span className="shrink-0 rounded-full border border-[#FF9800]/30 bg-[#FF9800]/10 px-2.5 py-0.5 text-xs font-bold text-[#FF9800]">
+                                  {t('in_progress', 'In Progress')}
+                                </span>
+                              )}
+                              {isCompleted && (
+                                <span className="shrink-0 rounded-full border border-[#2E7D32]/30 bg-[#2E7D32]/10 px-2.5 py-0.5 text-xs font-bold text-[#2E7D32]">
+                                  {t('completed', 'Completed')}
+                                </span>
+                              )}
+                              {stage.status === 'pending' && (
+                                <span className="bg-muted border-border text-muted-foreground shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold">
+                                  {t('pending', 'Pending')}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                              <div className="flex items-center gap-1.5">
+                                <User className="text-muted-foreground h-3.5 w-3.5" />
+                                <span className="text-muted-foreground">
+                                  {t('workflow_officer_label', 'Officer:')}
+                                </span>
+                                <span className="text-foreground font-semibold">
+                                  {stage.officer}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5 sm:justify-end">
+                                <Calendar className="text-muted-foreground h-3.5 w-3.5" />
+                                <span className="text-muted-foreground">
+                                  {t('workflow_date_label', 'Date:')}
+                                </span>
+                                <span className="text-foreground font-semibold">
+                                  {stage.date}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Active Step Progress Indicator */}
+                            {isActive && stage.progress !== undefined && (
+                              <div className="border-border mt-3.5 border-t pt-3.5">
+                                <div className="mb-1.5 flex items-center justify-between text-xs">
+                                  <span className="text-muted-foreground font-medium">
+                                    {t(
+                                      'stage_progress_label',
+                                      'Stage Progress:',
+                                    )}
+                                  </span>
+                                  <span className="font-bold text-[#FF9800]">
+                                    {stage.progress}%
+                                  </span>
+                                </div>
+                                <div className="bg-muted border-border h-2 w-full overflow-hidden rounded-full border">
+                                  <div
+                                    className="h-full animate-pulse rounded-full bg-[#FF9800]"
+                                    style={{ width: `${stage.progress}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Approval workflow detail steps */}
+                            {stage.name === t('stage_approval', 'Approval') &&
+                              stage.status !== 'pending' &&
+                              currentProject && (
+                                <div className="border-border mt-3.5 space-y-2 border-t pt-3.5">
+                                  <div className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                                    {t(
+                                      'approval_status_details',
+                                      'Approval Status Details:',
+                                    )}
+                                  </div>
+                                  <div className="flex flex-col gap-2.5">
+                                    {/* DO */}
+                                    <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
+                                      <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
+                                        {t(
+                                          'do_status_label',
+                                          'Development Officer Status',
+                                        )}
+                                      </span>
+                                      <span
+                                        className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                          currentProject.doStatus ===
+                                          'submitted'
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
+                                        }`}
+                                      >
+                                        {currentProject.doStatus === 'submitted'
+                                          ? t('status_submitted', 'Submitted')
+                                          : t('status_draft', 'Draft')}
+                                      </span>
+                                    </div>
+                                    {/* HOB */}
+                                    <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
+                                      <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
+                                        {t(
+                                          'hob_status_label',
+                                          'Head of Branch Status',
+                                        )}
+                                      </span>
+                                      <span
+                                        className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                          currentProject.hobStatus ===
+                                          'approved'
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                            : currentProject.hobStatus ===
+                                                'rejected'
+                                              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                                        }`}
+                                      >
+                                        {currentProject.hobStatus ||
+                                          t('status_pending', 'Pending')}
+                                      </span>
+                                    </div>
+                                    {/* AO */}
+                                    <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
+                                      <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
+                                        {t(
+                                          'ao_status_label',
+                                          'Administrative Officer Status',
+                                        )}
+                                      </span>
+                                      <span
+                                        className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                          currentProject.aoStatus === 'approved'
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                            : currentProject.aoStatus ===
+                                                'rejected'
+                                              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                                        }`}
+                                      >
+                                        {currentProject.aoStatus ||
+                                          t('status_pending', 'Pending')}
+                                      </span>
+                                    </div>
+                                    {/* AS */}
+                                    <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
+                                      <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
+                                        {t(
+                                          'as_status_label',
+                                          'Assistant Secretary Status',
+                                        )}
+                                      </span>
+                                      <span
+                                        className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                          currentProject.asStatus === 'approved'
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                            : currentProject.asStatus ===
+                                                'rejected'
+                                              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                                        }`}
+                                      >
+                                        {currentProject.asStatus ||
+                                          t('status_pending', 'Pending')}
+                                      </span>
+                                    </div>
+                                    {/* SAS */}
+                                    <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
+                                      <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
+                                        {t(
+                                          'sas_status_label',
+                                          'Senior Assistant Secretary Status',
+                                        )}
+                                      </span>
+                                      <span
+                                        className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                          currentProject.sasStatus ===
+                                          'approved'
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                            : currentProject.sasStatus ===
+                                                'rejected'
+                                              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                                        }`}
+                                      >
+                                        {currentProject.sasStatus ||
+                                          t('status_pending', 'Pending')}
+                                      </span>
+                                    </div>
+                                    {/* SEC */}
+                                    <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
+                                      <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
+                                        {t(
+                                          'sec_status_label',
+                                          'Secretary Status',
+                                        )}
+                                      </span>
+                                      <span
+                                        className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                          currentProject.secStatus ===
+                                          'approved'
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                            : currentProject.secStatus ===
+                                                'rejected'
+                                              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                                        }`}
+                                      >
+                                        {currentProject.secStatus ||
+                                          t('status_pending', 'Pending')}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right Column: Workflow Timeline */}
-          <div className="space-y-5 lg:col-span-7">
-            {/* Timeline Progress Bar Card */}
-            <div className="bg-card border-border space-y-3 rounded-xl border p-5 shadow-sm">
-              <div className="text-muted-foreground flex items-center justify-between text-xs font-semibold uppercase tracking-wider">
-                <span>
-                  {t('overall_status_tracker', 'Overall Status Tracker')}
-                </span>
-                <span className="font-bold text-[#2E7D32]">
-                  {progressPercent}%
-                </span>
-              </div>
-              <div className="bg-muted border-border h-3 overflow-hidden rounded-full border">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#2E7D32]/80 to-[#2E7D32] transition-all duration-700 ease-out"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Steps Timeline Details */}
-            <div className="bg-card border-border rounded-xl border p-6 shadow-sm">
-              <div className="relative">
-                {/* Vertical Timeline Connection Line */}
-                <div className="bg-border absolute bottom-6 left-4 top-4 w-0.5"></div>
-
-                {/* Workflow Steps */}
-                <div className="space-y-6">
-                  {stages.map((stage, index) => {
-                    const isCompleted = stage.status === 'completed';
-                    const isActive = stage.status === 'active';
-
-                    return (
-                      <div
-                        key={index}
-                        className="group relative flex items-start gap-5"
-                      >
-                        {/* Icon Node */}
-                        <div className="relative z-10 shrink-0 transform transition-transform duration-200 group-hover:scale-105">
-                          {getStatusIcon(stage.status)}
-                        </div>
-
-                        {/* Step Card Content */}
-                        <div
-                          className={`flex-1 rounded-xl border-2 p-4 shadow-sm transition-all duration-300 ${getStatusColor(stage.status)}`}
-                        >
-                          <div className="mb-2.5 flex items-center justify-between gap-3">
-                            <h4
-                              className={`text-base font-bold tracking-tight ${isCompleted ? 'text-foreground' : isActive ? 'text-[#FF9800]' : 'text-muted-foreground'}`}
-                            >
-                              {stage.name}
-                            </h4>
-                            {isActive && (
-                              <span className="shrink-0 rounded-full border border-[#FF9800]/30 bg-[#FF9800]/10 px-2.5 py-0.5 text-xs font-bold text-[#FF9800]">
-                                {t('in_progress', 'In Progress')}
-                              </span>
-                            )}
-                            {isCompleted && (
-                              <span className="shrink-0 rounded-full border border-[#2E7D32]/30 bg-[#2E7D32]/10 px-2.5 py-0.5 text-xs font-bold text-[#2E7D32]">
-                                {t('completed', 'Completed')}
-                              </span>
-                            )}
-                            {stage.status === 'pending' && (
-                              <span className="bg-muted border-border text-muted-foreground shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold">
-                                {t('pending', 'Pending')}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
-                            <div className="flex items-center gap-1.5">
-                              <User className="text-muted-foreground h-3.5 w-3.5" />
-                              <span className="text-muted-foreground">
-                                {t('workflow_officer_label', 'Officer:')}
-                              </span>
-                              <span className="text-foreground font-semibold">
-                                {stage.officer}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5 sm:justify-end">
-                              <Calendar className="text-muted-foreground h-3.5 w-3.5" />
-                              <span className="text-muted-foreground">
-                                {t('workflow_date_label', 'Date:')}
-                              </span>
-                              <span className="text-foreground font-semibold">
-                                {stage.date}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Active Step Progress Indicator */}
-                          {isActive && stage.progress !== undefined && (
-                            <div className="border-border mt-3.5 border-t pt-3.5">
-                              <div className="mb-1.5 flex items-center justify-between text-xs">
-                                <span className="text-muted-foreground font-medium">
-                                  {t('stage_progress_label', 'Stage Progress:')}
-                                </span>
-                                <span className="font-bold text-[#FF9800]">
-                                  {stage.progress}%
-                                </span>
-                              </div>
-                              <div className="bg-muted border-border h-2 w-full overflow-hidden rounded-full border">
-                                <div
-                                  className="h-full animate-pulse rounded-full bg-[#FF9800]"
-                                  style={{ width: `${stage.progress}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Approval workflow detail steps */}
-                          {stage.name === t('stage_approval', 'Approval') &&
-                            stage.status !== 'pending' &&
-                            currentProject && (
-                              <div className="border-border mt-3.5 space-y-2 border-t pt-3.5">
-                                <div className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                                  {t(
-                                    'approval_status_details',
-                                    'Approval Status Details:',
-                                  )}
-                                </div>
-                                <div className="flex flex-col gap-2.5">
-                                  {/* DO */}
-                                  <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
-                                    <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      {t(
-                                        'do_status_label',
-                                        'Development Officer Status',
-                                      )}
-                                    </span>
-                                    <span
-                                      className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                        currentProject.doStatus === 'submitted'
-                                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                          : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
-                                      }`}
-                                    >
-                                      {currentProject.doStatus === 'submitted'
-                                        ? t('status_submitted', 'Submitted')
-                                        : t('status_draft', 'Draft')}
-                                    </span>
-                                  </div>
-                                  {/* HOB */}
-                                  <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
-                                    <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      {t(
-                                        'hob_status_label',
-                                        'Head of Branch Status',
-                                      )}
-                                    </span>
-                                    <span
-                                      className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                        currentProject.hobStatus === 'approved'
-                                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                          : currentProject.hobStatus ===
-                                              'rejected'
-                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                                      }`}
-                                    >
-                                      {currentProject.hobStatus ||
-                                        t('status_pending', 'Pending')}
-                                    </span>
-                                  </div>
-                                  {/* AO */}
-                                  <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
-                                    <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      {t(
-                                        'ao_status_label',
-                                        'Administrative Officer Status',
-                                      )}
-                                    </span>
-                                    <span
-                                      className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                        currentProject.aoStatus === 'approved'
-                                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                          : currentProject.aoStatus ===
-                                              'rejected'
-                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                                      }`}
-                                    >
-                                      {currentProject.aoStatus ||
-                                        t('status_pending', 'Pending')}
-                                    </span>
-                                  </div>
-                                  {/* AS */}
-                                  <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
-                                    <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      {t(
-                                        'as_status_label',
-                                        'Assistant Secretary Status',
-                                      )}
-                                    </span>
-                                    <span
-                                      className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                        currentProject.asStatus === 'approved'
-                                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                          : currentProject.asStatus ===
-                                              'rejected'
-                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                                      }`}
-                                    >
-                                      {currentProject.asStatus ||
-                                        t('status_pending', 'Pending')}
-                                    </span>
-                                  </div>
-                                  {/* SAS */}
-                                  <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
-                                    <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      {t(
-                                        'sas_status_label',
-                                        'Senior Assistant Secretary Status',
-                                      )}
-                                    </span>
-                                    <span
-                                      className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                        currentProject.sasStatus === 'approved'
-                                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                          : currentProject.sasStatus ===
-                                              'rejected'
-                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                                      }`}
-                                    >
-                                      {currentProject.sasStatus ||
-                                        t('status_pending', 'Pending')}
-                                    </span>
-                                  </div>
-                                  {/* SEC */}
-                                  <div className="bg-muted/30 border-border flex flex-col gap-1 rounded-lg border p-2">
-                                    <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wide">
-                                      {t(
-                                        'sec_status_label',
-                                        'Secretary Status',
-                                      )}
-                                    </span>
-                                    <span
-                                      className={`inline-flex items-center self-start rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                        currentProject.secStatus === 'approved'
-                                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                          : currentProject.secStatus ===
-                                              'rejected'
-                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                                      }`}
-                                    >
-                                      {currentProject.secStatus ||
-                                        t('status_pending', 'Pending')}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+          {/* Development Officer Progress Checklist */}
+          <div className="pt-2">
+            <MarkProgress projectId={selectedProjId} />
           </div>
         </div>
       ) : (

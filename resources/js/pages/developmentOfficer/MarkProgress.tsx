@@ -599,7 +599,15 @@ const formatBytes = (bytes: number): string => {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 };
 
-export default function MarkProgress() {
+interface MarkProgressProps {
+  projectId?: string;
+  hideHeader?: boolean;
+}
+
+export default function MarkProgress({
+  projectId,
+  hideHeader = false,
+}: MarkProgressProps = {}) {
   const { t, locale } = useTranslation();
   const defaultStagesForLocale = useMemo(
     () => (locale === 'si' ? DEFAULT_STAGES_SI : DEFAULT_STAGES_EN),
@@ -613,7 +621,12 @@ export default function MarkProgress() {
   // State management
   const [projectsList, setProjectsList] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState<boolean>(true);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(
+    projectId || '',
+  );
+  const [prevProjectId, setPrevProjectId] = useState<string | undefined>(
+    projectId,
+  );
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const [stages, setStages] = useState<ChecklistStage[]>(
@@ -628,6 +641,15 @@ export default function MarkProgress() {
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
   const [uploadingStageId, setUploadingStageId] = useState<number | null>(null);
 
+  // Adjust state during render if projectId prop changes
+  if (projectId !== prevProjectId) {
+    setPrevProjectId(projectId);
+
+    if (projectId) {
+      setSelectedProjectId(projectId);
+    }
+  }
+
   // Load projects list on mount
   useEffect(() => {
     const fetchProjects = async () => {
@@ -638,7 +660,7 @@ export default function MarkProgress() {
         if (Array.isArray(data)) {
           setProjectsList(data);
 
-          if (data.length > 0) {
+          if (data.length > 0 && !projectId) {
             setSelectedProjectId(data[0].id);
           }
         }
@@ -653,7 +675,7 @@ export default function MarkProgress() {
     };
 
     fetchProjects();
-  }, [t]);
+  }, [t, projectId]);
 
   // Load project details & checklist state from localStorage when project changes
   useEffect(() => {
@@ -1136,67 +1158,68 @@ export default function MarkProgress() {
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       {/* Top Banner & Header */}
-      <div className="bg-card border-border shadow-xs flex flex-wrap items-center justify-between gap-4 rounded-xl border p-6">
-        <div className="flex items-center gap-4">
-          <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-xl">
-            <CheckSquare className="h-6 w-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-foreground text-xl font-bold tracking-tight sm:text-2xl">
-                {t(
-                  'mark_progress_title',
-                  'Development Officer Progress Checklist',
-                )}
-              </h1>
-              {isDO ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  {t('do_authorized', 'DO Authorized')}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  <Lock className="h-3.5 w-3.5" />
-                  {t('read_only_mode', 'Read Only Mode ({role})').replace(
-                    '{role}',
-                    userRole,
-                  )}
-                </span>
-              )}
+      {!hideHeader && (
+        <div className="bg-card border-border shadow-xs flex flex-wrap items-center justify-between gap-4 rounded-xl border p-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-xl">
+              <CheckSquare className="h-6 w-6" />
             </div>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {t(
-                'mark_progress_subtitle',
-                'Track statutory Land Acquisition Act milestones, mark task completion, and update stage readiness.',
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-foreground text-xl font-bold tracking-tight sm:text-2xl">
+                  {t('mark_progress_title', 'Progress Checklist')}
+                </h1>
+                {isDO ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    {t('do_authorized', 'DO Authorized')}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                    <Lock className="h-3.5 w-3.5" />
+                    {t('read_only_mode', 'Read Only Mode ({role})').replace(
+                      '{role}',
+                      userRole,
+                    )}
+                  </span>
+                )}
+              </div>
+              <p className="text-muted-foreground mt-1 text-sm">
+                {t(
+                  'mark_progress_subtitle',
+                  'Track statutory Land Acquisition Act milestones, mark task completion, and update stage readiness.',
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {!projectId && (
+              <button
+                onClick={() => router.visit('/projects')}
+                className="border-border hover:bg-muted text-foreground flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {t('back_to_projects', 'Projects')}
+              </button>
+            )}
+            <button
+              onClick={handleSaveProgress}
+              disabled={!isDO || saving || !selectedProjectId}
+              className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
               )}
-            </p>
+              {saving
+                ? t('saving', 'Saving...')
+                : t('save_progress', 'Save Progress')}
+            </button>
           </div>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.visit('/projects')}
-            className="border-border hover:bg-muted text-foreground flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t('back_to_projects', 'Projects')}
-          </button>
-          <button
-            onClick={handleSaveProgress}
-            disabled={!isDO || saving || !selectedProjectId}
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            {saving
-              ? t('saving', 'Saving...')
-              : t('save_progress', 'Save Progress')}
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Non-DO Notice Banner */}
       {!isDO && (
@@ -1213,94 +1236,96 @@ export default function MarkProgress() {
       )}
 
       {/* Project Selector Card */}
-      <div className="bg-card border-border shadow-xs rounded-xl border p-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="space-y-2 lg:col-span-1">
-            <label className="text-foreground flex items-center gap-2 text-sm font-semibold">
-              <FolderKanban className="text-primary h-4 w-4" />
-              {t('select_acquisition_project', 'Select Acquisition Project')}
-            </label>
-            {loadingProjects ? (
-              <div className="border-border bg-input-background text-muted-foreground flex h-10 items-center justify-center rounded-lg border text-sm">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('loading_projects', 'Loading projects...')}
-              </div>
-            ) : (
-              <select
-                value={selectedProjectId}
-                onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="border-border bg-input-background text-foreground focus:ring-primary/40 focus:border-primary w-full rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2"
-              >
-                {projectsList.length === 0 ? (
-                  <option value="">
-                    {t('no_projects_found', 'No projects found')}
-                  </option>
-                ) : (
-                  projectsList.map((proj) => (
-                    <option key={proj.id} value={proj.id}>
-                      {proj.projectId ? `${proj.projectId} - ` : ''}
-                      {proj.title || proj.name}
-                    </option>
-                  ))
-                )}
-              </select>
-            )}
-          </div>
-
-          {selectedProject && (
-            <div className="border-border grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-3 lg:col-span-2 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-              <div>
-                <span className="text-muted-foreground block text-xs">
-                  {t('project_name', 'Project Name')}
-                </span>
-                <span
-                  className="text-foreground mt-0.5 block truncate text-sm font-semibold"
-                  title={selectedProject.title || selectedProject.name}
+      {!projectId && (
+        <div className="bg-card border-border shadow-xs rounded-xl border p-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="space-y-2 lg:col-span-1">
+              <label className="text-foreground flex items-center gap-2 text-sm font-semibold">
+                <FolderKanban className="text-primary h-4 w-4" />
+                {t('select_acquisition_project', 'Select Acquisition Project')}
+              </label>
+              {loadingProjects ? (
+                <div className="border-border bg-input-background text-muted-foreground flex h-10 items-center justify-center rounded-lg border text-sm">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('loading_projects', 'Loading projects...')}
+                </div>
+              ) : (
+                <select
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                  className="border-border bg-input-background text-foreground focus:ring-primary/40 focus:border-primary w-full rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2"
                 >
-                  {selectedProject.title || selectedProject.name}
-                </span>
-                <span className="text-muted-foreground mt-1 block text-xs">
-                  ID: {selectedProject.projectId || selectedProject.id}
-                </span>
-              </div>
-              <div>
-                <span className="text-muted-foreground block text-xs">
-                  {t('requesting_institution', 'Institution')}
-                </span>
-                <span className="text-foreground mt-0.5 block truncate text-sm font-semibold">
-                  {selectedProject.institution || 'N/A'}
-                </span>
-                <span className="text-muted-foreground mt-1 block text-xs">
-                  Area:{' '}
-                  {selectedProject.fullLandArea ||
-                    (selectedProject.landAreaAcers
-                      ? `${selectedProject.landAreaAcers} Acers`
-                      : 'N/A')}
-                </span>
-              </div>
-              <div>
-                <span className="text-muted-foreground mb-1 block text-xs">
-                  {t('workflow_status', 'Status')}
-                </span>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <StatusBadge
-                    status={
-                      selectedProject.caseStatus ||
-                      selectedProject.status ||
-                      'draft'
-                    }
-                  />
-                  {selectedProject.doStatus && (
-                    <span className="bg-muted text-foreground rounded px-2 py-0.5 text-xs font-medium">
-                      DO: {selectedProject.doStatus}
-                    </span>
+                  {projectsList.length === 0 ? (
+                    <option value="">
+                      {t('no_projects_found', 'No projects found')}
+                    </option>
+                  ) : (
+                    projectsList.map((proj) => (
+                      <option key={proj.id} value={proj.id}>
+                        {proj.projectId ? `${proj.projectId} - ` : ''}
+                        {proj.title || proj.name}
+                      </option>
+                    ))
                   )}
+                </select>
+              )}
+            </div>
+
+            {selectedProject && (
+              <div className="border-border grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-3 lg:col-span-2 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+                <div>
+                  <span className="text-muted-foreground block text-xs">
+                    {t('project_name', 'Project Name')}
+                  </span>
+                  <span
+                    className="text-foreground mt-0.5 block truncate text-sm font-semibold"
+                    title={selectedProject.title || selectedProject.name}
+                  >
+                    {selectedProject.title || selectedProject.name}
+                  </span>
+                  <span className="text-muted-foreground mt-1 block text-xs">
+                    ID: {selectedProject.projectId || selectedProject.id}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs">
+                    {t('requesting_institution', 'Institution')}
+                  </span>
+                  <span className="text-foreground mt-0.5 block truncate text-sm font-semibold">
+                    {selectedProject.institution || 'N/A'}
+                  </span>
+                  <span className="text-muted-foreground mt-1 block text-xs">
+                    Area:{' '}
+                    {selectedProject.fullLandArea ||
+                      (selectedProject.landAreaAcers
+                        ? `${selectedProject.landAreaAcers} Acers`
+                        : 'N/A')}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground mb-1 block text-xs">
+                    {t('workflow_status', 'Status')}
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <StatusBadge
+                      status={
+                        selectedProject.caseStatus ||
+                        selectedProject.status ||
+                        'draft'
+                      }
+                    />
+                    {selectedProject.doStatus && (
+                      <span className="bg-muted text-foreground rounded px-2 py-0.5 text-xs font-medium">
+                        DO: {selectedProject.doStatus}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Overview Stat Cards & Overall Progress Bar */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
