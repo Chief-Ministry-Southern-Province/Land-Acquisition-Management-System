@@ -1501,7 +1501,7 @@ return [
     'system_brand' => 'ඉඩම් අත්පත් කර ගැනීමේ කළමනාකරණය',
 
     // Mark Progress Page (Development Officer Progress Checklist)
-    'mark_progress_title' => 'සංවර්ධන නිලධාරී ප්‍රගති පරීක්ෂාව',
+    'mark_progress_title' => 'ප්‍රගති පරීක්ෂාව',
     'mark_progress_subtitle' => 'ඉඩම් අත්කර ගැනීමේ පනතේ ව්‍යවස්ථාපිත පියවර, කාර්ය සාධනය සහ අදියර ප්‍රගතිය සටහන් කිරීම.',
     'do_authorized' => 'සංවර්ධන නිලධාරී බලයලත්',
     'read_only_mode' => 'කියවීම පමණි ({role})',

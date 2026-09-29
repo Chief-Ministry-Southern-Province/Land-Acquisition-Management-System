@@ -59,7 +59,7 @@ class ProjectProgressController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
+        $request->validate([
             'stages' => 'required|array',
             'stages.*.id' => 'required',
             'stages.*.name' => 'required|string',
@@ -67,7 +67,8 @@ class ProjectProgressController extends Controller
         ]);
 
         try {
-            $progress = $this->progressService->saveProgress($project, $validated['stages'], $user);
+            $stages = $request->input('stages');
+            $progress = $this->progressService->saveProgress($project, $stages, $user);
 
             return response()->json([
                 'message' => 'Acquisition progress saved successfully.',

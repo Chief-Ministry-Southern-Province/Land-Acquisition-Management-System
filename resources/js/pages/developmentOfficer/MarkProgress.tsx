@@ -19,6 +19,7 @@ import {
   FileText,
   Trash2,
   Download,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBridge';
@@ -41,7 +42,7 @@ interface AttachedFile {
   id: string;
   docId?: string;
   name: string;
-  size: number;
+  size: number | string;
   uploadedAt: string;
   uploadedBy?: string;
 }
@@ -587,16 +588,92 @@ const DEFAULT_STAGES_SI: ChecklistStage[] = [
   },
 ];
 
-const formatBytes = (bytes: number): string => {
-  if (bytes === 0) {
+const isImageFile = (fileName: string): boolean => {
+  if (!fileName) {
+    return false;
+  }
+
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext);
+};
+
+const formatBytes = (bytes: number | string): string => {
+  if (typeof bytes === 'string' && bytes.trim().length > 0) {
+    return bytes;
+  }
+
+  if (!bytes || bytes === 0) {
+    return '0 B';
+  }
+
+  const num = typeof bytes === 'number' ? bytes : Number(bytes);
+
+  if (isNaN(num) || num <= 0) {
     return '0 B';
   }
 
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const i = Math.floor(Math.log(num) / Math.log(k));
 
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  return `${parseFloat((num / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+};
+
+const syncStageDocuments = (
+  currentStages: ChecklistStage[],
+  projectDocs: any[] = [],
+): ChecklistStage[] => {
+  if (!Array.isArray(currentStages)) {
+    return [];
+  }
+
+  return currentStages.map((stage) => {
+    const categoryKey = `stage_${stage.id}`;
+    const matchedDocs = projectDocs.filter((doc) => {
+      if (!doc || !doc.document_category) {
+        return false;
+      }
+
+      const cat = String(doc.document_category).toLowerCase().trim();
+
+      return (
+        cat === categoryKey.toLowerCase() ||
+        cat === `stage ${stage.id}` ||
+        cat === `stage_${stage.id}`
+      );
+    });
+
+    const docAttachedFiles: AttachedFile[] = matchedDocs.map((doc) => ({
+      id: String(doc.id),
+      docId: String(doc.id),
+      name:
+        doc.original_filename || doc.stored_filename || `Document #${doc.id}`,
+      size: doc.file_size || 0,
+      uploadedAt: doc.upload_date || doc.created_at || new Date().toISOString(),
+      uploadedBy: doc.user?.name || 'Development Officer',
+    }));
+
+    const existingFiles = stage.attachedFiles || [];
+    const combinedFiles = [...existingFiles];
+
+    for (const newDoc of docAttachedFiles) {
+      const exists = combinedFiles.some(
+        (f) =>
+          (f.docId && String(f.docId) === String(newDoc.docId)) ||
+          String(f.id) === String(newDoc.id),
+      );
+
+      if (!exists) {
+        combinedFiles.push(newDoc);
+      }
+    }
+
+    return {
+      ...stage,
+      attachedFiles: combinedFiles,
+    };
+  });
 };
 
 interface MarkProgressProps {
@@ -677,7 +754,7 @@ export default function MarkProgress({
     fetchProjects();
   }, [t, projectId]);
 
-  // Load project details & checklist state from localStorage when project changes
+  // Load project details & checklist state from database when project changes
   useEffect(() => {
     let isMounted = true;
 
@@ -695,17 +772,26 @@ export default function MarkProgress({
 
         setSelectedProject(projData);
 
-        // Fetch progress from backend 1-to-1 ProjectProgressService
+        const projectDocs = projData.documents || [];
+
+        // Fetch progress status strictly from database via ProjectProgressService
         try {
           const res = await getProjectProgress(selectedProjectId);
 
+          if (!isMounted) {
+            return;
+          }
+
           if (
-            isMounted &&
             res.progress?.stages &&
             Array.isArray(res.progress.stages) &&
             res.progress.stages.length > 0
           ) {
-            setStages(res.progress.stages);
+            const syncedStages = syncStageDocuments(
+              res.progress.stages,
+              projectDocs,
+            );
+            setStages(syncedStages);
 
             if (res.progress.last_saved_at) {
               setLastSavedTime(
@@ -715,6 +801,8 @@ export default function MarkProgress({
                   second: '2-digit',
                 }),
               );
+            } else {
+              setLastSavedTime(null);
             }
 
             return;
@@ -723,51 +811,14 @@ export default function MarkProgress({
           console.warn('Backend progress service fetch notice:', apiErr);
         }
 
-        // Load persisted checklist state from localStorage if backend has no record yet
-        const storageKey = `lams_do_checklist_${selectedProjectId}`;
-        const savedChecklist = localStorage.getItem(storageKey);
-
-        if (savedChecklist) {
-          try {
-            const parsedStages: ChecklistStage[] = JSON.parse(savedChecklist);
-
-            setStages(parsedStages);
-          } catch {
-            setStages(defaultStagesForLocale);
-          }
-        } else {
-          // Initialize completion status based on project status if available
-          const isSubmitted = projData.doStatus === 'submitted';
-          const isCompleted =
-            projData.caseStatus === 'completed' ||
-            projData.status === 'completed';
-
-          const initStages = defaultStagesForLocale.map((stg) => ({
-            ...stg,
-            items: stg.items.map((item) => {
-              if (isCompleted) {
-                return {
-                  ...item,
-                  isCompleted: true,
-                  completedBy: 'System Auto',
-                  completedAt: new Date().toISOString(),
-                };
-              }
-
-              if (isSubmitted && stg.id <= 2) {
-                return {
-                  ...item,
-                  isCompleted: true,
-                  completedBy: user?.name || 'DO Officer',
-                  completedAt: new Date().toISOString(),
-                };
-              }
-
-              return item;
-            }),
-          }));
-
-          setStages(initStages);
+        // If no progress record exists in database, initialize clean default stages synced with project documents
+        if (isMounted) {
+          const syncedStages = syncStageDocuments(
+            defaultStagesForLocale,
+            projectDocs,
+          );
+          setStages(syncedStages);
+          setLastSavedTime(null);
         }
       } catch (err) {
         console.error('Failed to load selected project details:', err);
@@ -779,7 +830,7 @@ export default function MarkProgress({
     return () => {
       isMounted = false;
     };
-  }, [selectedProjectId, user?.name, defaultStagesForLocale]);
+  }, [selectedProjectId, defaultStagesForLocale]);
 
   // Toggle single checklist item
   const handleToggleItem = (itemId: string) => {
@@ -833,8 +884,11 @@ export default function MarkProgress({
     );
   };
 
-  // Optional File Upload Handler per Stage (supports multiple files per stage)
-  const handleStageFileUpload = async (stageId: number, file: File) => {
+  // Optional File Upload Handler per Stage (supports multiple files & images per stage)
+  const handleStageFileUpload = async (
+    stageId: number,
+    filesList: FileList | File[],
+  ) => {
     if (!isDO) {
       toastError(
         t(
@@ -846,12 +900,21 @@ export default function MarkProgress({
       return;
     }
 
-    if (!file) {
+    const files = Array.from(filesList);
+
+    if (files.length === 0) {
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toastError(t('file_too_large', 'File size exceeds 10MB limit.'));
+    const oversizedFiles = files.filter((f) => f.size > 10 * 1024 * 1024);
+
+    if (oversizedFiles.length > 0) {
+      toastError(
+        t(
+          'file_too_large',
+          'Some files exceed the 10MB limit. Please upload files under 10MB.',
+        ),
+      );
 
       return;
     }
@@ -859,57 +922,111 @@ export default function MarkProgress({
     try {
       setUploadingStageId(stageId);
 
-      let uploadedDoc: any = null;
+      const newAttachedFiles: AttachedFile[] = [];
 
-      if (selectedProjectId && user?.id) {
-        try {
-          uploadedDoc = await uploadDocument(
-            file,
-            String(user.id),
-            selectedProjectId,
-            `stage_${stageId}`,
-          );
-        } catch (uploadErr) {
-          console.warn('Backend document upload notice:', uploadErr);
+      for (const file of files) {
+        let uploadedDoc: any = null;
+
+        if (selectedProjectId && user?.id) {
+          try {
+            uploadedDoc = await uploadDocument(
+              file,
+              String(user.id),
+              selectedProjectId,
+              `stage_${stageId}`,
+            );
+          } catch (uploadErr) {
+            console.warn('Backend document upload notice:', uploadErr);
+          }
         }
+
+        if (uploadedDoc) {
+          setSelectedProject((prevProj) => {
+            if (!prevProj) {
+              return prevProj;
+            }
+
+            return {
+              ...prevProj,
+              documents: [...(prevProj.documents || []), uploadedDoc],
+            };
+          });
+        }
+
+        const newFile: AttachedFile = {
+          id: uploadedDoc?.id
+            ? String(uploadedDoc.id)
+            : `file-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          docId: uploadedDoc?.id ? String(uploadedDoc.id) : undefined,
+          name: file.name,
+          size: file.size,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: user?.name || 'Development Officer',
+        };
+
+        newAttachedFiles.push(newFile);
       }
 
-      const newFile: AttachedFile = {
-        id: uploadedDoc?.id
-          ? String(uploadedDoc.id)
-          : `file-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        docId: uploadedDoc?.id ? String(uploadedDoc.id) : undefined,
-        name: file.name,
-        size: file.size,
-        uploadedAt: new Date().toISOString(),
-        uploadedBy: user?.name || 'Development Officer',
-      };
+      let currentUpdatedStages: ChecklistStage[] = [];
 
-      setStages((prevStages) =>
-        prevStages.map((stage) => {
+      setStages((prevStages) => {
+        currentUpdatedStages = prevStages.map((stage) => {
           if (stage.id === stageId) {
             const existingFiles = stage.attachedFiles || [];
 
+            const filteredNew = newAttachedFiles.filter(
+              (nf) =>
+                !existingFiles.some(
+                  (ef) =>
+                    (ef.docId &&
+                      nf.docId &&
+                      String(ef.docId) === String(nf.docId)) ||
+                    String(ef.id) === String(nf.id),
+                ),
+            );
+
             return {
               ...stage,
-              attachedFiles: [...existingFiles, newFile],
+              attachedFiles: [...existingFiles, ...filteredNew],
             };
           }
 
           return stage;
-        }),
-      );
+        });
+
+        return currentUpdatedStages;
+      });
+
+      // Save updated stages directly to database backend without overwriting local state
+      if (selectedProjectId && isDO && currentUpdatedStages.length > 0) {
+        try {
+          await saveProjectProgress(selectedProjectId, currentUpdatedStages);
+          const nowStr = new Date().toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          });
+          setLastSavedTime(nowStr);
+        } catch (saveErr) {
+          console.warn('Auto-save progress notice:', saveErr);
+        }
+      }
 
       toastSuccess(
-        t(
-          'file_attached_success',
-          'File ":filename" attached successfully to stage.',
-        ).replace(':filename', file.name),
+        files.length === 1
+          ? t(
+              'file_attached_success',
+              'File ":filename" attached successfully to stage.',
+            ).replace(':filename', files[0].name)
+          : t(
+              'files_attached_success',
+              ':count files attached successfully to stage.',
+            ).replace(':count', String(files.length)),
       );
     } catch (error) {
-      console.error('Failed to attach file:', error);
+      console.error('Failed to attach files:', error);
       toastError(
-        t('failed_to_attach_file', 'Failed to attach file. Please try again.'),
+        t('failed_to_attach_file', 'Failed to attach files. Please try again.'),
       );
     } finally {
       setUploadingStageId(null);
@@ -966,20 +1083,49 @@ export default function MarkProgress({
       }
     }
 
-    setStages((prevStages) =>
-      prevStages.map((stage) => {
+    let currentUpdatedStages: ChecklistStage[] = [];
+
+    setStages((prevStages) => {
+      currentUpdatedStages = prevStages.map((stage) => {
         if (stage.id === stageId) {
           return {
             ...stage,
             attachedFiles: (stage.attachedFiles || []).filter(
-              (f) => f.id !== fileId,
+              (f) =>
+                f.id !== fileId &&
+                (f.docId === undefined || String(f.docId) !== String(fileId)),
             ),
           };
         }
 
         return stage;
-      }),
-    );
+      });
+
+      return currentUpdatedStages;
+    });
+
+    // Also remove from selectedProject.documents state
+    setSelectedProject((prevProj) => {
+      if (!prevProj) {
+        return prevProj;
+      }
+
+      return {
+        ...prevProj,
+        documents: (prevProj.documents || []).filter(
+          (d) => String(d.id) !== String(fileId),
+        ),
+      };
+    });
+
+    // Persist stage file deletion to database backend
+    if (selectedProjectId && isDO && currentUpdatedStages.length > 0) {
+      try {
+        await saveProjectProgress(selectedProjectId, currentUpdatedStages);
+      } catch (saveErr) {
+        console.warn('Auto-save progress notice:', saveErr);
+      }
+    }
 
     toastSuccess(t('attachment_removed', 'Attachment removed successfully.'));
   };
@@ -1035,7 +1181,7 @@ export default function MarkProgress({
     }
   };
 
-  // Save current progress
+  // Save current progress to database
   const handleSaveProgress = async () => {
     if (!isDO) {
       toastError(
@@ -1061,19 +1207,45 @@ export default function MarkProgress({
 
     try {
       setSaving(true);
-      const storageKey = `lams_do_checklist_${selectedProjectId}`;
 
-      localStorage.setItem(storageKey, JSON.stringify(stages));
+      // Save progress to database via API
+      const res = await saveProjectProgress(selectedProjectId, stages);
 
-      // Save to backend service via API (DO Authorized Only)
-      try {
-        const res = await saveProjectProgress(selectedProjectId, stages);
+      if (res.progress?.stages && Array.isArray(res.progress.stages)) {
+        const projectDocs = selectedProject?.documents || [];
+        const syncedStages = syncStageDocuments(
+          res.progress.stages,
+          projectDocs,
+        );
 
-        if (res.progress?.stages) {
-          setStages(res.progress.stages);
-        }
-      } catch (backendErr) {
-        console.warn('Saved locally, backend sync notice:', backendErr);
+        // Merge with existing local attachedFiles to guarantee nothing is lost
+        const mergedStages = syncedStages.map((stg) => {
+          const localStg = stages.find((s) => s.id === stg.id);
+          const localFiles = localStg?.attachedFiles || [];
+          const currentFiles = stg.attachedFiles || [];
+          const combined = [...currentFiles];
+
+          for (const lf of localFiles) {
+            const exists = combined.some(
+              (cf) =>
+                (cf.docId &&
+                  lf.docId &&
+                  String(cf.docId) === String(lf.docId)) ||
+                String(cf.id) === String(lf.id),
+            );
+
+            if (!exists) {
+              combined.push(lf);
+            }
+          }
+
+          return {
+            ...stg,
+            attachedFiles: combined,
+          };
+        });
+
+        setStages(mergedStages);
       }
 
       const nowStr = new Date().toLocaleTimeString([], {
@@ -1587,17 +1759,22 @@ export default function MarkProgress({
                     <span>
                       {uploadingStageId === currentStage.id
                         ? t('uploading', 'Uploading...')
-                        : t('attach_stage_document', 'Upload Stage Document')}
+                        : t(
+                            'attach_stage_document',
+                            'Upload Documents / Images',
+                          )}
                     </span>
                     <input
                       type="file"
+                      multiple
+                      accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
                       disabled={uploadingStageId === currentStage.id}
                       className="hidden"
                       onChange={(e) => {
-                        if (e.target.files?.[0]) {
+                        if (e.target.files && e.target.files.length > 0) {
                           handleStageFileUpload(
                             currentStage.id,
-                            e.target.files[0],
+                            e.target.files,
                           );
                           e.target.value = '';
                         }
@@ -1617,8 +1794,18 @@ export default function MarkProgress({
                       className="border-border bg-card shadow-2xs flex items-center justify-between gap-3 rounded-lg border p-2.5 text-xs"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
-                          <FileText className="h-4 w-4" />
+                        <div
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                            isImageFile(fileObj.name)
+                              ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                              : 'bg-primary/10 text-primary'
+                          }`}
+                        >
+                          {isImageFile(fileObj.name) ? (
+                            <ImageIcon className="h-4 w-4" />
+                          ) : (
+                            <FileText className="h-4 w-4" />
+                          )}
                         </div>
                         <div className="min-w-0">
                           <span

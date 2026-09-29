@@ -78,7 +78,7 @@ class SendChecklistReminders extends Command
 
             // Fallback: If no submitted_by user found with DO role, find all DO users
             if ($doUsers->isEmpty()) {
-                $doUsers = User::whereHas('role', fn($q) => $q->where('role_name', 'DO'))->get();
+                $doUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'DO'))->get();
             }
 
             if ($doUsers->isEmpty()) {
@@ -95,7 +95,7 @@ class SendChecklistReminders extends Command
                     ->where(function ($query) use ($project) {
                         $query->whereRaw("JSON_EXTRACT(data, '$.project_id') = ?", [(string) $project->project_id])
                             ->orWhereRaw("JSON_EXTRACT(data, '$.project_id') = ?", [(string) $project->id])
-                            ->orWhereRaw('data LIKE ?', ['%"' . $project->title . '"%']);
+                            ->orWhereRaw('data LIKE ?', ['%"'.$project->title.'"%']);
                     })
                     ->where('created_at', '>=', now()->subDays(80))
                     ->exists();
