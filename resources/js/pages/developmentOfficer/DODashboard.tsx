@@ -11,6 +11,7 @@ import {
   Plus,
   Send,
   Users,
+  Loader2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
@@ -47,6 +48,7 @@ export default function DODashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [landParcelsCount, setLandParcelsCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
 
   // Fetch all projects, land parcels, and owners
   const loadDashboardData = async () => {
@@ -115,6 +117,10 @@ export default function DODashboard() {
 
   // Submit project to HOB review
   const handleSubmit = async (id: string, title: string) => {
+    if (submittingId) {
+      return;
+    }
+
     const confirmed = await confirmAction({
       title: t('submit_project', 'Submit Project'),
       text: t(
@@ -126,6 +132,7 @@ export default function DODashboard() {
 
     if (confirmed) {
       try {
+        setSubmittingId(id);
         await submitProject(id);
         toastSuccess(
           t('project_submitted_success', 'Project submitted successfully!'),
@@ -139,6 +146,8 @@ export default function DODashboard() {
             'Failed to submit project. Please try again.',
           ),
         );
+      } finally {
+        setSubmittingId(null);
       }
     }
   };
@@ -506,14 +515,19 @@ export default function DODashboard() {
                     <Edit className="text-muted-foreground hover:text-foreground h-4 w-4" />
                   </button>
                   <button
+                    disabled={submittingId === row.id}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSubmit(row.id, row.title || row.name);
                     }}
-                    className="hover:bg-success/15 hover:text-success cursor-pointer rounded p-1.5 transition-colors"
+                    className="hover:bg-success/15 hover:text-success cursor-pointer rounded p-1.5 transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                     title={t('submit_for_approval', 'Submit for Approval')}
                   >
-                    <Send className="h-4 w-4" />
+                    {submittingId === row.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               )}

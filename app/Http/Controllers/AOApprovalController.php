@@ -50,6 +50,10 @@ class AOApprovalController extends Controller
 
         $project->ao_status = 'approved';
         $project->as_status = 'pending'; // Moves to Assistant Secretary review
+        $project->approval_date = now();
+        $project->approved_by = $userId;
+        $project->ao_approved_by = $userId;
+        $project->ao_approved_at = now();
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[System]: Approved by Administrative Officer';
         $project->save();
 

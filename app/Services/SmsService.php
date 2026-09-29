@@ -149,6 +149,23 @@ class SmsService
     }
 
     /**
+     * Send SMS to a Development Officer for periodic 3-month checklist update.
+     */
+    public static function sendChecklistReminderSms(User|string $recipient, Projects $project, int $monthsElapsed, ?string $driver = null): bool
+    {
+        $phone = is_string($recipient) ? $recipient : static::extractPhone($recipient);
+        if (empty($phone)) {
+            Log::warning("Cannot send checklist reminder SMS for project {$project->id}: No recipient phone number.");
+
+            return false;
+        }
+
+        $message = "[LAM Alert] Checklist Reminder ({$monthsElapsed}M): Please check & update the progress checklist for project '{$project->title}' (ID: {$project->project_id}).";
+
+        return static::sendSms($phone, $message, $driver);
+    }
+
+    /**
      * Normalize recipient input into an array of clean phone strings.
      *
      * @return array<string>

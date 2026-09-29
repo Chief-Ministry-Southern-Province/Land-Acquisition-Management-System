@@ -15,6 +15,7 @@ import {
   Trash2,
   Upload,
   Download,
+  Loader2,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBridge';
@@ -179,6 +180,7 @@ export default function AddProject() {
     'draft' | 'pending' | 'rejected' | 'completed'
   >('draft');
   const [loadingProject, setLoadingProject] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [projectDocuments, setProjectDocuments] = useState<Document[]>([]);
   const [queuedFiles, setQueuedFiles] = useState<
     { id: string; file: File; category: string }[]
@@ -544,9 +546,13 @@ export default function AddProject() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (submitting) {
+      return;
+    }
+
     if (validate()) {
       try {
-        setLoadingProject(true);
+        setSubmitting(true);
         const acers = parseFloat(form.landAreaAcers) || 0;
         const roods = parseFloat(form.landAreaRoods) || 0;
         const perches = parseFloat(form.landAreaPerches) || 0;
@@ -607,7 +613,7 @@ export default function AddProject() {
         console.error('Failed to save project and upload documents:', error);
         toastError(t('project_save_failed'));
       } finally {
-        setLoadingProject(false);
+        setSubmitting(false);
       }
     }
   };
@@ -645,16 +651,23 @@ export default function AddProject() {
           <button
             type="button"
             onClick={() => router.visit('/projects')}
-            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors"
+            disabled={submitting}
+            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="h-4 w-4" /> {t('cancel')}
           </button>
           <button
             type="submit"
             form="add-project-form"
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors"
+            disabled={submitting}
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Save className="h-4 w-4" /> {t('save_project')}
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            {submitting ? t('saving', 'Saving...') : t('save_project')}
           </button>
         </div>
       </div>
@@ -1375,15 +1388,22 @@ export default function AddProject() {
           <button
             type="button"
             onClick={() => router.visit('/projects')}
-            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors"
+            disabled={submitting}
+            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="h-4 w-4" /> {t('cancel')}
           </button>
           <button
             type="submit"
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm text-white transition-colors"
+            disabled={submitting}
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm text-white transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Save className="h-4 w-4" /> {t('save_project')}
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            {submitting ? t('saving', 'Saving...') : t('save_project')}
           </button>
         </div>
       </form>
