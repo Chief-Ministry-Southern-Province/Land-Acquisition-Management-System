@@ -15,6 +15,7 @@ use App\Http\Controllers\LandSurveyController;
 use App\Http\Controllers\LandValuationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProjectProgressController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\PropertyOwnerController;
 use App\Http\Controllers\ReportController;
@@ -90,7 +91,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('payments', [PaymentController::class, 'store']);
         Route::put('payments/{id}', [PaymentController::class, 'update']);
         Route::delete('payments/{id}', [PaymentController::class, 'destroy']);
+
+        // Mark Progress (DO Only)
+        Route::post('projects/{id}/progress', [ProjectProgressController::class, 'store']);
     });
+
+    // Project Progress GET endpoint for all authenticated users
+    Route::get('projects/{id}/progress', [ProjectProgressController::class, 'show']);
 
     // Read-only endpoints for all authenticated users
     Route::get('land-surveys', [LandSurveyController::class, 'index']);

@@ -49,6 +49,10 @@ class SASApprovalController extends Controller
         }
 
         $project->sas_status = 'approved';
+        $project->approval_date = now();
+        $project->approved_by = $userId;
+        $project->sas_approved_by = $userId;
+        $project->sas_approved_at = now();
 
         // Calculate the total estimated value of land parcels
         $totalEstimatedValue = $project->landParcels->sum('estimated_value');

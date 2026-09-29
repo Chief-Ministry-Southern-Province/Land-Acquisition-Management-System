@@ -98,6 +98,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::inertia('/acquisition-workflow', 'AcquisitionWorkflow')->name('acquisition-workflow');
     Route::inertia('/approval-workflow', 'AcquisitionWorkflow')->name('approval-workflow');
 
+    // Mark Progress
+    Route::inertia('/mark-progress', 'developmentOfficer/MarkProgress')->middleware('check.role:DO')->name('mark-progress');
+
     // Projects routes
     Route::inertia('/projects', 'projects/ProjectList')->name('projects');
     Route::inertia('/projects/new', 'projects/AddProject')->name('add-project');

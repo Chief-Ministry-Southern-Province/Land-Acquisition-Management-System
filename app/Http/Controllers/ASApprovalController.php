@@ -50,8 +50,10 @@ class ASApprovalController extends Controller
 
         $project->as_status = 'approved';
         $project->sas_status = 'pending';
-        // If the project moves up further or completes, we can set that here,
-        // but for now, we mark AS status as approved.
+        $project->approval_date = now();
+        $project->approved_by = $userId;
+        $project->as_approved_by = $userId;
+        $project->as_approved_at = now();
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[System]: Approved by Assistant Secretary';
         $project->save();
 

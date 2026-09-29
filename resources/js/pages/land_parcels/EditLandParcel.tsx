@@ -16,6 +16,7 @@ import {
   Trash2,
   CheckCircle,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import UnifiedMap, { isWithinSriLanka } from '@/components/UnifiedMap';
@@ -825,6 +826,10 @@ export default function EditLandParcel({ id }: { id: string }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (submitting) {
+      return;
+    }
+
     if (!validate()) {
       return;
     }
@@ -1103,7 +1108,7 @@ export default function EditLandParcel({ id }: { id: string }) {
             type="button"
             onClick={() => router.visit(`/land-parcels/${id}`)}
             disabled={submitting}
-            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:opacity-50"
+            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="h-4 w-4" />
             Cancel
@@ -1112,9 +1117,13 @@ export default function EditLandParcel({ id }: { id: string }) {
             type="submit"
             form="edit-parcel-form"
             disabled={submitting}
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Save className="h-4 w-4" />
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
             {submitting ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
@@ -2342,7 +2351,7 @@ export default function EditLandParcel({ id }: { id: string }) {
             type="button"
             onClick={() => router.visit(`/land-parcels/${id}`)}
             disabled={submitting}
-            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors disabled:opacity-50"
+            className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="h-4 w-4" />
             Cancel
@@ -2350,9 +2359,13 @@ export default function EditLandParcel({ id }: { id: string }) {
           <button
             type="submit"
             disabled={submitting}
-            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm text-white transition-colors disabled:opacity-50"
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm text-white transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Save className="h-4 w-4" />
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
             {submitting ? 'Saving...' : 'Save Changes'}
           </button>
         </div>

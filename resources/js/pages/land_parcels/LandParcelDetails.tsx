@@ -14,6 +14,7 @@ import {
   AlertCircle,
   FileDown,
   Scale,
+  Loader2,
 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
@@ -138,6 +139,11 @@ export default function LandParcelDetails({ id }: Props) {
   const [payDocName, setPayDocName] = useState('');
   const [payUploading, setPayUploading] = useState(false);
   const [compDocUploading, setCompDocUploading] = useState(false);
+  const [isSubmittingSurvey, setIsSubmittingSurvey] = useState(false);
+  const [isSubmittingValuation, setIsSubmittingValuation] = useState(false);
+  const [isSubmittingCompensation, setIsSubmittingCompensation] =
+    useState(false);
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
 
   // Legal Documents State
   const [legalDocUploading, setLegalDocUploading] = useState(false);
@@ -326,6 +332,10 @@ export default function LandParcelDetails({ id }: Props) {
   const handleSurveySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isSubmittingSurvey) {
+      return;
+    }
+
     if (!surveyDocId) {
       toastError('Mandatory Checklist: Please upload the survey plan file.');
 
@@ -355,7 +365,7 @@ export default function LandParcelDetails({ id }: Props) {
     };
 
     try {
-      setLoading(true);
+      setIsSubmittingSurvey(true);
 
       if (surveyId) {
         await updateSurvey(surveyId, payload);
@@ -374,7 +384,7 @@ export default function LandParcelDetails({ id }: Props) {
         err.response?.data?.message || 'Failed to submit survey plan.',
       );
     } finally {
-      setLoading(false);
+      setIsSubmittingSurvey(false);
     }
   };
 
@@ -434,6 +444,10 @@ export default function LandParcelDetails({ id }: Props) {
   const handleValuationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isSubmittingValuation) {
+      return;
+    }
+
     if (!valuationDocId) {
       toastError(
         'Mandatory Checklist: Please upload the valuation report PDF.',
@@ -456,7 +470,7 @@ export default function LandParcelDetails({ id }: Props) {
     };
 
     try {
-      setLoading(true);
+      setIsSubmittingValuation(true);
 
       if (valuationId) {
         await updateValuation(valuationId, payload);
@@ -473,7 +487,7 @@ export default function LandParcelDetails({ id }: Props) {
       console.error(err);
       toastError(err.response?.data?.message || 'Failed to submit valuation.');
     } finally {
-      setLoading(false);
+      setIsSubmittingValuation(false);
     }
   };
 
@@ -533,6 +547,10 @@ export default function LandParcelDetails({ id }: Props) {
   const handleCompensationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isSubmittingCompensation) {
+      return;
+    }
+
     if (!compOwnerId) {
       toastError('Please select a property owner.');
 
@@ -550,7 +568,7 @@ export default function LandParcelDetails({ id }: Props) {
     };
 
     try {
-      setLoading(true);
+      setIsSubmittingCompensation(true);
 
       if (compensationId) {
         await api.put(`/api/compensation/${compensationId}`, payload);
@@ -569,7 +587,7 @@ export default function LandParcelDetails({ id }: Props) {
         err.response?.data?.message || 'Failed to submit compensation.',
       );
     } finally {
-      setLoading(false);
+      setIsSubmittingCompensation(false);
     }
   };
 
@@ -621,6 +639,10 @@ export default function LandParcelDetails({ id }: Props) {
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isSubmittingPayment) {
+      return;
+    }
+
     if (!payDocId) {
       toastError('Mandatory Checklist: Please upload a payment receipt PDF.');
 
@@ -641,7 +663,7 @@ export default function LandParcelDetails({ id }: Props) {
     };
 
     try {
-      setLoading(true);
+      setIsSubmittingPayment(true);
 
       if (paymentId) {
         await updatePayment(paymentId, payload);
@@ -658,7 +680,7 @@ export default function LandParcelDetails({ id }: Props) {
       console.error(err);
       toastError(err.response?.data?.message || 'Failed to submit payment.');
     } finally {
-      setLoading(false);
+      setIsSubmittingPayment(false);
     }
   };
 
@@ -1619,14 +1641,21 @@ export default function LandParcelDetails({ id }: Props) {
                 </button>
                 <button
                   type="submit"
-                  disabled={!surveyDocId || surveyUploading}
-                  className="rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95 disabled:opacity-50"
+                  disabled={
+                    !surveyDocId || surveyUploading || isSubmittingSurvey
+                  }
+                  className="flex items-center gap-2 rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {surveyUploading
-                    ? t('uploading_file', 'Uploading File...')
-                    : surveyId
-                      ? t('update_record', 'Update Record')
-                      : t('save_survey_plan', 'Save Survey Plan')}
+                  {isSubmittingSurvey && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                  {isSubmittingSurvey
+                    ? t('saving', 'Saving...')
+                    : surveyUploading
+                      ? t('uploading_file', 'Uploading File...')
+                      : surveyId
+                        ? t('update_record', 'Update Record')
+                        : t('save_survey_plan', 'Save Survey Plan')}
                 </button>
               </div>
             </form>
@@ -2048,14 +2077,23 @@ export default function LandParcelDetails({ id }: Props) {
                 </button>
                 <button
                   type="submit"
-                  disabled={!valuationDocId || valuationUploading}
-                  className="rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95 disabled:opacity-50"
+                  disabled={
+                    !valuationDocId ||
+                    valuationUploading ||
+                    isSubmittingValuation
+                  }
+                  className="flex items-center gap-2 rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {valuationUploading
-                    ? t('uploading_report', 'Uploading Report...')
-                    : valuationId
-                      ? t('update_valuation', 'Update Valuation')
-                      : t('save_valuation_report', 'Save Valuation Report')}
+                  {isSubmittingValuation && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                  {isSubmittingValuation
+                    ? t('saving', 'Saving...')
+                    : valuationUploading
+                      ? t('uploading_report', 'Uploading Report...')
+                      : valuationId
+                        ? t('update_valuation', 'Update Valuation')
+                        : t('save_valuation_report', 'Save Valuation Report')}
                 </button>
               </div>
             </form>
@@ -2460,9 +2498,15 @@ export default function LandParcelDetails({ id }: Props) {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95"
+                  disabled={isSubmittingCompensation}
+                  className="flex items-center gap-2 rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {t('save_schedule', 'Save Schedule')}
+                  {isSubmittingCompensation && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                  {isSubmittingCompensation
+                    ? t('saving', 'Saving...')
+                    : t('save_schedule', 'Save Schedule')}
                 </button>
               </div>
             </form>
@@ -2689,14 +2733,19 @@ export default function LandParcelDetails({ id }: Props) {
                 </button>
                 <button
                   type="submit"
-                  disabled={!payDocId || payUploading}
-                  className="rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95 disabled:opacity-50"
+                  disabled={!payDocId || payUploading || isSubmittingPayment}
+                  className="flex items-center gap-2 rounded-lg bg-[#2E7D32] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2E7D32]/95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {payUploading
-                    ? t('uploading_receipt', 'Uploading Receipt...')
-                    : paymentId
-                      ? t('update_payment', 'Update Payment')
-                      : t('save_payment', 'Save Payment')}
+                  {isSubmittingPayment && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                  {isSubmittingPayment
+                    ? t('saving', 'Saving...')
+                    : payUploading
+                      ? t('uploading_receipt', 'Uploading Receipt...')
+                      : paymentId
+                        ? t('update_payment', 'Update Payment')
+                        : t('save_payment', 'Save Payment')}
                 </button>
               </div>
             </form>
