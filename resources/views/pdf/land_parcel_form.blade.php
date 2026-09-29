@@ -3,546 +3,518 @@
 
 <head>
     <meta charset="utf-8">
-    <title>{{ __('messages.land_parcel_details') }} &mdash; {{ $parcel->parcel_id }}</title>
+    <title>{{ app()->getLocale() === 'si' ? 'අත්පත් කිරීමට යෝජිත ඉඩම පිළිබඳව විස්තර ප්‍රකාශය' : 'Statement of Particulars of the Land Proposed to be Acquired' }} &mdash; {{ $parcel->parcel_id }}</title>
     <style>
         @page {
-            margin: 45px 36px 55px 36px;
+            margin: 15mm 16mm 15mm 16mm;
         }
 
         body {
             font-family: 'notosanssinhala', sans-serif;
-            color: #1a1a1a;
-            font-size: 8.5px;
-            line-height: 1.4;
+            color: #111111;
+            font-size: 12pt;
+            line-height: 1.55;
             margin: 0;
             padding: 0;
         }
 
-        .page-frame {
-            border: 3px double #2d2d2d;
-            padding: 14px;
-        }
-
-        .inner-frame {
-            border: 1px solid #2d2d2d;
-            padding: 14px 18px;
-        }
-
-        /* ---------- Watermark-style confidentiality banner ---------- */
-        .confidential-banner {
+        .document-title {
             text-align: center;
-            font-size: 9px;
+            font-size: 15.5pt;
             font-weight: bold;
-            letter-spacing: 2px;
-            color: #2d2d2d;
-            text-transform: uppercase;
-            border-bottom: 1px solid #2d2d2d;
-            padding-bottom: 4px;
-            margin-bottom: 10px;
-        }
-
-        /* ---------- Header with State Emblem ---------- */
-        .form-header {
-            border-bottom: 2px solid #2d2d2d;
-            padding-bottom: 10px;
-            margin-bottom: 4px;
-        }
-
-        .emblem-box {
-            width: 66px;
-            height: 66px;
-            border: 2px solid #2d2d2d;
-            border-radius: 50%;
-            text-align: center;
-            vertical-align: middle;
-            color: #2d2d2d;
-            font-weight: bold;
-            font-size: 7.5px;
-            line-height: 1.2;
-            padding-top: 18px;
-            font-family: 'notosanssinhala', sans-serif;
-        }
-
-        .gov-title {
-            margin: 0;
-            color: #2d2d2d;
-            font-size: 10.5px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .ministry-title {
-            margin: 2px 0 0 0;
-            color: #1a1a1a;
-            font-size: 14px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-title {
-            margin: 4px 0 0 0;
-            color: #1a1a1a;
-            font-size: 17px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            border-top: 1px solid #cccccc;
-            padding-top: 5px;
-        }
-
-        .form-subtitle {
-            margin: 2px 0 0 0;
-            color: #555555;
-            font-size: 9px;
-            font-style: italic;
-        }
-
-        .ref-box {
-            border: 1px solid #2d2d2d;
-            padding: 6px;
-            background-color: #f5f5f5;
-            font-family: 'notosanssinhala', sans-serif;
-            font-size: 9px;
-            text-align: center;
-        }
-
-        .ref-box strong {
-            display: block;
-            font-family: 'notosanssinhala', sans-serif;
-            font-size: 7.5px;
-            letter-spacing: 0.5px;
-            color: #2d2d2d;
-            margin-bottom: 2px;
-        }
-
-        /* ---------- Meta strip ---------- */
-        .meta-strip {
-            width: 100%;
-            margin-top: 8px;
-            margin-bottom: 12px;
-            border-collapse: collapse;
-            font-size: 8.5px;
-            color: #4a4a4a;
-        }
-
-        .meta-strip td {
-            padding: 2px 0;
-        }
-
-        .status-pill {
-            font-weight: bold;
-            color: #2d2d2d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* ---------- Section headers ---------- */
-        .section-title {
-            color: #1a1a1a;
-            font-size: 10.5px;
-            font-weight: bold;
-            padding: 4px 0 5px 0;
-            margin: 16px 0 8px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            border-top: 1px solid #1a1a1a;
-            border-bottom: 1px solid #1a1a1a;
-        }
-
-        .section-title .section-no {
-            display: inline-block;
-            margin-right: 4px;
-        }
-
-        /* ---------- Tables ---------- */
-        .form-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-        }
-
-        .form-table th {
-            background-color: #eeeeee;
-            color: #2d2d2d;
-            font-weight: bold;
-            text-align: left;
-            padding: 6px 8px;
-            border: 1px solid #cccccc;
-            font-size: 9px;
-            width: 25%;
-        }
-
-        .form-table td {
-            padding: 6px 8px;
-            border: 1px solid #cccccc;
-            font-size: 9px;
-            color: #1a1a1a;
-            width: 25%;
-        }
-
-        .owner-box {
-            margin-bottom: 8px;
-            border: 1px solid #cccccc;
-            padding: 8px;
-            background-color: #f7f7f7;
-        }
-
-        .empty-note {
-            border: 1px dashed #cccccc;
-            padding: 8px;
-            text-align: center;
-            font-size: 10px;
-            color: #777777;
-            background-color: #f7f7f7;
-            margin-bottom: 10px;
-            font-style: italic;
-        }
-
-        /* ---------- Declaration ---------- */
-        .declaration {
-            font-size: 9px;
-            color: #333333;
-            border: 1px solid #cccccc;
-            background-color: #f7f7f7;
-            padding: 8px 10px;
-            margin: 10px 0 16px 0;
-            text-align: justify;
-        }
-
-        /* ---------- Signatures ---------- */
-        .signature-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 22px;
-        }
-
-        .signature-table td {
-            width: 33.33%;
-            text-align: center;
-            vertical-align: top;
-            padding: 0 6px;
-        }
-
-        .signature-line {
-            height: 36px;
-            border-bottom: 1px solid #2d2d2d;
-            margin-bottom: 4px;
-        }
-
-        .signature-role {
-            margin: 0;
-            font-size: 9px;
-            font-weight: bold;
-            text-transform: uppercase;
+            margin-top: 0;
+            margin-bottom: 22px;
             letter-spacing: 0.3px;
         }
 
-        .signature-meta {
-            margin: 2px 0 0 0;
-            font-size: 8px;
-            color: #718096;
+        .item-row {
+            margin-bottom: 9px;
+            font-size: 12pt;
+            line-height: 1.52;
+            text-align: justify;
         }
 
-        .seal-note {
-            margin: 6px 0 0 0;
-            font-size: 7.5px;
-            color: #a0aec0;
-            font-style: italic;
+        .item-row-p2 {
+            margin-bottom: 13px;
+            font-size: 12pt;
+            line-height: 1.55;
+            text-align: justify;
         }
 
-        /* ---------- Footer ---------- */
-        .footer {
-            position: fixed;
-            bottom: -55px;
-            left: 0px;
-            right: 0px;
-            height: 40px;
-            text-align: center;
-            font-size: 7.5px;
-            color: #8a8a8a;
-            border-top: 1px solid #cccccc;
-            padding-top: 6px;
+        .item-num {
+            font-weight: normal;
         }
 
-        .footer .footer-line-2 {
+        .sub-note {
+            font-size: 10pt;
+            color: #2b2b2b;
             margin-top: 2px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: #2d2d2d;
+            margin-bottom: 9px;
+            line-height: 1.4;
+        }
+
+        .boundary-table {
+            margin-left: 28px;
+            margin-top: 3px;
+            margin-bottom: 3px;
+            border-collapse: collapse;
+            font-size: 12pt;
+        }
+
+        .boundary-table td {
+            padding: 2px 0;
+            vertical-align: top;
+        }
+
+        .boundary-label {
+            width: 105px;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="page-frame">
-        <div class="inner-frame">
+    <htmlpagefooter name="docFooter">
+        <div style="text-align: right; font-size: 10pt; color: #222222; font-family: 'notosanssinhala', sans-serif;">
+            {PAGENO} | P a g e
+        </div>
+    </htmlpagefooter>
+    <sethtmlpagefooter name="docFooter" value="on" />
 
-            <div class="confidential-banner">{{ __('messages.confidential_document') }}</div>
+    @php
+        $isSi = app()->getLocale() === 'si';
+        $project = $parcel->project;
 
-            <!-- Header -->
-            <div class="form-header">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td style="width: 74px; vertical-align: middle;">
-                            <img src="{{ public_path('logo.png') }}" style="height: 60px; width: auto; max-width: 70px;" alt="Logo">
-                        </td>
-                        <td style="vertical-align: top; padding-left: 15px;">
-                            <p class="gov-title">{{ __('messages.republic_sri_lanka') }}</p>
-                            <p class="ministry-title">{{ __('messages.provincial_council') }}</p>
-                            <p class="form-title">{{ __('messages.land_parcel_details') }}</p>
-                            <p class="form-subtitle">Issued under the Land Acquisition Management System (LAMS) &mdash; Form LA-01</p>
-                        </td>
-                        <td style="text-align: right; vertical-align: top; width: 130px;">
-                            <div class="ref-box">
-                                <strong>{{ __('messages.land_number') }}</strong>
-                                <span style="font-size: 11px; font-weight: bold; color: #2d2d2d;">{{ $parcel->parcel_id }}</span>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
+        // Institution & Purpose
+        $institution = $project?->institution;
+        $institutionAddress = $project?->institution_address;
+        $purpose = $project?->purpose ?? ($project?->title ?? __('messages.n_a'));
 
-            <table class="meta-strip">
-                <tr>
-                    <td><strong>{{ __('messages.generated_on') }}:</strong> {{ now()->format('Y-m-d H:i') }}</td>
-                    <td style="text-align: center;"><strong>{{ __('messages.provincial_council') }}:</strong> {{ __('messages.provincial_council') }}</td>
-                    <td style="text-align: right;"><strong>{{ __('messages.status') }}:</strong> <span class="status-pill">{{ __('messages.' . strtolower($parcel->status ?: 'draft')) }}</span></td>
-                </tr>
-            </table>
+        // Province
+        $provinceVal = $parcel->province;
+        if ($isSi) {
+            $provinceDisplay = (empty($provinceVal) || strtolower($provinceVal) === 'southern') ? 'දකුණ' : $provinceVal;
+        } else {
+            $provinceDisplay = $provinceVal ?: 'Southern';
+        }
 
-            <!-- Section 1: Identification -->
-            <div class="section-title"><span class="section-no">1.</span>{{ __('messages.land_information') }}</div>
-            <table class="form-table">
-                <tr>
-                    <th>{{ __('messages.land_number') }}:</th>
-                    <td style="font-weight: bold; color: #2d2d2d;">{{ $parcel->parcel_id }}</td>
-                    <th>{{ __('messages.land_name') }}:</th>
-                    <td>{{ $parcel->land_name ?? __('messages.n_a') }}</td>
-                </tr>
-                <tr>
-                    <th>{{ __('messages.plan_number') }}:</th>
-                    <td>{{ $parcel->plan_number ?? __('messages.n_a') }}</td>
-                    <th>{{ __('messages.survey_details') }}:</th>
-                    <td>{{ $parcel->has_plan ? __('messages.yes') : __('messages.no') }}</td>
-                </tr>
-            </table>
+        // District
+        $districtDisplay = $parcel->district ?? __('messages.n_a');
+        if ($isSi && !empty($parcel->district)) {
+            $distMap = [
+                'galle' => 'ගාල්ල',
+                'matara' => 'මාතර',
+                'hambantota' => 'හම්බන්තොට'
+            ];
+            $districtDisplay = $distMap[strtolower(trim($parcel->district))] ?? $parcel->district;
+        }
 
-            <!-- Section 2: Location -->
-            <div class="section-title"><span class="section-no">2.</span>{{ __('messages.location_details') }}</div>
-            <table class="form-table">
-                <tr>
-                    <th>{{ __('messages.provincial_council') }}:</th>
-                    <td>{{ __('messages.provincial_council') }}</td>
-                    <th>{{ __('messages.district') }}:</th>
-                    <td>{{ $parcel->district }}</td>
-                </tr>
-                <tr>
-                    <th>{{ __('messages.divisional_secretariat') }}:</th>
-                    <td>{{ $parcel->divisional_secretariat ?? ($parcel->division ?? __('messages.n_a')) }}</td>
-                    <th>{{ __('messages.gn_division') }}:</th>
-                    <td>{{ $parcel->grama_niladari_division ?? __('messages.n_a') }}</td>
-                </tr>
-                <tr>
-                    <th>{{ __('messages.village') }}:</th>
-                    <td>{{ $parcel->village }}</td>
-                    <th>GPS Coordinates (Lat, Lon):</th>
-                    <td>
-                        @if($parcel->latitude && $parcel->longitude)
-                        {{ $parcel->latitude }}, {{ $parcel->longitude }}
-                        @else
-                        {{ __('messages.n_a') }}
-                        @endif
-                    </td>
-                </tr>
-            </table>
+        // Extent calculations
+        $acresNum = (float)($parcel->land_size_acers ?? 0);
+        $roodsNum = (float)($parcel->land_size_roods ?? 0);
+        $perchesNum = (float)($parcel->land_size_perches ?? 0);
 
-            <!-- Section 3: Extent & Dimensions -->
-            <div class="section-title"><span class="section-no">3.</span>{{ __('messages.extent') }}</div>
-            <table class="form-table">
-                <tr>
-                    <th>{{ __('messages.acres') }}:</th>
-                    <td>{{ $parcel->land_size_acers ?? ($parcel->extent_acers ?? 0) }} ac</td>
-                    <th>{{ __('messages.roods') }}:</th>
-                    <td>{{ $parcel->land_size_roods ?? 0 }} rd</td>
-                </tr>
-                <tr>
-                    <th>{{ __('messages.perches') }}:</th>
-                    <td>{{ $parcel->land_size_perches ?? ($parcel->extent_perches ?? 0) }} per</td>
-                    <th>{{ __('messages.full_land_area') }}:</th>
-                    <td>{{ $parcel->full_land_size ?? __('messages.n_a') }}</td>
-                </tr>
-            </table>
+        $acresStr = ($acresNum == (int)$acresNum) ? (string)(int)$acresNum : (string)$acresNum;
+        $roodsStr = ($roodsNum == (int)$roodsNum) ? (string)(int)$roodsNum : (string)$roodsNum;
+        $perchesStr = ($perchesNum == (int)$perchesNum) ? (string)(int)$perchesNum : (string)$perchesNum;
 
-            <!-- Section 4: Physical Features & Valuation -->
-            <div class="section-title"><span class="section-no">4.</span>{{ __('messages.valuation_details') }}</div>
-            <table class="form-table">
-                <tr>
-                    <th>Residential Structures:</th>
-                    <td>{{ $parcel->has_residential_houses ? __('messages.yes') : __('messages.no') }}</td>
-                    <th>Resident Owner Status:</th>
-                    <td>{{ $parcel->is_resident_owner ? __('messages.yes') : __('messages.no') }}</td>
-                </tr>
-                <tr>
-                    <th>{{ __('messages.cultivation') }}:</th>
-                    <td>{{ $parcel->is_cultivated ? __('messages.yes') : __('messages.no') }}</td>
-                    <th>{{ __('messages.cultivation') }} (Crops):</th>
-                    <td>{{ $parcel->is_cultivated ? ($parcel->cultivation ?? __('messages.n_a')) : __('messages.n_a') }}</td>
-                </tr>
-                <tr>
-                    <th>Annual Agricultural Income:</th>
-                    <td>{{ number_format($parcel->annual_income ?? 0, 2) }} LKR</td>
-                    <th>{{ __('messages.estimated_value') }}:</th>
-                    <td style="font-weight: bold; color: #2d2d2d;">{{ number_format($parcel->estimated_value ?? 0, 2) }} LKR</td>
-                </tr>
-                <tr>
-                    <th>{{ __('messages.land_type') }}:</th>
-                    <td>{{ $parcel->land_type ?? 'Standard' }}</td>
-                    <th>{{ __('messages.status') }}:</th>
-                    <td style="text-transform: uppercase; font-weight: bold; color: #2d2d2d;">{{ __('messages.' . strtolower($parcel->status ?: 'draft')) }}</td>
-                </tr>
-            </table>
+        $totalAcres = $acresNum + ($roodsNum / 4) + ($perchesNum / 160);
+        if ($totalAcres == 0 && !empty($parcel->full_land_size)) {
+            $hectares = round((float)$parcel->full_land_size * 0.002529285, 4);
+        } else {
+            $hectares = round($totalAcres * 0.404686, 4);
+        }
+        $hectaresStr = number_format($hectares, 4);
 
-            <!-- Section 5: Associated Project -->
-            <div class="section-title"><span class="section-no">5.</span>{{ __('messages.associated_project') }}</div>
-            @if($parcel->project)
-            <table class="form-table">
-                <tr>
-                    <th style="width: 25%;">{{ __('messages.title') }}:</th>
-                    <td style="width: 75%; font-weight: bold; color: #2d2d2d;">{{ $parcel->project->title }}</td>
-                </tr>
-                <tr>
-                    <th>{{ __('messages.project_id') }}:</th>
-                    <td>{{ $parcel->project->project_id }}</td>
-                </tr>
-                <tr>
-                    <th>{{ __('messages.purpose') }}:</th>
-                    <td>{{ $parcel->project->purpose ?? __('messages.n_a') }}</td>
-                </tr>
-            </table>
-            @else
-            <div class="empty-note">
-                {{ __('messages.n_a') }}
-            </div>
-            @endif
+        // Full land size
+        if (!empty($parcel->full_land_size)) {
+            $fullNum = (float)$parcel->full_land_size;
+            $fullSizeStr = ($fullNum == (int)$fullNum) ? (string)(int)$fullNum : (string)$fullNum;
+        } else {
+            $fullSizeStr = $perchesStr ?: __('messages.n_a');
+        }
 
-            <!-- Section 6: Ownership -->
-            <div class="section-title"><span class="section-no">6.</span>{{ __('messages.ownership_details') }}</div>
-            @if($parcel->owners && count($parcel->owners) > 0)
-            @foreach($parcel->owners as $index => $owner)
-            <div class="owner-box">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td colspan="4" style="font-size: 10px; font-weight: bold; color: #2d2d2d; padding-bottom: 4px; border-bottom: 1px solid #cccccc;">
-                            {{ __('messages.owner_name') }} #{{ $index + 1 }}: {{ $owner->name }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width: 15%; color: #718096; font-size: 8px; padding-top: 4px;">{{ __('messages.nic') }}:</td>
-                        <td style="width: 35%; font-weight: bold; font-size: 8px; padding-top: 4px;">{{ $owner->nic }}</td>
-                        <td style="width: 15%; color: #718096; font-size: 8px; padding-top: 4px;">{{ __('messages.contact_number') }}:</td>
-                        <td style="width: 35%; font-weight: bold; font-size: 8px; padding-top: 4px;">{{ $owner->contact }}</td>
-                    </tr>
-                    <tr>
-                        <td style="color: #718096; font-size: 8px; vertical-align: top; padding-top: 2px;">{{ __('messages.address') }}:</td>
-                        <td colspan="3" style="font-size: 8px; padding-top: 2px;">{{ $owner->address }}</td>
-                    </tr>
-                </table>
-            </div>
-            @endforeach
-            @else
-            <div class="empty-note">
-                {{ __('messages.n_a') }}
-            </div>
-            @endif
+        // Survey Plan / Parcel numbers
+        $parcelLots = '';
+        if (!empty($parcel->parcel_numbers)) {
+            if (is_array($parcel->parcel_numbers)) {
+                $parcelLots = implode(', ', $parcel->parcel_numbers);
+            } else {
+                $decoded = json_decode($parcel->parcel_numbers, true);
+                $parcelLots = is_array($decoded) ? implode(', ', $decoded) : (string)$parcel->parcel_numbers;
+            }
+        }
 
-            <!-- Section 7: Administrative Review & Declarations -->
-            <div class="section-title"><span class="section-no">7.</span>{{ __('messages.remarks') }} &amp; {{ __('messages.reports') }}</div>
-            <table class="form-table" style="margin-bottom: 6px;">
-                <tr>
-                    <th style="vertical-align: top; width: 25%;">{{ __('messages.remarks') }}:</th>
-                    <td style="height: 40px; vertical-align: top; width: 75%;">{{ $parcel->remarks ?? __('messages.n_a') }}</td>
-                </tr>
-            </table>
+        if ($parcel->has_plan && !empty($parcel->plan_number)) {
+            if ($isSi) {
+                $planDetails = 'පිඹුරු අංක ' . $parcel->plan_number . (!empty($parcelLots) ? ' ඉඩම් කැබලි අංක ' . $parcelLots : '');
+            } else {
+                $planDetails = 'Plan No. ' . $parcel->plan_number . (!empty($parcelLots) ? ' Land Parcel No. ' . $parcelLots : '');
+            }
+        } else {
+            $planDetails = $isSi ? 'නැත' : 'None';
+        }
 
-            <div class="declaration">
-                @if(app()->getLocale() === 'si')
-                මෙම ලේඛනය භූමි අත්පත් කරගැනීමේ පනතේ විධිවිධානවලට අනුකූලව නිකුත් කරනු ලබන අතර දකුණු පළාත් ප්‍රධාන අමාත්‍යාංශයේ භූමි අත්පත් කරගැනීමේ කළමනාකරණ පද්ධතිය (LAMS) මඟින් ජනනය කරන ලද නිල වාර්තාවක් වේ. මෙහි සටහන් කර ඇති තොරතුරු අත්සන් කරන ලද නිලධාරීන්ගේ දැනුම පරිදි සත්‍ය සහ නිවැරදි බව සහතික කරන අතර, මෙම පෝරමය ස්ථිර නඩු ගොනුවේ කොටසක් ලෙස තබා ගත යුතුය.
+        // Resided by & Housing details
+        if ($parcel->has_residential_houses) {
+            $residedBySi = $parcel->is_resident_owner ? 'ඉඩම් හිමියා' : 'කුලී නිවැසියන්';
+            $residedByEn = $parcel->is_resident_owner ? 'Land owner' : 'Tenants';
+
+            $residentList = [];
+            if ($parcel->residents && count($parcel->residents) > 0) {
+                foreach ($parcel->residents as $res) {
+                    $residentList[] = trim($res->name . ' - ' . $res->address);
+                }
+            } elseif ($parcel->is_resident_owner && $parcel->owners && count($parcel->owners) > 0) {
+                foreach ($parcel->owners as $owner) {
+                    $residentList[] = trim($owner->name . ' - ' . $owner->address);
+                }
+            }
+            $residentDetailsSi = count($residentList) > 0 ? implode('; ', $residentList) : 'නැත';
+            $residentDetailsEn = count($residentList) > 0 ? implode('; ', $residentList) : 'None';
+
+            $relocationPlanSi = $project?->are_residents_moved_temp ? 'විකල්ප වාසස්ථාන සැපයීමට විධිවිධාන යොදා ඇත' : 'නැත';
+            $relocationPlanEn = $project?->are_residents_moved_temp ? 'Arrangements made to provide alternative housing' : 'No';
+        } else {
+            $residedBySi = 'නැත';
+            $residedByEn = 'No';
+            $residentDetailsSi = 'නැත';
+            $residentDetailsEn = 'No';
+            $relocationPlanSi = 'වාසස්ථාන අහිමි නොවේ';
+            $relocationPlanEn = 'Residences will not be lost';
+        }
+
+        // Cultivation details
+        if ($parcel->is_cultivated && !empty($parcel->cultivation)) {
+            $cultivationTypeSi = $parcel->cultivation;
+            $cultivationTypeEn = $parcel->cultivation;
+        } else {
+            $cultivationTypeSi = 'වගාවක් නැත (මුඩුබිම්)';
+            $cultivationTypeEn = 'No cultivation (Bare land)';
+        }
+
+        if ($parcel->is_cultivated) {
+            $statusLabelsSi = ['fertile' => 'ඉතා සරු', 'mid' => 'මධ්‍ය', 'infertile' => 'නිසරු'];
+            $statusLabelsEn = ['fertile' => 'Very fertile', 'mid' => 'Medium', 'infertile' => 'Infertile'];
+            $cKey = strtolower($parcel->cultivation_status ?? '');
+            $cultivationConditionSi = $statusLabelsSi[$cKey] ?? ($parcel->cultivation_status ?: 'මධ්‍ය');
+            $cultivationConditionEn = $statusLabelsEn[$cKey] ?? ($parcel->cultivation_status ?: 'Medium');
+
+            if (!empty($parcel->annual_income)) {
+                $cultivationConditionSi .= ' (වාර්ෂික ආදායම: රු. ' . number_format($parcel->annual_income, 2) . ')';
+                $cultivationConditionEn .= ' (Annual Income: LKR ' . number_format($parcel->annual_income, 2) . ')';
+            }
+        } else {
+            $cultivationConditionSi = 'නැත';
+            $cultivationConditionEn = 'None';
+        }
+
+        // Head of Branch / Signatory details
+        $hobUser = $project?->hobApprovedBy;
+        $hobRoleTitle = $isSi ? 'අංශ ප්‍රධානී (ඉඩම්)' : 'Head of Branch (Land)';
+        $officerName = $hobUser?->name;
+
+        $isGenericName = function(?string $name, string $roleTitle) {
+            if (empty($name)) return true;
+            $nameTrimmed = strtolower(trim($name));
+            $titleTrimmed = strtolower(trim($roleTitle));
+            $genericNames = [
+                'head of branch', 'head of branch (land)', 'hob', 'hob officer', 'අංශ ප්‍රධානී', 'අංශ ප්‍රධානී (ඉඩම්)',
+                'development officer', 'do', 'do officer', 'සංවර්ධන නිලධාරී',
+                'administrative officer', 'ao', 'ao officer', 'පාලන නිලධාරී',
+                'assistant secretary', 'as', 'as officer', 'සහකාර ලේකම්',
+                'senior assistant secretary', 'sas', 'sas officer', 'ජ්‍යෙෂ්ඨ සහකාර ලේකම්',
+                'secretary', 'sec', 'sec officer', 'ලේකම්',
+                'system administrator', 'admin', 'admin user', 'test user'
+            ];
+            return $nameTrimmed === $titleTrimmed || in_array($nameTrimmed, $genericNames, true);
+        };
+
+        // Officers in Items 22 & 23
+        $sec22Si = $project?->section22_secretary_recommendation;
+        $sec22En = $project?->section22_secretary_recommendation;
+        if (empty($sec22Si)) {
+            if ($project?->submittedBy) {
+                $sub = $project->submittedBy;
+                $desig = $sub->designation;
+                $sec22Si = $sub->name . ($desig ? ' - ' . $desig : '');
+                $sec22En = $sub->name . ($desig ? ' - ' . $desig : '');
+            } else {
+                $sec22Si = __('messages.n_a');
+                $sec22En = __('messages.n_a');
+            }
+        }
+
+        $sec23Si = $project?->section23_valuation_recommendation;
+        $sec23En = $project?->section23_valuation_recommendation;
+        if (empty($sec23Si)) {
+            if ($hobUser && strtolower($project?->hob_status ?? '') === 'approved') {
+                $sec23Si = $hobUser->name . ' - ' . $hobRoleTitle;
+                $sec23En = $hobUser->name . ' - ' . $hobRoleTitle;
+            } else {
+                $sec23Si = __('messages.n_a');
+                $sec23En = __('messages.n_a');
+            }
+        }
+
+        // Date
+        $dateObj = $project?->approval_date ?? ($project?->created_at ?? now());
+        $formattedDate = $dateObj ? $dateObj->format('Y-m-d') : date('Y-m-d');
+    @endphp
+
+    <!-- PAGE 1 -->
+    <div class="document-title">
+        {{ $isSi ? 'අත්පත් කිරීමට යෝජිත ඉඩම පිළිබඳව විස්තර ප්‍රකාශය' : 'Statement of Particulars of the Land Proposed to be Acquired' }}
+    </div>
+
+    <!-- 01 -->
+    <div class="item-row">
+        <span class="item-num">01. </span>{{ $isSi ? 'ඉඩම අවශ්‍ය වී ඇති ආයතනයේ නම:' : 'Name of the Institution requiring the land:' }}
+        {{ $institution ?? __('messages.provincial_council') }}
+    </div>
+
+    <!-- 02 -->
+    <div class="item-row">
+        <span class="item-num">02. </span>{{ $isSi ? 'ඉඩම අත්කර ගැනීමට අවශ්‍ය වී ඇති කාරණය:' : 'Purpose for which the land is required to be acquired:' }}
+        {{ $purpose }}
+    </div>
+
+    <!-- 03 -->
+    <div class="item-row">
+        <span class="item-num">03. </span>{{ $isSi ? 'පළාත:' : 'Province:' }}
+        {{ $provinceDisplay }}
+    </div>
+
+    <!-- 04 -->
+    <div class="item-row">
+        <span class="item-num">04. </span>{{ $isSi ? 'දිස්ත්‍රික්කය:' : 'District:' }}
+        {{ $districtDisplay }}
+    </div>
+
+    <!-- 05 -->
+    <div class="item-row">
+        <span class="item-num">05. </span>{{ $isSi ? 'ප්‍රාදේශීය ලේකම් කොට්ඨාශය:' : 'Divisional Secretariat Division:' }}
+        {{ $parcel->divisional_secretariat ?? ($parcel->division ?? __('messages.n_a')) }}
+    </div>
+
+    <!-- 06 -->
+    <div class="item-row">
+        <span class="item-num">06. </span>{{ $isSi ? 'ග්‍රාම නිලධාරී කොට්ඨාශය:' : 'Grama Niladhari Division:' }}
+        {{ $parcel->grama_niladari_division ?? __('messages.n_a') }}
+    </div>
+
+    <!-- 07 -->
+    <div class="item-row">
+        <span class="item-num">07. </span>{{ $isSi ? 'ඉඩම පිහිටි ගමේ නම:' : 'Name of the village where the land is situated:' }}
+        {{ $parcel->village ?? __('messages.n_a') }}
+    </div>
+
+    <!-- 08 -->
+    <div class="item-row">
+        <span class="item-num">08. </span>{{ $isSi ? 'අත්කර ගැනීමට යෝජනා කරන ඉඩමේ නම:' : 'Name of the land proposed to be acquired:' }}
+        {{ $parcel->land_name ?? __('messages.n_a') }}
+    </div>
+
+    <!-- 09 -->
+    <div class="item-row">
+        <span class="item-num">09. </span>{{ $isSi ? 'අත්කර ගැනීමට යෝජනා කරන බිම් ප්‍රමාණය:' : 'Extent of land proposed to be acquired:' }}
+        @if($isSi)
+            අක්: .....{{ $acresStr }}..... රූ: .....{{ $roodsStr }}..... පර්: {{ $perchesStr }} (හෙක්ටයාර: {{ $hectaresStr }})
+        @else
+            Ac: .....{{ $acresStr }}..... R: .....{{ $roodsStr }}..... P: {{ $perchesStr }} (Hectares: {{ $hectaresStr }})
+        @endif
+    </div>
+
+    <!-- 10 -->
+    <div class="item-row">
+        <span class="item-num">10. </span>{{ $isSi ? 'අත්කර ගැනීමට යෝජනා කරන බිම් කොටස ඇතුලත් මුළු ඉඩමේ ප්‍රමාණය:' : 'Extent of the entire land including the portion proposed to be acquired:' }}
+        {{ $fullSizeStr }}
+    </div>
+
+    <!-- 11 -->
+    <div class="item-row">
+        <span class="item-num">11. </span>{{ $isSi ? 'අත්කර ගැනීමට යෝජිත බිම් කොටස වෙනුවෙන් දැනටමත් මිණුම් පිඹුරක් ඇත්නම් එම පිඹුරේ අංකය සහ අදාල ඉඩම් කැබලිවල අංක:' : 'If there is already a survey plan for the portion of land proposed to be acquired, the plan number and the numbers of relevant land parcels:' }}
+        {{ $planDetails }}
+    </div>
+    <div class="sub-note">
+        {{ $isSi ? '(එම ඉඩමේ මිණුම් පිඹුර අමුණා ඇත./මිණුම් පිඹුරක් නැත්නම් ඉඩමට ඇති ප්‍රවේශ මාර්ග සහිතව ඉඩමේ කටු සටහන ඉදිරිපත් කළ යුතුය.)' : '(The survey plan of the land is attached. / If there is no survey plan, a sketch of the land with access roads must be submitted.)' }}
+    </div>
+
+    <!-- 12 -->
+    <div class="item-row">
+        <span class="item-num">12. </span>{{ $isSi ? 'මිණුම් පිඹුරක් නැත්නම් අත්කර ගැනීමට යෝජිත ඉඩම් කොටසට මායිම්:' : 'If there is no survey plan, boundaries for the portion of land proposed to be acquired:' }}
+        <table class="boundary-table">
+            <tr>
+                <td class="boundary-label">{{ $isSi ? 'උතුරට' : 'North' }}</td>
+                <td>: {{ $parcel->boundaries_north ?? __('messages.n_a') }}</td>
+            </tr>
+            <tr>
+                <td class="boundary-label">{{ $isSi ? 'නැගෙනහිරට' : 'East' }}</td>
+                <td>: {{ $parcel->boundaries_east ?? __('messages.n_a') }}</td>
+            </tr>
+            <tr>
+                <td class="boundary-label">{{ $isSi ? 'දකුණට' : 'South' }}</td>
+                <td>: {{ $parcel->boundaries_south ?? __('messages.n_a') }}</td>
+            </tr>
+            <tr>
+                <td class="boundary-label">{{ $isSi ? 'බටහිරට' : 'West' }}</td>
+                <td>: {{ $parcel->boundaries_west ?? __('messages.n_a') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 13 -->
+    <div class="item-row">
+        <span class="item-num">13. </span>{{ $isSi ? 'ඉඩමට හිමිකම් කියන්නන්ගේ නම් සහ ලිපිනයන්:' : 'Names and addresses of claimants to the land:' }}
+        @if($parcel->owners && count($parcel->owners) > 0)
+            @foreach($parcel->owners as $owner)
+                @if($loop->first)
+                    {{ $owner->name }}
+                    @if($owner->address)
+                        <div style="padding-left: 24px;">{{ $owner->address }}</div>
+                    @endif
                 @else
-                This document is issued in accordance with the provisions of the Land Acquisition Act and constitutes an official
-                record generated through the Land Acquisition Management System (LAMS) of the Chief Ministry of Southern Province.
-                It is certified that the particulars recorded herein are true and correct to the best of the knowledge of the
-                undersigned officers, and this form is to be retained as part of the permanent case file.
+                    <div style="margin-top: 3px;">{{ $owner->name }}</div>
+                    @if($owner->address)
+                        <div style="padding-left: 24px;">{{ $owner->address }}</div>
+                    @endif
+                @endif
+            @endforeach
+        @else
+            {{ __('messages.n_a') }}
+        @endif
+    </div>
+
+    <!-- 14 -->
+    <div class="item-row">
+        <span class="item-num">14. </span>{{ $isSi ? 'අත්කර ගැනීමට යෝජිත කොටසේ පදිංචි නිවාස පිහිටා තිබේ ද? :' : 'Are there residential houses situated in the portion proposed to be acquired? :' }}
+        {{ $parcel->has_residential_houses ? ($isSi ? 'ඔව්' : 'Yes') : ($isSi ? 'නැත' : 'No') }}
+    </div>
+
+    <!-- 15 -->
+    <div class="item-row">
+        <span class="item-num">15. </span>{{ $isSi ? 'එසේ තිබේ නම් එම නිවාසවල පදිංචිව ඇත්තේ ඉඩම් හිමියාද?/කුලී නිවැසියන් ද?,' : 'If so, are those houses resided in by the land owner? / tenants?,' }}
+        {{ $isSi ? $residedBySi : $residedByEn }}
+    </div>
+
+    <!-- 16 -->
+    <div class="item-row">
+        <span class="item-num">16. </span>{{ $isSi ? 'නිවාස හිමියාගේ/කුලී නිවැසියන්ගේ සහ ලිපිනයන්:' : 'Names and addresses of the house owner / tenants:' }}
+        {{ $isSi ? $residentDetailsSi : $residentDetailsEn }}
+    </div>
+
+    <!-- 17 -->
+    <div class="item-row">
+        <span class="item-num">17. </span>{{ $isSi ? 'යෝජිත ඉඩම අත්කර ගැනීමෙන් වාසස්ථාන අහිමි වන අය සඳහා විකල්ප වාසස්ථාන සැපයීමට යොදා ඇති පිළිවෙළක් තිබේද' : 'Is there an arrangement made to provide alternative housing for those losing residences due to the acquisition of the proposed land?' }}
+        {{ $isSi ? $relocationPlanSi : $relocationPlanEn }}
+    </div>
+
+    <!-- 18 -->
+    <div class="item-row">
+        <span class="item-num">18. </span>{{ $isSi ? 'ඉඩමේ වගාව කුමක් ද?' : 'What is the cultivation on the land?' }}
+        {{ $isSi ? $cultivationTypeSi : $cultivationTypeEn }}
+    </div>
+
+    <!-- 19 -->
+    <div class="item-row">
+        <span class="item-num">19. </span>{{ $isSi ? 'වගාවේ තත්ත්වය කුමක් ද?(ඉතා සරු/මධ්‍ය/නිසරු) යනුවෙන් සඳහන් කරන්න:' : 'What is the condition of the cultivation? State as (Very fertile / Medium / Infertile):' }}
+        {{ $isSi ? $cultivationConditionSi : $cultivationConditionEn }}
+    </div>
+    <div class="sub-note">
+        {{ $isSi ? '(හැකි සෑම විටම වගාව අනුව වාර්ෂික පලදාව සඳහන් කරන්න.)' : '(State annual yield according to cultivation whenever possible.)' }}
+    </div>
+
+    <!-- PAGE BREAK -->
+    <pagebreak />
+
+    <!-- PAGE 2 -->
+    <!-- 20 -->
+    <div class="item-row-p2">
+        <span class="item-num">20. </span>{{ $isSi ? 'යෝජිත ඉඩම,ඉඩම් ප්‍රතිසංස්කරණ පනත යටතේ ඉඩම් හිමියන්ට පවරා කරන ලද ව්‍යවස්ථාපිත නිගමනයන්ට ඇතුලත් ඉඩමක් ද යන වග:' : 'Whether the proposed land is a land included in statutory determinations made in vesting in land owners under the Land Reform Act:' }}
+        {{ !is_null($project?->section20_observation) ? ($project->section20_observation ? ($isSi ? 'ඔව්' : 'Yes') : ($isSi ? 'නැත' : 'No')) : ($isSi ? 'නැත' : 'No') }}
+    </div>
+
+    <!-- 21 -->
+    <div class="item-row-p2">
+        <span class="item-num">21. </span>{{ $isSi ? 'යෝජිත පොදු කටයුතු සඳහා විකල්ප වශයෙන් යොදා ගත හැකි රජයේ ඉඩම් හෝ ඉඩම් ප්‍රතිසංස්කරණ කොමිෂන් සභාව සතු ඉඩම් තිබේද?(එසේ නම් එම ඉඩමේ පිහිටීම,බිමේ තැනිතලා ස්වභාවය ආදිය සඳහන් කළ යුතු ය.)' : 'Whether there are alternative State lands or lands belonging to the Land Reform Commission that can be utilized for the proposed public purpose? (If so, location, flatness of land, etc. should be stated.):' }}
+        {{ !is_null($project?->section21_secretary_report) ? ($project->section21_secretary_report ? ($isSi ? 'ඔව්' : 'Yes') : ($isSi ? 'නැත' : 'No')) : ($isSi ? 'නැත' : 'No') }}
+    </div>
+
+    <!-- 22 -->
+    <div class="item-row-p2">
+        <span class="item-num">22. </span>{{ $isSi ? 'යෝජිත පොදු කාර්යය සඳහා මෙම ඉඩම සුදුසු බවට තෝරා ගත් නිලධාරියාගේ නම සහ තරාතිරම :' : 'Name and designation of the officer who selected this land as suitable for the proposed public purpose:' }}
+        {{ $isSi ? $sec22Si : $sec22En }}
+    </div>
+
+    <!-- 23 -->
+    <div class="item-row-p2">
+        <span class="item-num">23. </span>{{ $isSi ? 'මෙම ඉඩම යෝජිත පොදු කාර්යය සඳහා අත්පත් කර ගැනීම සුදුසු බව බවට නිර්දේශ කරන ලද නිලධාරියාගේ නම සහ තරාතිරම:' : 'Name and designation of the officer who recommended that this land is suitable to be acquired for the proposed public purpose:' }}
+        {{ $isSi ? $sec23Si : $sec23En }}
+    </div>
+
+    <!-- 24 -->
+    <div class="item-row-p2">
+        <span class="item-num">24. </span>{{ $isSi ? 'මේ සඳහා සුදුසු වෙනත් රජයේ හෝ පුද්ගලික ඉඩම් මෙම ප්‍රදේශයේ තිබේදැයි සොයා බලන ලද්දේද යන වග:' : 'Whether it was inquired if there are other suitable State or private lands in this area for this purpose:' }}
+        {{ !is_null($project?->section24_decision_remarks) ? ($project->section24_decision_remarks ? ($isSi ? 'ඔව්' : 'Yes') : ($isSi ? 'නැත' : 'No')) : ($isSi ? 'ඔව්' : 'Yes') }}
+    </div>
+
+    <!-- 25 -->
+    <div class="item-row-p2">
+        <span class="item-num">25. </span>{{ $isSi ? 'අත්පත් කර ගැනීම සඳහා වන්දි ගෙවීම් ඇතුළු අනෙකුත් වියදම් දැරීමට අවශ්‍ය මුදල් වෙන් කරනු ලැබූ මාර්ගය පැහැදිලි සඳහන් කරන්න:' : 'Clearly specify the source of funds allocated to bear the expenses including compensation payments for acquisition:' }}
+        {{ $project?->section25_additional_conditions ?? ($project?->institution ? $project->institution . ($isSi ? ' ප්‍රතිපාදන මඟින්' : ' funds') : __('messages.n_a')) }}
+    </div>
+
+    <!-- 26 -->
+    <div class="item-row-p2">
+        <span class="item-num">26. </span>{{ $isSi ? 'පොදු කටයුත්ත සඳහා යෝජිත ඉඩම් තෝරා ගැනීම, ප්‍රදේශයේ පොදු සංවර්ධන සැලැස්මට අනුකූල බවත් අදාල පළාත් පාලන ආයතනයේ / නගර නිර්මාණ සැලසුම් දෙපාර්තමේන්තුවේ හෝ අදාල ආයතනයේ එකඟත්වය ලබා ගත්තේ ද යන වග:' : 'Whether the selection of the proposed land for the public purpose complies with the general development plan of the area and whether consent was obtained from the relevant Local Authority / Urban Development Department or relevant institution:' }}
+        {{ !is_null($project?->section26_final_recommendation) ? ($project->section26_final_recommendation ? ($isSi ? 'ඔව්' : 'Yes') : ($isSi ? 'නැත' : 'No')) : ($isSi ? 'නැත' : 'No') }}
+    </div>
+
+    <!-- 27 -->
+    <div class="item-row-p2">
+        <span class="item-num">27. </span>{{ $isSi ? 'අත්පත් කර ගැනීමට යෝජිත ඉඩමේ දළ වටිනාකම:' : 'Estimated value of the land proposed to be acquired:' }}
+        {{ number_format($parcel->estimated_value ?? 0, 2) }}
+    </div>
+
+    <!-- SIGNATURE AND INSTITUTION SECTION -->
+    <div style="margin-top: 50px; width: 100%;">
+        <!-- Left: Date and Institution info -->
+        <div style="width: 48%; float: left; font-size: 11.5pt; line-height: 1.55;">
+            <div>{{ $isSi ? 'දිනය:' : 'Date:' }} {{ $formattedDate }}</div>
+            @if($institution)
+                <div style="margin-top: 5px;">{{ $institution }}</div>
+            @endif
+            @if($institutionAddress)
+                <div>{!! nl2br(e($institutionAddress)) !!}</div>
+            @endif
+            <div style="font-size: 10pt; color: #333333; margin-top: 3px;">
+                ({{ $isSi ? 'ආයතනයේ නම සහ ලිපිනය සඳහන් කරන්න' : 'State the name and address of the institution' }})
+            </div>
+        </div>
+
+        <!-- Right: Head of Institution Signature block -->
+        <div style="width: 48%; float: right; text-align: center; font-size: 11.5pt; line-height: 1.5;">
+            <div style="letter-spacing: 1px; color: #333333;">..................................................</div>
+            <div style="margin-top: 3px;">{{ $isSi ? 'ආයතන ප්‍රධානියාගේ අත්සන' : 'Signature of the Head of Institution' }}</div>
+
+            <div style="height: 50px; margin: 4px 0; text-align: center;">
+                @if($hobUser && !empty($hobUser->signature) && strtolower($project?->hob_status ?? '') === 'approved')
+                    <img src="{{ $hobUser->signature }}" style="max-height: 46px; max-width: 170px; width: auto; height: auto;" alt="Signature" />
                 @endif
             </div>
 
-            <!-- Signature Box: Head of Branch Only -->
-            @php
-                $project = $parcel->project;
-                $hobUser = $project?->hobApprovedBy;
-                $isGenericName = function(?string $name, string $roleTitle) {
-                    if (empty($name)) return true;
-                    $nameTrimmed = strtolower(trim($name));
-                    $titleTrimmed = strtolower(trim($roleTitle));
-                    $genericNames = [
-                        'head of branch', 'head of branch (land)', 'hob', 'hob officer', 'අංශ ප්‍රධානී', 'අංශ ප්‍රධානී (ඉඩම්)',
-                        'development officer', 'do', 'do officer', 'සංවර්ධන නිලධාරී',
-                        'administrative officer', 'ao', 'ao officer', 'පාලන නිලධාරී',
-                        'assistant secretary', 'as', 'as officer', 'සහකාර ලේකම්',
-                        'senior assistant secretary', 'sas', 'sas officer', 'ජ්‍යෙෂ්ඨ සහකාර ලේකම්',
-                        'secretary', 'sec', 'sec officer', 'ලේකම්',
-                        'system administrator', 'admin', 'admin user', 'test user'
-                    ];
-                    return $nameTrimmed === $titleTrimmed || in_array($nameTrimmed, $genericNames, true);
-                };
-            @endphp
-            <table style="width: 100%; border-collapse: collapse; margin-top: 25px;">
-                <tr>
-                    <td style="width: 60%;"></td>
-                    <td style="width: 40%; text-align: center; vertical-align: bottom; padding: 4px 6px;">
-                        @if($hobUser && strtolower($project?->hob_status) === 'approved')
-                            <div style="height: 44px; text-align: center; vertical-align: bottom; margin-bottom: 2px;">
-                                @if(!empty($hobUser->signature))
-                                    <img src="{{ $hobUser->signature }}" style="max-height: 40px; max-width: 150px; width: auto; height: auto;" />
-                                @else
-                                    <div style="font-size: 8.5px; font-weight: bold; color: #1e3a8a; font-style: italic; padding-top: 14px;">
-                                        (Digitally Approved)
-                                    </div>
-                                @endif
-                            </div>
-                            <div style="border-top: 1px solid #2d2d2d; padding-top: 2px;">
-                                @php
-                                    $hobRoleTitle = app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී (ඉඩම්)' : 'Head of Branch (Land)';
-                                @endphp
-                                @if(!$isGenericName($hobUser->name, $hobRoleTitle))
-                                    <p style="margin: 0; font-size: 8.5px; font-weight: bold; color: #1a1a1a;">{{ $hobUser->name }}</p>
-                                @endif
-                                <p style="margin: 1px 0 0 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ $hobRoleTitle }}</p>
-                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #6b7280;">
-                                    {{ $project?->hob_approved_at ? $project->hob_approved_at->format('Y-m-d H:i') : '' }}
-                                </p>
-                            </div>
-                        @else
-                            <div style="height: 44px;"></div>
-                            <div style="border-top: 1px dashed #718096; padding-top: 2px;">
-                                <p style="margin: 0; font-size: 8px; font-weight: bold; text-transform: uppercase; color: #4b5563;">{{ app()->getLocale() === 'si' ? 'අංශ ප්‍රධානී (ඉඩම්)' : 'Head of Branch (Land)' }}</p>
-                                <p style="margin: 1px 0 0 0; font-size: 7.5px; color: #718096;">
-                                    {{ app()->getLocale() === 'si' ? 'දිනය' : 'Date' }}: ..... / ..... / 20.....
-                                </p>
-                            </div>
-                        @endif
-                    </td>
-                </tr>
-            </table>
-
+            @if($officerName && !$isGenericName($officerName, $hobRoleTitle))
+                <div style="font-weight: bold;">{{ $officerName }}</div>
+            @endif
+            <div style="font-weight: bold;">{{ $hobRoleTitle }}</div>
+            @if($institution)
+                <div>{{ $institution }}</div>
+            @endif
+            @if($institutionAddress)
+                <div>{!! nl2br(e($institutionAddress)) !!}</div>
+            @endif
         </div>
-    </div>
-
-    <div class="footer" style="font-family: 'notosanssinhala', sans-serif;">
-        <div>Form LA-01 &mdash; {{ __('messages.Land_Acquisition_Management_System') }} &copy; {{ date('Y') }}</div>
-        <div class="footer-line-2">{{ app()->getLocale() === 'si' ? 'අතිශය රහස්‍යයි - ශ්‍රී ලංකා රජය' : 'Strictly Confidential - Government of Sri Lanka' }}</div>
+        <div style="clear: both;"></div>
     </div>
 
 </body>
