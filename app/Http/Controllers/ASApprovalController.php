@@ -57,8 +57,8 @@ class ASApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[System]: Approved by Assistant Secretary';
         $project->save();
 
-        // Notify Senior Assistant Secretary (SAS) users
-        $sasUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'SAS'))->get();
+        // Notify Senior Assistant Secretary (SAS) users of the acquisition case institution
+        $sasUsers = $project->getInstitutionOfficers('SAS');
         foreach ($sasUsers as $sas) {
             $sas->notify(new RealtimeSystemNotification(
                 title: 'Project Approved by AS',
@@ -101,8 +101,14 @@ class ASApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[Rejected AS - Returned to DO]: '.$comment;
         $project->save();
 
-        // Notify DO, HOB, and AO users
-        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO']))->get();
+        // Notify DO, HOB, and AO users of the acquisition case institution
+        $notifiedUsers = $project->getInstitutionOfficers(['DO', 'HOB', 'AO']);
+        if ($project->submitted_by) {
+            $submitter = $project->submittedBy ?? User::find($project->submitted_by);
+            if ($submitter && $submitter->role && $submitter->role->role_name === 'DO' && ! $notifiedUsers->contains('id', $submitter->id)) {
+                $notifiedUsers->push($submitter);
+            }
+        }
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Rejected by AS',
