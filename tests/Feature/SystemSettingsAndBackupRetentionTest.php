@@ -84,21 +84,64 @@ test('admin can update backup settings and retention', function () {
 });
 
 test('admin can update smtp_port as integer or string without validation errors', function () {
-    // 1. Sent as integer
-    $resInt = $this->actingAs($this->adminUser, 'sanctum')
-        ->postJson('/api/settings', [
-            'smtp_port' => 587,
-        ]);
-    $resInt->assertStatus(200);
-    $this->assertEquals('587', SystemSetting::get('smtp_port'));
+    $origPort = SystemSetting::getEnvValue('MAIL_PORT', '587');
 
-    // 2. Sent as string
-    $resStr = $this->actingAs($this->adminUser, 'sanctum')
-        ->postJson('/api/settings', [
-            'smtp_port' => '465',
+    try {
+        // 1. Sent as integer
+        $resInt = $this->actingAs($this->adminUser, 'sanctum')
+            ->postJson('/api/settings', [
+                'smtp_port' => 587,
+            ]);
+        $resInt->assertStatus(200);
+        $this->assertEquals('587', SystemSetting::get('smtp_port'));
+
+        // 2. Sent as string
+        $resStr = $this->actingAs($this->adminUser, 'sanctum')
+            ->postJson('/api/settings', [
+                'smtp_port' => '465',
+            ]);
+        $resStr->assertStatus(200);
+        $this->assertEquals('465', SystemSetting::get('smtp_port'));
+    } finally {
+        SystemSetting::updateEnv(['MAIL_PORT' => $origPort]);
+        config(['mail.mailers.smtp.port' => (int) $origPort]);
+    }
+});
+
+test('smtp host and port are read from env and updating changes env and settings', function () {
+    $origHost = SystemSetting::getEnvValue('MAIL_HOST', 'smtp.gmail.com');
+    $origPort = SystemSetting::getEnvValue('MAIL_PORT', '587');
+
+    try {
+        $getRes = $this->actingAs($this->adminUser, 'sanctum')
+            ->getJson('/api/settings');
+        $getRes->assertStatus(200);
+        $this->assertEquals($origHost, $getRes->json('settings.smtp_host'));
+        $this->assertEquals((string) $origPort, (string) $getRes->json('settings.smtp_port'));
+
+        $postRes = $this->actingAs($this->adminUser, 'sanctum')
+            ->postJson('/api/settings', [
+                'smtp_host' => 'smtp.custom-mail.gov.lk',
+                'smtp_port' => '2525',
+            ]);
+        $postRes->assertStatus(200);
+        $this->assertEquals('smtp.custom-mail.gov.lk', $postRes->json('settings.smtp_host'));
+        $this->assertEquals('2525', $postRes->json('settings.smtp_port'));
+
+        $this->assertEquals('smtp.custom-mail.gov.lk', SystemSetting::getEnvValue('MAIL_HOST'));
+        $this->assertEquals('2525', SystemSetting::getEnvValue('MAIL_PORT'));
+        $this->assertEquals('smtp.custom-mail.gov.lk', SystemSetting::get('smtp_host'));
+        $this->assertEquals('2525', SystemSetting::get('smtp_port'));
+    } finally {
+        SystemSetting::updateEnv([
+            'MAIL_HOST' => $origHost,
+            'MAIL_PORT' => $origPort,
         ]);
-    $resStr->assertStatus(200);
-    $this->assertEquals('465', SystemSetting::get('smtp_port'));
+        config([
+            'mail.mailers.smtp.host' => $origHost,
+            'mail.mailers.smtp.port' => (int) $origPort,
+        ]);
+    }
 });
 
 test('non-admin is forbidden from system settings', function () {

@@ -17,6 +17,67 @@ class SystemSetting extends Model
     ];
 
     /**
+     * Read a key directly from .env file with fallback to runtime env/config.
+     */
+    public static function getEnvValue(string $key, mixed $default = null): mixed
+    {
+        $envPath = base_path('.env');
+        if (file_exists($envPath)) {
+            $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (str_starts_with($line, '#')) {
+                    continue;
+                }
+                if (preg_match('/^'.preg_quote($key, '/').'=(.*)$/', $line, $matches)) {
+                    $val = trim($matches[1]);
+                    if ((str_starts_with($val, '"') && str_ends_with($val, '"')) ||
+                        (str_starts_with($val, "'") && str_ends_with($val, "'"))) {
+                        $val = substr($val, 1, -1);
+                    }
+
+                    return $val;
+                }
+            }
+        }
+
+        return env($key, $default);
+    }
+
+    /**
+     * Safely update or append key-value pairs in the .env file and runtime environment.
+     */
+    public static function updateEnv(array $pairs): void
+    {
+        $envPath = base_path('.env');
+        if (! file_exists($envPath)) {
+            return;
+        }
+
+        $content = file_get_contents($envPath);
+
+        foreach ($pairs as $key => $value) {
+            $key = trim($key);
+            $valStr = (string) $value;
+            $formatted = preg_match('/\s/', $valStr) ? '"'.addcslashes($valStr, '"').'"' : $valStr;
+
+            $pattern = '/^('.preg_quote($key, '/').'=)(.*)$/m';
+
+            if (preg_match($pattern, $content)) {
+                $content = preg_replace($pattern, "{$key}={$formatted}", $content, 1);
+            } else {
+                $content = rtrim($content)."\n{$key}={$formatted}\n";
+            }
+
+            putenv("{$key}={$valStr}");
+            $_ENV[$key] = $valStr;
+            $_SERVER[$key] = $valStr;
+        }
+
+        file_put_contents($envPath, $content);
+    }
+
+    /**
      * Default system settings matching the UI configuration.
      */
     public static function defaults(): array
@@ -26,7 +87,7 @@ class SystemSetting extends Model
             'system_name' => 'Land Acquisition Management System',
             'org_name' => 'Chief Ministry – Southern Province',
             'language' => 'en',
-            'timezone' => 'Asia/Colombo',
+            'timezone' => config('app.timezone', 'Asia/Colombo'),
             'date_format' => 'DD/MM/YYYY',
             'currency' => 'LKR',
 
@@ -45,8 +106,8 @@ class SystemSetting extends Model
             'approval_alerts' => true,
             'deadline_alerts' => true,
             'daily_digest' => false,
-            'smtp_host' => 'smtp.lams.gov.lk',
-            'smtp_port' => '587',
+            'smtp_host' => static::getEnvValue('MAIL_HOST', env('MAIL_HOST', config('mail.mailers.smtp.host', '127.0.0.1'))),
+            'smtp_port' => (string) static::getEnvValue('MAIL_PORT', env('MAIL_PORT', config('mail.mailers.smtp.port', '587'))),
 
             // Automated Backup & Maintenance
             'auto_backup' => true,
@@ -63,6 +124,14 @@ class SystemSetting extends Model
      */
     public static function get(string $key, mixed $default = null): mixed
     {
+        if ($key === 'smtp_host') {
+            return static::getEnvValue('MAIL_HOST', env('MAIL_HOST', config('mail.mailers.smtp.host', '127.0.0.1')));
+        }
+
+        if ($key === 'smtp_port') {
+            return (string) static::getEnvValue('MAIL_PORT', env('MAIL_PORT', config('mail.mailers.smtp.port', '587')));
+        }
+
         $setting = static::where('key', $key)->first();
         if (! $setting) {
             return $default ?? (static::defaults()[$key] ?? null);
@@ -88,6 +157,14 @@ class SystemSetting extends Model
      */
     public static function set(string $key, mixed $value): void
     {
+        if ($key === 'smtp_host' && $value !== null) {
+            static::updateEnv(['MAIL_HOST' => (string) $value]);
+            config(['mail.mailers.smtp.host' => (string) $value]);
+        } elseif ($key === 'smtp_port' && $value !== null) {
+            static::updateEnv(['MAIL_PORT' => (string) $value]);
+            config(['mail.mailers.smtp.port' => (int) $value]);
+        }
+
         $storedValue = is_array($value) || is_bool($value) || is_object($value)
             ? json_encode($value)
             : (string) $value;
@@ -103,8 +180,29 @@ class SystemSetting extends Model
      */
     public static function setMany(array $settings): void
     {
+        $envPairs = [];
+        if (array_key_exists('smtp_host', $settings) && $settings['smtp_host'] !== null) {
+            $envPairs['MAIL_HOST'] = (string) $settings['smtp_host'];
+            config(['mail.mailers.smtp.host' => (string) $settings['smtp_host']]);
+        }
+        if (array_key_exists('smtp_port', $settings) && $settings['smtp_port'] !== null) {
+            $envPairs['MAIL_PORT'] = (string) $settings['smtp_port'];
+            config(['mail.mailers.smtp.port' => (int) $settings['smtp_port']]);
+        }
+
+        if (! empty($envPairs)) {
+            static::updateEnv($envPairs);
+        }
+
         foreach ($settings as $key => $value) {
-            static::set($key, $value);
+            $storedValue = is_array($value) || is_bool($value) || is_object($value)
+                ? json_encode($value)
+                : (string) $value;
+
+            static::updateOrCreate(
+                ['key' => $key],
+                ['value' => $storedValue]
+            );
         }
     }
 
@@ -138,6 +236,10 @@ class SystemSetting extends Model
                 $merged[$key] = (json_last_error() === JSON_ERROR_NONE) ? $decoded : $val;
             }
         }
+
+        // Always ensure smtp_host and smtp_port reflect current .env configuration
+        $merged['smtp_host'] = static::getEnvValue('MAIL_HOST', env('MAIL_HOST', config('mail.mailers.smtp.host', '127.0.0.1')));
+        $merged['smtp_port'] = (string) static::getEnvValue('MAIL_PORT', env('MAIL_PORT', config('mail.mailers.smtp.port', '587')));
 
         return $merged;
     }

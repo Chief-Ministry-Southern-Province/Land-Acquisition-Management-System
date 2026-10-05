@@ -186,7 +186,7 @@ export default function SystemSettings() {
   const [approvalAlerts, setApprovalAlerts] = useState(true);
   const [deadlineAlerts, setDeadlineAlerts] = useState(true);
   const [dailyDigest, setDailyDigest] = useState(false);
-  const [smtpHost, setSmtpHost] = useState('smtp.lams.gov.lk');
+  const [smtpHost, setSmtpHost] = useState('');
   const [smtpPort, setSmtpPort] = useState('587');
 
   // ── Backup settings ──
@@ -216,121 +216,131 @@ export default function SystemSettings() {
     setTimeout(() => setToast(null), 5000);
   };
 
-  const loadSettings = useCallback(async () => {
-    try {
-      const data = await getSystemSettings();
-
-      if (data.system_name !== undefined) {
-        setSystemName(data.system_name);
-      }
-
-      if (data.org_name !== undefined) {
-        setOrgName(data.org_name);
-      }
-
-      if (data.language !== undefined) {
-        setLanguage(data.language);
-      }
-
-      if (data.timezone !== undefined) {
-        setTimezone(data.timezone);
-      }
-
-      if (data.date_format !== undefined) {
-        setDateFormat(data.date_format);
-      }
-
-      if (data.currency !== undefined) {
-        setCurrency(data.currency);
-      }
-
-      if (data.session_timeout !== undefined) {
-        setSessionTimeout(String(data.session_timeout));
-      }
-
-      if (data.max_login_attempts !== undefined) {
-        setMaxLoginAttempts(String(data.max_login_attempts));
-      }
-
-      if (data.password_min_length !== undefined) {
-        setPasswordMinLength(String(data.password_min_length));
-      }
-
-      if (data.two_factor !== undefined) {
-        setTwoFactor(Boolean(data.two_factor));
-      }
-
-      if (data.enforce_password_expiry !== undefined) {
-        setEnforcePasswordExpiry(Boolean(data.enforce_password_expiry));
-      }
-
-      if (data.password_expiry_days !== undefined) {
-        setPasswordExpiryDays(String(data.password_expiry_days));
-      }
-
-      if (data.ip_whitelist !== undefined) {
-        setIpWhitelist(Boolean(data.ip_whitelist));
-      }
-
-      if (data.email_notifs !== undefined) {
-        setEmailNotifs(Boolean(data.email_notifs));
-      }
-
-      if (data.system_notifs !== undefined) {
-        setSystemNotifs(Boolean(data.system_notifs));
-      }
-
-      if (data.approval_alerts !== undefined) {
-        setApprovalAlerts(Boolean(data.approval_alerts));
-      }
-
-      if (data.deadline_alerts !== undefined) {
-        setDeadlineAlerts(Boolean(data.deadline_alerts));
-      }
-
-      if (data.daily_digest !== undefined) {
-        setDailyDigest(Boolean(data.daily_digest));
-      }
-
-      if (data.smtp_host !== undefined) {
-        setSmtpHost(data.smtp_host);
-      }
-
-      if (data.smtp_port !== undefined) {
-        setSmtpPort(String(data.smtp_port));
-      }
-
-      if (data.auto_backup !== undefined) {
-        setAutoBackup(Boolean(data.auto_backup));
-      }
-
-      if (data.backup_frequency !== undefined) {
-        setBackupFrequency(data.backup_frequency);
-      }
-
-      if (data.retention_days !== undefined) {
-        setRetentionDays(String(data.retention_days));
-      }
-
-      if (data.audit_log_retention !== undefined) {
-        setAuditLogRetention(String(data.audit_log_retention));
-      }
-
-      if (data.maintenance_mode !== undefined) {
-        setMaintenanceMode(Boolean(data.maintenance_mode));
-      }
-
-      if (data.last_auto_backup_at !== undefined) {
-        setLastAutoBackupAt(data.last_auto_backup_at);
-      }
-    } catch (err) {
-      console.error('Failed to load system settings:', err);
-    }
-  }, []);
-
   useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
+    let isMounted = true;
+
+    const fetchSettings = async () => {
+      try {
+        const data = await getSystemSettings();
+
+        if (!isMounted) {
+return;
+}
+
+        if (data.system_name !== undefined) {
+          setSystemName(data.system_name);
+        }
+
+        if (data.org_name !== undefined) {
+          setOrgName(data.org_name);
+        }
+
+        if (data.language !== undefined) {
+          setLanguage(data.language);
+        }
+
+        if (data.timezone !== undefined) {
+          setTimezone(data.timezone);
+        }
+
+        if (data.date_format !== undefined) {
+          setDateFormat(data.date_format);
+        }
+
+        if (data.currency !== undefined) {
+          setCurrency(data.currency);
+        }
+
+        if (data.session_timeout !== undefined) {
+          setSessionTimeout(String(data.session_timeout));
+        }
+
+        if (data.max_login_attempts !== undefined) {
+          setMaxLoginAttempts(String(data.max_login_attempts));
+        }
+
+        if (data.password_min_length !== undefined) {
+          setPasswordMinLength(String(data.password_min_length));
+        }
+
+        if (data.two_factor !== undefined) {
+          setTwoFactor(Boolean(data.two_factor));
+        }
+
+        if (data.enforce_password_expiry !== undefined) {
+          setEnforcePasswordExpiry(Boolean(data.enforce_password_expiry));
+        }
+
+        if (data.password_expiry_days !== undefined) {
+          setPasswordExpiryDays(String(data.password_expiry_days));
+        }
+
+        if (data.ip_whitelist !== undefined) {
+          setIpWhitelist(Boolean(data.ip_whitelist));
+        }
+
+        if (data.email_notifs !== undefined) {
+          setEmailNotifs(Boolean(data.email_notifs));
+        }
+
+        if (data.system_notifs !== undefined) {
+          setSystemNotifs(Boolean(data.system_notifs));
+        }
+
+        if (data.approval_alerts !== undefined) {
+          setApprovalAlerts(Boolean(data.approval_alerts));
+        }
+
+        if (data.deadline_alerts !== undefined) {
+          setDeadlineAlerts(Boolean(data.deadline_alerts));
+        }
+
+        if (data.daily_digest !== undefined) {
+          setDailyDigest(Boolean(data.daily_digest));
+        }
+
+        if (data.smtp_host !== undefined) {
+          setSmtpHost(data.smtp_host);
+        }
+
+        if (data.smtp_port !== undefined) {
+          setSmtpPort(String(data.smtp_port));
+        }
+
+        if (data.auto_backup !== undefined) {
+          setAutoBackup(Boolean(data.auto_backup));
+        }
+
+        if (data.backup_frequency !== undefined) {
+          setBackupFrequency(data.backup_frequency);
+        }
+
+        if (data.retention_days !== undefined) {
+          setRetentionDays(String(data.retention_days));
+        }
+
+        if (data.audit_log_retention !== undefined) {
+          setAuditLogRetention(String(data.audit_log_retention));
+        }
+
+        if (data.maintenance_mode !== undefined) {
+          setMaintenanceMode(Boolean(data.maintenance_mode));
+        }
+
+        if (data.last_auto_backup_at !== undefined) {
+          setLastAutoBackupAt(data.last_auto_backup_at);
+        }
+      } catch (err) {
+        console.error('Failed to load system settings:', err);
+      }
+    };
+
+    fetchSettings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const loadBackups = useCallback(async () => {
     setLoadingBackups(true);

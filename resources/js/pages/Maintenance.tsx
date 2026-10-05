@@ -8,9 +8,6 @@ import {
   Settings,
   ShieldAlert,
   Server,
-  AlertTriangle,
-  ArrowRight,
-  Globe,
   UserCheck,
 } from 'lucide-react';
 import { useState } from 'react';
