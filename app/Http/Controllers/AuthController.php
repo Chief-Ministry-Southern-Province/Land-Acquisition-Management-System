@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -106,14 +105,22 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        /** @var User $user */
+        /** @var User|null $user */
         $user = $request->user();
 
-        AuditLogService::log($user->id, $user->name, 'Log out', 'Authentication', 'Successfull logout');
+        if ($user) {
+            AuditLogService::log($user->id, $user->name, 'Log out', 'Authentication', 'Successfull logout');
 
-        /** @var PersonalAccessToken $token */
-        $token = $user->currentAccessToken();
-        $token->delete();
+            $token = $user->currentAccessToken();
+            if ($token && method_exists($token, 'delete')) {
+                $token->delete();
+            }
+
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+        }
 
         return response()->json([
             'message' => 'Logged out successfully',

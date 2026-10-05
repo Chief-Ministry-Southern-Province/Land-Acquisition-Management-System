@@ -224,8 +224,8 @@ export default function SystemSettings() {
         const data = await getSystemSettings();
 
         if (!isMounted) {
-return;
-}
+          return;
+        }
 
         if (data.system_name !== undefined) {
           setSystemName(data.system_name);
