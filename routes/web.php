@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -156,6 +157,22 @@ Route::middleware(['auth:sanctum', 'check.role:SEC'])->group(function () {
 Route::inertia('/access-denied', 'AccessDenied')->name('access-denied');
 Route::inertia('/access-restricted', 'AccessDenied')->name('access-restricted');
 Route::inertia('/not-found', 'NotFound')->name('not-found');
+
+Route::get('/maintenance', function (Request $request) {
+    $user = $request->user();
+    if ($user) {
+        $user->load('role');
+    }
+    $isAdmin = $user && $user->role && $user->role->role_name === 'Admin';
+    $isMaintenanceActive = (bool) SystemSetting::get('maintenance_mode', false);
+
+    return inertia('Maintenance', [
+        'isAdmin' => $isAdmin,
+        'userRole' => $user?->role?->role_name ?? null,
+        'userName' => $user?->name ?? null,
+        'isMaintenanceActive' => $isMaintenanceActive,
+    ]);
+})->name('maintenance');
 
 Route::fallback(function () {
     return redirect('/not-found');

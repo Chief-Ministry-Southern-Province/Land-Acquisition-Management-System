@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuditLogFailedCreations;
+use App\Http\Middleware\CheckMaintenanceMode;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            CheckMaintenanceMode::class,
         ]);
 
         $middleware->api(prepend: [
@@ -41,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
             EnsureUserIsActive::class,
             AuditLogFailedCreations::class,
+            CheckMaintenanceMode::class,
         ]);
 
         $middleware->preventRequestForgery(except: [
