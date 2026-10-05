@@ -74,8 +74,8 @@ class SASApprovalController extends Controller
         $project->save();
 
         if ($project->sec_status === 'pending') {
-            // Escalated to Secretary - notify SEC users
-            $secUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'SEC'))->get();
+            // Escalated to Secretary - notify SEC users of the acquisition case institution
+            $secUsers = $project->getInstitutionOfficers('SEC');
             foreach ($secUsers as $sec) {
                 $sec->notify(new RealtimeSystemNotification(
                     title: 'Escalated Project Approval Request',
@@ -86,8 +86,14 @@ class SASApprovalController extends Controller
                 EmailService::sendCasePendingApprovalEmail($sec, $project, 'Secretary (SEC) Review');
             }
         } else {
-            // Case completed - notify DO, HOB, AO, AS
-            $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS']))->get();
+            // Case completed - notify DO, HOB, AO, AS of the acquisition case institution
+            $notifiedUsers = $project->getInstitutionOfficers(['DO', 'HOB', 'AO', 'AS']);
+            if ($project->submitted_by) {
+                $submitter = $project->submittedBy ?? User::find($project->submitted_by);
+                if ($submitter && $submitter->role && $submitter->role->role_name === 'DO' && ! $notifiedUsers->contains('id', $submitter->id)) {
+                    $notifiedUsers->push($submitter);
+                }
+            }
             foreach ($notifiedUsers as $u) {
                 $u->notify(new RealtimeSystemNotification(
                     title: 'Project Fully Approved',
@@ -131,8 +137,14 @@ class SASApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[Rejected SAS - Returned to DO]: '.$comment;
         $project->save();
 
-        // Notify DO, HOB, AO, and AS users
-        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS']))->get();
+        // Notify DO, HOB, AO, and AS users of the acquisition case institution
+        $notifiedUsers = $project->getInstitutionOfficers(['DO', 'HOB', 'AO', 'AS']);
+        if ($project->submitted_by) {
+            $submitter = $project->submittedBy ?? User::find($project->submitted_by);
+            if ($submitter && $submitter->role && $submitter->role->role_name === 'DO' && ! $notifiedUsers->contains('id', $submitter->id)) {
+                $notifiedUsers->push($submitter);
+            }
+        }
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Rejected by SAS',

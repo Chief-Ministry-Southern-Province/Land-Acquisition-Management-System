@@ -57,8 +57,14 @@ class SECApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[System]: Approved by Secretary';
         $project->save();
 
-        // Notify DO, HOB, AO, AS, and SAS users
-        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS', 'SAS']))->get();
+        // Notify DO, HOB, AO, AS, and SAS users of the acquisition case institution
+        $notifiedUsers = $project->getInstitutionOfficers(['DO', 'HOB', 'AO', 'AS', 'SAS']);
+        if ($project->submitted_by) {
+            $submitter = $project->submittedBy ?? User::find($project->submitted_by);
+            if ($submitter && $submitter->role && $submitter->role->role_name === 'DO' && ! $notifiedUsers->contains('id', $submitter->id)) {
+                $notifiedUsers->push($submitter);
+            }
+        }
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Fully Approved (Secretary)',
@@ -102,8 +108,14 @@ class SECApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[Rejected SEC - Returned to DO]: '.$comment;
         $project->save();
 
-        // Notify DO, HOB, AO, AS, and SAS users
-        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB', 'AO', 'AS', 'SAS']))->get();
+        // Notify DO, HOB, AO, AS, and SAS users of the acquisition case institution
+        $notifiedUsers = $project->getInstitutionOfficers(['DO', 'HOB', 'AO', 'AS', 'SAS']);
+        if ($project->submitted_by) {
+            $submitter = $project->submittedBy ?? User::find($project->submitted_by);
+            if ($submitter && $submitter->role && $submitter->role->role_name === 'DO' && ! $notifiedUsers->contains('id', $submitter->id)) {
+                $notifiedUsers->push($submitter);
+            }
+        }
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Rejected by Secretary',
