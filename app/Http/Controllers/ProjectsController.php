@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Departments;
 use App\Models\LandParcel;
 use App\Models\Projects;
-use App\Models\User;
 use App\Notifications\RealtimeSystemNotification;
 use App\Services\EmailService;
 use App\Services\ExportService;
@@ -45,6 +45,7 @@ class ProjectsController extends Controller
 
         $validated = $request->validate([
             'project_id' => 'required|string|max:255',
+            'department_id' => 'nullable|exists:departments,id',
             'title' => 'nullable|string|max:255',
             'name' => 'nullable|string|max:255',
             'purpose' => 'required|string|max:255',
@@ -110,6 +111,20 @@ class ProjectsController extends Controller
         $validated['section21_secretary_report'] = filter_var($validated['section21_secretary_report'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $validated['section24_decision_remarks'] = filter_var($validated['section24_decision_remarks'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $validated['section26_final_recommendation'] = filter_var($validated['section26_final_recommendation'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if (empty($validated['department_id'])) {
+            if (! empty($validated['institution']) && $validated['institution'] !== 'N/A') {
+                $dept = Departments::where('department_name', $validated['institution'])
+                    ->orWhere('dep_code', $validated['institution'])
+                    ->first();
+                if ($dept) {
+                    $validated['department_id'] = $dept->id;
+                }
+            }
+            if (empty($validated['department_id']) && $user && $user->department_id) {
+                $validated['department_id'] = $user->department_id;
+            }
+        }
 
         DB::beginTransaction();
 
@@ -206,6 +221,7 @@ class ProjectsController extends Controller
 
         $validated = $request->validate([
             'project_id' => 'required|string|max:255',
+            'department_id' => 'nullable|exists:departments,id',
             'title' => 'nullable|string|max:255',
             'name' => 'nullable|string|max:255',
             'purpose' => 'required|string|max:255',
@@ -359,10 +375,19 @@ class ProjectsController extends Controller
         $project->case_status = 'pending';
         $project->submitted_by = $user ? $user->id : null;
         $project->submitted_at = now();
+
+        if (empty($project->department_id)) {
+            $resolvedDept = $project->getInstitutionDepartment();
+            if ($resolvedDept) {
+                $project->department_id = $resolvedDept->id;
+            } elseif ($user && $user->department_id) {
+                $project->department_id = $user->department_id;
+            }
+        }
         $project->save();
 
-        // Notify Head of Branch (HOB) users
-        $hobUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'HOB'))->get();
+        // Notify Head of Branch (HOB) users of the acquisition case institution
+        $hobUsers = $project->getInstitutionOfficers('HOB');
         foreach ($hobUsers as $hob) {
             $hob->notify(new RealtimeSystemNotification(
                 title: 'New Project Submitted',

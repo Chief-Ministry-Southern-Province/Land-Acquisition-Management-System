@@ -49,6 +49,7 @@ import type { Document } from '@/services/projectsManagementService';
 type ProjectForm = {
   title: string;
   name: string;
+  departmentId?: number | null;
   institution: string;
   institutionAddress: string;
   purpose: string;
@@ -70,6 +71,7 @@ type ProjectForm = {
 const EMPTY_FORM: ProjectForm = {
   title: '',
   name: '',
+  departmentId: null,
   institution: '',
   institutionAddress: '',
   purpose: '',
@@ -249,6 +251,7 @@ export default function AddProject() {
           setForm({
             title: data.title || '',
             name: data.name,
+            departmentId: data.departmentId ?? null,
             institution: data.institution || '',
             institutionAddress: data.institutionAddress || '',
             purpose: data.purpose,
@@ -560,6 +563,11 @@ export default function AddProject() {
 
         const payload = {
           projectId: editId ? originalProjectId : generateProjectId(),
+          departmentId:
+            form.departmentId ??
+            (departments.find((d) => d.name === form.institution)?.id
+              ? Number(departments.find((d) => d.name === form.institution)?.id)
+              : null),
           title: form.title || form.name,
           name: form.name || form.title,
           institution: form.institution || 'N/A',
@@ -711,11 +719,15 @@ export default function AddProject() {
                 title="Select Requesting Institution"
                 value={form.institution}
                 onChange={(e) => {
-                  const selectedName = e.target.value;
-                  const dept = departments.find((d) => d.name === selectedName);
+                  const selectedVal = e.target.value;
+                  const dept = departments.find(
+                    (d) =>
+                      d.name === selectedVal || String(d.id) === selectedVal,
+                  );
                   setForm((f) => ({
                     ...f,
-                    institution: selectedName,
+                    institution: dept ? dept.name : selectedVal,
+                    departmentId: dept ? Number(dept.id) : null,
                     institutionAddress: dept?.address || '',
                   }));
                 }}

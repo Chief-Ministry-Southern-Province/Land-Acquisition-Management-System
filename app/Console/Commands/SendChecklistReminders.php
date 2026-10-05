@@ -76,9 +76,9 @@ class SendChecklistReminders extends Command
                 }
             }
 
-            // Fallback: If no submitted_by user found with DO role, find all DO users
+            // Fallback: If no submitted_by user found with DO role, find DO users for this project's institution
             if ($doUsers->isEmpty()) {
-                $doUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'DO'))->get();
+                $doUsers = $project->getInstitutionOfficers('DO');
             }
 
             if ($doUsers->isEmpty()) {

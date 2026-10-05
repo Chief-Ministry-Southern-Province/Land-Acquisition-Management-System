@@ -8,6 +8,7 @@ export interface Project {
   projectId: string;
   title: string;
   name: string;
+  departmentId?: number | null;
   institution?: string;
   institutionAddress?: string;
   purpose: string;
@@ -61,6 +62,7 @@ const mapFromBackend = (data: any): Project => ({
   projectId: data.project_id || '',
   title: data.title || data.name || '',
   name: data.title || data.name || '',
+  departmentId: data.department_id ? Number(data.department_id) : null,
   institution: data.institution || '',
   institutionAddress: data.institution_address || '',
   purpose: data.purpose || '',
@@ -145,6 +147,7 @@ const mapToBackend = (
   },
 ) => ({
   project_id: data.projectId,
+  department_id: data.departmentId ?? null,
   title: data.title || data.name,
   name: data.name || data.title,
   purpose: data.purpose,

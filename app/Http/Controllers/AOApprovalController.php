@@ -57,8 +57,8 @@ class AOApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[System]: Approved by Administrative Officer';
         $project->save();
 
-        // Notify Assistant Secretary (AS) users
-        $asUsers = User::whereHas('role', fn ($q) => $q->where('role_name', 'AS'))->get();
+        // Notify Assistant Secretary (AS) users of the acquisition case institution
+        $asUsers = $project->getInstitutionOfficers('AS');
         foreach ($asUsers as $as) {
             $as->notify(new RealtimeSystemNotification(
                 title: 'Project Approved by AO',
@@ -97,8 +97,14 @@ class AOApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[Query AO]: '.$comment;
         $project->save();
 
-        // Notify DO and HOB users
-        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB']))->get();
+        // Notify DO and HOB users of the acquisition case institution
+        $notifiedUsers = $project->getInstitutionOfficers(['DO', 'HOB']);
+        if ($project->submitted_by) {
+            $submitter = $project->submittedBy ?? User::find($project->submitted_by);
+            if ($submitter && $submitter->role && $submitter->role->role_name === 'DO' && ! $notifiedUsers->contains('id', $submitter->id)) {
+                $notifiedUsers->push($submitter);
+            }
+        }
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Queried by AO',
@@ -136,8 +142,14 @@ class AOApprovalController extends Controller
         $project->remarks = ($project->remarks ? $project->remarks."\n" : '').'[Rejected AO]: '.$comment;
         $project->save();
 
-        // Notify DO and HOB users
-        $notifiedUsers = User::whereHas('role', fn ($q) => $q->whereIn('role_name', ['DO', 'HOB']))->get();
+        // Notify DO and HOB users of the acquisition case institution
+        $notifiedUsers = $project->getInstitutionOfficers(['DO', 'HOB']);
+        if ($project->submitted_by) {
+            $submitter = $project->submittedBy ?? User::find($project->submitted_by);
+            if ($submitter && $submitter->role && $submitter->role->role_name === 'DO' && ! $notifiedUsers->contains('id', $submitter->id)) {
+                $notifiedUsers->push($submitter);
+            }
+        }
         foreach ($notifiedUsers as $u) {
             $u->notify(new RealtimeSystemNotification(
                 title: 'Project Rejected by AO',

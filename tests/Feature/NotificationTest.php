@@ -169,3 +169,112 @@ test('HOB approval triggers notification to AO users', function () {
         }
     );
 });
+
+test('project submission notifies ONLY HOB of related institution and not other institutions', function () {
+    Notification::fake();
+
+    $deptB = Departments::create([
+        'department_name' => 'Health Department',
+        'dep_code' => 'HLT',
+        'dep_head' => 'Dr. Perera',
+        'email' => 'health@lams.gov.lk',
+        'phone' => '+94 11 999 8888',
+        'staff' => 5,
+        'status' => true,
+    ]);
+
+    $hobDeptB = User::factory()->create([
+        'department_id' => $deptB->id,
+        'role_id' => $this->hobRole->id,
+    ]);
+
+    $project = Projects::create([
+        'project_id' => 'PRJ-INST-001',
+        'title' => 'IT Infrastructure Upgrade',
+        'purpose' => 'Server expansion',
+        'institution' => 'IT Department',
+        'case_status' => 'draft',
+        'do_status' => 'draft',
+    ]);
+
+    $response = $this->actingAs($this->doUser, 'sanctum')
+        ->postJson("/api/projects/{$project->id}/submit");
+
+    $response->assertStatus(200);
+
+    // Assert notification sent to HOB of IT Department
+    Notification::assertSentTo(
+        [$this->hobUser],
+        RealtimeSystemNotification::class
+    );
+
+    // Assert notification was NOT sent to HOB of other department
+    Notification::assertNotSentTo(
+        [$hobDeptB],
+        RealtimeSystemNotification::class
+    );
+});
+
+test('approval stages only notify officers related to acquisition case institution', function () {
+    Notification::fake();
+
+    $deptB = Departments::create([
+        'department_name' => 'Education Department',
+        'dep_code' => 'EDU',
+        'dep_head' => 'Mr. Silva',
+        'email' => 'edu@lams.gov.lk',
+        'phone' => '+94 11 777 6666',
+        'staff' => 4,
+        'status' => true,
+    ]);
+
+    $aoRole = Roles::firstOrCreate(['role_name' => 'AO'], ['description' => 'Administrative Officer']);
+    $asRole = Roles::firstOrCreate(['role_name' => 'AS'], ['description' => 'Assistant Secretary']);
+
+    $aoUserDeptA = User::factory()->create([
+        'department_id' => $this->department->id,
+        'role_id' => $aoRole->id,
+    ]);
+
+    $aoUserDeptB = User::factory()->create([
+        'department_id' => $deptB->id,
+        'role_id' => $aoRole->id,
+    ]);
+
+    $asUserDeptA = User::factory()->create([
+        'department_id' => $this->department->id,
+        'role_id' => $asRole->id,
+    ]);
+
+    $asUserDeptB = User::factory()->create([
+        'department_id' => $deptB->id,
+        'role_id' => $asRole->id,
+    ]);
+
+    $project = Projects::create([
+        'project_id' => 'PRJ-STAGE-002',
+        'title' => 'Multi-institution Stage Test',
+        'purpose' => 'Validation test',
+        'institution' => $this->department->department_name,
+        'department_id' => $this->department->id,
+        'case_status' => 'pending',
+        'do_status' => 'submitted',
+        'hob_status' => 'pending',
+    ]);
+
+    // 1. HOB approves -> should notify AO of Dept A, NOT Dept B
+    $this->actingAs($this->hobUser, 'sanctum')
+        ->postJson("/api/hob/approvals/project/{$project->id}/approve")
+        ->assertStatus(200);
+
+    Notification::assertSentTo([$aoUserDeptA], RealtimeSystemNotification::class);
+    Notification::assertNotSentTo([$aoUserDeptB], RealtimeSystemNotification::class);
+
+    // 2. AO approves -> should notify AS of Dept A, NOT Dept B
+    $this->actingAs($aoUserDeptA, 'sanctum')
+        ->postJson("/api/ao/approvals/project/{$project->id}/approve")
+        ->assertStatus(200);
+
+    Notification::assertSentTo([$asUserDeptA], RealtimeSystemNotification::class);
+    Notification::assertNotSentTo([$asUserDeptB], RealtimeSystemNotification::class);
+});
