@@ -1536,6 +1536,7 @@ return [
 
     // Mark Progress Page (Development Officer Progress Checklist)
     'mark_progress_title' => 'Progress Checklist',
+    'progress_checklist' => 'Progress Checklist',
     'mark_progress_subtitle' => 'Track statutory Land Acquisition Act milestones, mark task completion, and update stage readiness.',
     'do_authorized' => 'DO Authorized',
     'read_only_mode' => 'Read Only Mode ({role})',
