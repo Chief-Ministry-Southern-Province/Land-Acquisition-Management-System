@@ -15,10 +15,10 @@ import {
 import { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { StatusBadge } from '@/components/ui/StatusBridge';
+import WorkflowProgressChecklist from '@/components/WorkflowProgressChecklist';
 import { useProjectsQuery } from '@/hooks/queries/useProjectsQuery';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
-import MarkProgress from '@/pages/developmentOfficer/MarkProgress';
 import api from '@/services/api';
 import { getProject } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
@@ -911,9 +911,12 @@ export default function AcquisitionWorkflow() {
             </div>
           </div>
 
-          {/* Development Officer Progress Checklist */}
+          {/* Statutory Progress Checklist (Custom View-Only for Acquisition Workflow) */}
           <div className="pt-2">
-            <MarkProgress projectId={selectedProjId} />
+            <WorkflowProgressChecklist
+              projectId={selectedProjId}
+              project={currentProject}
+            />
           </div>
         </div>
       ) : (

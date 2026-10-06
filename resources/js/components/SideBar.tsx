@@ -1,4 +1,4 @@
-import { router, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
   Bell,
   LayoutDashboard,
@@ -22,6 +22,8 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { queryClient } from '@/lib/queryClient';
+import { logout } from '@/services/authService';
 
 export interface SideBarItem {
   path: string;
@@ -44,15 +46,16 @@ export default function SideBar({ items }: SideBarProps = {}) {
 
   const handleLogout = async (e: FormEvent) => {
     e.preventDefault();
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-      },
-    });
-    localStorage.removeItem('auth_token');
-    router.visit('/login');
+
+    try {
+      await logout();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      queryClient.clear();
+      localStorage.removeItem('auth_token');
+      window.location.href = '/';
+    }
   };
 
   // NOTE: Do not remove default items

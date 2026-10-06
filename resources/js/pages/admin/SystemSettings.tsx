@@ -13,6 +13,7 @@ import {
   Server,
   Settings,
   Shield,
+  Smartphone,
   Upload,
   Download,
   Trash2,
@@ -35,6 +36,11 @@ import {
   restoreBackup,
 } from '@/services/backupService';
 import type { BackupFile } from '@/services/backupService';
+import {
+  getSystemSettings,
+  updateSystemSettings,
+  cleanBackupsNow,
+} from '@/services/systemSettingService';
 
 /* ────────────────── Types ────────────────── */
 
@@ -177,11 +183,12 @@ export default function SystemSettings() {
 
   // ── Notification settings ──
   const [emailNotifs, setEmailNotifs] = useState(true);
+  const [smsNotifs, setSmsNotifs] = useState(true);
   const [systemNotifs, setSystemNotifs] = useState(true);
   const [approvalAlerts, setApprovalAlerts] = useState(true);
   const [deadlineAlerts, setDeadlineAlerts] = useState(true);
   const [dailyDigest, setDailyDigest] = useState(false);
-  const [smtpHost, setSmtpHost] = useState('smtp.lams.gov.lk');
+  const [smtpHost, setSmtpHost] = useState('');
   const [smtpPort, setSmtpPort] = useState('587');
 
   // ── Backup settings ──
@@ -190,6 +197,7 @@ export default function SystemSettings() {
   const [retentionDays, setRetentionDays] = useState('30');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [auditLogRetention, setAuditLogRetention] = useState('365');
+  const [lastAutoBackupAt, setLastAutoBackupAt] = useState<string | null>(null);
 
   // ── Backup API states ──
   const [backups, setBackups] = useState<BackupFile[]>([]);
@@ -198,6 +206,8 @@ export default function SystemSettings() {
   const [creatingFilesBackup, setCreatingFilesBackup] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState<string | null>(null);
   const [clearingCache, setClearingCache] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [cleaningRetention, setCleaningRetention] = useState(false);
   const [toast, setToast] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -207,6 +217,136 @@ export default function SystemSettings() {
     setToast({ type, text });
     setTimeout(() => setToast(null), 5000);
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchSettings = async () => {
+      try {
+        const data = await getSystemSettings();
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (data.system_name !== undefined) {
+          setSystemName(data.system_name);
+        }
+
+        if (data.org_name !== undefined) {
+          setOrgName(data.org_name);
+        }
+
+        if (data.language !== undefined) {
+          setLanguage(data.language);
+        }
+
+        if (data.timezone !== undefined) {
+          setTimezone(data.timezone);
+        }
+
+        if (data.date_format !== undefined) {
+          setDateFormat(data.date_format);
+        }
+
+        if (data.currency !== undefined) {
+          setCurrency(data.currency);
+        }
+
+        if (data.session_timeout !== undefined) {
+          setSessionTimeout(String(data.session_timeout));
+        }
+
+        if (data.max_login_attempts !== undefined) {
+          setMaxLoginAttempts(String(data.max_login_attempts));
+        }
+
+        if (data.password_min_length !== undefined) {
+          setPasswordMinLength(String(data.password_min_length));
+        }
+
+        if (data.two_factor !== undefined) {
+          setTwoFactor(Boolean(data.two_factor));
+        }
+
+        if (data.enforce_password_expiry !== undefined) {
+          setEnforcePasswordExpiry(Boolean(data.enforce_password_expiry));
+        }
+
+        if (data.password_expiry_days !== undefined) {
+          setPasswordExpiryDays(String(data.password_expiry_days));
+        }
+
+        if (data.ip_whitelist !== undefined) {
+          setIpWhitelist(Boolean(data.ip_whitelist));
+        }
+
+        if (data.email_notifs !== undefined) {
+          setEmailNotifs(Boolean(data.email_notifs));
+        }
+
+        if (data.sms_notifs !== undefined) {
+          setSmsNotifs(Boolean(data.sms_notifs));
+        }
+
+        if (data.system_notifs !== undefined) {
+          setSystemNotifs(Boolean(data.system_notifs));
+        }
+
+        if (data.approval_alerts !== undefined) {
+          setApprovalAlerts(Boolean(data.approval_alerts));
+        }
+
+        if (data.deadline_alerts !== undefined) {
+          setDeadlineAlerts(Boolean(data.deadline_alerts));
+        }
+
+        if (data.daily_digest !== undefined) {
+          setDailyDigest(Boolean(data.daily_digest));
+        }
+
+        if (data.smtp_host !== undefined) {
+          setSmtpHost(data.smtp_host);
+        }
+
+        if (data.smtp_port !== undefined) {
+          setSmtpPort(String(data.smtp_port));
+        }
+
+        if (data.auto_backup !== undefined) {
+          setAutoBackup(Boolean(data.auto_backup));
+        }
+
+        if (data.backup_frequency !== undefined) {
+          setBackupFrequency(data.backup_frequency);
+        }
+
+        if (data.retention_days !== undefined) {
+          setRetentionDays(String(data.retention_days));
+        }
+
+        if (data.audit_log_retention !== undefined) {
+          setAuditLogRetention(String(data.audit_log_retention));
+        }
+
+        if (data.maintenance_mode !== undefined) {
+          setMaintenanceMode(Boolean(data.maintenance_mode));
+        }
+
+        if (data.last_auto_backup_at !== undefined) {
+          setLastAutoBackupAt(data.last_auto_backup_at);
+        }
+      } catch (err) {
+        console.error('Failed to load system settings:', err);
+      }
+    };
+
+    fetchSettings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const loadBackups = useCallback(async () => {
     setLoadingBackups(true);
@@ -415,9 +555,92 @@ export default function SystemSettings() {
         })
       : 'None';
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  const handleSave = async () => {
+    if (savingSettings) {
+      return;
+    }
+
+    setSavingSettings(true);
+
+    try {
+      const res = await updateSystemSettings({
+        system_name: systemName,
+        org_name: orgName,
+        language,
+        timezone,
+        date_format: dateFormat,
+        currency,
+        session_timeout: sessionTimeout,
+        max_login_attempts: maxLoginAttempts,
+        password_min_length: passwordMinLength,
+        two_factor: twoFactor,
+        enforce_password_expiry: enforcePasswordExpiry,
+        password_expiry_days: passwordExpiryDays,
+        ip_whitelist: ipWhitelist,
+        email_notifs: emailNotifs,
+        sms_notifs: smsNotifs,
+        system_notifs: systemNotifs,
+        approval_alerts: approvalAlerts,
+        deadline_alerts: deadlineAlerts,
+        daily_digest: dailyDigest,
+        smtp_host: smtpHost,
+        smtp_port: smtpPort ? String(smtpPort) : '587',
+        auto_backup: autoBackup,
+        backup_frequency: backupFrequency,
+        retention_days: parseInt(retentionDays, 10) || 30,
+        audit_log_retention: parseInt(auditLogRetention, 10) || 365,
+        maintenance_mode: maintenanceMode,
+      });
+
+      setSaved(true);
+      showToast(
+        'success',
+        res.message ||
+          t('toast_settings_saved', 'System settings saved successfully.'),
+      );
+      setTimeout(() => setSaved(false), 2500);
+    } catch (error: any) {
+      console.error('Failed to save settings:', error);
+      showToast(
+        'error',
+        error.response?.data?.message ||
+          t('toast_settings_save_error', 'Failed to save system settings.'),
+      );
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleCleanRetentionNow = async () => {
+    const confirmed = await confirmDialog({
+      title: t('clean_old_backups', 'Clean Expired Backups'),
+      text: t(
+        'confirm_clean_retention_desc',
+        'Are you sure you want to permanently delete all backups older than :days days? This action cannot be undone.',
+      ).replace(':days', retentionDays),
+      confirmButtonText: t('clean_now', 'Clean Now'),
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    setCleaningRetention(true);
+
+    try {
+      const res = await cleanBackupsNow(parseInt(retentionDays, 10) || 30);
+      showToast('success', res.message);
+      loadBackups();
+    } catch (error: any) {
+      console.error('Failed to clean old backups:', error);
+      showToast(
+        'error',
+        error.response?.data?.message ||
+          t('toast_failed_clean_backups', 'Failed to clean old backups.'),
+      );
+    } finally {
+      setCleaningRetention(false);
+    }
   };
 
   return (
@@ -455,9 +678,15 @@ export default function SystemSettings() {
         </div>
         <button
           onClick={handleSave}
-          className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors"
+          disabled={savingSettings}
+          className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
         >
-          {saved ? (
+          {savingSettings ? (
+            <>
+              <LoadingSpinner type="beat" variant="secondary" size="xs" />{' '}
+              {t('saving', 'Saving...')}
+            </>
+          ) : saved ? (
             <>
               <CheckCircle className="h-4 w-4" /> {t('saved', 'Saved')}
             </>
@@ -769,6 +998,19 @@ export default function SystemSettings() {
               />
             </SettingRow>
             <SettingRow
+              icon={Smartphone}
+              title={t('sms_notifications', 'SMS Notifications')}
+              description={t(
+                'sms_notifications_desc',
+                'Send notifications via SMS for urgent alerts and updates',
+              )}
+            >
+              <Toggle
+                checked={smsNotifs}
+                onChange={() => setSmsNotifs(!smsNotifs)}
+              />
+            </SettingRow>
+            <SettingRow
               icon={Bell}
               title={t('in_app_notifications', 'In-App Notifications')}
               description={t(
@@ -920,6 +1162,52 @@ export default function SystemSettings() {
                 />
               </Field>
             </div>
+
+            <div className="py-4">
+              <div
+                className={`flex items-start gap-3 rounded-lg border p-4 text-xs ${
+                  autoBackup
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/30 dark:bg-emerald-950/20 dark:text-emerald-400'
+                    : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/30 dark:bg-amber-950/20 dark:text-amber-400'
+                }`}
+              >
+                <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="space-y-1">
+                  <p className="font-semibold">
+                    {autoBackup
+                      ? t(
+                          'automated_backups_active_title',
+                          'Automatic Backups & Retention Active',
+                        )
+                      : t(
+                          'automated_backups_inactive_title',
+                          'Automatic Backups Paused',
+                        )}
+                  </p>
+                  <p>
+                    {autoBackup
+                      ? t(
+                          'automated_backups_active_info',
+                          'The system scheduler executes full database backups on a :freq schedule. All manual and automatic backups exceeding the :days-day retention period are automatically pruned.',
+                        )
+                          .replace(':freq', backupFrequency)
+                          .replace(':days', retentionDays)
+                      : t(
+                          'automated_backups_inactive_info',
+                          'Scheduled backups are currently disabled. You can still perform manual database and file backups below at any time.',
+                        )}
+                  </p>
+                  {lastAutoBackupAt && (
+                    <p className="text-[11px] opacity-80">
+                      {t('last_auto_backup', 'Last automated backup:')}{' '}
+                      {new Date(
+                        lastAutoBackupAt.replace(' ', 'T'),
+                      ).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
           </SectionCard>
 
           <SectionCard
@@ -961,6 +1249,24 @@ export default function SystemSettings() {
                   <>
                     <Upload className="h-4 w-4" />{' '}
                     {t('backup_uploads', 'Backup Uploads')}
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleCleanRetentionNow}
+                disabled={cleaningRetention}
+                title={t('clean_expired_backups', 'Clean Expired Backups')}
+                className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm text-amber-700 transition-colors hover:text-amber-800 disabled:opacity-50 dark:text-amber-400"
+              >
+                {cleaningRetention ? (
+                  <>
+                    <LoadingSpinner type="beat" variant="primary" size="xs" />{' '}
+                    {t('cleaning_retention', 'Cleaning...')}
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />{' '}
+                    {t('clean_expired_backups', 'Clean Expired Backups')}
                   </>
                 )}
               </button>
