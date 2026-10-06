@@ -127,3 +127,53 @@ test('can fetch users list if authenticated as admin', function () {
         ],
     ]);
 });
+
+test('user can logout with session or transient token without error', function () {
+    $user = User::factory()->create([
+        'department_id' => $this->department->id,
+        'role_id' => $this->adminRole->id,
+    ]);
+
+    $response = $this->actingAs($user, 'sanctum')->postJson('/api/auth/logout');
+    $response->assertStatus(200);
+    $response->assertJson(['message' => 'Logged out successfully']);
+});
+
+test('user can logout with personal access token and delete it', function () {
+    $user = User::factory()->create([
+        'department_id' => $this->department->id,
+        'role_id' => $this->adminRole->id,
+    ]);
+
+    $token = $user->createToken('test-token')->plainTextToken;
+
+    $response = $this->withHeader('Authorization', "Bearer {$token}")
+        ->postJson('/api/auth/logout');
+
+    $response->assertStatus(200);
+    $response->assertJson(['message' => 'Logged out successfully']);
+    $this->assertDatabaseMissing('personal_access_tokens', [
+        'tokenable_id' => $user->id,
+        'name' => 'test-token',
+    ]);
+});
+
+test('authenticated user visiting / or /login is redirected to dashboard', function () {
+    $user = User::factory()->create([
+        'department_id' => $this->department->id,
+        'role_id' => $this->adminRole->id,
+    ]);
+
+    $this->actingAs($user, 'web')
+        ->get('/')
+        ->assertRedirect('/dashboard');
+
+    $this->actingAs($user, 'web')
+        ->get('/login')
+        ->assertRedirect('/dashboard');
+});
+
+test('guest user visiting / renders login screen', function () {
+    $this->get('/')
+        ->assertStatus(200);
+});

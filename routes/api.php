@@ -22,6 +22,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SASApprovalController;
 use App\Http\Controllers\SECApprovalController;
+use App\Http\Controllers\SystemSettingController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -164,5 +165,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/backups/{filename}', [BackupController::class, 'destroy']);
         Route::post('/backups/{filename}/restore', [BackupController::class, 'restore']);
         Route::post('/clear-cache', [BackupController::class, 'clearCache']);
+        Route::post('/backups/clean', [SystemSettingController::class, 'cleanBackups']);
+
+        Route::get('/settings', [SystemSettingController::class, 'index']);
+        Route::post('/settings', [SystemSettingController::class, 'update']);
     });
 });

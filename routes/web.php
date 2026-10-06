@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/lang/{locale}', function ($locale) {
@@ -11,15 +14,33 @@ Route::get('/lang/{locale}', function ($locale) {
     return redirect()->back();
 })->name('lang.switch');
 
-Route::redirect('/login', '/', 308);
-Route::inertia('/', 'LoginScreen')->name('home');
-Route::inertia('/forgot-password', 'ForgotPassword')->name('forgot-password');
-Route::get('/reset-password/{token}', function (string $token) {
-    return inertia('ResetPassword', [
-        'token' => $token,
-        'email' => request()->query('email', ''),
-    ]);
-})->name('password.reset');
+Route::get('/', function (Request $request) {
+    if (Auth::guard('web')->check() || $request->user('sanctum')) {
+        return redirect()->route('dashboard');
+    }
+
+    return inertia('LoginScreen');
+})->name('home');
+
+Route::get('/login', function (Request $request) {
+    if (Auth::guard('web')->check() || $request->user('sanctum')) {
+        return redirect()->route('dashboard');
+    }
+
+    return redirect()->route('home');
+})->name('login');
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::middleware('guest')->group(function () {
+    Route::inertia('/forgot-password', 'ForgotPassword')->name('forgot-password');
+    Route::get('/reset-password/{token}', function (string $token) {
+        return inertia('ResetPassword', [
+            'token' => $token,
+            'email' => request()->query('email', ''),
+        ]);
+    })->name('password.reset');
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', function (Request $request) {
@@ -156,6 +177,22 @@ Route::middleware(['auth:sanctum', 'check.role:SEC'])->group(function () {
 Route::inertia('/access-denied', 'AccessDenied')->name('access-denied');
 Route::inertia('/access-restricted', 'AccessDenied')->name('access-restricted');
 Route::inertia('/not-found', 'NotFound')->name('not-found');
+
+Route::get('/maintenance', function (Request $request) {
+    $user = $request->user();
+    if ($user) {
+        $user->load('role');
+    }
+    $isAdmin = $user && $user->role && $user->role->role_name === 'Admin';
+    $isMaintenanceActive = (bool) SystemSetting::get('maintenance_mode', false);
+
+    return inertia('Maintenance', [
+        'isAdmin' => $isAdmin,
+        'userRole' => $user?->role?->role_name ?? null,
+        'userName' => $user?->name ?? null,
+        'isMaintenanceActive' => $isMaintenanceActive,
+    ]);
+})->name('maintenance');
 
 Route::fallback(function () {
     return redirect('/not-found');

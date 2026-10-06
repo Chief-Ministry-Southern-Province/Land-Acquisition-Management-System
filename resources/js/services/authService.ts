@@ -175,3 +175,14 @@ export const updateProfile = async (
 
   return response.data;
 };
+
+/**
+ * Logs out the current user by calling the API and clearing the token.
+ */
+export const logout = async (): Promise<void> => {
+  try {
+    await api.post('/api/auth/logout');
+  } finally {
+    localStorage.removeItem('auth_token');
+  }
+};
