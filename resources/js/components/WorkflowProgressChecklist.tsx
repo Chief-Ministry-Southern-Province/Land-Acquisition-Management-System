@@ -51,7 +51,9 @@ export default function WorkflowProgressChecklist({
     [locale],
   );
 
-  const [stages, setStages] = useState<ChecklistStage[]>(defaultStagesForLocale);
+  const [stages, setStages] = useState<ChecklistStage[]>(
+    defaultStagesForLocale,
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [activeStageId, setActiveStageId] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -62,7 +64,9 @@ export default function WorkflowProgressChecklist({
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
   const [updatedByOfficer, setUpdatedByOfficer] = useState<string | null>(null);
   const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
-  const [expandedAllStages, setExpandedAllStages] = useState<Record<number, boolean>>({
+  const [expandedAllStages, setExpandedAllStages] = useState<
+    Record<number, boolean>
+  >({
     1: true,
     2: true,
     3: true,
@@ -87,8 +91,8 @@ export default function WorkflowProgressChecklist({
         const res = await getProjectProgress(projectId);
 
         if (!isMounted) {
-return;
-}
+          return;
+        }
 
         if (
           res.progress?.stages &&
@@ -166,15 +170,15 @@ return;
         totalItems += 1;
 
         if (item.isCompleted) {
-completedItems += 1;
-}
+          completedItems += 1;
+        }
 
         if (item.isMandatory) {
           mandatoryTotal += 1;
 
           if (item.isCompleted) {
-mandatoryCompleted += 1;
-}
+            mandatoryCompleted += 1;
+          }
         }
       });
     });
@@ -182,7 +186,9 @@ mandatoryCompleted += 1;
     const overallPercentage =
       totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
     const mandatoryPercentage =
-      mandatoryTotal > 0 ? Math.round((mandatoryCompleted / mandatoryTotal) * 100) : 0;
+      mandatoryTotal > 0
+        ? Math.round((mandatoryCompleted / mandatoryTotal) * 100)
+        : 0;
 
     return {
       totalItems,
@@ -209,9 +215,7 @@ mandatoryCompleted += 1;
     return currentStage.items.filter((item) => {
       const matchSearch =
         searchQuery.trim() === '' ||
-        (item.title || '')
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
+        (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.description || '')
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
@@ -242,8 +246,8 @@ mandatoryCompleted += 1;
   // Download handler
   const handleDownload = async (fileObj: AttachedFile) => {
     if (!fileObj.docId) {
-return;
-}
+      return;
+    }
 
     try {
       setDownloadingDocId(fileObj.id);
@@ -264,7 +268,7 @@ return;
 
   if (loading) {
     return (
-      <div className="bg-card border-border flex min-h-[300px] flex-col items-center justify-center rounded-2xl border p-8 shadow-xs">
+      <div className="bg-card border-border shadow-xs flex min-h-[300px] flex-col items-center justify-center rounded-2xl border p-8">
         <LoadingSpinner
           size="lg"
           label={t(
@@ -282,7 +286,7 @@ return;
       <div className="bg-card border-border/80 relative overflow-hidden rounded-2xl border p-6 shadow-sm">
         {/* Subtle decorative background gradient */}
         <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl dark:bg-emerald-500/5" />
-        <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl dark:bg-primary/5" />
+        <div className="bg-primary/10 dark:bg-primary/5 pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full blur-3xl" />
 
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4">
@@ -298,7 +302,7 @@ return;
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   {t('do_verified_record', 'Official DO Record')}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                <span className="border-border bg-muted/60 text-muted-foreground inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium">
                   <Eye className="h-3.5 w-3.5" />
                   {t('view_only_audit_mode', 'View Only (Auditing & Review)')}
                 </span>
@@ -314,7 +318,7 @@ return;
 
           {/* Verification Status Pill */}
           <div className="bg-muted/40 border-border/80 flex shrink-0 items-center gap-3 rounded-xl border p-3">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
             <div className="text-xs">
               <span className="text-muted-foreground block text-[10px] font-semibold uppercase tracking-wider">
                 {t('verification_status', 'DO Verification Status')}
@@ -325,8 +329,11 @@ return;
                   {lastSavedTime}
                 </span>
               ) : (
-                <span className="text-amber-600 dark:text-amber-400 font-medium">
-                  {t('awaiting_do_submission', 'Awaiting initial DO submission')}
+                <span className="font-medium text-amber-600 dark:text-amber-400">
+                  {t(
+                    'awaiting_do_submission',
+                    'Awaiting initial DO submission',
+                  )}
                 </span>
               )}
             </div>
@@ -336,7 +343,7 @@ return;
         {/* Executive Overview KPI Cards */}
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {/* Card 1: Overall Progress */}
-          <div className="bg-muted/30 border-border/70 flex flex-col justify-between rounded-xl border p-4 transition-all hover:bg-muted/50">
+          <div className="bg-muted/30 border-border/70 hover:bg-muted/50 flex flex-col justify-between rounded-xl border p-4 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wider">
                 {t('overall_completion', 'Overall Completion')}
@@ -351,7 +358,8 @@ return;
                   {stats.overallPercentage}%
                 </span>
                 <span className="text-muted-foreground text-xs font-medium">
-                  {stats.completedItems} / {stats.totalItems} {t('tasks_done', 'tasks')}
+                  {stats.completedItems} / {stats.totalItems}{' '}
+                  {t('tasks_done', 'tasks')}
                 </span>
               </div>
               <div className="bg-muted mt-2 h-2 w-full overflow-hidden rounded-full">
@@ -364,7 +372,7 @@ return;
           </div>
 
           {/* Card 2: Mandatory Statutory Clauses */}
-          <div className="bg-muted/30 border-border/70 flex flex-col justify-between rounded-xl border p-4 transition-all hover:bg-muted/50">
+          <div className="bg-muted/30 border-border/70 hover:bg-muted/50 flex flex-col justify-between rounded-xl border p-4 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wider">
                 {t('mandatory_clauses', 'Statutory Mandatory')}
@@ -383,13 +391,16 @@ return;
                 </span>
               </div>
               <span className="text-muted-foreground mt-1 block text-[11px]">
-                {t('mandatory_clauses_fulfilled', 'Mandatory Act requirements fulfilled')}
+                {t(
+                  'mandatory_clauses_fulfilled',
+                  'Mandatory Act requirements fulfilled',
+                )}
               </span>
             </div>
           </div>
 
           {/* Card 3: Pending Milestones */}
-          <div className="bg-muted/30 border-border/70 flex flex-col justify-between rounded-xl border p-4 transition-all hover:bg-muted/50">
+          <div className="bg-muted/30 border-border/70 hover:bg-muted/50 flex flex-col justify-between rounded-xl border p-4 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wider">
                 {t('pending_milestones', 'Pending Milestones')}
@@ -403,13 +414,16 @@ return;
                 {stats.pendingItems}
               </span>
               <span className="text-muted-foreground mt-1 block text-[11px]">
-                {t('pending_do_action_desc', 'Awaiting field actions or orders')}
+                {t(
+                  'pending_do_action_desc',
+                  'Awaiting field actions or orders',
+                )}
               </span>
             </div>
           </div>
 
           {/* Card 4: Evidence & Documents */}
-          <div className="bg-muted/30 border-border/70 flex flex-col justify-between rounded-xl border p-4 transition-all hover:bg-muted/50">
+          <div className="bg-muted/30 border-border/70 hover:bg-muted/50 flex flex-col justify-between rounded-xl border p-4 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wider">
                 {t('evidence_documents', 'Evidence & Documents')}
@@ -423,7 +437,10 @@ return;
                 {stats.totalFiles}
               </span>
               <span className="text-muted-foreground mt-1 block text-[11px]">
-                {t('attached_gazettes_plans', 'Attached gazettes, plans & reports')}
+                {t(
+                  'attached_gazettes_plans',
+                  'Attached gazettes, plans & reports',
+                )}
               </span>
             </div>
           </div>
@@ -431,12 +448,15 @@ return;
       </div>
 
       {/* Stage Pipeline Selector & View Options */}
-      <div className="bg-card border-border/80 rounded-2xl border p-5 shadow-sm space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
+      <div className="bg-card border-border/80 space-y-4 rounded-2xl border p-5 shadow-sm">
+        <div className="border-border/60 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
           <div className="flex items-center gap-2">
             <Layers className="text-primary h-4 w-4" />
             <h3 className="text-foreground text-sm font-bold uppercase tracking-wider">
-              {t('acquisition_pipeline_stages', '6 Statutory Acquisition Stages')}
+              {t(
+                'acquisition_pipeline_stages',
+                '6 Statutory Acquisition Stages',
+              )}
             </h3>
           </div>
 
@@ -445,7 +465,7 @@ return;
               onClick={() => setViewMode('single')}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                 viewMode === 'single'
-                  ? 'bg-primary text-white shadow-xs'
+                  ? 'bg-primary shadow-xs text-white'
                   : 'bg-muted/60 text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -455,7 +475,7 @@ return;
               onClick={() => setViewMode('all')}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                 viewMode === 'all'
-                  ? 'bg-primary text-white shadow-xs'
+                  ? 'bg-primary shadow-xs text-white'
                   : 'bg-muted/60 text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -467,11 +487,14 @@ return;
         {/* 6 Stages Cards Grid */}
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {stages.map((stage) => {
-            const completedCount = stage.items.filter((i) => i.isCompleted).length;
+            const completedCount = stage.items.filter(
+              (i) => i.isCompleted,
+            ).length;
             const totalCount = stage.items.length;
             const isCompleted = totalCount > 0 && completedCount === totalCount;
             const isInProgress = completedCount > 0 && !isCompleted;
-            const isSelected = stage.id === activeStageId && viewMode === 'single';
+            const isSelected =
+              stage.id === activeStageId && viewMode === 'single';
 
             return (
               <button
@@ -485,12 +508,12 @@ return;
                 }}
                 className={`group relative flex flex-col justify-between rounded-xl border p-3 text-left transition-all duration-200 ${
                   isSelected
-                    ? 'border-emerald-600 bg-emerald-500/10 dark:bg-emerald-950/20 shadow-xs'
-                    : 'border-border/70 bg-card hover:border-emerald-500/40 hover:bg-muted/40'
+                    ? 'shadow-xs border-emerald-600 bg-emerald-500/10 dark:bg-emerald-950/20'
+                    : 'border-border/70 bg-card hover:bg-muted/40 hover:border-emerald-500/40'
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                  <div className="mb-1.5 flex items-center justify-between gap-1.5">
                     <span
                       className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-transform group-hover:scale-105 ${
                         isCompleted
@@ -500,7 +523,11 @@ return;
                             : 'bg-muted text-muted-foreground'
                       }`}
                     >
-                      {isCompleted ? <Check className="h-3.5 w-3.5 stroke-[3]" /> : stage.id}
+                      {isCompleted ? (
+                        <Check className="h-3.5 w-3.5 stroke-[3]" />
+                      ) : (
+                        stage.id
+                      )}
                     </span>
 
                     <span
@@ -526,11 +553,11 @@ return;
                 </div>
 
                 <div className="mt-3">
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+                  <div className="text-muted-foreground mb-1 flex items-center justify-between text-[11px]">
                     <span className="font-mono text-[10px]">
                       {(stage.actSection || `Stage ${stage.id}`).split(' ')[0]}
                     </span>
-                    <span className="font-semibold text-foreground">
+                    <span className="text-foreground font-semibold">
                       {completedCount}/{totalCount}
                     </span>
                   </div>
@@ -559,7 +586,7 @@ return;
       {viewMode === 'single' && currentStage ? (
         <div className="bg-card border-border/80 space-y-6 rounded-2xl border p-6 shadow-sm">
           {/* Active Stage Header */}
-          <div className="space-y-4 border-b border-border/60 pb-5">
+          <div className="border-border/60 space-y-4 border-b pb-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
@@ -587,10 +614,11 @@ return;
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-emerald-600 dark:text-emerald-400 text-sm font-bold">
+                  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
                     {currentStage.items.length > 0
                       ? Math.round(
-                          (currentStage.items.filter((i) => i.isCompleted).length /
+                          (currentStage.items.filter((i) => i.isCompleted)
+                            .length /
                             currentStage.items.length) *
                             100,
                         )
@@ -613,24 +641,26 @@ return;
                   )}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="border-border bg-input-background text-foreground focus:ring-emerald-500/40 focus:border-emerald-500 w-full rounded-lg border py-2 pl-9 pr-3 text-xs sm:text-sm transition-colors focus:outline-none focus:ring-2"
+                  className="border-border bg-input-background text-foreground w-full rounded-lg border py-2 pl-9 pr-3 text-xs transition-colors focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 sm:text-sm"
                 />
               </div>
 
               <div className="bg-muted/60 flex items-center gap-1 rounded-lg p-1">
-                {(['all', 'completed', 'pending', 'mandatory'] as const).map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setFilterType(type)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
-                      filterType === type
-                        ? 'bg-card text-foreground shadow-xs'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {t(`filter_${type}`, type)}
-                  </button>
-                ))}
+                {(['all', 'completed', 'pending', 'mandatory'] as const).map(
+                  (type) => (
+                    <button
+                      key={type}
+                      onClick={() => setFilterType(type)}
+                      className={`rounded-md px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
+                        filterType === type
+                          ? 'bg-card text-foreground shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {t(`filter_${type}`, type)}
+                    </button>
+                  ),
+                )}
               </div>
             </div>
           </div>
@@ -641,7 +671,10 @@ return;
               <div className="bg-muted/20 border-border/80 flex flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center">
                 <CheckCircle2 className="text-muted-foreground/30 mb-2 h-10 w-10" />
                 <p className="text-muted-foreground text-sm font-medium">
-                  {t('no_items_match_criteria', 'No milestone items match the filter criteria.')}
+                  {t(
+                    'no_items_match_criteria',
+                    'No milestone items match the filter criteria.',
+                  )}
                 </p>
                 <button
                   onClick={() => {
@@ -657,9 +690,9 @@ return;
               filteredCurrentItems.map((item) => (
                 <div
                   key={item.id}
-                  className={`relative rounded-xl border p-4 sm:p-5 transition-all ${
+                  className={`relative rounded-xl border p-4 transition-all sm:p-5 ${
                     item.isCompleted
-                      ? 'border-emerald-500/30 bg-emerald-500/[0.03] dark:bg-emerald-950/20 shadow-xs'
+                      ? 'shadow-xs border-emerald-500/30 bg-emerald-500/[0.03] dark:bg-emerald-950/20'
                       : 'border-border/80 bg-card hover:border-border'
                   }`}
                 >
@@ -691,22 +724,22 @@ return;
                               {t('mandatory', 'Mandatory Clause')}
                             </span>
                           ) : (
-                            <span className="rounded border border-border bg-muted/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                            <span className="border-border bg-muted/60 text-muted-foreground rounded border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider">
                               {t('optional', 'Optional')}
                             </span>
                           )}
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <span className="border-border bg-muted font-mono text-[11px] font-medium text-foreground rounded-md border px-2.5 py-1">
+                          <span className="border-border bg-muted text-foreground rounded-md border px-2.5 py-1 font-mono text-[11px] font-medium">
                             {item.sectionRef}
                           </span>
 
                           <span
                             className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
                               item.isCompleted
-                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
-                                : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
+                                ? 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                                : 'border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400'
                             }`}
                           >
                             {item.isCompleted
@@ -722,18 +755,26 @@ return;
 
                       {/* Verification Metadata Footnote */}
                       {item.isCompleted && (
-                        <div className="bg-emerald-500/5 dark:bg-emerald-950/30 border-emerald-500/20 flex flex-wrap items-center gap-4 rounded-lg border px-3 py-1.5 text-xs text-emerald-700 dark:text-emerald-400">
+                        <div className="flex flex-wrap items-center gap-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
                           <span className="flex items-center gap-1.5 font-medium">
                             <User className="h-3.5 w-3.5" />
                             <span>
                               {t('verified_by', 'Verified by')}:{' '}
-                              <strong>{item.completedBy || t('development_officer', 'Development Officer')}</strong>
+                              <strong>
+                                {item.completedBy ||
+                                  t(
+                                    'development_officer',
+                                    'Development Officer',
+                                  )}
+                              </strong>
                             </span>
                           </span>
                           {item.completedAt && (
-                            <span className="flex items-center gap-1.5 text-muted-foreground">
+                            <span className="text-muted-foreground flex items-center gap-1.5">
                               <Calendar className="h-3.5 w-3.5" />
-                              <span>{new Date(item.completedAt).toLocaleString()}</span>
+                              <span>
+                                {new Date(item.completedAt).toLocaleString()}
+                              </span>
                             </span>
                           )}
                         </div>
@@ -745,7 +786,11 @@ return;
                           <MessageSquareQuote className="text-primary mt-0.5 h-4 w-4 shrink-0" />
                           <div className="min-w-0">
                             <span className="text-foreground block font-semibold">
-                              {t('do_field_notes', 'Development Officer Field Notes')}:
+                              {t(
+                                'do_field_notes',
+                                'Development Officer Field Notes',
+                              )}
+                              :
                             </span>
                             <p className="text-muted-foreground mt-0.5 italic">
                               "{item.remarks}"
@@ -761,31 +806,39 @@ return;
           </div>
 
           {/* Stage Attached Documents & Evidence Section */}
-          <div className="border-border/70 bg-muted/20 rounded-xl border p-4 sm:p-5 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
+          <div className="border-border/70 bg-muted/20 space-y-3 rounded-xl border p-4 sm:p-5">
+            <div className="border-border/60 flex flex-wrap items-center justify-between gap-2 border-b pb-3">
               <div className="flex items-center gap-2">
                 <Paperclip className="text-primary h-4 w-4" />
                 <h4 className="text-foreground text-xs font-bold uppercase tracking-wider">
-                  {t('stage_evidence_documents', 'Stage Evidence Documents & Files')}
+                  {t(
+                    'stage_evidence_documents',
+                    'Stage Evidence Documents & Files',
+                  )}
                 </h4>
-                {currentStage.attachedFiles && currentStage.attachedFiles.length > 0 && (
-                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                    {currentStage.attachedFiles.length} {t('files', 'files')}
-                  </span>
-                )}
+                {currentStage.attachedFiles &&
+                  currentStage.attachedFiles.length > 0 && (
+                    <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                      {currentStage.attachedFiles.length} {t('files', 'files')}
+                    </span>
+                  )}
               </div>
 
               <span className="text-muted-foreground text-xs">
-                {t('available_for_download', 'Available for statutory review & download')}
+                {t(
+                  'available_for_download',
+                  'Available for statutory review & download',
+                )}
               </span>
             </div>
 
-            {currentStage.attachedFiles && currentStage.attachedFiles.length > 0 ? (
+            {currentStage.attachedFiles &&
+            currentStage.attachedFiles.length > 0 ? (
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {currentStage.attachedFiles.map((fileObj) => (
                   <div
                     key={fileObj.id}
-                    className="bg-card border-border/80 flex items-center justify-between gap-3 rounded-lg border p-3 shadow-2xs transition-colors hover:bg-muted/30"
+                    className="bg-card border-border/80 shadow-2xs hover:bg-muted/30 flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <div
@@ -844,7 +897,9 @@ return;
         /* All Stages Expanded View for Complete Audit */
         <div className="space-y-6">
           {stages.map((stage) => {
-            const completedCount = stage.items.filter((i) => i.isCompleted).length;
+            const completedCount = stage.items.filter(
+              (i) => i.isCompleted,
+            ).length;
             const totalCount = stage.items.length;
             const isCompleted = totalCount > 0 && completedCount === totalCount;
             const isExpanded = expandedAllStages[stage.id] ?? true;
@@ -857,7 +912,7 @@ return;
                 {/* Stage Header Bar */}
                 <div
                   onClick={() => toggleStageExpansion(stage.id)}
-                  className="bg-muted/30 border-b border-border/60 flex cursor-pointer items-center justify-between p-4 sm:p-5 transition-colors hover:bg-muted/50"
+                  className="bg-muted/30 border-border/60 hover:bg-muted/50 flex cursor-pointer items-center justify-between border-b p-4 transition-colors sm:p-5"
                 >
                   <div className="flex items-center gap-3.5">
                     <span
@@ -869,11 +924,15 @@ return;
                             : 'bg-muted text-muted-foreground'
                       }`}
                     >
-                      {isCompleted ? <Check className="h-4 w-4 stroke-[3]" /> : stage.id}
+                      {isCompleted ? (
+                        <Check className="h-4 w-4 stroke-[3]" />
+                      ) : (
+                        stage.id
+                      )}
                     </span>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground text-xs font-mono font-semibold">
+                        <span className="text-muted-foreground font-mono text-xs font-semibold">
                           {stage.actSection || `Stage ${stage.id}`}
                         </span>
                         <span
@@ -911,7 +970,7 @@ return;
 
                 {/* Expanded Stage Content */}
                 {isExpanded && (
-                  <div className="p-5 space-y-4">
+                  <div className="space-y-4 p-5">
                     <div className="space-y-3">
                       {stage.items.map((item) => (
                         <div
@@ -949,7 +1008,7 @@ return;
                                     </span>
                                   )}
                                 </div>
-                                <span className="border-border bg-muted text-muted-foreground font-mono text-[11px] rounded border px-2 py-0.5">
+                                <span className="border-border bg-muted text-muted-foreground rounded border px-2 py-0.5 font-mono text-[11px]">
                                   {item.sectionRef}
                                 </span>
                               </div>
@@ -959,15 +1018,21 @@ return;
                               </p>
 
                               {item.isCompleted && (
-                                <div className="text-emerald-600 dark:text-emerald-400 flex flex-wrap items-center gap-3 text-[11px]">
+                                <div className="flex flex-wrap items-center gap-3 text-[11px] text-emerald-600 dark:text-emerald-400">
                                   <span className="flex items-center gap-1">
                                     <User className="h-3 w-3" />
-                                    {item.completedBy || t('development_officer', 'Development Officer')}
+                                    {item.completedBy ||
+                                      t(
+                                        'development_officer',
+                                        'Development Officer',
+                                      )}
                                   </span>
                                   {item.completedAt && (
                                     <span className="flex items-center gap-1">
                                       <Calendar className="h-3 w-3" />
-                                      {new Date(item.completedAt).toLocaleString()}
+                                      {new Date(
+                                        item.completedAt,
+                                      ).toLocaleString()}
                                     </span>
                                   )}
                                 </div>
@@ -986,9 +1051,10 @@ return;
 
                     {/* Stage Documents if any */}
                     {stage.attachedFiles && stage.attachedFiles.length > 0 && (
-                      <div className="bg-muted/20 border-border/60 rounded-xl border p-3.5 space-y-2">
-                        <span className="text-foreground text-xs font-bold uppercase tracking-wider block">
-                          {t('attached_documents', 'Attached Documents')} ({stage.attachedFiles.length})
+                      <div className="bg-muted/20 border-border/60 space-y-2 rounded-xl border p-3.5">
+                        <span className="text-foreground block text-xs font-bold uppercase tracking-wider">
+                          {t('attached_documents', 'Attached Documents')} (
+                          {stage.attachedFiles.length})
                         </span>
                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                           {stage.attachedFiles.map((file) => (
@@ -996,11 +1062,13 @@ return;
                               key={file.id}
                               className="bg-card border-border/80 flex items-center justify-between gap-2 rounded-lg border p-2 text-xs"
                             >
-                              <span className="truncate font-medium">{file.name}</span>
+                              <span className="truncate font-medium">
+                                {file.name}
+                              </span>
                               <button
                                 type="button"
                                 onClick={() => handleDownload(file)}
-                                className="text-primary hover:underline text-xs shrink-0 flex items-center gap-1 font-semibold"
+                                className="text-primary flex shrink-0 items-center gap-1 text-xs font-semibold hover:underline"
                               >
                                 <Download className="h-3 w-3" />
                                 {t('download', 'Download')}

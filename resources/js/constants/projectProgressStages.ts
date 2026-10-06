@@ -705,4 +705,3 @@ export const normalizeAndSyncStages = (
 
   return syncStageDocuments(mergedStages, projectDocs);
 };
-
