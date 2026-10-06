@@ -44,6 +44,7 @@ class SystemSettingController extends Controller
 
             // Notifications
             'email_notifs' => 'nullable|boolean',
+            'sms_notifs' => 'nullable|boolean',
             'system_notifs' => 'nullable|boolean',
             'approval_alerts' => 'nullable|boolean',
             'deadline_alerts' => 'nullable|boolean',

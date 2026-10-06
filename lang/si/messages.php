@@ -1429,6 +1429,8 @@ return [
     'sec_notification_channels_subtitle' => 'දැනුම්දීම් බෙදා හැරීමේ ක්‍රම තෝරන්න',
     'email_notifications' => 'විද්‍යුත් තැපැල් දැනුම්දීම්',
     'email_notifications_desc' => 'Send notifications via email for important events',
+    'sms_notifications' => 'SMS දැනුම්දීම්',
+    'sms_notifications_desc' => 'හදිසි දැනුම්දීම් සහ යාවත්කාලීන කිරීම් සඳහා SMS මඟින් පණිවිඩ යවන්න',
     'in_app_notifications' => 'පද්ධති අභ්‍යන්තර දැනුම්දීම්',
     'in_app_notifications_desc' => 'පද්ධතිය තුළ තත්කාලීන දැනුම්දීම් පෙන්වන්න',
     'sec_alert_types' => 'අනතුරු ඇඟවීමේ වර්ග',

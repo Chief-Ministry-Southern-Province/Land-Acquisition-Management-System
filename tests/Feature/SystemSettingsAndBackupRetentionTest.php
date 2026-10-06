@@ -5,7 +5,9 @@ use App\Models\Departments;
 use App\Models\Roles;
 use App\Models\SystemSetting;
 use App\Models\User;
+use App\Services\SmsService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 
 beforeEach(function () {
@@ -223,4 +225,36 @@ test('lams:run-backup respects auto_backup setting and frequency', function () {
     $this->artisan('lams:run-backup')
         ->expectsOutputToContain('Automatic backup is not due yet')
         ->assertExitCode(0);
+});
+
+test('admin can update sms_notifs notification channel setting', function () {
+    // Check default
+    $resDefault = $this->actingAs($this->adminUser, 'sanctum')
+        ->getJson('/api/settings');
+    $resDefault->assertStatus(200);
+    $this->assertTrue($resDefault->json('settings.sms_notifs'));
+
+    // Disable SMS notifications
+    $resUpdate = $this->actingAs($this->adminUser, 'sanctum')
+        ->postJson('/api/settings', [
+            'sms_notifs' => false,
+        ]);
+    $resUpdate->assertStatus(200);
+    $this->assertFalse($resUpdate->json('settings.sms_notifs'));
+    $this->assertFalse(SystemSetting::get('sms_notifs'));
+
+    // Verify SmsService skips when disabled
+    Config::set('sms.enabled', true);
+    Config::set('sms.default', 'log');
+    $result = SmsService::sendSms('+94771234567', 'Test Notification');
+    $this->assertFalse($result);
+
+    // Re-enable SMS notifications
+    $resUpdate2 = $this->actingAs($this->adminUser, 'sanctum')
+        ->postJson('/api/settings', [
+            'sms_notifs' => true,
+        ]);
+    $resUpdate2->assertStatus(200);
+    $this->assertTrue($resUpdate2->json('settings.sms_notifs'));
+    $this->assertTrue(SystemSetting::get('sms_notifs'));
 });

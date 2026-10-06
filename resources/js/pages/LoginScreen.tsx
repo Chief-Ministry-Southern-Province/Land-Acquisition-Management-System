@@ -12,13 +12,14 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
-import { login } from '@/services/authService';
+import { queryClient } from '@/lib/queryClient';
+import { login, getCurrentUser } from '@/services/authService';
 
 function LoginScreen() {
   const { t, locale } = useTranslation();
@@ -30,6 +31,20 @@ function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+
+    if (token) {
+      getCurrentUser()
+        .then(() => {
+          window.location.href = '/dashboard';
+        })
+        .catch(() => {
+          localStorage.removeItem('auth_token');
+        });
+    }
+  }, []);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -43,7 +58,8 @@ function LoginScreen() {
         localStorage.setItem('auth_token', data.token);
       }
 
-      router.visit('/dashboard');
+      queryClient.clear();
+      window.location.href = '/dashboard';
     } catch (err: any) {
       if (err.response) {
         const data = err.response.data;

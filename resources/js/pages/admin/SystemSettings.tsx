@@ -13,6 +13,7 @@ import {
   Server,
   Settings,
   Shield,
+  Smartphone,
   Upload,
   Download,
   Trash2,
@@ -182,6 +183,7 @@ export default function SystemSettings() {
 
   // ── Notification settings ──
   const [emailNotifs, setEmailNotifs] = useState(true);
+  const [smsNotifs, setSmsNotifs] = useState(true);
   const [systemNotifs, setSystemNotifs] = useState(true);
   const [approvalAlerts, setApprovalAlerts] = useState(true);
   const [deadlineAlerts, setDeadlineAlerts] = useState(true);
@@ -281,6 +283,10 @@ export default function SystemSettings() {
 
         if (data.email_notifs !== undefined) {
           setEmailNotifs(Boolean(data.email_notifs));
+        }
+
+        if (data.sms_notifs !== undefined) {
+          setSmsNotifs(Boolean(data.sms_notifs));
         }
 
         if (data.system_notifs !== undefined) {
@@ -572,6 +578,7 @@ export default function SystemSettings() {
         password_expiry_days: passwordExpiryDays,
         ip_whitelist: ipWhitelist,
         email_notifs: emailNotifs,
+        sms_notifs: smsNotifs,
         system_notifs: systemNotifs,
         approval_alerts: approvalAlerts,
         deadline_alerts: deadlineAlerts,
@@ -988,6 +995,19 @@ export default function SystemSettings() {
               <Toggle
                 checked={emailNotifs}
                 onChange={() => setEmailNotifs(!emailNotifs)}
+              />
+            </SettingRow>
+            <SettingRow
+              icon={Smartphone}
+              title={t('sms_notifications', 'SMS Notifications')}
+              description={t(
+                'sms_notifications_desc',
+                'Send notifications via SMS for urgent alerts and updates',
+              )}
+            >
+              <Toggle
+                checked={smsNotifs}
+                onChange={() => setSmsNotifs(!smsNotifs)}
               />
             </SettingRow>
             <SettingRow

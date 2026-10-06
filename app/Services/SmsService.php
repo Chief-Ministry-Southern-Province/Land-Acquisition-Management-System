@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Projects;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\Sms\SmsGatewayManager;
 use Illuminate\Support\Facades\Log;
@@ -46,7 +47,14 @@ class SmsService
     public static function sendSms(string|array|User $to, string $message, ?string $driver = null, array $options = []): bool
     {
         try {
-            if (config('sms.enabled') === false) {
+            $smsSystemSetting = true;
+            try {
+                $smsSystemSetting = (bool) SystemSetting::get('sms_notifs', true);
+            } catch (\Throwable) {
+                $smsSystemSetting = true;
+            }
+
+            if (config('sms.enabled') === false || ! $smsSystemSetting) {
                 Log::info('SMS dispatch skipped: SMS is disabled in configuration.');
 
                 return false;

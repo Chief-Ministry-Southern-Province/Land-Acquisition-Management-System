@@ -3,6 +3,7 @@ import { Home, LogOut, RefreshCw, Wrench } from 'lucide-react';
 import { useState } from 'react';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
+import { queryClient } from '@/lib/queryClient';
 import { logout } from '@/services/authService';
 
 interface MaintenanceProps {
@@ -37,6 +38,7 @@ export default function Maintenance({
     } catch {
       // Ignore network errors on logout during maintenance
     } finally {
+      queryClient.clear();
       localStorage.removeItem('auth_token');
       window.location.href = '/';
     }

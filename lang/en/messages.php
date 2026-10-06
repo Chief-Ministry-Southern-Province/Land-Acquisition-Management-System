@@ -1429,6 +1429,8 @@ return [
     'sec_notification_channels_subtitle' => 'Toggle notification delivery methods',
     'email_notifications' => 'Email Notifications',
     'email_notifications_desc' => 'Send notifications via email for important events',
+    'sms_notifications' => 'SMS Notifications',
+    'sms_notifications_desc' => 'Send notifications via SMS for urgent alerts and updates',
     'in_app_notifications' => 'In-App Notifications',
     'in_app_notifications_desc' => 'Show real-time notifications within the system',
     'sec_alert_types' => 'Alert Types',

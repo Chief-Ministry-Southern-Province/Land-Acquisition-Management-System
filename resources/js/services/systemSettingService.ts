@@ -20,6 +20,7 @@ export interface SystemSettingsData {
 
   // Notifications
   email_notifs?: boolean;
+  sms_notifs?: boolean;
   system_notifs?: boolean;
   approval_alerts?: boolean;
   deadline_alerts?: boolean;

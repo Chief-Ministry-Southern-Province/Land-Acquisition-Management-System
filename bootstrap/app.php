@@ -55,6 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectGuestsTo('/');
+        $middleware->redirectUsersTo('/dashboard');
 
         $middleware->trustProxies(at: '*');
     })

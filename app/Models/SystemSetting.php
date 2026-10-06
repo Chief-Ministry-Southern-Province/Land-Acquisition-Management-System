@@ -102,6 +102,7 @@ class SystemSetting extends Model
 
             // Notifications
             'email_notifs' => true,
+            'sms_notifs' => true,
             'system_notifs' => true,
             'approval_alerts' => true,
             'deadline_alerts' => true,

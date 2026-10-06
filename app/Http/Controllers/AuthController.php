@@ -87,6 +87,10 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
+
         $user->load(['role', 'department']);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -101,7 +105,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Logout user (revoke current token).
+     * Logout user (revoke current token and session).
      */
     public function logout(Request $request): JsonResponse
     {
@@ -115,11 +119,13 @@ class AuthController extends Controller
             if ($token && method_exists($token, 'delete')) {
                 $token->delete();
             }
+        }
 
-            if ($request->hasSession()) {
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-            }
+        Auth::guard('web')->logout();
+
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
         }
 
         return response()->json([

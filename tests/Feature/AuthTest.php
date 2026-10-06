@@ -157,3 +157,23 @@ test('user can logout with personal access token and delete it', function () {
         'name' => 'test-token',
     ]);
 });
+
+test('authenticated user visiting / or /login is redirected to dashboard', function () {
+    $user = User::factory()->create([
+        'department_id' => $this->department->id,
+        'role_id' => $this->adminRole->id,
+    ]);
+
+    $this->actingAs($user, 'web')
+        ->get('/')
+        ->assertRedirect('/dashboard');
+
+    $this->actingAs($user, 'web')
+        ->get('/login')
+        ->assertRedirect('/dashboard');
+});
+
+test('guest user visiting / renders login screen', function () {
+    $this->get('/')
+        ->assertStatus(200);
+});

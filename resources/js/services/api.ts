@@ -36,6 +36,14 @@ api.interceptors.response.use(
           });
           break;
         case 401:
+          if (
+            window.location.pathname === '/' ||
+            window.location.pathname === '/login'
+          ) {
+            localStorage.removeItem('auth_token');
+            break;
+          }
+
           Swal.fire({
             title: 'Session Expired',
             text: 'Your session has expired. Please login again.',
