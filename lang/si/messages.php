@@ -740,6 +740,9 @@ return [
     'export_owner_pdf' => 'හිමිකරු පැතිකඩ PDF පෝරමය බාගත කරන්න',
     'owner_pdf_form' => 'හිමිකරු PDF පෝරමය',
     'export_success' => 'ලේඛනය සාර්ථකව අපනයනය කරන ලදී',
+    'acquisition_application_b3_title' => 'ඉඩම් අත්කර ගැනීමේ ඉල්ලුම් පත්‍රය (බී-3)',
+    'acquisition_application_b3_desc' => 'ඉඩම් අත්කර ගැනීමේ පනතේ (460 වැනි පරිච්ඡේදය) යටතේ දකුණු පළාත් සභාවේ කටයුත්තක් සඳහා ඉඩම් අත්කර ගැනීමේ නිල ඉල්ලුම් පත්‍රය (සිංහල මාධ්‍යයෙන්).',
+    'download_b3_pdf' => 'බී-3 ඉල්ලුම් පත්‍රය (PDF) බාගත කරන්න',
 
     // Financial cards
     'total_estimated_value' => 'මුළු ඇස්තමේන්තුගත වටිනාකම',

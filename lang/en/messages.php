@@ -740,6 +740,9 @@ return [
     'export_owner_pdf' => 'Download Owner Profile PDF Form',
     'owner_pdf_form' => 'Owner PDF Form',
     'export_success' => 'Document exported successfully',
+    'acquisition_application_b3_title' => 'Land Acquisition Application Form (B-3)',
+    'acquisition_application_b3_desc' => 'Official application under Section 460 of the Land Acquisition Act for acquisition of land for Southern Provincial Council (in Sinhala).',
+    'download_b3_pdf' => 'Download Form B-3 (PDF)',
 
     // Financial cards
     'total_estimated_value' => 'Total Estimated Value',

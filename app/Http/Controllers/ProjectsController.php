@@ -438,6 +438,22 @@ class ProjectsController extends Controller
             ], 404);
         }
 
+        $type = $request->query('type');
+        if ($type === 'b3' || $type === 'd3' || $type === 'application' || $type === 'acquisition_application') {
+            app()->setLocale('si');
+            $project = $records->first();
+            $filename = 'land_acquisition_application_b3_'.preg_replace('/[\/\\\\:\*\?"<>\|]+/', '_', $project->project_id).'_'.date('Ymd_His');
+
+            return $exportService->export(
+                data: collect([]),
+                headings: [],
+                filename: $filename,
+                format: 'pdf',
+                pdfView: 'pdf.acquisition_application_b3',
+                pdfData: ['project' => $project]
+            );
+        }
+
         $filename = $id
             ? 'project_'.preg_replace('/[\/\\\\:\*\?"<>\|]+/', '_', $records->first()->project_id).'_'.date('Ymd_His')
             : 'projects_'.date('Ymd_His');
