@@ -59,6 +59,7 @@ return [
     // Sidebar
     'dashboard' => 'Dashboard',
     'projects' => 'Projects',
+    'acquisition_projects' => 'Acquisition Projects',
     'land_parcels' => 'Land Parcels',
     'land_owners' => 'Property Owners',
     'compensation' => 'Compensation',
@@ -718,8 +719,27 @@ return [
     'tab_valuations' => 'Valuations',
     'tab_compensation' => 'Compensation',
     'tab_documents' => 'Documents',
+    'tab_forms' => 'Forms',
     'tab_legal' => 'Legal Cases',
     'tab_audit' => 'Audit Trail',
+
+    // Forms Tab
+    'project_forms_title' => 'Exportable Project Forms & Documents',
+    'project_forms_subtitle' => 'Download official exported forms and dossiers for this acquisition project and its associated parcels.',
+    'project_form' => 'Official Project Form',
+    'export_project_pdf' => 'Export Project PDF Form',
+    'project_dossier_desc' => 'Official acquisition project summary and workflow approval dossier in PDF, Excel, or CSV format.',
+    'related_parcels_forms' => 'Related Land Parcel Forms',
+    'related_parcels_forms_desc' => 'Download official statutory forms and export sheets for individual land parcels in this project.',
+    'related_owners_forms' => 'Related Property Owner Forms',
+    'related_owners_forms_desc' => 'Download official owner profile records and dossiers for claimants in this project.',
+    'no_related_parcels_found' => 'No land parcels linked to this project yet.',
+    'no_related_owners_found' => 'No property owners found for this project.',
+    'download_parcel_pdf' => 'Download Land Parcel PDF Form',
+    'parcel_pdf_form' => 'Parcel PDF Form',
+    'export_owner_pdf' => 'Download Owner Profile PDF Form',
+    'owner_pdf_form' => 'Owner PDF Form',
+    'export_success' => 'Document exported successfully',
 
     // Financial cards
     'total_estimated_value' => 'Total Estimated Value',

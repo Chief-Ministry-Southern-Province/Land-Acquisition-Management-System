@@ -96,7 +96,11 @@ export default function SideBar({ items }: SideBarProps = {}) {
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
       { path: '/land-parcels', icon: Map, label: t('land_parcels') },
       { path: '/land-owners', icon: Users, label: t('land_owners') },
-      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      {
+        path: '/projects',
+        icon: FolderKanban,
+        label: t('acquisition_projects', 'Acquisition Projects'),
+      },
       { path: '/mark-progress', icon: CheckSquare, label: t('Mark Progress') },
       { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
       { path: '/documents', icon: FolderOpen, label: t('documents') },
@@ -107,7 +111,11 @@ export default function SideBar({ items }: SideBarProps = {}) {
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
       { path: '/land-parcels', icon: Map, label: t('land_parcels') },
       { path: '/land-owners', icon: Users, label: t('land_owners') },
-      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      {
+        path: '/projects',
+        icon: FolderKanban,
+        label: t('acquisition_projects', 'Acquisition Projects'),
+      },
       { path: '/compensation', icon: DollarSign, label: t('compensation') },
       {
         path: '/acquisition-workflow',
@@ -129,7 +137,11 @@ export default function SideBar({ items }: SideBarProps = {}) {
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
       { path: '/land-parcels', icon: Map, label: t('land_parcels') },
       { path: '/land-owners', icon: Users, label: t('land_owners') },
-      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      {
+        path: '/projects',
+        icon: FolderKanban,
+        label: t('acquisition_projects', 'Acquisition Projects'),
+      },
       { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
       {
         path: '/pending-approvals',
@@ -144,7 +156,11 @@ export default function SideBar({ items }: SideBarProps = {}) {
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
       { path: '/land-parcels', icon: Map, label: t('land_parcels') },
       { path: '/land-owners', icon: Users, label: t('land_owners') },
-      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      {
+        path: '/projects',
+        icon: FolderKanban,
+        label: t('acquisition_projects', 'Acquisition Projects'),
+      },
       { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
       {
         path: '/pending-approvals',
@@ -159,7 +175,11 @@ export default function SideBar({ items }: SideBarProps = {}) {
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
       { path: '/land-parcels', icon: Map, label: t('land_parcels') },
       { path: '/land-owners', icon: Users, label: t('land_owners') },
-      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      {
+        path: '/projects',
+        icon: FolderKanban,
+        label: t('acquisition_projects', 'Acquisition Projects'),
+      },
       { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
       {
         path: '/pending-approvals',
@@ -174,7 +194,11 @@ export default function SideBar({ items }: SideBarProps = {}) {
       { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
       { path: '/land-parcels', icon: Map, label: t('land_parcels') },
       { path: '/land-owners', icon: Users, label: t('land_owners') },
-      { path: '/projects', icon: FolderKanban, label: t('projects') },
+      {
+        path: '/projects',
+        icon: FolderKanban,
+        label: t('acquisition_projects', 'Acquisition Projects'),
+      },
       { path: '/gis-maps', icon: MapPin, label: t('gis_maps') },
       {
         path: '/pending-approvals',

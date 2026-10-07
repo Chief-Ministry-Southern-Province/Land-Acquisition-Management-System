@@ -59,6 +59,7 @@ return [
     // Sidebar
     'dashboard' => 'ප්‍රධාන පුවරුව',
     'projects' => 'ව්‍යාපෘති',
+    'acquisition_projects' => 'අත්පත් කර ගැනීමේ ව්‍යාපෘති',
     'land_parcels' => 'ඉඩම් කැබලි',
     'land_owners' => 'දේපළ හිමිකරුවන්',
     'compensation' => 'වන්දි',
@@ -718,8 +719,27 @@ return [
     'tab_valuations' => 'තක්සේරු',
     'tab_compensation' => 'වන්දි',
     'tab_documents' => 'ලේඛන',
+    'tab_forms' => 'පෝරම (Forms)',
     'tab_legal' => 'නීතිමය කටයුතු',
     'tab_audit' => 'විගණන සටහන්',
+
+    // Forms Tab
+    'project_forms_title' => 'අපනයනය කළ හැකි ව්‍යාපෘති පෝරම සහ ලේඛන',
+    'project_forms_subtitle' => 'මෙම ඉඩම් අත්පත් කර ගැනීමේ ව්‍යාපෘතියට සහ ඊට අදාළ ඉඩම් කැබලි සඳහා වන නිල පෝරම බාගත කරන්න.',
+    'project_form' => 'නිල ව්‍යාපෘති පෝරමය',
+    'export_project_pdf' => 'ව්‍යාපෘති PDF පෝරමය බාගත කරන්න',
+    'project_dossier_desc' => 'ව්‍යාපෘති තොරතුරු සහ අනුමැතීන් ඇතුළත් නිල ව්‍යාපෘති පෝරමය PDF, Excel හෝ CSV ආකාරයෙන් බාගත කරන්න.',
+    'related_parcels_forms' => 'අදාළ ඉඩම් කැබලි පෝරම',
+    'related_parcels_forms_desc' => 'මෙම ව්‍යාපෘතියට අදාළ එක් එක් ඉඩම් කැබැල්ල සඳහා වන නිල පෝරම සහ අපනයන ලේඛන බාගත කරන්න.',
+    'related_owners_forms' => 'අදාළ දේපළ හිමිකරුවන්ගේ පෝරම',
+    'related_owners_forms_desc' => 'මෙම ව්‍යාපෘතියට සම්බන්ධ හිමිකරුවන්ගේ නිල වාර්තා සහ ලිපිගොනු බාගත කරන්න.',
+    'no_related_parcels_found' => 'මෙම ව්‍යාපෘතියට අදාළ ඉඩම් කැබලි තවමත් සම්බන්ධ කර නොමැත.',
+    'no_related_owners_found' => 'මෙම ව්‍යාපෘතිය සඳහා දේපළ හිමිකරුවන් හමු නොවීය.',
+    'download_parcel_pdf' => 'ඉඩම් කැබලි PDF පෝරමය බාගත කරන්න',
+    'parcel_pdf_form' => 'ඉඩම් කැබලි PDF පෝරමය',
+    'export_owner_pdf' => 'හිමිකරු පැතිකඩ PDF පෝරමය බාගත කරන්න',
+    'owner_pdf_form' => 'හිමිකරු PDF පෝරමය',
+    'export_success' => 'ලේඛනය සාර්ථකව අපනයනය කරන ලදී',
 
     // Financial cards
     'total_estimated_value' => 'මුළු ඇස්තමේන්තුගත වටිනාකම',

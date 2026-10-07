@@ -9,6 +9,9 @@ import {
   Upload,
   User,
   Loader2,
+  FileText,
+  FileSpreadsheet,
+  MapPin,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
@@ -30,12 +33,14 @@ import {
   downloadDocument,
   uploadDocument,
 } from '@/services/documentManagementService';
+import { exportLandParcels } from '@/services/landParcelManagementService';
 import {
   exportProjects,
   getProject,
   submitProject,
 } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
+import { exportPropertyOwners } from '@/services/propertyOwnerManagement';
 
 const formatDate = (dateStr?: string | null) => {
   if (!dateStr) {
@@ -70,6 +75,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const [loading, setLoading] = useState(true);
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
   const { locale, t } = useTranslation();
 
   const { props: pageProps } = usePage();
@@ -197,6 +203,63 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     } catch (error) {
       console.error(`Failed to export project details as ${format}:`, error);
       toastError(t('export_failed'));
+    }
+  };
+
+  const handleExportProjectWithLoading = async (
+    format: 'pdf' | 'excel' | 'csv',
+  ) => {
+    const key = `project-${format}`;
+
+    try {
+      setDownloadingKey(key);
+      await exportProjects(format, id, locale);
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error(`Failed to export project details as ${format}:`, error);
+      toastError(t('export_failed', 'Failed to export project details.'));
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
+
+  const handleExportParcel = async (
+    parcelId: string,
+    format: 'pdf' | 'excel' | 'csv',
+  ) => {
+    const key = `parcel-${parcelId}-${format}`;
+
+    try {
+      setDownloadingKey(key);
+      await exportLandParcels(format, parcelId, locale);
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error(`Failed to export parcel as ${format}:`, error);
+      toastError(
+        t('failed_export_land_parcel', 'Failed to export land parcel.'),
+      );
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
+
+  const handleExportOwner = async (
+    ownerId: string,
+    format: 'pdf' | 'excel' | 'csv',
+  ) => {
+    const key = `owner-${ownerId}-${format}`;
+
+    try {
+      setDownloadingKey(key);
+      await exportPropertyOwners(format, ownerId, locale);
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error(`Failed to export owner as ${format}:`, error);
+      toastError(
+        t('failed_export_owner_profile', 'Failed to export property owner profile.'),
+      );
+    } finally {
+      setDownloadingKey(null);
     }
   };
 
@@ -397,6 +460,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     { id: 'valuations', label: t('tab_valuations') },
     { id: 'compensation', label: t('tab_compensation') },
     { id: 'documents', label: t('tab_documents') },
+    { id: 'forms', label: t('tab_forms', 'Forms') },
     { id: 'legal', label: t('tab_legal') },
     { id: 'audit', label: t('tab_audit') },
   ];
@@ -1027,6 +1091,318 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             data={documents}
             actions={documentActions}
           />
+        </div>
+      )}
+
+      {activeTab === 'forms' && project && (
+        <div className="space-y-6">
+          {/* Section 1: Acquisition Project Dossier Card */}
+          <div className="bg-card border-border shadow-xs rounded-lg border p-6">
+            <div className="border-border flex flex-col justify-between gap-4 border-b pb-4 md:flex-row md:items-center">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-semibold tracking-wider uppercase"
+                  >
+                    {t('project_form', 'Official Project Form')}
+                  </Badge>
+                  <span className="text-muted-foreground font-mono text-xs">
+                    {project.projectId}
+                  </span>
+                </div>
+                <h4 className="text-foreground mt-1 text-base font-semibold">
+                  {project.title || project.name}
+                </h4>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {t(
+                    'project_dossier_desc',
+                    'Official acquisition project summary and workflow approval dossier in PDF, Excel, or CSV format.',
+                  )}
+                </p>
+              </div>
+
+              {/* Action Buttons for Project */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => handleExportProjectWithLoading('pdf')}
+                  disabled={downloadingKey === 'project-pdf'}
+                  className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                  title={t('export_pdf')}
+                >
+                  {downloadingKey === 'project-pdf' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  )}
+                  <span>{t('export_pdf', 'Export PDF')}</span>
+                </button>
+                <button
+                  onClick={() => handleExportProjectWithLoading('excel')}
+                  disabled={downloadingKey === 'project-excel'}
+                  className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                  title={t('export_excel')}
+                >
+                  {downloadingKey === 'project-excel' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  )}
+                  <span>{t('export_excel', 'Export Excel')}</span>
+                </button>
+                <button
+                  onClick={() => handleExportProjectWithLoading('csv')}
+                  disabled={downloadingKey === 'project-csv'}
+                  className="border-border bg-muted/50 hover:bg-muted text-foreground flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+                  title={t('export_csv')}
+                >
+                  {downloadingKey === 'project-csv' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  <span>{t('export_csv', 'Export CSV')}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Project Summary meta chips */}
+            <div className="grid grid-cols-2 gap-4 pt-4 text-sm sm:grid-cols-4">
+              <div>
+                <span className="text-muted-foreground block text-xs">
+                  {t('status')}
+                </span>
+                <span className="text-foreground font-medium capitalize">
+                  {project.status || 'Draft'}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">
+                  {t('total_parcels', 'Total Parcels')}
+                </span>
+                <span className="text-foreground font-medium">
+                  {project.landParcels?.length || 0}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">
+                  {t('land_area', 'Land Area')}
+                </span>
+                <span className="text-foreground font-medium">
+                  {project.landAreaAcers ?? 0} A, {project.landAreaRoods ?? 0}{' '}
+                  R, {project.landAreaPerches ?? 0} P
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">
+                  {t('institution', 'Requesting Institution')}
+                </span>
+                <span className="text-foreground block truncate font-medium">
+                  {project.institution || 'N/A'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Related Land Parcels Forms */}
+          <div className="space-y-4">
+            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+              <div>
+                <h4 className="text-foreground flex items-center gap-2 text-base font-semibold">
+                  <MapPin className="text-primary h-4 w-4" />
+                  {t('related_parcels_forms', 'Related Land Parcel Forms')}
+                </h4>
+                <p className="text-muted-foreground text-xs">
+                  {t(
+                    'related_parcels_forms_desc',
+                    'Download official statutory forms and export sheets for individual land parcels in this project.',
+                  )}
+                </p>
+              </div>
+              <span className="bg-muted text-muted-foreground self-start rounded-full px-2.5 py-1 text-xs font-medium sm:self-auto">
+                {project.landParcels?.length || 0}{' '}
+                {t('parcels_count', 'Parcels')}
+              </span>
+            </div>
+
+            {project.landParcels && project.landParcels.length > 0 ? (
+              <div className="border-border bg-card divide-border divide-y overflow-hidden rounded-lg border">
+                {project.landParcels.map((parcel) => (
+                  <div
+                    key={parcel.id}
+                    className="hover:bg-muted/30 flex flex-col justify-between gap-4 p-4 transition-colors sm:flex-row sm:items-center"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-foreground font-mono text-sm font-semibold">
+                          {parcel.parcel_id}
+                        </span>
+                        {parcel.land_name && (
+                          <span className="text-muted-foreground text-sm font-medium">
+                            — {parcel.land_name}
+                          </span>
+                        )}
+                        <StatusBadge
+                          status={(parcel.status || 'draft').toLowerCase()}
+                        />
+                      </div>
+                      <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-xs">
+                        {parcel.village && <span>{parcel.village}</span>}
+                        {parcel.district && <span>{parcel.district}</span>}
+                        <span>
+                          {parcel.extent_acers} A, {parcel.extent_perches} P
+                        </span>
+                        {parcel.owners && parcel.owners.length > 0 && (
+                          <span>
+                            {parcel.owners.length} {t('owners', 'Owners')}:{' '}
+                            {parcel.owners.map((o) => o.name).join(', ')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => handleExportParcel(parcel.id, 'pdf')}
+                        disabled={downloadingKey === `parcel-${parcel.id}-pdf`}
+                        className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                        title={t(
+                          'download_parcel_pdf',
+                          'Download Land Parcel PDF Form',
+                        )}
+                      >
+                        {downloadingKey === `parcel-${parcel.id}-pdf` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <FileText className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                        )}
+                        <span>{t('parcel_pdf_form', 'Parcel PDF Form')}</span>
+                      </button>
+                      <button
+                        onClick={() => handleExportParcel(parcel.id, 'excel')}
+                        disabled={downloadingKey === `parcel-${parcel.id}-excel`}
+                        className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                        title={t('export_excel')}
+                      >
+                        {downloadingKey ===
+                        `parcel-${parcel.id}-excel` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        )}
+                        <span>Excel</span>
+                      </button>
+                      <button
+                        onClick={() => handleExportParcel(parcel.id, 'csv')}
+                        disabled={downloadingKey === `parcel-${parcel.id}-csv`}
+                        className="border-border bg-muted/40 hover:bg-muted text-foreground flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
+                        title={t('export_csv')}
+                      >
+                        {downloadingKey === `parcel-${parcel.id}-csv` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Download className="h-3.5 w-3.5" />
+                        )}
+                        <span>CSV</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-card border-border text-muted-foreground rounded-lg border p-8 text-center text-sm">
+                {t(
+                  'no_related_parcels_found',
+                  'No land parcels linked to this project yet.',
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Section 3: Related Property Owners Forms */}
+          {owners.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                <div>
+                  <h4 className="text-foreground flex items-center gap-2 text-base font-semibold">
+                    <User className="text-primary h-4 w-4" />
+                    {t('related_owners_forms', 'Related Property Owner Forms')}
+                  </h4>
+                  <p className="text-muted-foreground text-xs">
+                    {t(
+                      'related_owners_forms_desc',
+                      'Download official owner profile records and dossiers for claimants in this project.',
+                    )}
+                  </p>
+                </div>
+                <span className="bg-muted text-muted-foreground self-start rounded-full px-2.5 py-1 text-xs font-medium sm:self-auto">
+                  {owners.length} {t('tab_owners', 'Owners')}
+                </span>
+              </div>
+
+              <div className="border-border bg-card divide-border divide-y overflow-hidden rounded-lg border">
+                {owners.map((owner) => (
+                  <div
+                    key={owner.id}
+                    className="hover:bg-muted/30 flex flex-col justify-between gap-4 p-4 transition-colors sm:flex-row sm:items-center"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-foreground text-sm font-medium">
+                          {owner.name}
+                        </span>
+                        {owner.ownerId && (
+                          <span className="text-muted-foreground font-mono text-xs">
+                            ({owner.ownerId})
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-xs">
+                        {owner.nic && <span>NIC: {owner.nic}</span>}
+                        {owner.contact && <span>{owner.contact}</span>}
+                        <span>
+                          {owner.parcels}{' '}
+                          {t('associated_parcels', 'associated parcels')}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => handleExportOwner(owner.id, 'pdf')}
+                        disabled={downloadingKey === `owner-${owner.id}-pdf`}
+                        className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                        title={t(
+                          'export_owner_pdf',
+                          'Download Owner Profile PDF Form',
+                        )}
+                      >
+                        {downloadingKey === `owner-${owner.id}-pdf` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <FileText className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                        )}
+                        <span>{t('owner_pdf_form', 'Owner PDF Form')}</span>
+                      </button>
+                      <button
+                        onClick={() => handleExportOwner(owner.id, 'excel')}
+                        disabled={downloadingKey === `owner-${owner.id}-excel`}
+                        className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                        title={t('export_excel')}
+                      >
+                        {downloadingKey === `owner-${owner.id}-excel` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        )}
+                        <span>Excel</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
