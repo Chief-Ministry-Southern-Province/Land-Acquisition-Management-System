@@ -36,6 +36,7 @@ import {
 import { exportLandParcels } from '@/services/landParcelManagementService';
 import {
   exportAcquisitionApplicationB3,
+  exportAcquisitionInstructions,
   exportProjects,
   getProject,
   submitProject,
@@ -234,6 +235,24 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     } catch (error) {
       console.error(
         'Failed to export Form B-3 acquisition application:',
+        error,
+      );
+      toastError(t('export_failed', 'Failed to export document.'));
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
+
+  const handleExportInstructions = async () => {
+    const key = 'project-instructions-pdf';
+
+    try {
+      setDownloadingKey(key);
+      await exportAcquisitionInstructions(id, 'si');
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error(
+        'Failed to export acquisition proposal instructions:',
         error,
       );
       toastError(t('export_failed', 'Failed to export document.'));
@@ -1269,6 +1288,55 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   )}
                   <span>
                     {t('download_b3_pdf', 'Download Form B-3 (PDF)')}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Statutory Acquisition Proposal Preparation Instructions */}
+          <div className="bg-card border-border shadow-xs rounded-lg border p-6">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-semibold tracking-wider"
+                  >
+                    උපදෙස් / Guidelines
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    සිංහල (Sinhala)
+                  </Badge>
+                </div>
+                <h4 className="text-foreground mt-1 text-base font-semibold">
+                  {t(
+                    'acquisition_instructions_title',
+                    'Proposal Preparation Instructions (Statutory Guidelines)',
+                  )}
+                </h4>
+                <p className="text-muted-foreground mt-1 max-w-3xl text-sm">
+                  {t(
+                    'acquisition_instructions_desc',
+                    'Key statutory guidelines and requirements to be considered when preparing a land acquisition proposal for the Ministry (in Sinhala).',
+                  )}
+                </p>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  onClick={handleExportInstructions}
+                  disabled={downloadingKey === 'project-instructions-pdf'}
+                  className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-50 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/50"
+                  title={t('download_instructions_pdf', 'Download Instructions (PDF)')}
+                >
+                  {downloadingKey === 'project-instructions-pdf' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  )}
+                  <span>
+                    {t('download_instructions_pdf', 'Download Instructions (PDF)')}
                   </span>
                 </button>
               </div>

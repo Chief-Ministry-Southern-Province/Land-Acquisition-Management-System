@@ -48,7 +48,7 @@
 
         .document-title {
             text-align: center;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
             line-height: 1.65;
             margin-top: 0;

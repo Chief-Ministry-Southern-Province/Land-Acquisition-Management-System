@@ -743,6 +743,9 @@ return [
     'acquisition_application_b3_title' => 'Land Acquisition Application Form (B-3)',
     'acquisition_application_b3_desc' => 'Official application under Section 460 of the Land Acquisition Act for acquisition of land for Southern Provincial Council (in Sinhala).',
     'download_b3_pdf' => 'Download Form B-3 (PDF)',
+    'acquisition_instructions_title' => 'Proposal Preparation Instructions (Statutory Guidelines)',
+    'acquisition_instructions_desc' => 'Key statutory guidelines and requirements to be considered when preparing a land acquisition proposal for the Ministry (in Sinhala).',
+    'download_instructions_pdf' => 'Download Instructions (PDF)',
 
     // Financial cards
     'total_estimated_value' => 'Total Estimated Value',

@@ -103,3 +103,21 @@ test('can export land acquisition application form b3 as pdf in sinhala', functi
     $response->assertStatus(200);
     $response->assertHeader('Content-Type', 'application/pdf');
 });
+
+test('can export acquisition proposal instructions as pdf in sinhala', function () {
+    $project = Projects::where('project_id', 'PRJ-101')->first();
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get("/api/projects/export?format=pdf&id={$project->id}&type=instructions");
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/pdf');
+});
+
+test('can export acquisition proposal instructions as pdf without project id', function () {
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get('/api/projects/export?format=pdf&type=instructions');
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/pdf');
+});
+

@@ -439,6 +439,21 @@ class ProjectsController extends Controller
         }
 
         $type = $request->query('type');
+        if ($type === 'instructions' || $type === 'acquisition_instructions') {
+            app()->setLocale('si');
+            $project = $records->first();
+            $filename = 'acquisition_proposal_instructions_'.date('Ymd_His');
+
+            return $exportService->export(
+                data: collect([]),
+                headings: [],
+                filename: $filename,
+                format: 'pdf',
+                pdfView: 'pdf.acquisition_instructions',
+                pdfData: ['project' => $project]
+            );
+        }
+
         if ($type === 'b3' || $type === 'd3' || $type === 'application' || $type === 'acquisition_application') {
             app()->setLocale('si');
             $project = $records->first();
