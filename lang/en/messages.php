@@ -1364,6 +1364,9 @@ return [
     'edit_department' => 'Edit Department',
     'department_name' => 'Department Name',
     'department_code' => 'Department Code',
+    'department_address' => 'Department Address',
+    'department_address_placeholder' => 'e.g. Galle Fort, Galle',
+    'col_address' => 'Address',
     'confirm_delete' => 'Confirm Delete',
     'confirm_dep_delete_desc' => 'Are you sure you want to delete :name? This action cannot be undone.',
 

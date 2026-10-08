@@ -1364,6 +1364,9 @@ return [
     'edit_department' => 'දෙපාර්තමේන්තුව සංස්කරණය කරන්න',
     'department_name' => 'දෙපාර්තමේන්තු නම',
     'department_code' => 'දෙපාර්තමේන්තු කේතය',
+    'department_address' => 'දෙපාර්තමේන්තු ලිපිනය',
+    'department_address_placeholder' => 'උදා: ගාල්ල කොටුව, ගාල්ල',
+    'col_address' => 'ලිපිනය',
     'confirm_delete' => 'මකා දැමීම තහවුරු කරන්න',
     'confirm_dep_delete_desc' => 'ඔබට :name මකා දැමීමට අවශ්‍ය බව විශ්වාසද? මෙම ක්‍රියාව ආපසු හැරවිය නොහැක.',
 
