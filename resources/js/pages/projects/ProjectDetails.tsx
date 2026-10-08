@@ -36,6 +36,7 @@ import {
 import { exportLandParcels } from '@/services/landParcelManagementService';
 import {
   exportAcquisitionApplicationB3,
+  exportAcquisitionApplicationB5,
   exportAcquisitionInstructions,
   exportProjects,
   getProject,
@@ -253,6 +254,24 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     } catch (error) {
       console.error(
         'Failed to export acquisition proposal instructions:',
+        error,
+      );
+      toastError(t('export_failed', 'Failed to export document.'));
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
+
+  const handleExportApplicationB5 = async () => {
+    const key = 'project-b5-pdf';
+
+    try {
+      setDownloadingKey(key);
+      await exportAcquisitionApplicationB5(id, 'si');
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error(
+        'Failed to export Form B-5 acquisition report:',
         error,
       );
       toastError(t('export_failed', 'Failed to export document.'));
@@ -1288,6 +1307,58 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   )}
                   <span>
                     {t('download_b3_pdf', 'Download Form B-3 (PDF)')}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Statutory Urgent Acquisition Report Form (B-5) */}
+          <div className="bg-card border-border shadow-xs rounded-lg border p-6">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="border-primary/40 bg-primary/5 text-primary text-xs font-semibold tracking-wider uppercase"
+                  >
+                    බී-5
+                  </Badge>
+                  <span className="text-muted-foreground font-mono text-xs">
+                    {project.projectId}
+                  </span>
+                  <Badge variant="secondary" className="text-xs">
+                    සිංහල (Sinhala)
+                  </Badge>
+                </div>
+                <h4 className="text-foreground mt-1 text-base font-semibold">
+                  {t(
+                    'acquisition_application_b5_title',
+                    'Urgent Acquisition Report under Section 38(a) (Form B-5)',
+                  )}
+                </h4>
+                <p className="text-muted-foreground mt-1 max-w-3xl text-sm">
+                  {t(
+                    'acquisition_application_b5_desc',
+                    'Statutory report on the suitability of urgent land acquisition under Proviso 38(a) of the Land Acquisition Act (Schedule No. 11 - in Sinhala).',
+                  )}
+                </p>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  onClick={handleExportApplicationB5}
+                  disabled={downloadingKey === 'project-b5-pdf'}
+                  className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                  title={t('download_b5_pdf', 'Download Form B-5 (PDF)')}
+                >
+                  {downloadingKey === 'project-b5-pdf' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  )}
+                  <span>
+                    {t('download_b5_pdf', 'Download Form B-5 (PDF)')}
                   </span>
                 </button>
               </div>

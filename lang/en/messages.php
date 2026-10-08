@@ -746,6 +746,9 @@ return [
     'acquisition_instructions_title' => 'Proposal Preparation Instructions (Statutory Guidelines)',
     'acquisition_instructions_desc' => 'Key statutory guidelines and requirements to be considered when preparing a land acquisition proposal for the Ministry (in Sinhala).',
     'download_instructions_pdf' => 'Download Instructions (PDF)',
+    'acquisition_application_b5_title' => 'Urgent Acquisition Report under Section 38(a) (Form B-5)',
+    'acquisition_application_b5_desc' => 'Statutory report on the suitability of urgent land acquisition under Proviso 38(a) of the Land Acquisition Act (Schedule No. 11 - in Sinhala).',
+    'download_b5_pdf' => 'Download Form B-5 (PDF)',
 
     // Financial cards
     'total_estimated_value' => 'Total Estimated Value',

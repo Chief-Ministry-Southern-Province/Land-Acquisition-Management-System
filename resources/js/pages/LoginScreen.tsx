@@ -33,17 +33,9 @@ function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-
-    if (token) {
-      getCurrentUser()
-        .then(() => {
-          window.location.href = '/dashboard';
-        })
-        .catch(() => {
-          localStorage.removeItem('auth_token');
-        });
-    }
+    // If the user reaches the login screen, any previously stored token
+    // has no valid web session. Remove it to prevent stale state and redirect loops.
+    localStorage.removeItem('auth_token');
   }, []);
 
   const handleLogin = async (e: FormEvent) => {
