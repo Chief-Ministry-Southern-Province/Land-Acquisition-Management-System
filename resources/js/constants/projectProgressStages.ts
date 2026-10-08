@@ -654,7 +654,7 @@ export const normalizeAndSyncStages = (
 
   const mergedStages: ChecklistStage[] = defaultStages.map((defStage) => {
     const loadedStage = baseStages.find(
-      (s: any) => s && Number(s.id) === defStage.id,
+      (s: any) => s && Number(s.id) === Number(defStage.id),
     );
 
     if (!loadedStage) {
@@ -666,22 +666,26 @@ export const normalizeAndSyncStages = (
       : [];
 
     const mergedItems = defStage.items.map((defItem) => {
-      const loadedItem = loadedItems.find((i: any) => i && i.id === defItem.id);
+      const loadedItem = loadedItems.find(
+        (i: any) => i && String(i.id) === String(defItem.id),
+      );
 
       if (!loadedItem) {
         return defItem;
       }
 
       return {
-        ...defItem,
         ...loadedItem,
-        title: loadedItem.title || defItem.title,
-        description: loadedItem.description || defItem.description,
-        sectionRef: loadedItem.sectionRef || defItem.sectionRef,
+        id: defItem.id,
+        stageId: defItem.stageId,
+        stageName: defStage.name,
+        title: defItem.title,
+        description: defItem.description,
+        sectionRef: defItem.sectionRef,
         isMandatory:
-          loadedItem.isMandatory !== undefined
-            ? Boolean(loadedItem.isMandatory)
-            : defItem.isMandatory,
+          defItem.isMandatory !== undefined
+            ? Boolean(defItem.isMandatory)
+            : Boolean(loadedItem.isMandatory),
         isCompleted: Boolean(loadedItem.isCompleted),
         completedAt: loadedItem.completedAt || null,
         completedBy: loadedItem.completedBy || null,
@@ -690,12 +694,11 @@ export const normalizeAndSyncStages = (
     });
 
     return {
-      ...defStage,
       ...loadedStage,
       id: defStage.id,
-      name: loadedStage.name || defStage.name,
-      actSection: loadedStage.actSection || defStage.actSection,
-      description: loadedStage.description || defStage.description,
+      name: defStage.name,
+      actSection: defStage.actSection,
+      description: defStage.description,
       items: mergedItems,
       attachedFiles: Array.isArray(loadedStage.attachedFiles)
         ? loadedStage.attachedFiles
