@@ -644,7 +644,7 @@ return [
     'are_residents_moved_to_temporary_habitat_info' => 'Check this option if residents affected by the project have been relocated to temporary housing.',
     'remarks_placeholder' => 'Any additional notes',
     'select_parcels_to_include_in_this_project' => 'Select parcels to include in this project',
-    'search_by_id_survey_no_district_village' => 'Search by ID, survey no, district, village…',
+    'search_by_id_survey_no_district_village' => 'Search by ID, land name, survey no, district, village…',
     'loading_land_parcels' => 'Loading land parcels...',
     'no_parcels_match_your_search' => 'No parcels match your search.',
     'parcel_id' => 'Parcel ID',

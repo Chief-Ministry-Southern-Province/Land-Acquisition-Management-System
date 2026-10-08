@@ -441,6 +441,7 @@ export default function AddProject() {
       (p) =>
         p.id.toLowerCase().includes(q) ||
         p.parcel_id.toLowerCase().includes(q) ||
+        (p.land_name && p.land_name.toLowerCase().includes(q)) ||
         p.district.toLowerCase().includes(q) ||
         p.village.toLowerCase().includes(q),
     );
@@ -954,12 +955,23 @@ export default function AddProject() {
                             <Square className="text-muted-foreground h-5 w-5" />
                           )}
                         </div>
-                        <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 md:grid-cols-4">
+                        <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 md:grid-cols-5">
                           <div>
                             <p className="text-muted-foreground text-xs">
                               {t('parcel_id')}
                             </p>
                             <p className="font-medium">{parcel.parcel_id}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              {t('land_name', 'Land Name')}
+                            </p>
+                            <p
+                              className="font-medium truncate"
+                              title={parcel.land_name || t('n_a', 'N/A')}
+                            >
+                              {parcel.land_name || t('n_a', 'N/A')}
+                            </p>
                           </div>
                           <div>
                             <p className="text-muted-foreground text-xs">
@@ -1003,7 +1015,10 @@ export default function AddProject() {
                         key={p.id}
                         className="bg-primary/10 text-primary inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
                       >
-                        {p.parcel_id}
+                        <span>
+                          {p.parcel_id}
+                          {p.land_name ? ` (${p.land_name})` : ''}
+                        </span>
                         <button
                           type="button"
                           onClick={() => removeParcel(p.id)}

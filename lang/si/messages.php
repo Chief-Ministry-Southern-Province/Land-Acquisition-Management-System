@@ -644,7 +644,7 @@ return [
     'are_residents_moved_to_temporary_habitat_info' => 'ව්‍යාපෘතිය හේතුවෙන් පීඩාවට පත් පදිංචිකරුවන් තාවකාලික වාසස්ථාන වෙත නැවත ස්ථානගත කර ඇත්නම් මෙම විකල්පය සලකුණු කරන්න.',
     'remarks_placeholder' => 'අතිරේක සටහන්',
     'select_parcels_to_include_in_this_project' => 'මෙම ව්‍යාපෘතියට ඇතුළත් කිරීමට ඉඩම් කොටස් තෝරන්න',
-    'search_by_id_survey_no_district_village' => 'අනන්‍යතා අංකය, පිඹුරුපත් අංකය, දිස්ත්‍රික්කය, ග්‍රාමය අනුව සොයන්න...',
+    'search_by_id_survey_no_district_village' => 'අනන්‍යතා අංකය, ඉඩමේ නම, පිඹුරුපත් අංකය, දිස්ත්‍රික්කය, ග්‍රාමය අනුව සොයන්න...',
     'loading_land_parcels' => 'ඉඩම් කැබලි පූරණය වෙමින් පවතී...',
     'no_parcels_match_your_search' => 'ඔබගේ සෙවුම් නිර්ණායකයන්ට අදාළ කිසිදු ඉඩම් කොටසක් සොයාගත නොහැකි විය.',
     'parcel_id' => 'අනන්‍යතා අංකය',
