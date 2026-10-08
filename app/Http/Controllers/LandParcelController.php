@@ -409,6 +409,11 @@ class LandParcelController extends Controller
         $format = $request->query('format', 'pdf');
         $id = $request->query('id');
 
+        $locale = $request->query('locale');
+        if ($locale && in_array($locale, ['en', 'si'])) {
+            app()->setLocale($locale);
+        }
+
         $query = LandParcel::with([
             'owners',
             'project.submittedBy',

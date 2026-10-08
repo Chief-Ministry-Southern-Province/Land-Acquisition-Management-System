@@ -749,6 +749,16 @@ return [
     'acquisition_application_b5_title' => 'Urgent Acquisition Report under Section 38(a) (Form B-5)',
     'acquisition_application_b5_desc' => 'Statutory report on the suitability of urgent land acquisition under Proviso 38(a) of the Land Acquisition Act (Schedule No. 11 - in Sinhala).',
     'download_b5_pdf' => 'Download Form B-5 (PDF)',
+    'statutory_dossier_sinhala' => 'Statutory Documents',
+    'export_all_documents_title' => 'Land Acquisition Statutory Documents & Dossiers (Sinhala)',
+    'export_all_documents_desc' => 'All statutory acquisition applications, urgent reports under Section 38(a), ministerial guidelines, parcel schedules, and owner dossiers in this tab are prepared and exported in official Sinhala language.',
+    'export_all_sinhala_docs' => 'Export All Documents (Sinhala ZIP)',
+    'export_all_documents_tooltip' => 'Download all statutory documents in Sinhala as a ZIP archive',
+    'export_all_success' => 'All project documents exported successfully in Sinhala (ZIP)',
+    'included_forms' => 'Included Documents',
+    'export_pdf_sinhala' => 'Export PDF (Sinhala)',
+    'parcel_pdf_form_sinhala' => 'Parcel PDF Form (Sinhala)',
+    'owner_pdf_form_sinhala' => 'Owner PDF Form (Sinhala)',
 
     // Financial cards
     'total_estimated_value' => 'Total Estimated Value',

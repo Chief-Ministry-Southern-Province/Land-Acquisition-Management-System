@@ -438,7 +438,68 @@ class ProjectsController extends Controller
             ], 404);
         }
 
+        $locale = $request->query('locale');
+        if ($locale && in_array($locale, ['en', 'si'])) {
+            app()->setLocale($locale);
+        }
+
         $type = $request->query('type');
+        if (($type === 'all' || $type === 'all_zip' || $format === 'zip') && $id) {
+            app()->setLocale($request->query('locale', 'si'));
+            $project = $records->first();
+
+            $cleanProjId = preg_replace('/[\/\\\\:\*\?"<>\|]+/', '_', $project->project_id);
+            $zipFileName = "project_{$cleanProjId}_sinhala_statutory_documents_".date('Ymd_His').'.zip';
+            $zipPath = storage_path('framework/'.$zipFileName);
+
+            $zip = new \ZipArchive;
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                return response()->json(['message' => 'Failed to create zip archive'], 500);
+            }
+
+            // 1. Form B-3
+            $b3Content = $exportService->renderPdfContent('pdf.acquisition_application_b3', ['project' => $project]);
+            $zip->addFromString('01_Form_B3_Application.pdf', $b3Content);
+
+            // 2. Form B-5
+            $b5Content = $exportService->renderPdfContent('pdf.acquisition_application_b5', ['project' => $project]);
+            $zip->addFromString('02_Form_B5_Urgent_Report.pdf', $b5Content);
+
+            // 3. Proposal Instructions
+            $instContent = $exportService->renderPdfContent('pdf.acquisition_instructions', ['project' => $project]);
+            $zip->addFromString('03_Proposal_Preparation_Instructions.pdf', $instContent);
+
+            // 4. Project Summary Dossier
+            $projContent = $exportService->renderPdfContent('pdf.project_form', ['project' => $project]);
+            $zip->addFromString('04_Official_Project_Dossier.pdf', $projContent);
+
+            // 5. Land Parcels
+            if ($project->landParcels && $project->landParcels->count() > 0) {
+                foreach ($project->landParcels as $idx => $parcel) {
+                    $parcel->setRelation('project', $project);
+                    $parcelContent = $exportService->renderPdfContent('pdf.land_parcel_form', ['parcel' => $parcel]);
+                    $parcelSafeId = preg_replace('/[\/\\\\:\*\?"<>\|]+/', '_', $parcel->parcel_id ?: ('parcel_'.($idx + 1)));
+                    $zip->addFromString("Parcels/Land_Parcel_{$parcelSafeId}.pdf", $parcelContent);
+                }
+            }
+
+            // 6. Property Owners
+            $allOwners = $project->landParcels->flatMap(fn ($p) => $p->owners)->unique('id');
+            if ($allOwners->count() > 0) {
+                foreach ($allOwners as $idx => $owner) {
+                    $ownerContent = $exportService->renderPdfContent('pdf.property_owner_form', ['owner' => $owner]);
+                    $ownerSafeId = preg_replace('/[\/\\\\:\*\?"<>\|]+/', '_', $owner->owner_id ?: ('owner_'.($idx + 1)));
+                    $zip->addFromString("Owners/Property_Owner_{$ownerSafeId}.pdf", $ownerContent);
+                }
+            }
+
+            $zip->close();
+
+            return response()->download($zipPath, $zipFileName, [
+                'Content-Type' => 'application/zip',
+            ])->deleteFileAfterSend(true);
+        }
+
         if ($type === 'instructions' || $type === 'acquisition_instructions') {
             app()->setLocale('si');
             $project = $records->first();
