@@ -19,7 +19,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { queryClient } from '@/lib/queryClient';
-import { login, getCurrentUser } from '@/services/authService';
+import { login } from '@/services/authService';
 
 function LoginScreen() {
   const { t, locale } = useTranslation();

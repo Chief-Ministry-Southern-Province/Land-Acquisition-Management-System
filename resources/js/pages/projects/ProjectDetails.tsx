@@ -293,10 +293,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       await exportAcquisitionApplicationB5(id, 'si');
       toastSuccess(t('export_success', 'Document exported successfully'));
     } catch (error) {
-      console.error(
-        'Failed to export Form B-5 acquisition report:',
-        error,
-      );
+      console.error('Failed to export Form B-5 acquisition report:', error);
       toastError(t('export_failed', 'Failed to export document.'));
     } finally {
       setDownloadingKey(null);
@@ -338,7 +335,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     } catch (error) {
       console.error(`Failed to export owner as ${format}:`, error);
       toastError(
-        t('failed_export_owner_profile', 'Failed to export property owner profile.'),
+        t(
+          'failed_export_owner_profile',
+          'Failed to export property owner profile.',
+        ),
       );
     } finally {
       setDownloadingKey(null);
@@ -1179,7 +1179,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       {activeTab === 'forms' && project && (
         <div className="space-y-6">
           {/* Master Banner: Export All Statutory Documents in Sinhala */}
-          <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 shadow-xs">
+          <div className="border-primary/20 from-primary/10 via-primary/5 shadow-xs relative overflow-hidden rounded-xl border bg-gradient-to-r to-transparent p-6">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
@@ -1211,7 +1211,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 <button
                   onClick={handleExportAllDocuments}
                   disabled={downloadingKey === 'project-all-sinhala'}
-                  className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:opacity-50"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm transition disabled:opacity-50"
                   title={t(
                     'export_all_documents_tooltip',
                     'Download all statutory documents in Sinhala as a ZIP archive',
@@ -1233,26 +1233,26 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             </div>
 
             {/* Quick list chips of included Sinhala forms */}
-            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-primary/10 pt-3 text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">
+            <div className="border-primary/10 text-muted-foreground mt-4 flex flex-wrap items-center gap-2 border-t pt-3 text-xs">
+              <span className="text-foreground font-semibold">
                 {t('included_forms', 'Included Documents')}:
               </span>
-              <span className="rounded-md bg-background/80 px-2 py-0.5 border border-border">
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
                 බී-3 අයදුම්පත (Form B-3)
               </span>
-              <span className="rounded-md bg-background/80 px-2 py-0.5 border border-border">
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
                 බී-5 හදිසි වාර්තාව (Form B-5)
               </span>
-              <span className="rounded-md bg-background/80 px-2 py-0.5 border border-border">
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
                 යෝජනා උපදෙස් (Guidelines)
               </span>
-              <span className="rounded-md bg-background/80 px-2 py-0.5 border border-border">
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
                 ව්‍යාපෘති සාරාංශය (Project Dossier)
               </span>
-              <span className="rounded-md bg-background/80 px-2 py-0.5 border border-border">
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
                 ඉඩම් කොටස් ({project.landParcels?.length || 0} Parcels)
               </span>
-              <span className="rounded-md bg-background/80 px-2 py-0.5 border border-border">
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
                 හිමිකරුවන් ({owners.length} Owners)
               </span>
             </div>
@@ -1265,7 +1265,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className="text-xs font-semibold tracking-wider uppercase"
+                    className="text-xs font-semibold uppercase tracking-wider"
                   >
                     {t('project_form', 'Official Project Form')}
                   </Badge>
@@ -1376,7 +1376,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className="border-primary/40 bg-primary/5 text-primary text-xs font-semibold tracking-wider uppercase"
+                    className="border-primary/40 bg-primary/5 text-primary text-xs font-semibold uppercase tracking-wider"
                   >
                     බී-3
                   </Badge>
@@ -1413,9 +1413,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   ) : (
                     <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />
                   )}
-                  <span>
-                    {t('download_b3_pdf', 'Download Form B-3 (PDF)')}
-                  </span>
+                  <span>{t('download_b3_pdf', 'Download Form B-3 (PDF)')}</span>
                 </button>
               </div>
             </div>
@@ -1428,7 +1426,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className="border-primary/40 bg-primary/5 text-primary text-xs font-semibold tracking-wider uppercase"
+                    className="border-primary/40 bg-primary/5 text-primary text-xs font-semibold uppercase tracking-wider"
                   >
                     බී-5
                   </Badge>
@@ -1465,9 +1463,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   ) : (
                     <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />
                   )}
-                  <span>
-                    {t('download_b5_pdf', 'Download Form B-5 (PDF)')}
-                  </span>
+                  <span>{t('download_b5_pdf', 'Download Form B-5 (PDF)')}</span>
                 </button>
               </div>
             </div>
@@ -1480,7 +1476,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-semibold tracking-wider"
+                    className="border-amber-500/40 bg-amber-500/10 text-xs font-semibold tracking-wider text-amber-700 dark:text-amber-300"
                   >
                     උපදෙස් / Guidelines
                   </Badge>
@@ -1507,7 +1503,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                   onClick={handleExportInstructions}
                   disabled={downloadingKey === 'project-instructions-pdf'}
                   className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-50 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/50"
-                  title={t('download_instructions_pdf', 'Download Instructions (PDF)')}
+                  title={t(
+                    'download_instructions_pdf',
+                    'Download Instructions (PDF)',
+                  )}
                 >
                   {downloadingKey === 'project-instructions-pdf' ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1515,7 +1514,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                     <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   )}
                   <span>
-                    {t('download_instructions_pdf', 'Download Instructions (PDF)')}
+                    {t(
+                      'download_instructions_pdf',
+                      'Download Instructions (PDF)',
+                    )}
                   </span>
                 </button>
               </div>
@@ -1584,7 +1586,9 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
 
                     <div className="flex shrink-0 flex-wrap items-center gap-2">
                       <button
-                        onClick={() => handleExportParcel(parcel.id, 'pdf', 'si')}
+                        onClick={() =>
+                          handleExportParcel(parcel.id, 'pdf', 'si')
+                        }
                         disabled={downloadingKey === `parcel-${parcel.id}-pdf`}
                         className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-900/50"
                         title={t(
@@ -1598,17 +1602,23 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                           <FileText className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
                         )}
                         <span>
-                          {t('parcel_pdf_form_sinhala', 'Parcel PDF Form (Sinhala)')}
+                          {t(
+                            'parcel_pdf_form_sinhala',
+                            'Parcel PDF Form (Sinhala)',
+                          )}
                         </span>
                       </button>
                       <button
-                        onClick={() => handleExportParcel(parcel.id, 'excel', 'si')}
-                        disabled={downloadingKey === `parcel-${parcel.id}-excel`}
+                        onClick={() =>
+                          handleExportParcel(parcel.id, 'excel', 'si')
+                        }
+                        disabled={
+                          downloadingKey === `parcel-${parcel.id}-excel`
+                        }
                         className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
                         title={t('export_excel')}
                       >
-                        {downloadingKey ===
-                        `parcel-${parcel.id}-excel` ? (
+                        {downloadingKey === `parcel-${parcel.id}-excel` ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : (
                           <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
@@ -1616,7 +1626,9 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                         <span>Excel</span>
                       </button>
                       <button
-                        onClick={() => handleExportParcel(parcel.id, 'csv', 'si')}
+                        onClick={() =>
+                          handleExportParcel(parcel.id, 'csv', 'si')
+                        }
                         disabled={downloadingKey === `parcel-${parcel.id}-csv`}
                         className="border-border bg-muted/40 hover:bg-muted text-foreground flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
                         title={t('export_csv')}
@@ -1709,11 +1721,16 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                           <FileText className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
                         )}
                         <span>
-                          {t('owner_pdf_form_sinhala', 'Owner PDF Form (Sinhala)')}
+                          {t(
+                            'owner_pdf_form_sinhala',
+                            'Owner PDF Form (Sinhala)',
+                          )}
                         </span>
                       </button>
                       <button
-                        onClick={() => handleExportOwner(owner.id, 'excel', 'si')}
+                        onClick={() =>
+                          handleExportOwner(owner.id, 'excel', 'si')
+                        }
                         disabled={downloadingKey === `owner-${owner.id}-excel`}
                         className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
                         title={t('export_excel')}

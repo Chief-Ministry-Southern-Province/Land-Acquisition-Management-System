@@ -49,7 +49,6 @@ import {
 import { getProjects, getProject } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
-
 interface MarkProgressProps {
   projectId?: string;
   hideHeader?: boolean;
@@ -65,7 +64,11 @@ export default function MarkProgress({
     [locale],
   );
   const defaultStagesRef = useRef(defaultStagesForLocale);
-  defaultStagesRef.current = defaultStagesForLocale;
+
+  useEffect(() => {
+    defaultStagesRef.current = defaultStagesForLocale;
+  }, [defaultStagesForLocale]);
+
   const { props: pageProps } = usePage();
   const user = (pageProps.auth as any)?.user;
   const userRole = user?.role?.role_name || user?.role || 'User';
@@ -80,6 +83,7 @@ export default function MarkProgress({
   const [prevProjectId, setPrevProjectId] = useState<string | undefined>(
     projectId,
   );
+  const [prevLocale, setPrevLocale] = useState<string>(locale);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const [stages, setStages] = useState<ChecklistStage[]>(
@@ -95,7 +99,8 @@ export default function MarkProgress({
   const [uploadingStageId, setUploadingStageId] = useState<number | null>(null);
 
   // Seamlessly switch stage/item translations when user toggles locale without wiping progress or attachments
-  useEffect(() => {
+  if (locale !== prevLocale) {
+    setPrevLocale(locale);
     setStages((prevStages) =>
       normalizeAndSyncStages(
         prevStages,
@@ -103,7 +108,7 @@ export default function MarkProgress({
         selectedProject?.documents || [],
       ),
     );
-  }, [defaultStagesForLocale]);
+  }
 
   // Adjust state during render if projectId prop changes
   if (projectId !== prevProjectId) {

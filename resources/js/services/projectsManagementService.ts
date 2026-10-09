@@ -420,10 +420,7 @@ export const exportAllProjectDocuments = async (
 
   const contentType = response.headers['content-type'];
   const blob = new Blob([response.data], {
-    type:
-      typeof contentType === 'string'
-        ? contentType
-        : 'application/zip',
+    type: typeof contentType === 'string' ? contentType : 'application/zip',
   });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -446,4 +443,3 @@ export const exportAllProjectDocuments = async (
   link.parentNode?.removeChild(link);
   window.URL.revokeObjectURL(url);
 };
-

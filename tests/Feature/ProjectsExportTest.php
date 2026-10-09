@@ -147,5 +147,3 @@ test('can export all project documents using format zip parameter', function () 
     $response->assertStatus(200);
     $response->assertHeader('Content-Type', 'application/zip');
 });
-
-

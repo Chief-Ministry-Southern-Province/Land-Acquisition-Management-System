@@ -149,10 +149,26 @@ const inputCls =
   'w-full px-3 py-2 border border-border rounded-lg bg-input-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors';
 const errCls = 'text-xs text-destructive mt-0.5';
 
+const getParcelFullSizeInPerches = (parcel: LandParcel): number => {
+  const directFullSize = parseFloat(parcel.full_land_size || '0');
+
+  if (!isNaN(directFullSize) && directFullSize > 0) {
+    return directFullSize;
+  }
+
+  const acers =
+    parseFloat(parcel.land_size_acers || parcel.extent_acers || '0') || 0;
+  const roods = parseFloat(parcel.land_size_roods || '0') || 0;
+  const perches =
+    parseFloat(parcel.land_size_perches || parcel.extent_perches || '0') || 0;
+
+  return acers * 160 + roods * 40 + perches;
+};
+
 export default function AddProject() {
   const [form, setForm] = useState<ProjectForm>(EMPTY_FORM);
   const [errors, setErrors] = useState<
-    Partial<Record<keyof ProjectForm, string>>
+    Partial<Record<keyof ProjectForm | 'landArea' | 'parcels', string>>
   >({});
 
   // Parcel picker state
@@ -389,8 +405,32 @@ export default function AddProject() {
       e: React.ChangeEvent<
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       >,
-    ) =>
+    ) => {
       setForm((f) => ({ ...f, [field]: e.target.value }));
+
+      if (errors[field]) {
+        setErrors((prev) => {
+          const next = { ...prev };
+          delete next[field];
+
+          return next;
+        });
+      }
+
+      if (
+        (field === 'landAreaAcers' ||
+          field === 'landAreaRoods' ||
+          field === 'landAreaPerches') &&
+        errors.landArea
+      ) {
+        setErrors((prev) => {
+          const next = { ...prev };
+          delete next.landArea;
+
+          return next;
+        });
+      }
+    };
 
   // Derived: selected parcel objects
   const selectedParcels = useMemo(
@@ -459,6 +499,16 @@ export default function AddProject() {
 
       return next;
     });
+
+    if (errors.parcels || errors.landArea) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.parcels;
+        delete next.landArea;
+
+        return next;
+      });
+    }
   };
 
   const removeParcel = (id: string) => {
@@ -468,6 +518,16 @@ export default function AddProject() {
 
       return next;
     });
+
+    if (errors.parcels || errors.landArea) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.parcels;
+        delete next.landArea;
+
+        return next;
+      });
+    }
   };
 
   // Total extent (numeric sum of acres)
@@ -480,6 +540,34 @@ export default function AddProject() {
 
     return sum > 0 ? `${sum.toFixed(2)} acres` : '—';
   }, [selectedParcels]);
+
+  // Total full land size of selected parcels in perches
+  const totalParcelLandSize = useMemo(() => {
+    return selectedParcels.reduce(
+      (acc, p) => acc + getParcelFullSizeInPerches(p),
+      0,
+    );
+  }, [selectedParcels]);
+
+  // Full acquiring land size in perches
+  const fullAcquiringLandSize = useMemo(() => {
+    const acers = parseFloat(form.landAreaAcers) || 0;
+    const roods = parseFloat(form.landAreaRoods) || 0;
+    const perches = parseFloat(form.landAreaPerches) || 0;
+
+    return acers * 160 + roods * 40 + perches;
+  }, [form.landAreaAcers, form.landAreaRoods, form.landAreaPerches]);
+
+  const isLandSizeExceeded = useMemo(() => {
+    if (selectedParcels.length === 0) {
+      return false;
+    }
+
+    const acquiringSize = Number(fullAcquiringLandSize.toFixed(2));
+    const parcelSize = Number(totalParcelLandSize.toFixed(2));
+
+    return acquiringSize > parcelSize;
+  }, [selectedParcels.length, fullAcquiringLandSize, totalParcelLandSize]);
 
   const generateProjectId = (existingProjects: any[] = allProjects) => {
     const year = new Date().getFullYear();
@@ -530,7 +618,9 @@ export default function AddProject() {
   };
 
   const validate = () => {
-    const errs: Partial<Record<keyof ProjectForm, string>> = {};
+    const errs: Partial<
+      Record<keyof ProjectForm | 'landArea' | 'parcels', string>
+    > = {};
 
     if (!form.name.trim()) {
       errs.name = t('project_name_required');
@@ -540,7 +630,28 @@ export default function AddProject() {
       errs.purpose = t('purpose_description_required');
     }
 
-    // Removed Start Date, Estimated Completion, Project Manager, Manager Contact, Manager Email validation.
+    const acquiringSize = Number(fullAcquiringLandSize.toFixed(2));
+    const parcelSize = Number(totalParcelLandSize.toFixed(2));
+
+    if (selectedParcels.length === 0) {
+      if (acquiringSize > 0) {
+        const msg = t(
+          'select_at_least_one_parcel',
+          'Please select at least one land parcel.',
+        );
+        errs.landArea = msg;
+        errs.parcels = msg;
+        toastError(msg);
+      }
+    } else if (acquiringSize > parcelSize) {
+      const msg = t(
+        'acquiring_size_exceeds_parcel_size',
+        'The full acquiring land size must be equal to or less than the full size of the land parcel.',
+      );
+      const detailMsg = `${msg} (${acquiringSize.toFixed(2)} > ${parcelSize.toFixed(2)} ${t('perches')})`;
+      errs.landArea = detailMsg;
+      toastError(detailMsg);
+    }
 
     setErrors(errs);
 
@@ -560,7 +671,7 @@ export default function AddProject() {
         const acers = parseFloat(form.landAreaAcers) || 0;
         const roods = parseFloat(form.landAreaRoods) || 0;
         const perches = parseFloat(form.landAreaPerches) || 0;
-        const fullArea = acers * 160 + roods * 40 + perches;
+        const fullArea = fullAcquiringLandSize;
 
         const payload = {
           projectId: editId ? originalProjectId : generateProjectId(),
@@ -796,18 +907,35 @@ export default function AddProject() {
 
               <Field
                 label={`${t('full_acquiring_land_size')} (${t('perches')})`}
+                hint={
+                  selectedParcels.length > 0
+                    ? `${t('full_size_of_land_parcel', 'Full size of land parcel')}: ${totalParcelLandSize.toFixed(2)} ${t('perches')}`
+                    : undefined
+                }
               >
                 <input
-                  className={`${inputCls} bg-muted/30 cursor-not-allowed font-medium`}
+                  className={`${inputCls} ${
+                    errors.landArea || isLandSizeExceeded
+                      ? 'border-destructive text-destructive focus:border-destructive focus:ring-destructive/30'
+                      : ''
+                  } bg-muted/30 cursor-not-allowed font-medium`}
                   type="text"
                   readOnly
                   placeholder="0.00"
-                  value={(
-                    (parseFloat(form.landAreaAcers) || 0) * 160 +
-                    (parseFloat(form.landAreaRoods) || 0) * 40 +
-                    (parseFloat(form.landAreaPerches) || 0)
-                  ).toFixed(2)}
+                  value={fullAcquiringLandSize.toFixed(2)}
                 />
+                {errors.landArea ? (
+                  <span className={errCls}>{errors.landArea}</span>
+                ) : isLandSizeExceeded ? (
+                  <span className={errCls}>
+                    {t(
+                      'acquiring_size_exceeds_parcel_size',
+                      'The full acquiring land size must be equal to or less than the full size of the land parcel.',
+                    )}{' '}
+                    ({fullAcquiringLandSize.toFixed(2)} &gt;{' '}
+                    {totalParcelLandSize.toFixed(2)} {t('perches')})
+                  </span>
+                ) : null}
               </Field>
             </div>
 
@@ -908,6 +1036,11 @@ export default function AddProject() {
 
           {pickerOpen && (
             <div className="border-border border-t">
+              {errors.parcels && (
+                <div className="bg-destructive/10 border-destructive/20 text-destructive border-b px-6 py-2.5 text-xs font-medium">
+                  {errors.parcels}
+                </div>
+              )}
               {/* Search bar */}
               <div className="border-border bg-muted/30 border-b px-6 py-3">
                 <div className="relative max-w-sm">
@@ -967,7 +1100,7 @@ export default function AddProject() {
                               {t('land_name', 'Land Name')}
                             </p>
                             <p
-                              className="font-medium truncate"
+                              className="truncate font-medium"
                               title={parcel.land_name || t('n_a', 'N/A')}
                             >
                               {parcel.land_name || t('n_a', 'N/A')}
@@ -1008,6 +1141,8 @@ export default function AddProject() {
                 <div className="border-border bg-muted/20 border-t px-6 py-3">
                   <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
                     {t('selected_parcels_total_extent')} {totalExtent}
+                    {totalParcelLandSize > 0 &&
+                      ` (${totalParcelLandSize.toFixed(2)} ${t('perches')})`}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedParcels.map((p) => (
