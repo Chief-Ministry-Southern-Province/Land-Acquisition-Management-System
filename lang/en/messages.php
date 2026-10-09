@@ -454,6 +454,8 @@ return [
     'save_parcel_error' => 'An error occurred while saving the land parcel. Please verify your inputs.',
     'generic_error_saving' => 'An error occurred while saving the land parcel.',
     'resident_name_required' => 'Resident name is required',
+    'resident_relationship_required' => 'Relationship is required',
+    'resident_address_required' => 'Address is required',
     'owner_name_required' => 'Name is required',
     'owner_nic_required' => 'NIC is required',
     'owner_contact_required' => 'Contact is required',

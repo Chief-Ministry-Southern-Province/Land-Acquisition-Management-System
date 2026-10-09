@@ -454,6 +454,8 @@ return [
     'save_parcel_error' => 'ඉඩම් කොටස සුරැකීමේදී දෝෂයක් සිදු විය. කරුණාකර ඔබ ඇතුළත් කළ තොරතුරු පරීක්ෂා කරන්න.',
     'generic_error_saving' => 'ඉඩම් කොටස සුරැකීමේදී දෝෂයක් සිදු විය.',
     'resident_name_required' => 'පදිංචිකරුගේ නම අවශ්‍ය වේ',
+    'resident_relationship_required' => 'සම්බන්ධතාවය අවශ්‍ය වේ',
+    'resident_address_required' => 'ලිපිනය අවශ්‍ය වේ',
     'owner_name_required' => 'හිමිකරුගේ නම අවශ්‍ය වේ',
     'owner_nic_required' => 'ජාතික හැඳුනුම්පත් අංකය අවශ්‍ය වේ',
     'owner_contact_required' => 'දුරකථන අංකය අවශ්‍ය වේ',

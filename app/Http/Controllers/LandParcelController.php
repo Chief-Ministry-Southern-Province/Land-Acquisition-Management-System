@@ -26,7 +26,15 @@ class LandParcelController extends Controller
             ], 403);
         }
 
-        $landParcels = LandParcel::with(['owners', 'project', 'residents', 'documents'])->get();
+        $landParcels = LandParcel::with([
+            'owners',
+            'project',
+            'residents',
+            'documents',
+            'surveys.document',
+            'valuations.document',
+            'compensations.payments.document',
+        ])->get();
 
         return response()->json([
             'message' => 'Land parcels fetched successfully',
