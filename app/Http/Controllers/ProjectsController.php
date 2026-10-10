@@ -172,6 +172,7 @@ class ProjectsController extends Controller
             'landParcels.surveys.document',
             'landParcels.valuations.document',
             'landParcels.compensations.payments.document',
+            'landParcels.receipts.document',
             'documents',
             'submittedBy',
             'hobApprovedBy',

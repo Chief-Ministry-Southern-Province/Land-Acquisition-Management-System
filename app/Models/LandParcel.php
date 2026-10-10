@@ -102,4 +102,9 @@ class LandParcel extends Model
     {
         return $this->hasMany(Compensation::class, 'land_parcel_id');
     }
+
+    public function receipts()
+    {
+        return $this->hasMany(Receipt::class, 'land_parcel_id');
+    }
 }

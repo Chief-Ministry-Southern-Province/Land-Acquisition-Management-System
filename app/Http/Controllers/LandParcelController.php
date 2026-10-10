@@ -34,6 +34,7 @@ class LandParcelController extends Controller
             'surveys.document',
             'valuations.document',
             'compensations.payments.document',
+            'receipts.document',
         ])->get();
 
         return response()->json([
@@ -205,7 +206,7 @@ class LandParcelController extends Controller
             ], 403);
         }
 
-        $landParcel = LandParcel::with(['owners', 'project', 'residents', 'documents', 'surveys.document', 'valuations.document', 'compensations.payments.document'])->find($id);
+        $landParcel = LandParcel::with(['owners', 'project', 'residents', 'documents', 'surveys.document', 'valuations.document', 'compensations.payments.document', 'receipts.document'])->find($id);
 
         if ($landParcel) {
             return response()->json([

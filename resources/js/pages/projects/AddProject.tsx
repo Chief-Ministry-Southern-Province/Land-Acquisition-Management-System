@@ -23,6 +23,7 @@ import {
   Upload,
   Download,
   Loader2,
+  Receipt,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
@@ -501,6 +502,22 @@ export default function AddProject() {
   const [payUploading, setPayUploading] = useState(false);
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
 
+  // ── Receipt (ලදු පත) Form State ─────────────────────────────────────────
+  const [showReceiptForm, setShowReceiptForm] = useState(false);
+  const [receiptNumber, setReceiptNumber] = useState('');
+  const [receiptDate, setReceiptDate] = useState('');
+  const [receiptReceivedFrom, setReceiptReceivedFrom] = useState('');
+  const [receiptAmountRupees, setReceiptAmountRupees] = useState<number | ''>(
+    '',
+  );
+  const [receiptAmountCents, setReceiptAmountCents] = useState<number | ''>('');
+  const [receiptReason, setReceiptReason] = useState('');
+  const [receiptDocId, setReceiptDocId] = useState<string | null>(null);
+  const [receiptDocName, setReceiptDocName] = useState('');
+  const [receiptUploading, setReceiptUploading] = useState(false);
+  const [isSubmittingReceipt, setIsSubmittingReceipt] = useState(false);
+  const [receiptEditId, setReceiptEditId] = useState<string | null>(null);
+
   const refreshParcels = useCallback(async () => {
     try {
       const data = await getLandParcels();
@@ -521,8 +538,8 @@ export default function AddProject() {
     const file = e.target.files?.[0];
 
     if (!file) {
-return;
-}
+      return;
+    }
 
     try {
       setUploading(true);
@@ -551,8 +568,8 @@ return;
     const file = e.target.files?.[0];
 
     if (!file) {
-return;
-}
+      return;
+    }
 
     try {
       setCompDocUploading(true);
@@ -610,8 +627,8 @@ return;
     e.preventDefault();
 
     if (isSubmittingSurvey) {
-return;
-}
+      return;
+    }
 
     if (!surveyDocId) {
       toastError('Mandatory Checklist: Please upload the survey plan file.');
@@ -672,8 +689,8 @@ return;
     });
 
     if (!confirmed) {
-return;
-}
+      return;
+    }
 
     try {
       await deleteSurvey(sId);
@@ -724,8 +741,8 @@ return;
     e.preventDefault();
 
     if (isSubmittingValuation) {
-return;
-}
+      return;
+    }
 
     if (!valuationDocId) {
       toastError(
@@ -777,8 +794,8 @@ return;
     });
 
     if (!confirmed) {
-return;
-}
+      return;
+    }
 
     try {
       await deleteValuation(vId);
@@ -819,8 +836,8 @@ return;
     e.preventDefault();
 
     if (isSubmittingCompensation) {
-return;
-}
+      return;
+    }
 
     if (!compOwnerId) {
       toastError('Please select a property owner.');
@@ -869,8 +886,8 @@ return;
     });
 
     if (!confirmed) {
-return;
-}
+      return;
+    }
 
     try {
       await api.delete(`/api/compensation/${cId}`);
@@ -929,8 +946,8 @@ return;
     e.preventDefault();
 
     if (isSubmittingPayment) {
-return;
-}
+      return;
+    }
 
     if (!payDocId) {
       toastError('Mandatory Checklist: Please upload a payment receipt PDF.');
@@ -980,8 +997,8 @@ return;
     });
 
     if (!confirmed) {
-return;
-}
+      return;
+    }
 
     try {
       await deletePayment(pId);
@@ -990,6 +1007,117 @@ return;
     } catch (err) {
       console.error(err);
       toastError('Failed to delete payment.');
+    }
+  };
+
+  // Receipt (ලදු පත) Handlers
+  const resetReceiptForm = () => {
+    setReceiptEditId(null);
+    setReceiptNumber('');
+    setReceiptDate('');
+    setReceiptReceivedFrom('');
+    setReceiptAmountRupees('');
+    setReceiptAmountCents('');
+    setReceiptReason('');
+    setReceiptDocId(null);
+    setReceiptDocName('');
+  };
+
+  const handleReceiptSubmit = async (
+    e: React.FormEvent,
+    targetParcelId: string,
+  ) => {
+    e.preventDefault();
+
+    if (isSubmittingReceipt) {
+      return;
+    }
+
+    if (!receiptDocId) {
+      toastError(
+        t('receipt_upload_required', 'Please upload the receipt document.'),
+      );
+
+      return;
+    }
+
+    const payload = {
+      land_parcel_id: String(targetParcelId),
+      receipt_number: receiptNumber,
+      receipt_date: receiptDate,
+      received_from: receiptReceivedFrom,
+      amount_rupees: Number(receiptAmountRupees || 0),
+      amount_cents: Number(receiptAmountCents || 0),
+      reason: receiptReason,
+      document_id: String(receiptDocId),
+    };
+
+    try {
+      setIsSubmittingReceipt(true);
+
+      if (receiptEditId) {
+        await api.put(`/api/receipts/${receiptEditId}`, payload);
+        toastSuccess(
+          t('receipt_updated_success', 'Receipt updated successfully.'),
+        );
+      } else {
+        await api.post('/api/receipts', payload);
+        toastSuccess(t('receipt_saved_success', 'Receipt saved successfully.'));
+      }
+
+      setShowReceiptForm(false);
+      resetReceiptForm();
+      await refreshParcels();
+    } catch (err: any) {
+      console.error(err);
+      toastError(
+        err.response?.data?.message ||
+          t('receipt_submit_failed', 'Failed to submit receipt.'),
+      );
+    } finally {
+      setIsSubmittingReceipt(false);
+    }
+  };
+
+  const startEditReceipt = (r: any) => {
+    setReceiptEditId(String(r.id));
+    setReceiptNumber(r.receipt_number || '');
+    setReceiptDate(r.receipt_date ? r.receipt_date.split('T')[0] : '');
+    setReceiptReceivedFrom(r.received_from || '');
+    setReceiptAmountRupees(
+      r.amount_rupees !== undefined ? Number(r.amount_rupees) : '',
+    );
+    setReceiptAmountCents(
+      r.amount_cents !== undefined ? Number(r.amount_cents) : '',
+    );
+    setReceiptReason(r.reason || '');
+    setReceiptDocId(r.document_id ? String(r.document_id) : null);
+    setReceiptDocName(r.document?.original_filename || 'Receipt PDF');
+    setShowReceiptForm(true);
+  };
+
+  const handleDeleteReceipt = async (rId: string) => {
+    const confirmed = await confirmDialog({
+      title: t('delete_receipt_title', 'Delete Receipt'),
+      text: t(
+        'delete_receipt_confirm',
+        'Are you sure you want to delete this receipt?',
+      ),
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await api.delete(`/api/receipts/${rId}`);
+      toastSuccess(
+        t('receipt_deleted_success', 'Receipt deleted successfully.'),
+      );
+      await refreshParcels();
+    } catch (err) {
+      console.error(err);
+      toastError(t('receipt_delete_failed', 'Failed to delete receipt.'));
     }
   };
 
@@ -3217,6 +3345,374 @@ return;
                 {/* ── SUB-TAB: COMPENSATION & PAYMENTS ── */}
                 {activeTab === 'compensation' && activeParcel && (
                   <div className="space-y-6">
+                    {/* ── RECEIPT (ලදු පත) SECTION ── */}
+                    <div className="bg-card border-border rounded-lg border p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-lg bg-amber-100 p-2.5 dark:bg-amber-900/30">
+                            <Receipt className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-semibold">
+                              {t('cash_receipt', 'Cash Receipt')}
+                            </h3>
+                            <p className="text-muted-foreground text-sm">
+                              {t(
+                                'receipt_subtitle',
+                                'Upload and manage Southern Provincial Council cash receipts.',
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        {!showReceiptForm && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              resetReceiptForm();
+                              setShowReceiptForm(true);
+                            }}
+                            className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700"
+                          >
+                            <Plus className="h-4 w-4" />
+                            <span>{t('add_receipt', 'Add Receipt')}</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Receipt Form */}
+                      {showReceiptForm && (
+                        <div className="mt-6 space-y-6 border-t pt-6">
+                          <div className="flex items-center justify-between border-b pb-3">
+                            <h3 className="text-foreground text-base font-bold">
+                              {receiptEditId
+                                ? t('edit_receipt', 'Edit Receipt')
+                                : t('new_receipt', 'New Receipt')}
+                            </h3>
+                            <button
+                              type="button"
+                              onClick={() => setShowReceiptForm(false)}
+                              className="text-muted-foreground hover:text-foreground rounded-lg p-1.5 transition-colors"
+                            >
+                              <X className="h-5 w-5" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div className="space-y-1">
+                              <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                                {t('receipt_number', 'Receipt Number')} *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={receiptNumber}
+                                onChange={(e) =>
+                                  setReceiptNumber(e.target.value)
+                                }
+                                className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-sm"
+                                placeholder={t(
+                                  'receipt_number_placeholder',
+                                  'e.g. I 192384',
+                                )}
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                                {t('receipt_date', 'Date')} *
+                              </label>
+                              <input
+                                type="date"
+                                required
+                                value={receiptDate}
+                                onChange={(e) => setReceiptDate(e.target.value)}
+                                className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
+                              />
+                            </div>
+
+                            <div className="space-y-1 md:col-span-2">
+                              <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                                {t('received_from', 'Received From')} *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={receiptReceivedFrom}
+                                onChange={(e) =>
+                                  setReceiptReceivedFrom(e.target.value)
+                                }
+                                className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
+                                placeholder={t(
+                                  'received_from_placeholder',
+                                  'Name of person or entity received from',
+                                )}
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                                {t('amount_rupees', 'Amount (Rupees)')} *
+                              </label>
+                              <input
+                                type="number"
+                                required
+                                value={receiptAmountRupees}
+                                onChange={(e) =>
+                                  setReceiptAmountRupees(
+                                    e.target.value !== ''
+                                      ? Number(e.target.value)
+                                      : '',
+                                  )
+                                }
+                                className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-sm"
+                                placeholder={t(
+                                  'amount_rupees_placeholder',
+                                  'e.g. 160000',
+                                )}
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                                {t('amount_cents', 'Cents')}
+                              </label>
+                              <input
+                                type="number"
+                                value={receiptAmountCents}
+                                onChange={(e) =>
+                                  setReceiptAmountCents(
+                                    e.target.value !== ''
+                                      ? Number(e.target.value)
+                                      : '',
+                                  )
+                                }
+                                className="border-border bg-background w-full rounded-lg border p-2.5 font-mono text-sm"
+                                placeholder="00"
+                                min={0}
+                                max={99}
+                              />
+                            </div>
+
+                            <div className="space-y-1 md:col-span-2">
+                              <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                                {t('receipt_reason', 'Reason')} *
+                              </label>
+                              <textarea
+                                required
+                                value={receiptReason}
+                                onChange={(e) =>
+                                  setReceiptReason(e.target.value)
+                                }
+                                className="border-border bg-background w-full rounded-lg border p-2.5 text-sm"
+                                rows={2}
+                                placeholder={t(
+                                  'receipt_reason_placeholder',
+                                  'Reason as stated in the receipt',
+                                )}
+                              />
+                            </div>
+
+                            {/* Receipt file upload */}
+                            <div className="space-y-2 md:col-span-2">
+                              <label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                                {t(
+                                  'upload_receipt_copy',
+                                  'Upload Receipt Copy (PDF/Image) *',
+                                )}
+                              </label>
+                              <div className="flex items-center gap-4">
+                                <label className="bg-muted hover:bg-muted/80 text-foreground border-border flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors">
+                                  <Upload className="text-muted-foreground h-4 w-4" />
+                                  <span>
+                                    {receiptUploading
+                                      ? t('uploading', 'Uploading...')
+                                      : t('choose_file', 'Choose File')}
+                                  </span>
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    disabled={receiptUploading}
+                                    onChange={(e) =>
+                                      handleWorkflowFileUpload(
+                                        e,
+                                        'receipt',
+                                        setReceiptDocId,
+                                        setReceiptDocName,
+                                        setReceiptUploading,
+                                        activeParcel.id,
+                                      )
+                                    }
+                                  />
+                                </label>
+                                {receiptDocId ? (
+                                  <div className="flex items-center gap-2 text-sm text-green-600">
+                                    <CheckCircle className="h-4 w-4" />
+                                    <span>
+                                      {t('uploaded_file', 'Uploaded')}:{' '}
+                                      <strong>{receiptDocName}</strong>
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 text-sm text-red-500">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <span>
+                                      {t(
+                                        'receipt_upload_alert',
+                                        'A receipt copy must be uploaded before saving.',
+                                      )}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end gap-3 border-t pt-4">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowReceiptForm(false);
+                                resetReceiptForm();
+                              }}
+                              className="border-border hover:bg-muted text-foreground rounded-lg border px-5 py-2 text-sm font-semibold transition-colors"
+                            >
+                              {t('cancel', 'Cancel')}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) =>
+                                handleReceiptSubmit(e, activeParcel.id)
+                              }
+                              disabled={
+                                !receiptDocId ||
+                                receiptUploading ||
+                                isSubmittingReceipt
+                              }
+                              className="flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {isSubmittingReceipt && (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              )}
+                              {isSubmittingReceipt
+                                ? t('saving', 'Saving...')
+                                : receiptEditId
+                                  ? t('update_receipt', 'Update Receipt')
+                                  : t('save_receipt', 'Save Receipt')}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* List existing receipts */}
+                      {activeParcel.receipts &&
+                      activeParcel.receipts.length > 0 ? (
+                        <div className="mt-6 space-y-4 border-t pt-6">
+                          <h4 className="text-foreground flex items-center gap-2 text-sm font-bold">
+                            <FileText className="h-4 w-4 text-amber-600" />
+                            {t('existing_receipts', 'Existing Receipts')}
+                          </h4>
+                          <div className="grid grid-cols-1 gap-4">
+                            {activeParcel.receipts.map((r: any) => (
+                              <div
+                                key={r.id}
+                                className="bg-muted/30 border-border flex items-center justify-between rounded-lg border p-4"
+                              >
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center gap-3">
+                                    <span className="font-mono text-sm font-bold text-amber-700 dark:text-amber-400">
+                                      #{r.receipt_number}
+                                    </span>
+                                    <span className="text-muted-foreground text-xs">
+                                      {r.receipt_date
+                                        ? new Date(
+                                            r.receipt_date,
+                                          ).toLocaleDateString()
+                                        : t('n_a', 'N/A')}
+                                    </span>
+                                  </div>
+                                  <p className="text-foreground text-sm">
+                                    <span className="text-muted-foreground">
+                                      {t(
+                                        'received_from_label',
+                                        'Received From:',
+                                      )}
+                                    </span>{' '}
+                                    {r.received_from || t('n_a', 'N/A')}
+                                  </p>
+                                  <p className="font-mono text-sm font-bold text-green-700 dark:text-green-400">
+                                    ₨{' '}
+                                    {Number(
+                                      r.amount_rupees || 0,
+                                    ).toLocaleString()}
+                                    .
+                                    {String(r.amount_cents || 0).padStart(
+                                      2,
+                                      '0',
+                                    )}
+                                  </p>
+                                  {r.reason && (
+                                    <p className="text-muted-foreground text-xs">
+                                      {t('reason_label', 'Reason:')} {r.reason}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {r.document && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleDownload(
+                                          String(r.document.id),
+                                          r.document.original_filename ||
+                                            'Receipt',
+                                        )
+                                      }
+                                      className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+                                      title={t('download', 'Download')}
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => startEditReceipt(r)}
+                                    className="hover:bg-muted text-muted-foreground hover:text-foreground rounded p-1.5 transition-colors"
+                                    title={t('edit', 'Edit')}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteReceipt(r.id)}
+                                    className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                                    title={t('delete', 'Delete')}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        !showReceiptForm && (
+                          <div className="mt-4 rounded-lg border border-dashed border-amber-300 bg-amber-50/50 p-4 text-center dark:border-amber-700 dark:bg-amber-900/10">
+                            <Receipt className="mx-auto h-8 w-8 text-amber-400" />
+                            <p className="text-muted-foreground mt-2 text-sm">
+                              {t(
+                                'no_receipts_yet',
+                                'No receipts added yet. Click "Add Receipt" to upload a cash receipt.',
+                              )}
+                            </p>
+                          </div>
+                        )
+                      )}
+                    </div>
+
+                    {/* ── Divider between Receipt and Compensation sections ── */}
+                    <div className="border-border border-t" />
+
                     <div className="bg-card border-border flex items-center justify-between rounded-lg border p-6">
                       <div>
                         <h3 className="text-base font-semibold">

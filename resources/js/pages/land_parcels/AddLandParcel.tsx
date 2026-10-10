@@ -342,10 +342,7 @@ export default function AddLandParcel() {
     }
 
     if (!newResidentForm.address.trim()) {
-      errs.address = t(
-        'resident_address_required',
-        'Address is required',
-      );
+      errs.address = t('resident_address_required', 'Address is required');
     }
 
     if (Object.keys(errs).length > 0) {
