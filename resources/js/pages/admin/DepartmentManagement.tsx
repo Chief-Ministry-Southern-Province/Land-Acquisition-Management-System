@@ -23,6 +23,7 @@ import type { Department } from '@/services/departmentManagementService';
 const EMPTY_DEP: Omit<Department, 'id'> = {
   name: '',
   code: '',
+  address: '',
   head: '',
   email: '',
   phone: '',
@@ -114,7 +115,8 @@ export default function DepartmentManagement() {
     (d) =>
       d.name.toLowerCase().includes(search.toLowerCase()) ||
       d.code.toLowerCase().includes(search.toLowerCase()) ||
-      d.head.toLowerCase().includes(search.toLowerCase()),
+      d.head.toLowerCase().includes(search.toLowerCase()) ||
+      (d.address && d.address.toLowerCase().includes(search.toLowerCase())),
   );
 
   const openAdd = () => {
@@ -128,6 +130,7 @@ export default function DepartmentManagement() {
     setForm({
       name: dep.name,
       code: dep.code,
+      address: dep.address || '',
       head: dep.head,
       email: dep.email,
       phone: dep.phone,
@@ -194,6 +197,10 @@ export default function DepartmentManagement() {
 
           if (key === 'dep_head') {
             fieldName = 'head';
+          }
+
+          if (key === 'dep_address') {
+            fieldName = 'address';
           }
 
           if (Array.isArray(val) && val.length > 0) {
@@ -308,6 +315,7 @@ export default function DepartmentManagement() {
                   t('col_dept_id', 'Dept. ID'),
                   t('col_name', 'Name'),
                   t('col_code', 'Code'),
+                  t('col_address', 'Address'),
                   t('col_dept_head', 'Head of Department'),
                   t('email', 'Email'),
                   t('phone', 'Phone'),
@@ -328,7 +336,7 @@ export default function DepartmentManagement() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     className="text-muted-foreground px-4 py-10 text-center text-sm"
                   >
                     {t('loading_departments', 'Loading departments...')}
@@ -337,7 +345,7 @@ export default function DepartmentManagement() {
               ) : filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     className="text-muted-foreground px-4 py-10 text-center text-sm"
                   >
                     {t('no_departments_found', 'No departments found.')}
@@ -365,6 +373,12 @@ export default function DepartmentManagement() {
                       <span className="bg-muted rounded px-2 py-0.5 font-mono text-xs">
                         {dep.code}
                       </span>
+                    </td>
+                    <td
+                      className="text-muted-foreground max-w-[200px] truncate px-4 py-3 text-sm"
+                      title={dep.address || ''}
+                    >
+                      {dep.address || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm">{dep.head}</td>
                     <td className="text-muted-foreground px-4 py-3 text-sm">
@@ -465,6 +479,24 @@ export default function DepartmentManagement() {
                   <option value="inactive">{t('inactive', 'Inactive')}</option>
                 </select>
               </Field>
+              <div className="col-span-2">
+                <Field label={t('department_address', 'Department Address')}>
+                  <input
+                    className={inputCls}
+                    placeholder={t(
+                      'department_address_placeholder',
+                      'e.g. Galle Fort, Galle',
+                    )}
+                    value={form.address || ''}
+                    onChange={set('address')}
+                  />
+                  {errors.address && (
+                    <span className="text-destructive text-xs">
+                      {errors.address}
+                    </span>
+                  )}
+                </Field>
+              </div>
               <Field label={t('col_dept_head', 'Head of Department')} required>
                 <input
                   className={inputCls}
@@ -486,30 +518,41 @@ export default function DepartmentManagement() {
                   value={form.email}
                   onChange={set('email')}
                 />
+                {errors.email && (
+                  <span className="text-destructive text-xs">
+                    {errors.email}
+                  </span>
+                )}
               </Field>
-              <div className="col-span-2">
-                <Field label={t('phone', 'Phone')}>
-                  <input
-                    className={inputCls}
-                    type="tel"
-                    placeholder="+94 11 234 5678"
-                    value={form.phone}
-                    onChange={set('phone')}
-                  />
-                </Field>
-              </div>
-              <div className="col-span-2">
-                <Field label={t('col_staff', 'Staff Members')}>
-                  <input
-                    type="number"
-                    className={inputCls}
-                    placeholder="e.g. 10"
-                    value={form.userCount}
-                    onChange={set('userCount')}
-                    min={0}
-                  />
-                </Field>
-              </div>
+              <Field label={t('phone', 'Phone')}>
+                <input
+                  className={inputCls}
+                  type="tel"
+                  placeholder="+94 11 234 5678"
+                  value={form.phone}
+                  onChange={set('phone')}
+                />
+                {errors.phone && (
+                  <span className="text-destructive text-xs">
+                    {errors.phone}
+                  </span>
+                )}
+              </Field>
+              <Field label={t('col_staff', 'Staff Members')}>
+                <input
+                  type="number"
+                  className={inputCls}
+                  placeholder="e.g. 10"
+                  value={form.userCount}
+                  onChange={set('userCount')}
+                  min={0}
+                />
+                {errors.userCount && (
+                  <span className="text-destructive text-xs">
+                    {errors.userCount}
+                  </span>
+                )}
+              </Field>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button

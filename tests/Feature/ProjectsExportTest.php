@@ -94,3 +94,56 @@ test('can export single project as pdf in sinhala', function () {
     $response->assertStatus(200);
     $response->assertHeader('Content-Type', 'application/pdf');
 });
+
+test('can export land acquisition application form b3 as pdf in sinhala', function () {
+    $project = Projects::where('project_id', 'PRJ-101')->first();
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get("/api/projects/export?format=pdf&id={$project->id}&type=b3");
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/pdf');
+});
+
+test('can export acquisition proposal instructions as pdf in sinhala', function () {
+    $project = Projects::where('project_id', 'PRJ-101')->first();
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get("/api/projects/export?format=pdf&id={$project->id}&type=instructions");
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/pdf');
+});
+
+test('can export acquisition proposal instructions as pdf without project id', function () {
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get('/api/projects/export?format=pdf&type=instructions');
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/pdf');
+});
+
+test('can export land acquisition application form b5 as pdf in sinhala', function () {
+    $project = Projects::where('project_id', 'PRJ-101')->first();
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get("/api/projects/export?format=pdf&id={$project->id}&type=b5");
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/pdf');
+});
+
+test('can export all project documents in sinhala as zip archive', function () {
+    $project = Projects::where('project_id', 'PRJ-101')->first();
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get("/api/projects/export?id={$project->id}&type=all&locale=si");
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/zip');
+});
+
+test('can export all project documents using format zip parameter', function () {
+    $project = Projects::where('project_id', 'PRJ-101')->first();
+    $response = $this->actingAs($this->user, 'sanctum')
+        ->get("/api/projects/export?id={$project->id}&format=zip&locale=si");
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/zip');
+});

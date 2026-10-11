@@ -26,7 +26,16 @@ class LandParcelController extends Controller
             ], 403);
         }
 
-        $landParcels = LandParcel::with(['owners', 'project', 'residents', 'documents'])->get();
+        $landParcels = LandParcel::with([
+            'owners',
+            'project',
+            'residents',
+            'documents',
+            'surveys.document',
+            'valuations.document',
+            'compensations.payments.document',
+            'receipts.document',
+        ])->get();
 
         return response()->json([
             'message' => 'Land parcels fetched successfully',
@@ -197,7 +206,7 @@ class LandParcelController extends Controller
             ], 403);
         }
 
-        $landParcel = LandParcel::with(['owners', 'project', 'residents', 'documents', 'surveys.document', 'valuations.document', 'compensations.payments.document'])->find($id);
+        $landParcel = LandParcel::with(['owners', 'project', 'residents', 'documents', 'surveys.document', 'valuations.document', 'compensations.payments.document', 'receipts.document'])->find($id);
 
         if ($landParcel) {
             return response()->json([
@@ -408,6 +417,11 @@ class LandParcelController extends Controller
 
         $format = $request->query('format', 'pdf');
         $id = $request->query('id');
+
+        $locale = $request->query('locale');
+        if ($locale && in_array($locale, ['en', 'si'])) {
+            app()->setLocale($locale);
+        }
 
         $query = LandParcel::with([
             'owners',

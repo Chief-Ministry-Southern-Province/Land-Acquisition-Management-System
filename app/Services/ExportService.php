@@ -54,7 +54,7 @@ class ExportService
         return Excel::download(new GenericExport($data, $headings), "$filename.xlsx");
     }
 
-    protected function toPdf(?string $view, array $data, string $filename)
+    public function renderPdfContent(?string $view, array $data): string
     {
         if (! $view) {
             abort(500, 'PDF view not specified');
@@ -91,8 +91,15 @@ class ExportService
 
         $mpdf->WriteHTML($html);
 
+        return $mpdf->Output('', 'S');
+    }
+
+    protected function toPdf(?string $view, array $data, string $filename)
+    {
+        $content = $this->renderPdfContent($view, $data);
+
         return response()->streamDownload(
-            fn () => print ($mpdf->Output('', 'S')),
+            fn () => print ($content),
             "$filename.pdf",
             [
                 'Content-Type' => 'application/pdf',

@@ -153,6 +153,11 @@ class PropertyOwnerController extends Controller
         $format = $request->query('format', 'excel');
         $id = $request->query('id');
 
+        $locale = $request->query('locale');
+        if ($locale && in_array($locale, ['en', 'si'])) {
+            app()->setLocale($locale);
+        }
+
         $query = PropertyOwner::with(['landParcels', 'compensations.landParcel', 'documents']);
         if ($id) {
             $query->where('id', $id);

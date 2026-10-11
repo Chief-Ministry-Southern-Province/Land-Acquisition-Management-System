@@ -1051,7 +1051,7 @@ export default function Settings() {
                           </button>
                         </div>
 
-                        <div className="border-border/60 bg-card mt-4 flex h-32 items-center justify-center rounded-lg border p-3 shadow-sm">
+                        <div className="shadow-xs mt-4 flex h-32 items-center justify-center rounded-lg border border-slate-300 bg-white p-3 dark:border-slate-600 dark:bg-white">
                           <img
                             src={activeSignature}
                             alt="Current E-Signature"

@@ -286,3 +286,160 @@ export const exportProjects = async (
   link.parentNode?.removeChild(link);
   window.URL.revokeObjectURL(url);
 };
+
+export const exportAcquisitionApplicationB3 = async (
+  id: string,
+  locale: string = 'si',
+): Promise<void> => {
+  const requestUrl = `/api/projects/export?format=pdf&id=${id}&type=b3&locale=${locale}`;
+
+  const response = await api.get(requestUrl, {
+    responseType: 'blob',
+  });
+
+  const contentType = response.headers['content-type'];
+  const blob = new Blob([response.data], {
+    type:
+      typeof contentType === 'string'
+        ? contentType
+        : 'application/octet-stream',
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = `land_acquisition_application_b3_${id}.pdf`;
+
+  if (typeof contentDisposition === 'string') {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+
+    if (match && match[1]) {
+      filename = match[1];
+    }
+  }
+
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+export const exportAcquisitionApplicationD3 = exportAcquisitionApplicationB3; //REMOVE later
+
+export const exportAcquisitionInstructions = async (
+  id?: string,
+  locale: string = 'si',
+): Promise<void> => {
+  const requestUrl = id
+    ? `/api/projects/export?format=pdf&id=${id}&type=instructions&locale=${locale}`
+    : `/api/projects/export?format=pdf&type=instructions&locale=${locale}`;
+
+  const response = await api.get(requestUrl, {
+    responseType: 'blob',
+  });
+
+  const contentType = response.headers['content-type'];
+  const blob = new Blob([response.data], {
+    type:
+      typeof contentType === 'string'
+        ? contentType
+        : 'application/octet-stream',
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = 'acquisition_proposal_instructions.pdf';
+
+  if (typeof contentDisposition === 'string') {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+
+    if (match && match[1]) {
+      filename = match[1];
+    }
+  }
+
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+export const exportAcquisitionApplicationB5 = async (
+  id: string,
+  locale: string = 'si',
+): Promise<void> => {
+  const requestUrl = `/api/projects/export?format=pdf&id=${id}&type=b5&locale=${locale}`;
+
+  const response = await api.get(requestUrl, {
+    responseType: 'blob',
+  });
+
+  const contentType = response.headers['content-type'];
+  const blob = new Blob([response.data], {
+    type:
+      typeof contentType === 'string'
+        ? contentType
+        : 'application/octet-stream',
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = `land_acquisition_application_b5_${id}.pdf`;
+
+  if (typeof contentDisposition === 'string') {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+
+    if (match && match[1]) {
+      filename = match[1];
+    }
+  }
+
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+export const exportAllProjectDocuments = async (
+  id: string,
+  locale: string = 'si',
+): Promise<void> => {
+  const requestUrl = `/api/projects/export?id=${id}&type=all&locale=${locale}`;
+
+  const response = await api.get(requestUrl, {
+    responseType: 'blob',
+  });
+
+  const contentType = response.headers['content-type'];
+  const blob = new Blob([response.data], {
+    type: typeof contentType === 'string' ? contentType : 'application/zip',
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = `project_${id}_all_documents_${locale}.zip`;
+
+  if (typeof contentDisposition === 'string') {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+
+    if (match && match[1]) {
+      filename = match[1];
+    }
+  }
+
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};

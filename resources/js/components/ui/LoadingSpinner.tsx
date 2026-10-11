@@ -14,6 +14,8 @@ import {
 } from 'react-spinners';
 import { useTheme } from '@/hooks/useTheme';
 
+// NOTE: Using MapLoadingSkeleton as map loading animation
+
 export type SpinnerType =
   | 'sync'
   | 'pulse'

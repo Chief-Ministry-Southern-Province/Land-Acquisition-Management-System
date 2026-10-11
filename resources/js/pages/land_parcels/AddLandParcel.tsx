@@ -334,6 +334,17 @@ export default function AddLandParcel() {
       errs.name = t('resident_name_required', 'Resident name is required');
     }
 
+    if (!newResidentForm.relationship) {
+      errs.relationship = t(
+        'resident_relationship_required',
+        'Relationship is required',
+      );
+    }
+
+    if (!newResidentForm.address.trim()) {
+      errs.address = t('resident_address_required', 'Address is required');
+    }
+
     if (Object.keys(errs).length > 0) {
       setNewResidentErrors(errs);
 
@@ -477,35 +488,29 @@ export default function AddLandParcel() {
       errs.name = t('owner_name_required', 'Name is required');
     }
 
-    if (!newOwnerForm.nic.trim()) {
-      errs.nic = t('owner_nic_required', 'NIC is required');
-    }
-
-    if (!newOwnerForm.contact.trim()) {
-      errs.contact = t('owner_contact_required', 'Contact is required');
-    }
-
     if (!newOwnerForm.address.trim()) {
       errs.address = t('owner_address_required', 'Address is required');
     }
 
-    if (
-      selectedOwners.some(
-        (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
-      )
-    ) {
-      errs.nic = t('owner_added_error', 'This owner is already added');
-    }
+    if (newOwnerForm.nic.trim()) {
+      if (
+        selectedOwners.some(
+          (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
+        )
+      ) {
+        errs.nic = t('owner_added_error', 'This owner is already added');
+      }
 
-    if (
-      existingOwners.some(
-        (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
-      )
-    ) {
-      errs.nic = t(
-        'owner_exists_db_error',
-        'An owner with this NIC already exists in the database. Use search instead.',
-      );
+      if (
+        existingOwners.some(
+          (o) => o.nic?.toLowerCase() === newOwnerForm.nic.toLowerCase().trim(),
+        )
+      ) {
+        errs.nic = t(
+          'owner_exists_db_error',
+          'An owner with this NIC already exists in the database. Use search instead.',
+        );
+      }
     }
 
     if (Object.keys(errs).length > 0) {
@@ -517,8 +522,8 @@ export default function AddLandParcel() {
     const newOwnerObj = {
       isNew: true,
       name: newOwnerForm.name.trim(),
-      nic: newOwnerForm.nic.trim(),
-      contact: newOwnerForm.contact.trim(),
+      nic: newOwnerForm.nic.trim() || '',
+      contact: newOwnerForm.contact.trim() || '',
       address: newOwnerForm.address.trim(),
     };
 
@@ -1653,7 +1658,7 @@ export default function AddLandParcel() {
 
                   <div className="flex flex-col gap-1">
                     <label className="text-foreground text-xs font-medium">
-                      {`${t('nic')} *`}
+                      {t('nic')}
                     </label>
                     <input
                       className={inputCls}
@@ -1672,7 +1677,7 @@ export default function AddLandParcel() {
 
                   <div className="flex flex-col gap-1">
                     <label className="text-foreground text-xs font-medium">
-                      {`${t('contact_number')} *`}
+                      {t('contact_number')}
                     </label>
                     <input
                       className={inputCls}
@@ -1914,7 +1919,7 @@ export default function AddLandParcel() {
 
                     <div className="flex flex-col gap-1">
                       <label className="text-foreground text-xs font-medium">
-                        {t('relationship')}
+                        {`${t('relationship')} *`}
                       </label>
                       <select
                         className={inputCls}
@@ -1932,6 +1937,11 @@ export default function AddLandParcel() {
                           {t('family_member')}
                         </option>
                       </select>
+                      {newResidentErrors.relationship && (
+                        <span className="text-destructive text-[10px]">
+                          {newResidentErrors.relationship}
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex flex-col gap-1">
@@ -1970,7 +1980,7 @@ export default function AddLandParcel() {
 
                     <div className="flex flex-col gap-1 md:col-span-2">
                       <label className="text-foreground text-xs font-medium">
-                        {t('resident_address')}
+                        {`${t('resident_address')} *`}
                       </label>
                       <input
                         className={inputCls}
@@ -1983,6 +1993,11 @@ export default function AddLandParcel() {
                           }))
                         }
                       />
+                      {newResidentErrors.address && (
+                        <span className="text-destructive text-[10px]">
+                          {newResidentErrors.address}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex justify-end pt-2">
