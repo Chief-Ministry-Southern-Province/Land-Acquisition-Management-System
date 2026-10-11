@@ -101,7 +101,7 @@ export default function GisMapList() {
       </div>
 
       {loading ? (
-        <div className="bg-card border-border min-h-[500px] rounded-xl border overflow-hidden">
+        <div className="bg-card border-border min-h-[500px] overflow-hidden rounded-xl border">
           <MapLoadingSkeleton
             height="500px"
             label={t('loading_gis_data', 'Loading GIS Data and Maps...')}
