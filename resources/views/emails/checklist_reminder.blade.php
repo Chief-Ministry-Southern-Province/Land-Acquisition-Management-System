@@ -77,7 +77,7 @@
                             </p>
                             
                             <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #334155;">
-                                This is a periodic 3-month reminder to review and update the progress checklist for the acquisition project detailed below. It has been <strong>{{ $monthsElapsed }} months</strong> since project creation.
+                                This is a periodic 3-month reminder to update the acquisition project progress checklist for the project detailed below. It has been <strong>{{ $monthsElapsed }} months</strong> since project creation.
                             </p>
 
                             <!-- Project Info Box -->
@@ -87,21 +87,31 @@
                                     <td class="detail-value" style="font-size: 14px; color: #0f172a; font-weight: 600; padding-bottom: 8px;">{{ $project->title }}</td>
                                 </tr>
                                 <tr>
-                                    <td class="detail-label" style="font-size: 13px; color: #64748b; font-weight: 600; padding-bottom: 8px;">Project Code / ID:</td>
+                                    <td class="detail-label" style="font-size: 13px; color: #64748b; font-weight: 600; width: 35%; padding-bottom: 8px;">Project Code / ID:</td>
                                     <td class="detail-value" style="font-size: 14px; color: #0f172a; padding-bottom: 8px;">{{ $project->project_id }}</td>
                                 </tr>
                                 <tr>
-                                    <td class="detail-label" style="font-size: 13px; color: #64748b; font-weight: 600; padding-bottom: 8px;">Institution / Ministry:</td>
+                                    <td class="detail-label" style="font-size: 13px; color: #64748b; font-weight: 600; width: 35%; padding-bottom: 8px;">Institution / Ministry:</td>
                                     <td class="detail-value" style="font-size: 14px; color: #0f172a; padding-bottom: 8px;">{{ $project->institution ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
-                                    <td class="detail-label" style="font-size: 13px; color: #64748b; font-weight: 600; padding-bottom: 0;">Creation Date:</td>
+                                    <td class="detail-label" style="font-size: 13px; color: #64748b; font-weight: 600; width: 35%; padding-bottom: 0;">Creation Date:</td>
                                     <td class="detail-value" style="font-size: 14px; color: #0f172a; padding-bottom: 0;">{{ $project->created_at ? $project->created_at->format('Y-m-d') : 'N/A' }}</td>
                                 </tr>
                             </table>
 
-                            <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #334155;">
-                                Please access the system to verify completed acquisition stages, mark progress items, and upload any necessary supporting documentation.
+                            <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 14px 18px; margin-bottom: 24px; border-radius: 0 6px 6px 0;">
+                                <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: 600; color: #1e40af;">Required Action within 1 Week:</p>
+                                <p style="margin: 0; font-size: 13px; color: #1e3a8a; line-height: 1.5;">
+                                    Please log into <strong>Mark Progress</strong> and update this project's status by:
+                                    <br>• Marking any checklist item or stage as completed, OR
+                                    <br>• Adding or updating item remarks, OR
+                                    <br>• Uploading relevant supporting documentation.
+                                </p>
+                            </div>
+
+                            <p style="margin: 0 0 24px 0; font-size: 13px; line-height: 1.6; color: #64748b;">
+                                <em>Notice: If progress is not updated within 7 days, a 2nd urgent reminder will be sent. Continued inaction will trigger automatic escalation to the Senior Assistant Secretary (SAS).</em>
                             </p>
 
                             <!-- CTA Button -->
@@ -109,7 +119,7 @@
                                 <tr>
                                     <td align="center">
                                         <a href="{{ $actionUrl }}" class="btn-mobile" style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 28px; border-radius: 6px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);">
-                                            Update Project Checklist
+                                            Update Project Progress
                                         </a>
                                     </td>
                                 </tr>

@@ -30,11 +30,13 @@ class ProjectProgressController extends Controller
         }
 
         $progress = $this->progressService->getProgress($project);
+        $reminder = $this->progressService->getActiveReminderInfo($project);
 
         return response()->json([
             'message' => 'Project progress fetched successfully.',
             'project_id' => $project->id,
             'progress' => $progress,
+            'reminder' => $reminder,
         ], 200);
     }
 
@@ -69,10 +71,12 @@ class ProjectProgressController extends Controller
         try {
             $stages = $request->input('stages');
             $progress = $this->progressService->saveProgress($project, $stages, $user);
+            $reminder = $this->progressService->getActiveReminderInfo($project);
 
             return response()->json([
                 'message' => 'Acquisition progress saved successfully.',
                 'progress' => $progress,
+                'reminder' => $reminder,
             ], 200);
         } catch (Exception $e) {
             return response()->json([
