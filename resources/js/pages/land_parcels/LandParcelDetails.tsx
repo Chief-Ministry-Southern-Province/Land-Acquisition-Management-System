@@ -3776,9 +3776,11 @@ export default function LandParcelDetails({ id }: Props) {
                     height="100%"
                   />
                 ) : (
-                  <div className="bg-linear-to-br absolute inset-0 flex items-center justify-center from-[#4a9f8f]/90 to-[#2d6b5f]/95 p-6 text-center text-white">
+                  <div className="bg-linear-to-br absolute inset-0 flex items-center justify-center from-[#2E7D32]/90 to-[#1b4e20]/95 p-6 text-center text-white">
                     <div className="max-w-sm">
-                      <MapPin className="mx-auto mb-3 h-12 w-12 animate-bounce text-white/90" />
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/25">
+                        <MapPin className="h-6 w-6 text-white" />
+                      </div>
                       <p className="mb-1 text-lg font-bold">
                         {t('no_gps_coordinates_set', 'No GPS Coordinates Set')}
                       </p>
