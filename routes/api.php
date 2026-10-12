@@ -158,6 +158,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users', [UserController::class, 'getAllUsers']);
         Route::put('/users/{id}', [UserController::class, 'updateUser']);
         Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
+        Route::post('/users/{id}/unblock', [UserController::class, 'unblockUser']);
+        Route::get('/users/{id}/blocked-status', [UserController::class, 'getBlockedStatus']);
 
         Route::post('departments', [DepartmentController::class, 'store']);
         Route::put('departments/{id}', [DepartmentController::class, 'update']);
