@@ -1,5 +1,23 @@
 import api from './api';
 
+export interface ChecklistReminder {
+  id: number;
+  project_id: number;
+  milestone_months: number;
+  status:
+    | 'pending_do'
+    | 'second_reminder_sent'
+    | 'escalated_to_sas'
+    | 'resolved';
+  first_reminder_sent_at?: string | null;
+  second_reminder_sent_at?: string | null;
+  escalated_to_sas_at?: string | null;
+  progress_updated_at?: string | null;
+  deadline_date?: string | null;
+  days_remaining?: number | null;
+  is_overdue?: boolean;
+}
+
 export interface ProjectProgressResponse {
   message: string;
   project_id: number;
@@ -17,6 +35,7 @@ export interface ProjectProgressResponse {
       name: string;
     };
   } | null;
+  reminder?: ChecklistReminder | null;
 }
 
 /**

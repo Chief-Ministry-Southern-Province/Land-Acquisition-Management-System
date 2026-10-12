@@ -17,6 +17,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->call(ProductionSeeder::class);
+
+            return;
+        }
+
         $dummySqlFile = database_path('dummy_data.sql');
 
         if (File::exists($dummySqlFile)) {

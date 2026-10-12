@@ -66,6 +66,12 @@
         "lint:check": [
             "pint --parallel --test"
         ],
+        "migrate:production": [
+            "@php artisan migrate:production --force"
+        ],
+        "migrate:prod": [
+            "@php artisan migrate:production --force"
+        ],
         "ci:check": [
             "Composer\\Config::disableProcessTimeout",
             "npm run lint:check",

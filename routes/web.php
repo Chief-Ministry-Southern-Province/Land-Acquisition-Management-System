@@ -120,7 +120,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::inertia('/approval-workflow', 'AcquisitionWorkflow')->name('approval-workflow');
 
     // Mark Progress
-    Route::inertia('/mark-progress', 'developmentOfficer/MarkProgress')->middleware('check.role:DO')->name('mark-progress');
+    Route::inertia('/mark-progress', 'developmentOfficer/MarkProgress')->middleware('check.role:DO,SAS,AS,AO,HOB,SEC,Admin')->name('mark-progress');
+    Route::get('/development-officer/mark-progress', function (Request $request) {
+        return redirect('/mark-progress'.($request->getQueryString() ? '?'.$request->getQueryString() : ''));
+    });
 
     // Projects routes
     Route::inertia('/projects', 'projects/ProjectList')->name('projects');

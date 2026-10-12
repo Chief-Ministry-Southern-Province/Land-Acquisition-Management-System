@@ -20,6 +20,8 @@ import {
   Trash2,
   Download,
   Image as ImageIcon,
+  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBridge';
@@ -46,6 +48,7 @@ import {
   getProjectProgress,
   saveProjectProgress,
 } from '@/services/projectProgressService';
+import type { ChecklistReminder } from '@/services/projectProgressService';
 import { getProjects, getProject } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
 
@@ -74,17 +77,24 @@ export default function MarkProgress({
   const userRole = user?.role?.role_name || user?.role || 'User';
   const isDO = userRole === 'DO';
 
+  const queryProjectId =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('projectId')
+      : null;
+  const initialProjectId = projectId || queryProjectId || '';
+
   // State management
   const [projectsList, setProjectsList] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState<boolean>(true);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(
-    projectId || '',
-  );
+  const [selectedProjectId, setSelectedProjectId] =
+    useState<string>(initialProjectId);
   const [prevProjectId, setPrevProjectId] = useState<string | undefined>(
     projectId,
   );
   const [prevLocale, setPrevLocale] = useState<string>(locale);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [activeReminder, setActiveReminder] =
+    useState<ChecklistReminder | null>(null);
 
   const [stages, setStages] = useState<ChecklistStage[]>(
     defaultStagesForLocale,
@@ -129,7 +139,19 @@ export default function MarkProgress({
         if (Array.isArray(data)) {
           setProjectsList(data);
 
-          if (data.length > 0 && !projectId) {
+          if (queryProjectId) {
+            const matched = data.find(
+              (p) =>
+                String(p.id) === String(queryProjectId) ||
+                String(p.projectId) === String(queryProjectId),
+            );
+
+            if (matched) {
+              setSelectedProjectId(matched.id);
+            } else if (data.length > 0 && !projectId) {
+              setSelectedProjectId(data[0].id);
+            }
+          } else if (data.length > 0 && !projectId) {
             setSelectedProjectId(data[0].id);
           }
         }
@@ -144,7 +166,7 @@ export default function MarkProgress({
     };
 
     fetchProjects();
-  }, [t, projectId]);
+  }, [t, projectId, queryProjectId]);
 
   // Load project details & checklist state from database when project changes
   useEffect(() => {
@@ -173,6 +195,8 @@ export default function MarkProgress({
           if (!isMounted) {
             return;
           }
+
+          setActiveReminder(res.reminder || null);
 
           if (
             res.progress?.stages &&
@@ -394,7 +418,15 @@ export default function MarkProgress({
       // Save updated stages directly to database backend without overwriting local state
       if (selectedProjectId && isDO && currentUpdatedStages.length > 0) {
         try {
-          await saveProjectProgress(selectedProjectId, currentUpdatedStages);
+          const saveRes = await saveProjectProgress(
+            selectedProjectId,
+            currentUpdatedStages,
+          );
+
+          if (saveRes.reminder) {
+            setActiveReminder(saveRes.reminder);
+          }
+
           const nowStr = new Date().toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
@@ -515,7 +547,14 @@ export default function MarkProgress({
     // Persist stage file deletion to database backend
     if (selectedProjectId && isDO && currentUpdatedStages.length > 0) {
       try {
-        await saveProjectProgress(selectedProjectId, currentUpdatedStages);
+        const deleteRes = await saveProjectProgress(
+          selectedProjectId,
+          currentUpdatedStages,
+        );
+
+        if (deleteRes.reminder) {
+          setActiveReminder(deleteRes.reminder);
+        }
       } catch (saveErr) {
         console.warn('Auto-save progress notice:', saveErr);
       }
@@ -643,6 +682,10 @@ export default function MarkProgress({
         setStages(mergedStages);
       }
 
+      if (res.reminder) {
+        setActiveReminder(res.reminder);
+      }
+
       const nowStr = new Date().toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
@@ -650,9 +693,19 @@ export default function MarkProgress({
       });
 
       setLastSavedTime(nowStr);
-      toastSuccess(
-        t('progress_saved_success', 'Progress checklist saved successfully!'),
-      );
+
+      if (res.reminder?.status === 'resolved') {
+        toastSuccess(
+          t(
+            'progress_saved_and_reminder_resolved',
+            'Progress saved! Periodic 3-month reminder update fulfilled.',
+          ),
+        );
+      } else {
+        toastSuccess(
+          t('progress_saved_success', 'Progress checklist saved successfully!'),
+        );
+      }
     } catch (err) {
       console.error('Failed to save progress checklist:', err);
       toastError(
@@ -798,6 +851,125 @@ export default function MarkProgress({
               'non_do_checklist_info',
               'You are viewing the Development Officer progress checklist in read-only mode. Only assigned Development Officers (DO) can toggle checklist items, upload files, or update remarks.',
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 3-Month Progress Reminder & Escalation Banner */}
+      {activeReminder && (
+        <div
+          className={`shadow-xs flex items-start justify-between gap-4 rounded-xl border p-4 transition-all ${
+            activeReminder.status === 'escalated_to_sas'
+              ? 'border-rose-500/40 bg-rose-500/10 text-rose-900 dark:border-rose-500/30 dark:bg-rose-950/30 dark:text-rose-200'
+              : activeReminder.status === 'second_reminder_sent'
+                ? 'border-orange-500/40 bg-orange-500/10 text-orange-900 dark:border-orange-500/30 dark:bg-orange-950/30 dark:text-orange-200'
+                : activeReminder.status === 'pending_do'
+                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-200'
+                  : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/30 dark:text-emerald-200'
+          }`}
+        >
+          <div className="flex items-start gap-3.5">
+            <div
+              className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                activeReminder.status === 'escalated_to_sas'
+                  ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
+                  : activeReminder.status === 'second_reminder_sent'
+                    ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400'
+                    : activeReminder.status === 'pending_do'
+                      ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                      : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+              }`}
+            >
+              {activeReminder.status === 'resolved' ? (
+                <CheckCircle2 className="h-5 w-5" />
+              ) : activeReminder.status === 'escalated_to_sas' ? (
+                <AlertCircle className="h-5 w-5" />
+              ) : (
+                <AlertTriangle className="h-5 w-5" />
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h4 className="text-sm font-semibold sm:text-base">
+                  {activeReminder.status === 'escalated_to_sas' &&
+                    t(
+                      'reminder_escalated_sas_title',
+                      `Escalated to Senior Assistant Secretary (SAS) - ${activeReminder.milestone_months}M Milestone Overdue`,
+                    )}
+                  {activeReminder.status === 'second_reminder_sent' &&
+                    t(
+                      'reminder_second_notice_title',
+                      `Urgent 2nd Notice: Acquisition Progress Overdue (${activeReminder.milestone_months}M Milestone)`,
+                    )}
+                  {activeReminder.status === 'pending_do' &&
+                    t(
+                      'reminder_first_notice_title',
+                      `Quarterly Progress Update Reminder (${activeReminder.milestone_months} Months Milestone)`,
+                    )}
+                  {activeReminder.status === 'resolved' &&
+                    t(
+                      'reminder_resolved_title',
+                      `Periodic Progress Update Verified (${activeReminder.milestone_months}M Milestone)`,
+                    )}
+                </h4>
+
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    activeReminder.status === 'escalated_to_sas'
+                      ? 'bg-rose-500 text-white'
+                      : activeReminder.status === 'second_reminder_sent'
+                        ? 'bg-orange-500 text-white'
+                        : activeReminder.status === 'pending_do'
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-emerald-500 text-white'
+                  }`}
+                >
+                  {activeReminder.status === 'escalated_to_sas'
+                    ? t('escalated_sas', 'SAS Escalation Active')
+                    : activeReminder.status === 'second_reminder_sent'
+                      ? t('second_notice', '2nd Notice Overdue')
+                      : activeReminder.status === 'pending_do'
+                        ? t(
+                            'action_required_1w',
+                            'Action Required within 1 Week',
+                          )
+                        : t('resolved', 'Resolved')}
+                </span>
+              </div>
+
+              <p className="text-xs leading-relaxed opacity-90 sm:text-sm">
+                {activeReminder.status === 'resolved'
+                  ? t(
+                      'reminder_resolved_desc',
+                      `Acquisition project progress was successfully updated on ${
+                        activeReminder.progress_updated_at
+                          ? new Date(
+                              activeReminder.progress_updated_at,
+                            ).toLocaleDateString()
+                          : 'record'
+                      }. All reminder obligations for this milestone are satisfied.`,
+                    )
+                  : activeReminder.status === 'escalated_to_sas'
+                    ? t(
+                        'reminder_escalated_sas_desc',
+                        'The Development Officer failed to update project progress after 2 consecutive reminders over 2 weeks. The Senior Assistant Secretary (SAS) has been notified. Updating progress (completing a stage, adding a remark, or uploading a document) and clicking Save Progress will resolve this escalation.',
+                      )
+                    : activeReminder.status === 'second_reminder_sent'
+                      ? t(
+                          'reminder_second_notice_desc',
+                          `No progress update was received within 1 week of the initial reminder. You must update any progress (complete a stage, add a remark, or upload a document) and click 'Save Progress' within ${
+                            activeReminder.days_remaining ?? 7
+                          } days to prevent administrative escalation to the Senior Assistant Secretary (SAS).`,
+                        )
+                      : t(
+                          'reminder_pending_do_desc',
+                          `Please update progress for this acquisition project (complete a stage, add a remark, or upload a supporting document) and click 'Save Progress' within ${
+                            activeReminder.days_remaining ?? 7
+                          } days.`,
+                        )}
+              </p>
+            </div>
           </div>
         </div>
       )}

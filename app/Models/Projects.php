@@ -81,6 +81,16 @@ class Projects extends Model
         return $this->hasOne(ProjectProgress::class, 'project_id');
     }
 
+    public function checklistReminders()
+    {
+        return $this->hasMany(ProjectChecklistReminder::class, 'project_id');
+    }
+
+    public function activeChecklistReminder()
+    {
+        return $this->hasOne(ProjectChecklistReminder::class, 'project_id')->latestOfMany();
+    }
+
     public function documents()
     {
         return $this->hasMany(Documents::class, 'project_id');

@@ -168,7 +168,42 @@ class SmsService
             return false;
         }
 
-        $message = "[LAM Alert] Checklist Reminder ({$monthsElapsed}M): Please check & update the progress checklist for project '{$project->title}' (ID: {$project->project_id}).";
+        $message = "[LAM Alert] Checklist Reminder ({$monthsElapsed}M): Please update acquisition progress for project '{$project->title}' (complete a stage, add remark, or upload docs) within 7 days.";
+
+        return static::sendSms($phone, $message, $driver);
+    }
+
+    /**
+     * Send 2nd urgent reminder SMS to Development Officer when initial reminder was not updated within 1 week.
+     */
+    public static function sendChecklistSecondReminderSms(User|string $recipient, Projects $project, int $monthsElapsed, ?string $driver = null): bool
+    {
+        $phone = is_string($recipient) ? $recipient : static::extractPhone($recipient);
+        if (empty($phone)) {
+            Log::warning("Cannot send 2nd checklist reminder SMS for project {$project->id}: No recipient phone number.");
+
+            return false;
+        }
+
+        $message = "[URGENT - 2nd Notice] Acquisition progress update overdue for '{$project->title}'. Please update progress in Mark Progress within 7 days to avoid SAS escalation.";
+
+        return static::sendSms($phone, $message, $driver);
+    }
+
+    /**
+     * Send escalation SMS to Senior Assistant Secretary (SAS) when DO ignored progress reminders for 2 weeks.
+     */
+    public static function sendChecklistEscalationToSasSms(User|string $recipient, Projects $project, int $monthsElapsed, ?User $doUser = null, ?string $driver = null): bool
+    {
+        $phone = is_string($recipient) ? $recipient : static::extractPhone($recipient);
+        if (empty($phone)) {
+            Log::warning("Cannot send checklist escalation SMS for project {$project->id}: No recipient phone number.");
+
+            return false;
+        }
+
+        $doName = $doUser ? $doUser->name : 'DO';
+        $message = "[LAM Escalation] Attention SAS: Progress update for '{$project->title}' (ID: {$project->project_id}) ignored by {$doName} for 2 weeks. Intervention requested.";
 
         return static::sendSms($phone, $message, $driver);
     }
