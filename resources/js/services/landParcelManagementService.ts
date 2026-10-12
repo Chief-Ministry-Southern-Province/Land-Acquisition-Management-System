@@ -5,6 +5,21 @@ import api from './api';
 import type { Document } from './projectsManagementService';
 import type { PropertyOwner } from './propertyOwnerManagement';
 
+export interface ReceiptItem {
+  id: string;
+  land_parcel_id: string;
+  receipt_number: string;
+  receipt_date: string;
+  received_from: string;
+  amount_rupees: number;
+  amount_cents: number;
+  reason: string;
+  document_id: string;
+  document?: any;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface LandParcel {
   id: string;
   parcel_id: string;
@@ -59,6 +74,7 @@ export interface LandParcel {
   surveys?: any[];
   valuations?: any[];
   compensations?: any[];
+  receipts?: ReceiptItem[];
 }
 
 // Map backend land parcel to frontend
@@ -139,6 +155,7 @@ const mapFromBackend = (data: any): LandParcel => ({
   surveys: data.surveys || [],
   valuations: data.valuations || [],
   compensations: data.compensations || [],
+  receipts: data.receipts || [],
 });
 
 // Map frontend land parcel to backend

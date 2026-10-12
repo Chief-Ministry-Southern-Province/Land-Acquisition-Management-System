@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\AuditLogService;
+use App\Services\RateLimiterService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -100,6 +101,59 @@ class UserController extends Controller
         return response()->json([
             'message' => 'User updated successfully',
             'user' => $user->fresh(['role', 'department']),
+        ], 200);
+    }
+
+    /**
+     * Unblock a temporarily blocked user.
+     */
+    public function unblockUser(string $id): JsonResponse
+    {
+        /** @var User|null $user */
+        $user = User::find($id);
+
+        if (! $user) {
+            return response()->json([
+                'message' => 'User not found',
+            ], 404);
+        }
+
+        RateLimiterService::unblockUser($user->id);
+
+        if ($admin = auth()->user()) {
+            AuditLogService::log(
+                $admin->id,
+                $admin->name,
+                'Unblock',
+                'Security',
+                "Manually lifted rate-limiting block for user {$user->name}"
+            );
+        }
+
+        return response()->json([
+            'message' => "User {$user->name} unblocked successfully",
+        ], 200);
+    }
+
+    /**
+     * Check if a specific user is currently blocked.
+     */
+    public function getBlockedStatus(string $id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (! $user) {
+            return response()->json([
+                'message' => 'User not found',
+            ], 404);
+        }
+
+        $blockInfo = RateLimiterService::getUserBlockInfo($user->id);
+
+        return response()->json([
+            'user_id' => $user->id,
+            'is_blocked' => $blockInfo !== null,
+            'block_info' => $blockInfo,
         ], 200);
     }
 }

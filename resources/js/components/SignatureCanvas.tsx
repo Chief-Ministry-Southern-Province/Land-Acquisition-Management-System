@@ -178,22 +178,22 @@ export function SignatureCanvas({
             <button
               type="button"
               onClick={() => setPenColor('#0F172A')}
-              className={`h-5 w-5 rounded-full border bg-slate-900 transition-all ${
+              className={`h-5 w-5 rounded-full border border-slate-300 bg-slate-900 transition-all dark:border-slate-500 ${
                 penColor === '#0F172A'
-                  ? 'ring-primary scale-110 ring-2 ring-offset-1'
+                  ? 'ring-primary ring-offset-background scale-110 ring-2 ring-offset-2'
                   : 'opacity-70 hover:opacity-100'
               }`}
-              title={t('color_dark', 'Dark')}
+              title={t('color_dark', 'Black Ink')}
             />
             <button
               type="button"
               onClick={() => setPenColor('#1E40AF')}
-              className={`h-5 w-5 rounded-full border bg-blue-800 transition-all ${
+              className={`h-5 w-5 rounded-full border border-slate-300 bg-blue-800 transition-all dark:border-slate-500 ${
                 penColor === '#1E40AF'
-                  ? 'ring-primary scale-110 ring-2 ring-offset-1'
+                  ? 'ring-primary ring-offset-background scale-110 ring-2 ring-offset-2'
                   : 'opacity-70 hover:opacity-100'
               }`}
-              title={t('color_blue', 'Blue')}
+              title={t('color_blue', 'Navy Blue Ink')}
             />
           </div>
 
@@ -209,7 +209,7 @@ export function SignatureCanvas({
         </div>
       </div>
 
-      <div className="border-border bg-input-background relative overflow-hidden rounded-xl border border-dashed shadow-inner transition-colors">
+      <div className="shadow-xs relative overflow-hidden rounded-xl border border-slate-300 bg-white transition-colors dark:border-slate-600 dark:bg-white">
         <canvas
           ref={canvasRef}
           width={width}
@@ -226,7 +226,7 @@ export function SignatureCanvas({
 
         {!hasContent && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <p className="text-muted-foreground/40 select-none text-sm font-medium">
+            <p className="select-none text-sm font-medium text-slate-400">
               {t('msg_sign_here', 'Sign here...')}
             </p>
           </div>

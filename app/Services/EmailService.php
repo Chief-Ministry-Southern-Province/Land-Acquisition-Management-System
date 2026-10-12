@@ -184,19 +184,90 @@ class EmailService
         if (static::shouldSendEmail($recipient)) {
             $emailSent = static::sendEmail(
                 to: $recipient->email,
-                subject: "[Reminder] Quarterly Checklist Update Required: {$project->title}",
+                subject: "[Reminder] Quarterly Acquisition Progress Update Required: {$project->title}",
                 view: 'emails.checklist_reminder',
                 data: [
                     'recipient' => $recipient,
                     'project' => $project,
                     'monthsElapsed' => $monthsElapsed,
-                    'actionUrl' => config('app.url').'/development-officer/mark-progress?projectId='.$project->project_id,
+                    'actionUrl' => config('app.url').'/mark-progress?projectId='.$project->project_id,
                 ]
             );
         }
 
         if (static::shouldSendSms($recipient) || ($pref === 'email' && ! $emailSent)) {
             SmsService::sendChecklistReminderSms($recipient, $project, $monthsElapsed);
+        }
+
+        return $emailSent || static::shouldSendSms($recipient);
+    }
+
+    /**
+     * Send 2nd urgent reminder to DO when progress has not been updated within 1 week of initial reminder.
+     */
+    public static function sendChecklistSecondReminderEmail(User $recipient, Projects $project, int $monthsElapsed): bool
+    {
+        $pref = $recipient->notification_preference ?? 'email';
+        if ($pref === 'none') {
+            Log::info("Skipping 2nd checklist reminder for user {$recipient->id}: Preference is 'none'.");
+
+            return false;
+        }
+
+        $emailSent = false;
+
+        if (static::shouldSendEmail($recipient)) {
+            $emailSent = static::sendEmail(
+                to: $recipient->email,
+                subject: "[Urgent - 2nd Notice] Acquisition Progress Update Overdue: {$project->title}",
+                view: 'emails.checklist_second_reminder',
+                data: [
+                    'recipient' => $recipient,
+                    'project' => $project,
+                    'monthsElapsed' => $monthsElapsed,
+                    'actionUrl' => config('app.url').'/mark-progress?projectId='.$project->project_id,
+                ]
+            );
+        }
+
+        if (static::shouldSendSms($recipient) || ($pref === 'email' && ! $emailSent)) {
+            SmsService::sendChecklistSecondReminderSms($recipient, $project, $monthsElapsed);
+        }
+
+        return $emailSent || static::shouldSendSms($recipient);
+    }
+
+    /**
+     * Send escalation notification to Senior Assistant Secretary (SAS) when DO ignores both reminders.
+     */
+    public static function sendChecklistEscalationToSasEmail(User $recipient, Projects $project, int $monthsElapsed, ?User $doUser = null): bool
+    {
+        $pref = $recipient->notification_preference ?? 'email';
+        if ($pref === 'none') {
+            Log::info("Skipping checklist escalation email for SAS user {$recipient->id}: Preference is 'none'.");
+
+            return false;
+        }
+
+        $emailSent = false;
+
+        if (static::shouldSendEmail($recipient)) {
+            $emailSent = static::sendEmail(
+                to: $recipient->email,
+                subject: "[Escalation Notice] Progress Update Overdue by DO: {$project->title}",
+                view: 'emails.checklist_escalation_sas',
+                data: [
+                    'recipient' => $recipient,
+                    'project' => $project,
+                    'monthsElapsed' => $monthsElapsed,
+                    'doUser' => $doUser,
+                    'actionUrl' => config('app.url').'/mark-progress?projectId='.$project->project_id,
+                ]
+            );
+        }
+
+        if (static::shouldSendSms($recipient) || ($pref === 'email' && ! $emailSent)) {
+            SmsService::sendChecklistEscalationToSasSms($recipient, $project, $monthsElapsed, $doUser);
         }
 
         return $emailSent || static::shouldSendSms($recipient);

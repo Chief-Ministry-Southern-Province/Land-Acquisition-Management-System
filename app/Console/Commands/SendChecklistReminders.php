@@ -2,13 +2,14 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Documents;
+use App\Models\ProjectChecklistReminder;
 use App\Models\Projects;
 use App\Models\User;
 use App\Notifications\RealtimeSystemNotification;
 use App\Services\EmailService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class SendChecklistReminders extends Command
@@ -25,34 +26,36 @@ class SendChecklistReminders extends Command
      *
      * @var string
      */
-    protected $description = 'Notify relevant Development Officers every 3 months after acquisition project creation to check and update project checklists.';
+    protected $description = 'Notify DOs every 3 months to update progress in Mark Progress, follow up after 1 week if ignored, and escalate to SAS after another week.';
 
     /**
      * Execute the console command.
      */
     public function handle(): int
     {
-        $this->info('Checking acquisition projects for 3-month checklist update reminders...');
+        $this->info('Checking acquisition projects for 3-month progress reminders, follow-ups, and escalations...');
 
         $projects = Projects::with('progress')->whereNotNull('created_at')->get();
-        $sentCount = 0;
+        $firstReminderCount = 0;
+        $secondReminderCount = 0;
+        $escalationCount = 0;
 
         foreach ($projects as $project) {
-            // Do not send notifications if acquisition case is completed or rejected
+            // Do not process completed or rejected acquisition projects
             if (in_array(strtolower((string) $project->case_status), ['completed', 'rejected'])) {
                 $this->line("Skipped project '{$project->title}' (ID: {$project->id}): Case status is '{$project->case_status}'.");
 
                 continue;
             }
 
-            // Do not send notifications if acquisition project checklist is fully over (100% completed)
+            // Do not process projects where checklist is 100% completed
             $progress = $project->progress;
             if ($progress) {
                 $isFullyCompleted = $progress->progress_percentage >= 100 ||
                     ($progress->total_items > 0 && $progress->completed_items >= $progress->total_items);
 
                 if ($isFullyCompleted) {
-                    $this->line("Skipped project '{$project->title}' (ID: {$project->id}): Acquisition checklist is 100% completed.");
+                    $this->line("Skipped project '{$project->title}' (ID: {$project->id}): Checklist is 100% completed.");
 
                     continue;
                 }
@@ -61,12 +64,14 @@ class SendChecklistReminders extends Command
             $createdDate = Carbon::parse($project->created_at);
             $monthsElapsed = (int) floor($createdDate->diffInMonths(now()));
 
-            // Only notify for every 3-month interval (e.g. 3, 6, 9, 12, 15, 18, 24...)
-            if ($monthsElapsed <= 0 || $monthsElapsed % 3 !== 0) {
+            if ($monthsElapsed < 3) {
                 continue;
             }
 
-            // Target DO (Development Officer) user for this project
+            // Calculate current 3-month milestone (3, 6, 9, 12, 15, ...)
+            $milestone = ((int) floor($monthsElapsed / 3)) * 3;
+
+            // Target DO (Development Officer) users for this project
             $doUsers = collect();
 
             if ($project->submitted_by) {
@@ -76,59 +81,185 @@ class SendChecklistReminders extends Command
                 }
             }
 
-            // Fallback: If no submitted_by user found with DO role, find DO users for this project's institution
             if ($doUsers->isEmpty()) {
                 $doUsers = $project->getInstitutionOfficers('DO');
             }
 
             if ($doUsers->isEmpty()) {
-                Log::warning("No Development Officer (DO) found for project ID {$project->id}. Skipping checklist reminder.");
+                Log::warning("No Development Officer (DO) found for project ID {$project->id}. Skipping reminder check.");
 
                 continue;
             }
 
-            foreach ($doUsers as $doUser) {
-                // Check if a reminder for this project and this 3-month milestone (or within last 80 days) was already sent to avoid duplication
-                $recentlyNotified = DB::table('notifications')
-                    ->where('notifiable_id', $doUser->id)
-                    ->where('notifiable_type', User::class)
-                    ->where(function ($query) use ($project) {
-                        $query->whereRaw("JSON_EXTRACT(data, '$.project_id') = ?", [(string) $project->project_id])
-                            ->orWhereRaw("JSON_EXTRACT(data, '$.project_id') = ?", [(string) $project->id])
-                            ->orWhereRaw('data LIKE ?', ['%"'.$project->title.'"%']);
-                    })
-                    ->where('created_at', '>=', now()->subDays(80))
-                    ->exists();
+            $primaryDo = $doUsers->first();
 
-                if ($recentlyNotified) {
-                    $this->line("Skipped project '{$project->title}' (ID: {$project->id}) for DO {$doUser->name}: Already notified within last 80 days.");
+            // Check if reminder record exists for this milestone
+            $reminder = ProjectChecklistReminder::where('project_id', $project->id)
+                ->where('milestone_months', $milestone)
+                ->first();
+
+            // ─────────────────────────────────────────────────────────────
+            // SCENARIO 1: First Reminder at 3-Month Milestone
+            // ─────────────────────────────────────────────────────────────
+            if (! $reminder) {
+                // If DO already updated progress on or after the milestone date, mark as resolved automatically
+                $milestoneDate = $createdDate->copy()->addMonths($milestone);
+                $hasUpdatedAfterMilestone = $progress && $progress->last_saved_at && Carbon::parse($progress->last_saved_at)->gte($milestoneDate);
+
+                if ($hasUpdatedAfterMilestone) {
+                    ProjectChecklistReminder::create([
+                        'project_id' => $project->id,
+                        'milestone_months' => $milestone,
+                        'do_user_id' => $primaryDo->id,
+                        'first_reminder_sent_at' => now(),
+                        'progress_updated_at' => $progress->last_saved_at,
+                        'status' => 'resolved',
+                    ]);
+                    $this->line("Project '{$project->title}': Already updated by DO for {$milestone}M milestone.");
 
                     continue;
                 }
 
-                $title = "Quarterly Checklist Update Reminder ({$monthsElapsed} Months)";
-                $message = "Project '{$project->title}' (ID: {$project->project_id}) was created {$monthsElapsed} months ago. Please review and update the progress checklist.";
-                $actionUrl = "/development-officer/mark-progress?projectId={$project->project_id}";
+                // Send Initial (1st) Reminder to DO
+                $title = "Quarterly Progress Update Reminder ({$milestone} Months)";
+                $message = "Project '{$project->title}' (ID: {$project->project_id}) was created {$milestone} months ago. Please update acquisition progress in Mark Progress (complete a stage, add remarks, or upload supporting documents) within 7 days.";
+                $actionUrl = "/mark-progress?projectId={$project->project_id}";
 
-                // 1. Send In-App Notification (Database & Broadcast)
-                $doUser->notify(new RealtimeSystemNotification(
-                    title: $title,
-                    message: $message,
-                    actionUrl: $actionUrl,
-                    type: 'warning',
-                    projectId: (string) $project->project_id,
-                    notificationCategory: 'checklist_reminder'
-                ));
+                foreach ($doUsers as $doUser) {
+                    $doUser->notify(new RealtimeSystemNotification(
+                        title: $title,
+                        message: $message,
+                        actionUrl: $actionUrl,
+                        type: 'warning',
+                        projectId: (string) $project->project_id,
+                        notificationCategory: 'checklist_reminder'
+                    ));
 
-                // 2. Send via user's preferred notification channel (Email/SMS)
-                EmailService::sendChecklistReminderEmail($doUser, $project, $monthsElapsed);
+                    EmailService::sendChecklistReminderEmail($doUser, $project, $milestone);
+                }
 
-                $sentCount++;
-                $this->info("Notified DO {$doUser->name} for project '{$project->title}' ({$monthsElapsed} months milestone).");
+                ProjectChecklistReminder::create([
+                    'project_id' => $project->id,
+                    'milestone_months' => $milestone,
+                    'do_user_id' => $primaryDo->id,
+                    'first_reminder_sent_at' => now(),
+                    'status' => 'pending_do',
+                ]);
+
+                $firstReminderCount++;
+                $this->info("Dispatched 1st reminder to DO for project '{$project->title}' ({$milestone}M milestone).");
+
+                continue;
+            }
+
+            // If reminder for this milestone is already marked resolved, nothing more to do
+            if ($reminder->status === 'resolved') {
+                continue;
+            }
+
+            // ─────────────────────────────────────────────────────────────
+            // CHECK IF DO UPDATED PROGRESS IN MarkProgress.tsx
+            // Either by completing a stage/item, adding remarks, or uploading documents
+            // ─────────────────────────────────────────────────────────────
+            $hasSavedProgress = $progress && $progress->last_saved_at && Carbon::parse($progress->last_saved_at)->gt($reminder->first_reminder_sent_at);
+            $hasUploadedDocument = Documents::where('project_id', $project->id)
+                ->where('created_at', '>', $reminder->first_reminder_sent_at)
+                ->exists();
+
+            if ($hasSavedProgress || $hasUploadedDocument) {
+                $updatedAt = $hasSavedProgress ? $progress->last_saved_at : now();
+                $reminder->update([
+                    'progress_updated_at' => $updatedAt,
+                    'status' => 'resolved',
+                ]);
+                $this->info("Project '{$project->title}': DO updated progress. Milestone {$milestone} reminder resolved.");
+
+                continue;
+            }
+
+            // ─────────────────────────────────────────────────────────────
+            // SCENARIO 2: Follow-up 2nd Reminder to DO after 1 week (7 days)
+            // ─────────────────────────────────────────────────────────────
+            if (is_null($reminder->second_reminder_sent_at)) {
+                $daysSinceFirst = Carbon::parse($reminder->first_reminder_sent_at)->diffInDays(now());
+
+                if ($daysSinceFirst >= 7) {
+                    $title = "[Urgent - 2nd Notice] Acquisition Progress Update Overdue ({$milestone} Months)";
+                    $message = "You have not updated progress for project '{$project->title}' (ID: {$project->project_id}) within 1 week of reminder. Please update progress (complete a stage, add remarks, or upload documents) in Mark Progress within 7 days to avoid escalation to Senior Assistant Secretary (SAS).";
+                    $actionUrl = "/mark-progress?projectId={$project->project_id}";
+
+                    foreach ($doUsers as $doUser) {
+                        $doUser->notify(new RealtimeSystemNotification(
+                            title: $title,
+                            message: $message,
+                            actionUrl: $actionUrl,
+                            type: 'error',
+                            projectId: (string) $project->project_id,
+                            notificationCategory: 'checklist_second_reminder'
+                        ));
+
+                        EmailService::sendChecklistSecondReminderEmail($doUser, $project, $milestone);
+                    }
+
+                    $reminder->update([
+                        'second_reminder_sent_at' => now(),
+                        'status' => 'second_reminder_sent',
+                    ]);
+
+                    $secondReminderCount++;
+                    $this->warn("Sent 2nd reminder to DO for project '{$project->title}'.");
+                }
+
+                continue;
+            }
+
+            // ─────────────────────────────────────────────────────────────
+            // SCENARIO 3: Escalation to SAS after another 1 week (7 days)
+            // ─────────────────────────────────────────────────────────────
+            if (is_null($reminder->escalated_to_sas_at)) {
+                $daysSinceSecond = Carbon::parse($reminder->second_reminder_sent_at)->diffInDays(now());
+
+                if ($daysSinceSecond >= 7) {
+                    $sasUsers = $project->getInstitutionOfficers('SAS');
+
+                    if ($sasUsers->isEmpty()) {
+                        Log::warning("No Senior Assistant Secretary (SAS) found for project ID {$project->id}. Cannot dispatch escalation.");
+
+                        continue;
+                    }
+
+                    $title = "[Escalation Notice] Progress Update Ignored by DO: {$project->title}";
+                    $message = "Attention SAS: Development Officer has failed to update the acquisition checklist for project '{$project->title}' (ID: {$project->project_id}) after 2 reminders over 2 weeks. Please review and intervene.";
+                    $actionUrl = "/mark-progress?projectId={$project->project_id}";
+
+                    foreach ($sasUsers as $sasUser) {
+                        // In-app Realtime Notification
+                        $sasUser->notify(new RealtimeSystemNotification(
+                            title: $title,
+                            message: $message,
+                            actionUrl: $actionUrl,
+                            type: 'error',
+                            projectId: (string) $project->project_id,
+                            notificationCategory: 'checklist_escalation'
+                        ));
+
+                        // Preferred notification medium (Email and/or SMS per notification_preference)
+                        EmailService::sendChecklistEscalationToSasEmail($sasUser, $project, $milestone, $primaryDo);
+                    }
+
+                    $reminder->update([
+                        'escalated_to_sas_at' => now(),
+                        'sas_user_id' => $sasUsers->first()?->id,
+                        'status' => 'escalated_to_sas',
+                    ]);
+
+                    $escalationCount++;
+                    $this->error("Escalated project '{$project->title}' to SAS ({$sasUsers->count()} officers notified via preferred medium).");
+                }
             }
         }
 
-        $this->info("Finished sending checklist reminders. Total notifications dispatched: {$sentCount}");
+        $this->info("Completed checklist reminder cycle. 1st reminders: {$firstReminderCount}, 2nd reminders: {$secondReminderCount}, Escalations to SAS: {$escalationCount}.");
 
         return Command::SUCCESS;
     }

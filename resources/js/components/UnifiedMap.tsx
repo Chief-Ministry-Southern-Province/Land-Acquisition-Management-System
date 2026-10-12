@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import React, { useEffect, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MapLoadingSkeleton } from '@/components/ui/MapLoadingSkeleton';
 import { useMapProvider } from '@/hooks/useMapProvider';
 import type { LandParcel } from '@/services/landParcelManagementService';
 
@@ -718,15 +718,11 @@ export default function UnifiedMap({
   // Loading indicator for provider initialization
   if (providerLoading) {
     return (
-      <div className="bg-card text-foreground border-border flex h-full w-full items-center justify-center rounded-lg border p-6">
-        <LoadingSpinner
-          type="ring"
-          variant="secondary"
-          size="lg"
-          label="Initializing spatial GIS maps..."
-          centered
-        />
-      </div>
+      <MapLoadingSkeleton
+        height={height}
+        label="Initializing Geographic Information System..."
+        sublabel="Southern Provincial Council • Spatial Mapping Engine"
+      />
     );
   }
 

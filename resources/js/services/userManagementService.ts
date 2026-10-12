@@ -17,3 +17,9 @@ export const deleteUser = async (id: number) => {
 
   return response.data;
 };
+
+export const unblockUser = async (id: number) => {
+  const response = await api.post(`/api/users/${id}/unblock`);
+
+  return response.data;
+};

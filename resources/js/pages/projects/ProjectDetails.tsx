@@ -9,6 +9,10 @@ import {
   Upload,
   User,
   Loader2,
+  FileText,
+  FileSpreadsheet,
+  MapPin,
+  FolderArchive,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
@@ -30,12 +34,18 @@ import {
   downloadDocument,
   uploadDocument,
 } from '@/services/documentManagementService';
+import { exportLandParcels } from '@/services/landParcelManagementService';
 import {
+  exportAcquisitionApplicationB3,
+  exportAcquisitionApplicationB5,
+  exportAcquisitionInstructions,
+  exportAllProjectDocuments,
   exportProjects,
   getProject,
   submitProject,
 } from '@/services/projectsManagementService';
 import type { Project } from '@/services/projectsManagementService';
+import { exportPropertyOwners } from '@/services/propertyOwnerManagement';
 
 const formatDate = (dateStr?: string | null) => {
   if (!dateStr) {
@@ -70,6 +80,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const [loading, setLoading] = useState(true);
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
   const { locale, t } = useTranslation();
 
   const { props: pageProps } = usePage();
@@ -197,6 +208,140 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     } catch (error) {
       console.error(`Failed to export project details as ${format}:`, error);
       toastError(t('export_failed'));
+    }
+  };
+
+  const handleExportProjectWithLoading = async (
+    format: 'pdf' | 'excel' | 'csv',
+    targetLocale: string = 'si',
+  ) => {
+    const key = `project-${format}`;
+
+    try {
+      setDownloadingKey(key);
+      await exportProjects(format, id, targetLocale);
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error(`Failed to export project details as ${format}:`, error);
+      toastError(t('export_failed', 'Failed to export project details.'));
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
+
+  const handleExportAllDocuments = async () => {
+    const key = 'project-all-sinhala';
+
+    try {
+      setDownloadingKey(key);
+      await exportAllProjectDocuments(id, 'si');
+      toastSuccess(
+        t(
+          'export_all_success',
+          'All project documents exported successfully in Sinhala (ZIP)',
+        ),
+      );
+    } catch (error) {
+      console.error('Failed to export all project documents:', error);
+      toastError(t('export_failed', 'Failed to export all documents.'));
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
+
+  const handleExportApplicationB3 = async () => {
+    const key = 'project-b3-pdf';
+
+    try {
+      setDownloadingKey(key);
+      await exportAcquisitionApplicationB3(id, 'si');
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error(
+        'Failed to export Form B-3 acquisition application:',
+        error,
+      );
+      toastError(t('export_failed', 'Failed to export document.'));
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
+
+  const handleExportInstructions = async () => {
+    const key = 'project-instructions-pdf';
+
+    try {
+      setDownloadingKey(key);
+      await exportAcquisitionInstructions(id, 'si');
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error(
+        'Failed to export acquisition proposal instructions:',
+        error,
+      );
+      toastError(t('export_failed', 'Failed to export document.'));
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
+
+  const handleExportApplicationB5 = async () => {
+    const key = 'project-b5-pdf';
+
+    try {
+      setDownloadingKey(key);
+      await exportAcquisitionApplicationB5(id, 'si');
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error('Failed to export Form B-5 acquisition report:', error);
+      toastError(t('export_failed', 'Failed to export document.'));
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
+
+  const handleExportParcel = async (
+    parcelId: string,
+    format: 'pdf' | 'excel' | 'csv',
+    targetLocale: string = 'si',
+  ) => {
+    const key = `parcel-${parcelId}-${format}`;
+
+    try {
+      setDownloadingKey(key);
+      await exportLandParcels(format, parcelId, targetLocale);
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error(`Failed to export parcel as ${format}:`, error);
+      toastError(
+        t('failed_export_land_parcel', 'Failed to export land parcel.'),
+      );
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
+
+  const handleExportOwner = async (
+    ownerId: string,
+    format: 'pdf' | 'excel' | 'csv',
+    targetLocale: string = 'si',
+  ) => {
+    const key = `owner-${ownerId}-${format}`;
+
+    try {
+      setDownloadingKey(key);
+      await exportPropertyOwners(format, ownerId, targetLocale);
+      toastSuccess(t('export_success', 'Document exported successfully'));
+    } catch (error) {
+      console.error(`Failed to export owner as ${format}:`, error);
+      toastError(
+        t(
+          'failed_export_owner_profile',
+          'Failed to export property owner profile.',
+        ),
+      );
+    } finally {
+      setDownloadingKey(null);
     }
   };
 
@@ -397,6 +542,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
     { id: 'valuations', label: t('tab_valuations') },
     { id: 'compensation', label: t('tab_compensation') },
     { id: 'documents', label: t('tab_documents') },
+    { id: 'forms', label: t('tab_forms', 'Forms') },
     { id: 'legal', label: t('tab_legal') },
     { id: 'audit', label: t('tab_audit') },
   ];
@@ -1027,6 +1173,581 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             data={documents}
             actions={documentActions}
           />
+        </div>
+      )}
+
+      {activeTab === 'forms' && project && (
+        <div className="space-y-6">
+          {/* Master Banner: Export All Statutory Documents in Sinhala */}
+          <div className="border-primary/20 from-primary/10 via-primary/5 shadow-xs relative overflow-hidden rounded-xl border bg-gradient-to-r to-transparent p-6">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-wider">
+                    {t('statutory_dossier_sinhala', 'Statutory Documents')}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs font-medium">
+                    සිංහල (Sinhala)
+                  </Badge>
+                  <span className="text-muted-foreground font-mono text-xs">
+                    {project.projectId}
+                  </span>
+                </div>
+                <h3 className="text-foreground text-lg font-bold">
+                  {t(
+                    'export_all_documents_title',
+                    'Land Acquisition Statutory Documents & Dossiers (Sinhala)',
+                  )}
+                </h3>
+                <p className="text-muted-foreground max-w-2xl text-xs sm:text-sm">
+                  {t(
+                    'export_all_documents_desc',
+                    'All statutory acquisition applications, urgent reports under Section 38(a), ministerial guidelines, parcel schedules, and owner dossiers in this tab are prepared and exported in official Sinhala language.',
+                  )}
+                </p>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-3">
+                <button
+                  onClick={handleExportAllDocuments}
+                  disabled={downloadingKey === 'project-all-sinhala'}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm transition disabled:opacity-50"
+                  title={t(
+                    'export_all_documents_tooltip',
+                    'Download all statutory documents in Sinhala as a ZIP archive',
+                  )}
+                >
+                  {downloadingKey === 'project-all-sinhala' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FolderArchive className="h-4 w-4" />
+                  )}
+                  <span>
+                    {t(
+                      'export_all_sinhala_docs',
+                      'Export All Documents (Sinhala ZIP)',
+                    )}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick list chips of included Sinhala forms */}
+            <div className="border-primary/10 text-muted-foreground mt-4 flex flex-wrap items-center gap-2 border-t pt-3 text-xs">
+              <span className="text-foreground font-semibold">
+                {t('included_forms', 'Included Documents')}:
+              </span>
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
+                බී-3 අයදුම්පත (Form B-3)
+              </span>
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
+                බී-5 හදිසි වාර්තාව (Form B-5)
+              </span>
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
+                යෝජනා උපදෙස් (Guidelines)
+              </span>
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
+                ව්‍යාපෘති සාරාංශය (Project Dossier)
+              </span>
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
+                ඉඩම් කොටස් ({project.landParcels?.length || 0} Parcels)
+              </span>
+              <span className="bg-background/80 border-border rounded-md border px-2 py-0.5">
+                හිමිකරුවන් ({owners.length} Owners)
+              </span>
+            </div>
+          </div>
+
+          {/* Section 1: Acquisition Project Dossier Card */}
+          <div className="bg-card border-border shadow-xs rounded-lg border p-6">
+            <div className="border-border flex flex-col justify-between gap-4 border-b pb-4 md:flex-row md:items-center">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                  >
+                    {t('project_form', 'Official Project Form')}
+                  </Badge>
+                  <span className="text-muted-foreground font-mono text-xs">
+                    {project.projectId}
+                  </span>
+                  <Badge variant="secondary" className="text-xs">
+                    සිංහල (Sinhala)
+                  </Badge>
+                </div>
+                <h4 className="text-foreground mt-1 text-base font-semibold">
+                  {project.title || project.name}
+                </h4>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {t(
+                    'project_dossier_desc',
+                    'Official acquisition project summary and workflow approval dossier in PDF, Excel, or CSV format.',
+                  )}
+                </p>
+              </div>
+
+              {/* Action Buttons for Project */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => handleExportProjectWithLoading('pdf', 'si')}
+                  disabled={downloadingKey === 'project-pdf'}
+                  className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                  title={t('export_pdf_sinhala', 'Export PDF (Sinhala)')}
+                >
+                  {downloadingKey === 'project-pdf' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  )}
+                  <span>{t('export_pdf_sinhala', 'Export PDF (Sinhala)')}</span>
+                </button>
+                <button
+                  onClick={() => handleExportProjectWithLoading('excel', 'si')}
+                  disabled={downloadingKey === 'project-excel'}
+                  className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                  title={t('export_excel')}
+                >
+                  {downloadingKey === 'project-excel' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  )}
+                  <span>{t('export_excel', 'Export Excel')}</span>
+                </button>
+                <button
+                  onClick={() => handleExportProjectWithLoading('csv', 'si')}
+                  disabled={downloadingKey === 'project-csv'}
+                  className="border-border bg-muted/50 hover:bg-muted text-foreground flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+                  title={t('export_csv')}
+                >
+                  {downloadingKey === 'project-csv' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  <span>{t('export_csv', 'Export CSV')}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Project Summary meta chips */}
+            <div className="grid grid-cols-2 gap-4 pt-4 text-sm sm:grid-cols-4">
+              <div>
+                <span className="text-muted-foreground block text-xs">
+                  {t('status')}
+                </span>
+                <span className="text-foreground font-medium capitalize">
+                  {project.status || 'Draft'}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">
+                  {t('total_parcels', 'Total Parcels')}
+                </span>
+                <span className="text-foreground font-medium">
+                  {project.landParcels?.length || 0}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">
+                  {t('land_area', 'Land Area')}
+                </span>
+                <span className="text-foreground font-medium">
+                  {project.landAreaAcers ?? 0} A, {project.landAreaRoods ?? 0}{' '}
+                  R, {project.landAreaPerches ?? 0} P
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">
+                  {t('institution', 'Requesting Institution')}
+                </span>
+                <span className="text-foreground block truncate font-medium">
+                  {project.institution || 'N/A'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Statutory Land Acquisition Application Form (B-3) */}
+          <div className="bg-card border-border shadow-xs rounded-lg border p-6">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="border-primary/40 bg-primary/5 text-primary text-xs font-semibold uppercase tracking-wider"
+                  >
+                    බී-3
+                  </Badge>
+                  <span className="text-muted-foreground font-mono text-xs">
+                    {project.projectId}
+                  </span>
+                  <Badge variant="secondary" className="text-xs">
+                    සිංහල (Sinhala)
+                  </Badge>
+                </div>
+                <h4 className="text-foreground mt-1 text-base font-semibold">
+                  {t(
+                    'acquisition_application_b3_title',
+                    'Land Acquisition Application Form (B-3)',
+                  )}
+                </h4>
+                <p className="text-muted-foreground mt-1 max-w-3xl text-sm">
+                  {t(
+                    'acquisition_application_b3_desc',
+                    'Official application under Section 460 of the Land Acquisition Act for acquisition of land for Southern Provincial Council (in Sinhala).',
+                  )}
+                </p>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  onClick={handleExportApplicationB3}
+                  disabled={downloadingKey === 'project-b3-pdf'}
+                  className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                  title={t('download_b3_pdf', 'Download Form B-3 (PDF)')}
+                >
+                  {downloadingKey === 'project-b3-pdf' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  )}
+                  <span>{t('download_b3_pdf', 'Download Form B-3 (PDF)')}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Statutory Urgent Acquisition Report Form (B-5) */}
+          <div className="bg-card border-border shadow-xs rounded-lg border p-6">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="border-primary/40 bg-primary/5 text-primary text-xs font-semibold uppercase tracking-wider"
+                  >
+                    බී-5
+                  </Badge>
+                  <span className="text-muted-foreground font-mono text-xs">
+                    {project.projectId}
+                  </span>
+                  <Badge variant="secondary" className="text-xs">
+                    සිංහල (Sinhala)
+                  </Badge>
+                </div>
+                <h4 className="text-foreground mt-1 text-base font-semibold">
+                  {t(
+                    'acquisition_application_b5_title',
+                    'Urgent Acquisition Report under Section 38(a) (Form B-5)',
+                  )}
+                </h4>
+                <p className="text-muted-foreground mt-1 max-w-3xl text-sm">
+                  {t(
+                    'acquisition_application_b5_desc',
+                    'Statutory report on the suitability of urgent land acquisition under Proviso 38(a) of the Land Acquisition Act (Schedule No. 11 - in Sinhala).',
+                  )}
+                </p>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  onClick={handleExportApplicationB5}
+                  disabled={downloadingKey === 'project-b5-pdf'}
+                  className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                  title={t('download_b5_pdf', 'Download Form B-5 (PDF)')}
+                >
+                  {downloadingKey === 'project-b5-pdf' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  )}
+                  <span>{t('download_b5_pdf', 'Download Form B-5 (PDF)')}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Statutory Acquisition Proposal Preparation Instructions */}
+          <div className="bg-card border-border shadow-xs rounded-lg border p-6">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="border-amber-500/40 bg-amber-500/10 text-xs font-semibold tracking-wider text-amber-700 dark:text-amber-300"
+                  >
+                    උපදෙස් / Guidelines
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    සිංහල (Sinhala)
+                  </Badge>
+                </div>
+                <h4 className="text-foreground mt-1 text-base font-semibold">
+                  {t(
+                    'acquisition_instructions_title',
+                    'Proposal Preparation Instructions (Statutory Guidelines)',
+                  )}
+                </h4>
+                <p className="text-muted-foreground mt-1 max-w-3xl text-sm">
+                  {t(
+                    'acquisition_instructions_desc',
+                    'Key statutory guidelines and requirements to be considered when preparing a land acquisition proposal for the Ministry (in Sinhala).',
+                  )}
+                </p>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  onClick={handleExportInstructions}
+                  disabled={downloadingKey === 'project-instructions-pdf'}
+                  className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-50 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/50"
+                  title={t(
+                    'download_instructions_pdf',
+                    'Download Instructions (PDF)',
+                  )}
+                >
+                  {downloadingKey === 'project-instructions-pdf' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  )}
+                  <span>
+                    {t(
+                      'download_instructions_pdf',
+                      'Download Instructions (PDF)',
+                    )}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Related Land Parcels Forms */}
+          <div className="space-y-4">
+            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+              <div>
+                <h4 className="text-foreground flex items-center gap-2 text-base font-semibold">
+                  <MapPin className="text-primary h-4 w-4" />
+                  {t('related_parcels_forms', 'Related Land Parcel Forms')}
+                </h4>
+                <p className="text-muted-foreground text-xs">
+                  {t(
+                    'related_parcels_forms_desc',
+                    'Download official statutory forms and export sheets for individual land parcels in this project.',
+                  )}
+                </p>
+              </div>
+              <span className="bg-muted text-muted-foreground self-start rounded-full px-2.5 py-1 text-xs font-medium sm:self-auto">
+                {project.landParcels?.length || 0}{' '}
+                {t('parcels_count', 'Parcels')}
+              </span>
+            </div>
+
+            {project.landParcels && project.landParcels.length > 0 ? (
+              <div className="border-border bg-card divide-border divide-y overflow-hidden rounded-lg border">
+                {project.landParcels.map((parcel) => (
+                  <div
+                    key={parcel.id}
+                    className="hover:bg-muted/30 flex flex-col justify-between gap-4 p-4 transition-colors sm:flex-row sm:items-center"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-foreground font-mono text-sm font-semibold">
+                          {parcel.parcel_id}
+                        </span>
+                        {parcel.land_name && (
+                          <span className="text-muted-foreground text-sm font-medium">
+                            — {parcel.land_name}
+                          </span>
+                        )}
+                        <Badge variant="secondary" className="text-xs">
+                          සිංහල (Sinhala)
+                        </Badge>
+                        <StatusBadge
+                          status={(parcel.status || 'draft').toLowerCase()}
+                        />
+                      </div>
+                      <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-xs">
+                        {parcel.village && <span>{parcel.village}</span>}
+                        {parcel.district && <span>{parcel.district}</span>}
+                        <span>
+                          {parcel.extent_acers} A, {parcel.extent_perches} P
+                        </span>
+                        {parcel.owners && parcel.owners.length > 0 && (
+                          <span>
+                            {parcel.owners.length} {t('owners', 'Owners')}:{' '}
+                            {parcel.owners.map((o) => o.name).join(', ')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      <button
+                        onClick={() =>
+                          handleExportParcel(parcel.id, 'pdf', 'si')
+                        }
+                        disabled={downloadingKey === `parcel-${parcel.id}-pdf`}
+                        className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                        title={t(
+                          'parcel_pdf_form_sinhala',
+                          'Download Land Parcel PDF Form (Sinhala)',
+                        )}
+                      >
+                        {downloadingKey === `parcel-${parcel.id}-pdf` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <FileText className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                        )}
+                        <span>
+                          {t(
+                            'parcel_pdf_form_sinhala',
+                            'Parcel PDF Form (Sinhala)',
+                          )}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleExportParcel(parcel.id, 'excel', 'si')
+                        }
+                        disabled={
+                          downloadingKey === `parcel-${parcel.id}-excel`
+                        }
+                        className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                        title={t('export_excel')}
+                      >
+                        {downloadingKey === `parcel-${parcel.id}-excel` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        )}
+                        <span>Excel</span>
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleExportParcel(parcel.id, 'csv', 'si')
+                        }
+                        disabled={downloadingKey === `parcel-${parcel.id}-csv`}
+                        className="border-border bg-muted/40 hover:bg-muted text-foreground flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
+                        title={t('export_csv')}
+                      >
+                        {downloadingKey === `parcel-${parcel.id}-csv` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Download className="h-3.5 w-3.5" />
+                        )}
+                        <span>CSV</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-card border-border text-muted-foreground rounded-lg border p-8 text-center text-sm">
+                {t(
+                  'no_related_parcels_found',
+                  'No land parcels linked to this project yet.',
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Section 3: Related Property Owners Forms */}
+          {owners.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                <div>
+                  <h4 className="text-foreground flex items-center gap-2 text-base font-semibold">
+                    <User className="text-primary h-4 w-4" />
+                    {t('related_owners_forms', 'Related Property Owner Forms')}
+                  </h4>
+                  <p className="text-muted-foreground text-xs">
+                    {t(
+                      'related_owners_forms_desc',
+                      'Download official owner profile records and dossiers for claimants in this project.',
+                    )}
+                  </p>
+                </div>
+                <span className="bg-muted text-muted-foreground self-start rounded-full px-2.5 py-1 text-xs font-medium sm:self-auto">
+                  {owners.length} {t('tab_owners', 'Owners')}
+                </span>
+              </div>
+
+              <div className="border-border bg-card divide-border divide-y overflow-hidden rounded-lg border">
+                {owners.map((owner) => (
+                  <div
+                    key={owner.id}
+                    className="hover:bg-muted/30 flex flex-col justify-between gap-4 p-4 transition-colors sm:flex-row sm:items-center"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-foreground text-sm font-medium">
+                          {owner.name}
+                        </span>
+                        {owner.ownerId && (
+                          <span className="text-muted-foreground font-mono text-xs">
+                            ({owner.ownerId})
+                          </span>
+                        )}
+                        <Badge variant="secondary" className="text-xs">
+                          සිංහල (Sinhala)
+                        </Badge>
+                      </div>
+                      <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-xs">
+                        {owner.nic && <span>NIC: {owner.nic}</span>}
+                        {owner.contact && <span>{owner.contact}</span>}
+                        <span>
+                          {owner.parcels}{' '}
+                          {t('associated_parcels', 'associated parcels')}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => handleExportOwner(owner.id, 'pdf', 'si')}
+                        disabled={downloadingKey === `owner-${owner.id}-pdf`}
+                        className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                        title={t(
+                          'owner_pdf_form_sinhala',
+                          'Download Owner Profile PDF Form (Sinhala)',
+                        )}
+                      >
+                        {downloadingKey === `owner-${owner.id}-pdf` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <FileText className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                        )}
+                        <span>
+                          {t(
+                            'owner_pdf_form_sinhala',
+                            'Owner PDF Form (Sinhala)',
+                          )}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleExportOwner(owner.id, 'excel', 'si')
+                        }
+                        disabled={downloadingKey === `owner-${owner.id}-excel`}
+                        className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                        title={t('export_excel')}
+                      >
+                        {downloadingKey === `owner-${owner.id}-excel` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        )}
+                        <span>Excel</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

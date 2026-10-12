@@ -18,6 +18,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectProgressController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\PropertyOwnerController;
+use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SASApprovalController;
@@ -93,6 +94,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('payments/{id}', [PaymentController::class, 'update']);
         Route::delete('payments/{id}', [PaymentController::class, 'destroy']);
 
+        Route::post('receipts', [ReceiptController::class, 'store']);
+        Route::put('receipts/{id}', [ReceiptController::class, 'update']);
+        Route::delete('receipts/{id}', [ReceiptController::class, 'destroy']);
+
         // Mark Progress (DO Only)
         Route::post('projects/{id}/progress', [ProjectProgressController::class, 'store']);
     });
@@ -107,6 +112,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('land-valuations/{id}', [LandValuationController::class, 'show']);
     Route::get('payments', [PaymentController::class, 'index']);
     Route::get('payments/{id}', [PaymentController::class, 'show']);
+    Route::get('receipts', [ReceiptController::class, 'index']);
+    Route::get('receipts/{id}', [ReceiptController::class, 'show']);
 
     // ─── Head of Branch Routes ───────────────────────────────────────
     Route::middleware('check.role:HOB')->group(function () {
@@ -151,6 +158,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users', [UserController::class, 'getAllUsers']);
         Route::put('/users/{id}', [UserController::class, 'updateUser']);
         Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
+        Route::post('/users/{id}/unblock', [UserController::class, 'unblockUser']);
+        Route::get('/users/{id}/blocked-status', [UserController::class, 'getBlockedStatus']);
 
         Route::post('departments', [DepartmentController::class, 'store']);
         Route::put('departments/{id}', [DepartmentController::class, 'update']);

@@ -12,7 +12,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MapLoadingSkeleton } from '@/components/ui/MapLoadingSkeleton';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import UnifiedMap from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -101,13 +101,11 @@ export default function GisMapList() {
       </div>
 
       {loading ? (
-        <div className="bg-card border-border flex min-h-[450px] flex-col items-center justify-center gap-3 rounded-xl border">
-          <LoadingSpinner
-            type="grid"
-            variant="secondary"
-            size="md"
-            label={t('loading_gis_data', 'Loading GIS data and maps...')}
-            centered
+        <div className="bg-card border-border min-h-[500px] overflow-hidden rounded-xl border">
+          <MapLoadingSkeleton
+            height="500px"
+            label={t('loading_gis_data', 'Loading GIS Data and Maps...')}
+            sublabel="Chief Ministry - Southern Province • Land Acquisition Management System"
           />
         </div>
       ) : (
@@ -308,9 +306,11 @@ export default function GisMapList() {
                     height="100%"
                   />
                 ) : (
-                  <div className="bg-linear-to-br absolute inset-0 flex items-center justify-center from-[#4a9f8f]/90 to-[#2d6b5f]/95 p-6 text-center">
+                  <div className="bg-linear-to-br absolute inset-0 flex items-center justify-center from-[#2E7D32]/90 to-[#1b4e20]/95 p-6 text-center">
                     <div className="max-w-sm text-white">
-                      <MapPin className="mx-auto mb-4 h-16 w-16 animate-bounce text-white/90" />
+                      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/25">
+                        <MapPin className="h-7 w-7 text-white" />
+                      </div>
                       <p className="mb-2 text-xl font-bold">
                         {t(
                           'no_gps_coordinates_title',

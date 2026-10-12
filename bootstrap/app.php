@@ -3,8 +3,10 @@
 use App\Http\Middleware\AuditLogFailedCreations;
 use App\Http\Middleware\CheckMaintenanceMode;
 use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\CheckUserBlocked;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RateLimitMiddleware;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -35,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             CheckMaintenanceMode::class,
+            CheckUserBlocked::class,
         ]);
 
         $middleware->api(prepend: [
@@ -44,6 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureUserIsActive::class,
             AuditLogFailedCreations::class,
             CheckMaintenanceMode::class,
+            RateLimitMiddleware::class,
         ]);
 
         $middleware->preventRequestForgery(except: [
@@ -52,6 +56,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'check.role' => CheckRole::class,
+            'rate.limit' => RateLimitMiddleware::class,
         ]);
 
         $middleware->redirectGuestsTo('/');

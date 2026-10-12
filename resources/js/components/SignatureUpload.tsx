@@ -117,7 +117,7 @@ export function SignatureUpload({ onSignatureChange }: SignatureUploadProps) {
             <X className="h-4 w-4" />
           </button>
 
-          <div className="flex h-36 max-w-full items-center justify-center p-2">
+          <div className="shadow-xs flex h-36 w-full max-w-full items-center justify-center rounded-lg border border-slate-300 bg-white p-3 dark:border-slate-600 dark:bg-white">
             <img
               src={preview}
               alt={t('label_signature_preview', 'Signature Preview')}
