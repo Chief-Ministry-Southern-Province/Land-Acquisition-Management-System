@@ -15,7 +15,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import UnifiedMap, { isWithinSriLanka } from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
@@ -470,6 +470,157 @@ export default function AddLandParcel() {
       latitude: lat,
       longitude: lng,
     }));
+  };
+
+  // Map Location Search state & handlers
+  const [mapSearchQuery, setMapSearchQuery] = useState('');
+  const [mapSearchResults, setMapSearchResults] = useState<
+    Array<{
+      place_id: number | string;
+      display_name: string;
+      name?: string;
+      lat: string;
+      lon: string;
+    }>
+  >([]);
+  const [isSearchingMap, setIsSearchingMap] = useState(false);
+  const [showMapSearchResults, setShowMapSearchResults] = useState(false);
+  const mapSearchContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        mapSearchContainerRef.current &&
+        !mapSearchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowMapSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSearchLocation = async (queryToSearch?: string) => {
+    const query = (
+      queryToSearch !== undefined ? queryToSearch : mapSearchQuery
+    ).trim();
+
+    if (!query) {
+      setMapSearchResults([]);
+      setShowMapSearchResults(false);
+
+      return;
+    }
+
+    // Check if input is direct coordinates: "lat, lng" or "lat lng"
+    const coordMatch = query.match(
+      /^([-+]?\d+(?:\.\d+)?)[,\s]+([-+]?\d+(?:\.\d+)?)$/,
+    );
+
+    if (coordMatch) {
+      const lat = parseFloat(coordMatch[1]);
+      const lng = parseFloat(coordMatch[2]);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        if (!isWithinSriLanka(lat, lng)) {
+          toastError(
+            t(
+              'out_of_bounds_sri_lanka',
+              'Location must be within Sri Lanka boundaries.',
+            ),
+          );
+
+          return;
+        }
+
+        handleMapChange(lat.toFixed(6), lng.toFixed(6));
+        setShowMapSearchResults(false);
+
+        return;
+      }
+    }
+
+    try {
+      setIsSearchingMap(true);
+      setShowMapSearchResults(true);
+
+      const endpoint = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        query,
+      )}&countrycodes=lk&limit=5&addressdetails=1`;
+
+      const response = await fetch(endpoint, {
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch locations');
+      }
+
+      const data = await response.json();
+      setMapSearchResults(Array.isArray(data) ? data : []);
+      setShowMapSearchResults(true);
+    } catch (err) {
+      console.error('Error searching location:', err);
+      toastError(
+        t(
+          'error_searching_location',
+          'Unable to search location at this moment.',
+        ),
+      );
+      setMapSearchResults([]);
+    } finally {
+      setIsSearchingMap(false);
+    }
+  };
+
+  const handleSelectLocation = (result: {
+    lat: string;
+    lon: string;
+    display_name: string;
+    name?: string;
+  }) => {
+    const lat = parseFloat(result.lat);
+    const lng = parseFloat(result.lon);
+
+    if (isNaN(lat) || !isWithinSriLanka(lat, lng)) {
+      toastError(
+        t(
+          'out_of_bounds_sri_lanka',
+          'Location must be within Sri Lanka boundaries.',
+        ),
+      );
+
+      return;
+    }
+
+    handleMapChange(lat.toFixed(6), lng.toFixed(6));
+    setMapSearchQuery(result.name || result.display_name.split(',')[0]);
+    setShowMapSearchResults(false);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (
+        showMapSearchResults &&
+        mapSearchResults.length > 0 &&
+        !isSearchingMap
+      ) {
+        handleSelectLocation(mapSearchResults[0]);
+      } else {
+        handleSearchLocation();
+      }
+    } else if (e.key === 'Escape') {
+      setShowMapSearchResults(false);
+    }
   };
 
   const set =
@@ -1074,16 +1225,131 @@ export default function AddLandParcel() {
             </Field>
 
             <div className="mt-2 md:col-span-2 lg:col-span-3">
-              <label className="text-foreground mb-1.5 block text-sm font-medium">
-                {t(
-                  'google_map_title',
-                  'Map Location (Click map to pin / drag marker)',
-                )}
-              </label>
+              <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <label className="text-foreground block text-sm font-medium">
+                  {t(
+                    'google_map_title',
+                    'Map Location (Click map to pin / drag marker)',
+                  )}
+                </label>
+                <span className="text-muted-foreground text-xs">
+                  {t(
+                    'map_search_hint',
+                    'Search a town, village, or coordinates to pin the map',
+                  )}
+                </span>
+              </div>
               <div
-                className="border-border bg-muted/20 animate-in fade-in w-full overflow-hidden rounded-xl border"
-                style={{ minHeight: '320px', height: '320px' }}
+                className="border-border bg-muted/20 animate-in fade-in relative w-full overflow-hidden rounded-xl border"
+                style={{ minHeight: '380px', height: '380px' }}
               >
+                {/* Search Text Box on top of the map */}
+                <div
+                  ref={mapSearchContainerRef}
+                  className="absolute right-14 top-3 z-[1000] w-[calc(100%-4.5rem)] max-w-sm sm:max-w-md"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                >
+                  <div className="bg-card/95 border-border flex items-center rounded-lg border shadow-md backdrop-blur-md transition-all focus-within:border-[#2E7D32] focus-within:ring-2 focus-within:ring-[#2E7D32]">
+                    <div className="text-muted-foreground pl-3 pr-1.5">
+                      {isSearchingMap ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-[#2E7D32]" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      className="text-foreground placeholder:text-muted-foreground w-full bg-transparent py-2 text-xs focus:outline-none"
+                      placeholder={t(
+                        'search_location_placeholder',
+                        'Search location in Sri Lanka (e.g. Galle, Matara)...',
+                      )}
+                      value={mapSearchQuery}
+                      onChange={(e) => {
+                        setMapSearchQuery(e.target.value);
+
+                        if (!e.target.value.trim()) {
+                          setShowMapSearchResults(false);
+                          setMapSearchResults([]);
+                        }
+                      }}
+                      onKeyDown={handleSearchKeyDown}
+                      onFocus={() => {
+                        if (mapSearchResults.length > 0) {
+                          setShowMapSearchResults(true);
+                        }
+                      }}
+                    />
+                    {mapSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMapSearchQuery('');
+                          setMapSearchResults([]);
+                          setShowMapSearchResults(false);
+                        }}
+                        className="text-muted-foreground hover:text-foreground p-1.5 transition-colors"
+                        title={t('clear', 'Clear')}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleSearchLocation()}
+                      disabled={isSearchingMap || !mapSearchQuery.trim()}
+                      className="bg-primary hover:bg-primary/90 m-1 rounded-md px-2.5 py-1 text-xs font-medium text-white transition-colors disabled:opacity-50"
+                    >
+                      {t('search', 'Search')}
+                    </button>
+                  </div>
+
+                  {/* Search Results Dropdown */}
+                  {showMapSearchResults && (
+                    <div className="bg-card border-border mt-1 max-h-56 overflow-y-auto rounded-lg border shadow-xl">
+                      {isSearchingMap ? (
+                        <div className="text-muted-foreground flex items-center justify-center gap-2 p-4 text-xs">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-[#2E7D32]" />
+                          <span>
+                            {t('searching_location', 'Searching location...')}
+                          </span>
+                        </div>
+                      ) : mapSearchResults.length > 0 ? (
+                        <div className="divide-border divide-y">
+                          {mapSearchResults.map((result, idx) => (
+                            <button
+                              key={result.place_id || idx}
+                              type="button"
+                              onClick={() => handleSelectLocation(result)}
+                              className="hover:bg-muted/60 flex w-full items-start gap-2.5 p-2.5 text-left transition-colors"
+                            >
+                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#2E7D32]" />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-foreground truncate text-xs font-semibold">
+                                  {result.name ||
+                                    result.display_name.split(',')[0]}
+                                </p>
+                                <p className="text-muted-foreground truncate text-[11px]">
+                                  {result.display_name}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-muted-foreground p-3 text-center text-xs">
+                          {t(
+                            'location_not_found',
+                            'No matching locations found in Sri Lanka.',
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <UnifiedMap
                   latitude={form.latitude}
                   longitude={form.longitude}

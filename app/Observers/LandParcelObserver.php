@@ -8,9 +8,7 @@ use App\Models\LandParcel;
 use App\Models\LandSurvey;
 use App\Models\LandValuation;
 use App\Models\Payment;
-use App\Models\PropertyOwner;
 use App\Models\Receipt;
-use App\Models\Resident;
 use App\Services\AuditLogService;
 use App\Services\FileUploadService;
 
