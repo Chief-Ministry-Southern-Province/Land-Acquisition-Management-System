@@ -391,15 +391,29 @@ class LandParcelController extends Controller
             ], 404);
         }
 
-        $landParcel->delete();
+        if (strtolower($landParcel->status ?? '') !== 'available') {
+            return response()->json([
+                'message' => 'Cannot delete land parcel that is not available.',
+            ], 422);
+        }
 
-        AuditLogService::log(
-            userId: $user->id,
-            name: $user->name,
-            action: 'Delete Land Parcel',
-            module: 'Land Parcels',
-            detail: "Deleted land parcel: {$landParcel->parcel_id}"
-        );
+        try {
+            DB::transaction(function () use ($landParcel, $user) {
+                $landParcel->delete();
+
+                AuditLogService::log(
+                    userId: $user->id,
+                    name: $user->name,
+                    action: 'Delete Land Parcel',
+                    module: 'Land Parcels',
+                    detail: "Deleted land parcel: {$landParcel->parcel_id}"
+                );
+            });
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Failed to delete land parcel: '.$e->getMessage(),
+            ], 500);
+        }
 
         return response()->json([
             'message' => 'Land parcel deleted successfully',
