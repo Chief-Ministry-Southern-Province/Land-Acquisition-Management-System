@@ -94,6 +94,9 @@ class LandParcelController extends Controller
             'case_end_date' => 'nullable|date',
             'case_status' => 'nullable|string|max:255',
             'is_donated' => 'nullable|boolean',
+            'is_assigned_by_ds' => 'nullable|boolean',
+            'ds_handover_date' => 'nullable|date',
+            'ds_handover_reference' => 'nullable|string|max:255',
             'estimated_value' => 'nullable|numeric',
             'remarks' => 'nullable|string',
             'status' => 'nullable|string|in:available,pending,acquired',
@@ -141,8 +144,16 @@ class LandParcelController extends Controller
             $validated['case_status'] = null;
         }
         $validated['is_donated'] = $validated['is_donated'] ?? false;
+        $validated['is_assigned_by_ds'] = (bool) ($validated['is_assigned_by_ds'] ?? false);
+        if ($validated['is_assigned_by_ds']) {
+            $validated['status'] = 'acquired';
+            $validated['project_id'] = null;
+        } else {
+            $validated['status'] = 'available';
+            $validated['ds_handover_date'] = null;
+            $validated['ds_handover_reference'] = null;
+        }
         $validated['estimated_value'] = $validated['estimated_value'] ?? 0;
-        $validated['status'] = 'available';
 
         DB::beginTransaction();
 
@@ -286,6 +297,9 @@ class LandParcelController extends Controller
             'case_end_date' => 'nullable|date',
             'case_status' => 'nullable|string|max:255',
             'is_donated' => 'nullable|boolean',
+            'is_assigned_by_ds' => 'nullable|boolean',
+            'ds_handover_date' => 'nullable|date',
+            'ds_handover_reference' => 'nullable|string|max:255',
             'estimated_value' => 'nullable|numeric',
             'remarks' => 'nullable|string',
             'status' => 'required|string|in:available,pending,acquired',
@@ -327,6 +341,16 @@ class LandParcelController extends Controller
             $validated['case_status'] = null;
         }
         $validated['is_donated'] = $validated['is_donated'] ?? false;
+        if (isset($validated['is_assigned_by_ds'])) {
+            $validated['is_assigned_by_ds'] = (bool) $validated['is_assigned_by_ds'];
+            if ($validated['is_assigned_by_ds']) {
+                $validated['status'] = 'acquired';
+                $validated['project_id'] = null;
+            } else {
+                $validated['ds_handover_date'] = null;
+                $validated['ds_handover_reference'] = null;
+            }
+        }
 
         $landParcel->update($validated);
         if ($request->has('property_owner_ids') && is_array($request->input('property_owner_ids'))) {

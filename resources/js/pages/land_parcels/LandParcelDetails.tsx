@@ -1345,6 +1345,46 @@ export default function LandParcelDetails({ id }: Props) {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">
+                  {t('ds_assignment_handover', 'DS Assignment & Handover:')}
+                </dt>
+                <dd
+                  className={
+                    parcel.is_assigned_by_ds
+                      ? 'font-medium text-emerald-600 dark:text-emerald-400'
+                      : ''
+                  }
+                >
+                  {parcel.is_assigned_by_ds
+                    ? t('yes_assigned_by_ds', 'Yes (Assigned & Handed Over)')
+                    : t('no', 'No')}
+                </dd>
+              </div>
+              {parcel.is_assigned_by_ds && (
+                <>
+                  <div className="flex justify-between border-l border-emerald-300 pl-4 dark:border-emerald-700">
+                    <dt className="text-muted-foreground text-xs">
+                      {t('ds_handover_date', 'Handover Date:')}
+                    </dt>
+                    <dd className="text-xs font-medium">
+                      {parcel.ds_handover_date
+                        ? new Date(parcel.ds_handover_date).toLocaleDateString()
+                        : t('n_a', 'N/A')}
+                    </dd>
+                  </div>
+                  {parcel.ds_handover_reference && (
+                    <div className="flex justify-between border-l border-emerald-300 pl-4 dark:border-emerald-700">
+                      <dt className="text-muted-foreground text-xs">
+                        {t('ds_handover_reference', 'DS Reference No:')}
+                      </dt>
+                      <dd className="font-mono text-xs">
+                        {parcel.ds_handover_reference}
+                      </dd>
+                    </div>
+                  )}
+                </>
+              )}
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">
                   {t('litigation_casehold_label', 'Litigation / Casehold:')}
                 </dt>
                 <dd
@@ -1405,6 +1445,13 @@ export default function LandParcelDetails({ id }: Props) {
                     >
                       {parcel.project.title || parcel.project.name}
                     </Link>
+                  ) : parcel.is_assigned_by_ds ? (
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                      {t(
+                        'direct_ds_handover_no_case',
+                        'Direct DS Handover (No Case Required)',
+                      )}
+                    </span>
                   ) : (
                     t('none', 'None')
                   )}

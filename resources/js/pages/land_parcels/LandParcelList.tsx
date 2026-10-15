@@ -269,6 +269,22 @@ export default function LandParcelList() {
       ),
     },
     {
+      key: 'is_assigned_by_ds',
+      label: t('ds_handover_badge', 'DS Handover'),
+      sortable: true,
+      render: (value: boolean | null) => (
+        <span
+          className={
+            value
+              ? 'font-medium text-emerald-600 dark:text-emerald-400'
+              : 'text-muted-foreground'
+          }
+        >
+          {value ? t('yes', 'Yes') : t('no', 'No')}
+        </span>
+      ),
+    },
+    {
       key: 'status',
       label: t('current_status', 'Current Status'),
       sortable: true,

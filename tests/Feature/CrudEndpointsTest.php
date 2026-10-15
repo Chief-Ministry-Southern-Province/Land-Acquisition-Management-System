@@ -776,6 +776,41 @@ test('cannot delete pending or acquired land parcels', function () {
     $this->assertDatabaseHas('land_parcels', ['id' => $acquiredParcel->id]);
 });
 
+test('land parcel marked as assigned and handed over by divisional secretary immediately gets acquired status without acquisition case', function () {
+    $parcelData = [
+        'parcel_id' => 'PAR-DS-HANDOVER-001',
+        'land_name' => 'DS Handed Over Parcel',
+        'district' => 'Galle',
+        'division' => 'Four Gravets',
+        'village' => 'Karapitiya',
+        'extent_acers' => 2.5,
+        'extent_perches' => 10.0,
+        'is_assigned_by_ds' => true,
+        'ds_handover_date' => '2026-05-10',
+        'ds_handover_reference' => 'DS/GAL/2026/LND/09',
+        'project_id' => null,
+    ];
+
+    $response = $this->actingAs($this->doUser, 'sanctum')->postJson('/api/land-parcels', $parcelData);
+    $response->assertStatus(201);
+    $response->assertJsonPath('land_parcel.parcel_id', 'PAR-DS-HANDOVER-001');
+    $response->assertJsonPath('land_parcel.status', 'acquired');
+    $response->assertJsonPath('land_parcel.project_id', null);
+    $response->assertJsonPath('land_parcel.is_assigned_by_ds', true);
+    $response->assertJsonPath('land_parcel.ds_handover_reference', 'DS/GAL/2026/LND/09');
+
+    $parcelId = $response->json('land_parcel.id');
+
+    $this->assertDatabaseHas('land_parcels', [
+        'id' => $parcelId,
+        'parcel_id' => 'PAR-DS-HANDOVER-001',
+        'status' => 'acquired',
+        'project_id' => null,
+        'is_assigned_by_ds' => 1,
+        'ds_handover_reference' => 'DS/GAL/2026/LND/09',
+    ]);
+});
+
 test('deleting land parcel deletes its documents and unlinked owners, but preserves owners linked to other parcels', function () {
     // 1. Create a second parcel
     $otherParcel = LandParcel::create([
