@@ -60,6 +60,9 @@ export interface LandParcel {
   case_end_date?: string | null;
   case_status?: string | null;
   is_donated?: boolean;
+  is_assigned_by_ds?: boolean;
+  ds_handover_date?: string | null;
+  ds_handover_reference?: string | null;
   estimated_value?: number;
   remarks: string | null;
   status: 'available' | 'pending' | 'acquired';
@@ -118,6 +121,9 @@ const mapFromBackend = (data: any): LandParcel => ({
   case_end_date: data.case_end_date || null,
   case_status: data.case_status || null,
   is_donated: Boolean(data.is_donated),
+  is_assigned_by_ds: Boolean(data.is_assigned_by_ds),
+  ds_handover_date: data.ds_handover_date || null,
+  ds_handover_reference: data.ds_handover_reference || null,
   estimated_value: Number(data.estimated_value) || 0,
   remarks: data.remarks || null,
   status: data.status,
@@ -202,6 +208,13 @@ const mapToBackend = (
   case_end_date: data.is_casehold ? data.case_end_date || null : null,
   case_status: data.is_casehold ? data.case_status || null : null,
   is_donated: Boolean(data.is_donated),
+  is_assigned_by_ds: Boolean(data.is_assigned_by_ds),
+  ds_handover_date: data.is_assigned_by_ds
+    ? data.ds_handover_date || null
+    : null,
+  ds_handover_reference: data.is_assigned_by_ds
+    ? data.ds_handover_reference || null
+    : null,
   estimated_value: data.estimated_value ?? 0,
   remarks: data.remarks,
   status: data.status,

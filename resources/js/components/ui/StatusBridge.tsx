@@ -18,6 +18,8 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     paid: { variant: "success", label: "Paid" },
     unpaid: { variant: "warning", label: "Unpaid" },
     overdue: { variant: "danger", label: "Overdue" },
+    available: { variant: "info", label: "Available" },
+    acquired: { variant: "success", label: "Acquired" },
   };
 
   const config = statusConfig[status.toLowerCase()] || { variant: "default", label: status };

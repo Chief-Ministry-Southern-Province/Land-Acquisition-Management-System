@@ -22,6 +22,7 @@ interface DataTableProps {
   onRowClick?: (row: any) => void;
   actions?: (row: any) => React.ReactNode;
   pageSize?: number;
+  emptyMessage?: string;
 }
 
 export function DataTable({
@@ -36,6 +37,7 @@ export function DataTable({
   onRowClick,
   actions,
   pageSize = 10,
+  emptyMessage = "No data available",
 }: DataTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -335,7 +337,7 @@ export function DataTable({
                   colSpan={columns.length + (actions ? 1 : 0)}
                   className="px-6 py-12 text-center text-muted-foreground"
                 >
-                  No data available
+                  {emptyMessage}
                 </td>
               </tr>
             )}

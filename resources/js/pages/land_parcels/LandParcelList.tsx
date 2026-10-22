@@ -6,6 +6,7 @@ import {
   Plus,
   Upload,
   Pencil,
+  Trash2,
   FileSpreadsheet,
 } from 'lucide-react';
 import { useState, useRef } from 'react';
@@ -13,11 +14,17 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import {
   useLandParcelsQuery,
+  useDeleteLandParcelMutation,
   LAND_PARCELS_QUERY_KEY,
 } from '@/hooks/queries/useLandParcelsQuery';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
-import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
+import {
+  alertInfo,
+  confirmDialog,
+  toastError,
+  toastSuccess,
+} from '@/lib/alerts';
 import {
   exportLandParcels,
   importLandParcels,
@@ -27,6 +34,7 @@ import {
 export default function LandParcelList() {
   const { locale, t } = useTranslation();
   const { data: parcels = [], isLoading: loading } = useLandParcelsQuery();
+  const deleteLandParcelMutation = useDeleteLandParcelMutation();
   const queryClient = useQueryClient();
   const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<{
@@ -261,6 +269,22 @@ export default function LandParcelList() {
       ),
     },
     {
+      key: 'is_assigned_by_ds',
+      label: t('ds_handover_badge', 'DS Handover'),
+      sortable: true,
+      render: (value: boolean | null) => (
+        <span
+          className={
+            value
+              ? 'font-medium text-emerald-600 dark:text-emerald-400'
+              : 'text-muted-foreground'
+          }
+        >
+          {value ? t('yes', 'Yes') : t('no', 'No')}
+        </span>
+      ),
+    },
+    {
       key: 'status',
       label: t('current_status', 'Current Status'),
       sortable: true,
@@ -282,42 +306,82 @@ export default function LandParcelList() {
     },
   ];
 
-  const actions = (row: any) => (
-    <div className="flex items-center justify-end gap-2">
-      {userRole === 'DO' && row.status === 'available' && (
+  const handleDelete = async (row: any) => {
+    const parcelIdentifier = row.land_name || row.parcel_id || '';
+    const confirmed = await confirmDialog({
+      title: t('delete_land_parcel_title', 'Delete Land Parcel'),
+      text: `${t('delete_land_parcel_confirm', 'Are you sure you want to delete land parcel')} ${parcelIdentifier ? `"${parcelIdentifier}"` : ''}?`.trim(),
+    });
+
+    if (confirmed) {
+      try {
+        await deleteLandParcelMutation.mutateAsync(row.id);
+        toastSuccess(
+          t('land_parcel_deleted_success', 'Land parcel deleted successfully!'),
+        );
+      } catch (error: any) {
+        console.error('Failed to delete land parcel:', error);
+        const errorMsg =
+          error?.response?.data?.message ||
+          t('land_parcel_delete_failed', 'Failed to delete land parcel.');
+        toastError(errorMsg);
+      }
+    }
+  };
+
+  const actions = (row: any) => {
+    const isAvailable = (row.status || '').toLowerCase() === 'available';
+    const canModify = (userRole === 'DO' || !user?.role) && isAvailable;
+
+    return (
+      <div className="flex items-center justify-end gap-2">
+        {canModify && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.visit(`/land-parcels/${row.id}/edit`);
+            }}
+            className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+            title={t('edit_land_parcel_tooltip', 'Edit Land Parcel')}
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+        )}
         <button
           onClick={(e) => {
             e.stopPropagation();
-            router.visit(`/land-parcels/${row.id}/edit`);
+            router.visit(`/land-parcels/${row.id}`);
           }}
-          className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
-          title={t('edit_land_parcel_tooltip', 'Edit Land Parcel')}
+          className="hover:bg-muted rounded p-1.5 transition-colors"
+          title={t('view_details_tooltip', 'View Details')}
         >
-          <Pencil className="h-4 w-4" />
+          <Eye className="h-4 w-4" />
         </button>
-      )}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          router.visit(`/land-parcels/${row.id}`);
-        }}
-        className="hover:bg-muted rounded p-1.5 transition-colors"
-        title={t('view_details_tooltip', 'View Details')}
-      >
-        <Eye className="h-4 w-4" />
-      </button>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          router.visit(`/gis-maps?parcel=${row.id}`);
-        }}
-        className="hover:bg-muted rounded p-1.5 transition-colors"
-        title={t('view_on_map_tooltip', 'View on Map')}
-      >
-        <MapPin className="h-4 w-4" />
-      </button>
-    </div>
-  );
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            router.visit(`/gis-maps?parcel=${row.id}`);
+          }}
+          className="hover:bg-muted rounded p-1.5 transition-colors"
+          title={t('view_on_map_tooltip', 'View on Map')}
+        >
+          <MapPin className="h-4 w-4" />
+        </button>
+        {canModify && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(row);
+            }}
+            className="hover:bg-destructive/10 text-destructive rounded p-1.5 transition-colors"
+            title={t('delete_land_parcel_tooltip', 'Delete Land Parcel')}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">

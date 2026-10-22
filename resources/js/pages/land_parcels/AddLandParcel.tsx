@@ -14,8 +14,10 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
+  Building2,
+  ShieldCheck,
 } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import UnifiedMap, { isWithinSriLanka } from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
@@ -83,6 +85,9 @@ type FormData = {
   caseEndDate: string;
   caseStatus: string;
   isDonated: boolean;
+  isAssignedByDs: boolean;
+  dsHandoverDate: string;
+  dsHandoverReference: string;
   estimatedValue: string;
   landUseType: string;
   tenureType: string;
@@ -124,6 +129,9 @@ const EMPTY: FormData = {
   caseEndDate: '',
   caseStatus: '',
   isDonated: false,
+  isAssignedByDs: false,
+  dsHandoverDate: '',
+  dsHandoverReference: '',
   estimatedValue: '',
   landUseType: '',
   tenureType: '',
@@ -269,6 +277,7 @@ export default function AddLandParcel() {
   );
   const [submitting, setSubmitting] = useState(false);
   const [planFile, setPlanFile] = useState<File | null>(null);
+  const [dsHandoverFile, setDsHandoverFile] = useState<File | null>(null);
 
   // Document upload state
   const [queuedFiles, setQueuedFiles] = useState<
@@ -470,6 +479,157 @@ export default function AddLandParcel() {
       latitude: lat,
       longitude: lng,
     }));
+  };
+
+  // Map Location Search state & handlers
+  const [mapSearchQuery, setMapSearchQuery] = useState('');
+  const [mapSearchResults, setMapSearchResults] = useState<
+    Array<{
+      place_id: number | string;
+      display_name: string;
+      name?: string;
+      lat: string;
+      lon: string;
+    }>
+  >([]);
+  const [isSearchingMap, setIsSearchingMap] = useState(false);
+  const [showMapSearchResults, setShowMapSearchResults] = useState(false);
+  const mapSearchContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        mapSearchContainerRef.current &&
+        !mapSearchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowMapSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSearchLocation = async (queryToSearch?: string) => {
+    const query = (
+      queryToSearch !== undefined ? queryToSearch : mapSearchQuery
+    ).trim();
+
+    if (!query) {
+      setMapSearchResults([]);
+      setShowMapSearchResults(false);
+
+      return;
+    }
+
+    // Check if input is direct coordinates: "lat, lng" or "lat lng"
+    const coordMatch = query.match(
+      /^([-+]?\d+(?:\.\d+)?)[,\s]+([-+]?\d+(?:\.\d+)?)$/,
+    );
+
+    if (coordMatch) {
+      const lat = parseFloat(coordMatch[1]);
+      const lng = parseFloat(coordMatch[2]);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        if (!isWithinSriLanka(lat, lng)) {
+          toastError(
+            t(
+              'out_of_bounds_sri_lanka',
+              'Location must be within Sri Lanka boundaries.',
+            ),
+          );
+
+          return;
+        }
+
+        handleMapChange(lat.toFixed(6), lng.toFixed(6));
+        setShowMapSearchResults(false);
+
+        return;
+      }
+    }
+
+    try {
+      setIsSearchingMap(true);
+      setShowMapSearchResults(true);
+
+      const endpoint = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        query,
+      )}&countrycodes=lk&limit=5&addressdetails=1`;
+
+      const response = await fetch(endpoint, {
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch locations');
+      }
+
+      const data = await response.json();
+      setMapSearchResults(Array.isArray(data) ? data : []);
+      setShowMapSearchResults(true);
+    } catch (err) {
+      console.error('Error searching location:', err);
+      toastError(
+        t(
+          'error_searching_location',
+          'Unable to search location at this moment.',
+        ),
+      );
+      setMapSearchResults([]);
+    } finally {
+      setIsSearchingMap(false);
+    }
+  };
+
+  const handleSelectLocation = (result: {
+    lat: string;
+    lon: string;
+    display_name: string;
+    name?: string;
+  }) => {
+    const lat = parseFloat(result.lat);
+    const lng = parseFloat(result.lon);
+
+    if (isNaN(lat) || !isWithinSriLanka(lat, lng)) {
+      toastError(
+        t(
+          'out_of_bounds_sri_lanka',
+          'Location must be within Sri Lanka boundaries.',
+        ),
+      );
+
+      return;
+    }
+
+    handleMapChange(lat.toFixed(6), lng.toFixed(6));
+    setMapSearchQuery(result.name || result.display_name.split(',')[0]);
+    setShowMapSearchResults(false);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (
+        showMapSearchResults &&
+        mapSearchResults.length > 0 &&
+        !isSearchingMap
+      ) {
+        handleSelectLocation(mapSearchResults[0]);
+      } else {
+        handleSearchLocation();
+      }
+    } else if (e.key === 'Escape') {
+      setShowMapSearchResults(false);
+    }
   };
 
   const set =
@@ -702,6 +862,21 @@ export default function AddLandParcel() {
       return false;
     }
 
+    if (form.isAssignedByDs && !form.dsHandoverDate) {
+      errs.dsHandoverDate = t(
+        'ds_handover_date_required',
+        'Handover date is required for parcels assigned by the Divisional Secretary.',
+      );
+      toastError(
+        t(
+          'ds_handover_date_required',
+          'Handover date is required for parcels assigned by the Divisional Secretary.',
+        ),
+      );
+
+      return false;
+    }
+
     setErrors(errs);
 
     return Object.keys(errs).length === 0;
@@ -798,10 +973,23 @@ export default function AddLandParcel() {
         case_end_date: form.isCasehold ? form.caseEndDate || null : null,
         case_status: form.isCasehold ? form.caseStatus || null : null,
         is_donated: form.isDonated,
+        is_assigned_by_ds: form.isAssignedByDs,
+        ds_handover_date: form.isAssignedByDs
+          ? form.dsHandoverDate || null
+          : null,
+        ds_handover_reference: form.isAssignedByDs
+          ? form.dsHandoverReference || null
+          : null,
         estimated_value: Number(form.estimatedValue) || 0,
         remarks: form.remarks || null,
-        status: 'available' as const,
-        project_id: form.projectId ? form.projectId : null,
+        status: (form.isAssignedByDs ? 'acquired' : 'available') as
+          | 'available'
+          | 'acquired',
+        project_id: form.isAssignedByDs
+          ? null
+          : form.projectId
+            ? form.projectId
+            : null,
         latitude: form.latitude ? parseFloat(form.latitude) : null,
         longitude: form.longitude ? parseFloat(form.longitude) : null,
         property_owner_ids: finalOwnerIds,
@@ -818,6 +1006,17 @@ export default function AddLandParcel() {
           String(userId || ''),
           form.projectId ? String(form.projectId) : null,
           form.hasPlan ? 'survey' : 'sketch',
+          String(createdParcelId),
+        );
+      }
+
+      // Upload the DS Handover document if attached
+      if (form.isAssignedByDs && dsHandoverFile && createdParcelId) {
+        await uploadDocument(
+          dsHandoverFile,
+          String(userId || ''),
+          null,
+          'Handover Documents',
           String(createdParcelId),
         );
       }
@@ -867,6 +1066,14 @@ export default function AddLandParcel() {
 
           if (key === 'project_id') {
             fieldName = 'projectId';
+          }
+
+          if (key === 'ds_handover_date') {
+            fieldName = 'dsHandoverDate';
+          }
+
+          if (key === 'ds_handover_reference') {
+            fieldName = 'dsHandoverReference';
           }
 
           if (Array.isArray(val) && val.length > 0) {
@@ -1074,16 +1281,131 @@ export default function AddLandParcel() {
             </Field>
 
             <div className="mt-2 md:col-span-2 lg:col-span-3">
-              <label className="text-foreground mb-1.5 block text-sm font-medium">
-                {t(
-                  'google_map_title',
-                  'Map Location (Click map to pin / drag marker)',
-                )}
-              </label>
+              <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <label className="text-foreground block text-sm font-medium">
+                  {t(
+                    'google_map_title',
+                    'Map Location (Click map to pin / drag marker)',
+                  )}
+                </label>
+                <span className="text-muted-foreground text-xs">
+                  {t(
+                    'map_search_hint',
+                    'Search a town, village, or coordinates to pin the map',
+                  )}
+                </span>
+              </div>
               <div
-                className="border-border bg-muted/20 animate-in fade-in w-full overflow-hidden rounded-xl border"
-                style={{ minHeight: '320px', height: '320px' }}
+                className="border-border bg-muted/20 animate-in fade-in relative w-full overflow-hidden rounded-xl border"
+                style={{ minHeight: '380px', height: '380px' }}
               >
+                {/* Search Text Box on top of the map */}
+                <div
+                  ref={mapSearchContainerRef}
+                  className="absolute right-14 top-3 z-[1000] w-[calc(100%-4.5rem)] max-w-sm sm:max-w-md"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                >
+                  <div className="bg-card/95 border-border flex items-center rounded-lg border shadow-md backdrop-blur-md transition-all focus-within:border-[#2E7D32] focus-within:ring-2 focus-within:ring-[#2E7D32]">
+                    <div className="text-muted-foreground pl-3 pr-1.5">
+                      {isSearchingMap ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-[#2E7D32]" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      className="text-foreground placeholder:text-muted-foreground w-full bg-transparent py-2 text-xs focus:outline-none"
+                      placeholder={t(
+                        'search_location_placeholder',
+                        'Search location in Sri Lanka (e.g. Galle, Matara)...',
+                      )}
+                      value={mapSearchQuery}
+                      onChange={(e) => {
+                        setMapSearchQuery(e.target.value);
+
+                        if (!e.target.value.trim()) {
+                          setShowMapSearchResults(false);
+                          setMapSearchResults([]);
+                        }
+                      }}
+                      onKeyDown={handleSearchKeyDown}
+                      onFocus={() => {
+                        if (mapSearchResults.length > 0) {
+                          setShowMapSearchResults(true);
+                        }
+                      }}
+                    />
+                    {mapSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMapSearchQuery('');
+                          setMapSearchResults([]);
+                          setShowMapSearchResults(false);
+                        }}
+                        className="text-muted-foreground hover:text-foreground p-1.5 transition-colors"
+                        title={t('clear', 'Clear')}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleSearchLocation()}
+                      disabled={isSearchingMap || !mapSearchQuery.trim()}
+                      className="bg-primary hover:bg-primary/90 m-1 rounded-md px-2.5 py-1 text-xs font-medium text-white transition-colors disabled:opacity-50"
+                    >
+                      {t('search', 'Search')}
+                    </button>
+                  </div>
+
+                  {/* Search Results Dropdown */}
+                  {showMapSearchResults && (
+                    <div className="bg-card border-border mt-1 max-h-56 overflow-y-auto rounded-lg border shadow-xl">
+                      {isSearchingMap ? (
+                        <div className="text-muted-foreground flex items-center justify-center gap-2 p-4 text-xs">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-[#2E7D32]" />
+                          <span>
+                            {t('searching_location', 'Searching location...')}
+                          </span>
+                        </div>
+                      ) : mapSearchResults.length > 0 ? (
+                        <div className="divide-border divide-y">
+                          {mapSearchResults.map((result, idx) => (
+                            <button
+                              key={result.place_id || idx}
+                              type="button"
+                              onClick={() => handleSelectLocation(result)}
+                              className="hover:bg-muted/60 flex w-full items-start gap-2.5 p-2.5 text-left transition-colors"
+                            >
+                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#2E7D32]" />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-foreground truncate text-xs font-semibold">
+                                  {result.name ||
+                                    result.display_name.split(',')[0]}
+                                </p>
+                                <p className="text-muted-foreground truncate text-[11px]">
+                                  {result.display_name}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-muted-foreground p-3 text-center text-xs">
+                          {t(
+                            'location_not_found',
+                            'No matching locations found in Sri Lanka.',
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <UnifiedMap
                   latitude={form.latitude}
                   longitude={form.longitude}
@@ -1446,6 +1768,209 @@ export default function AddLandParcel() {
                 </span>
               </label>
             </div>
+          </div>
+        </div>
+
+        {/* Divisional Secretary Assignment & Handover Section */}
+        <div className="bg-card border-border rounded-xl border p-6">
+          <SectionHeader
+            icon={Building2}
+            title={t(
+              'ds_assignment_handover',
+              'Divisional Secretary Assignment & Handover',
+            )}
+          />
+
+          <div className="space-y-4">
+            {/* Toggle Card */}
+            <div
+              className={`rounded-xl border p-4 transition-colors ${
+                form.isAssignedByDs
+                  ? 'border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-950/20'
+                  : 'border-border bg-muted/20'
+              }`}
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <label className="flex cursor-pointer select-none items-start gap-3">
+                  <input
+                    type="checkbox"
+                    className="border-border mt-1 h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500/40"
+                    checked={form.isAssignedByDs}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setForm((f) => ({
+                        ...f,
+                        isAssignedByDs: checked,
+                        projectId: checked ? '' : f.projectId,
+                      }));
+
+                      if (!checked) {
+                        setDsHandoverFile(null);
+                      }
+                    }}
+                  />
+                  <div>
+                    <span className="text-foreground text-sm font-semibold">
+                      {t(
+                        'is_assigned_by_ds',
+                        'Assigned and Handed Over by Divisional Secretary',
+                      )}
+                    </span>
+                    <p className="text-muted-foreground mt-0.5 text-xs">
+                      {t(
+                        'ds_handover_info',
+                        'This land parcel is directly assigned and handed over by the Divisional Secretary. It is not connected to an acquisition case and immediately goes to Acquired status.',
+                      )}
+                    </p>
+                  </div>
+                </label>
+
+                <div className="flex items-center gap-2 self-start sm:self-center">
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                      form.isAssignedByDs
+                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    {form.isAssignedByDs
+                      ? t('status_immediately_acquired', 'Acquired (Immediate)')
+                      : t('status_available', 'Available (Standard)')}
+                  </span>
+                </div>
+              </div>
+
+              {form.isAssignedByDs && (
+                <div className="mt-3 border-t border-emerald-500/20 pt-3">
+                  <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300">
+                    <CheckCircle className="h-4 w-4 shrink-0" />
+                    <span>
+                      {t(
+                        'ds_handover_acquired_notice',
+                        'Acquisition Workflow Bypassed: This land parcel will be registered directly in "Acquired" status and requires no acquisition case or section orders.',
+                      )}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Fields when marked as assigned and handed over */}
+            {form.isAssignedByDs && (
+              <div className="animate-in fade-in grid grid-cols-1 gap-4 pt-2 md:grid-cols-2 lg:grid-cols-3">
+                <Field
+                  label={t('ds_handover_date', 'Handover / Assignment Date')}
+                  required
+                >
+                  <input
+                    type="date"
+                    className={inputCls}
+                    value={form.dsHandoverDate}
+                    onChange={set('dsHandoverDate')}
+                  />
+                  {errMsg('dsHandoverDate')}
+                </Field>
+
+                <Field
+                  label={t(
+                    'ds_handover_reference',
+                    'DS Handover Letter / Reference Number',
+                  )}
+                >
+                  <input
+                    type="text"
+                    className={inputCls}
+                    placeholder="e.g. DS/GAL/2026/LND-012"
+                    value={form.dsHandoverReference}
+                    onChange={set('dsHandoverReference')}
+                  />
+                  {errMsg('dsHandoverReference')}
+                </Field>
+
+                <Field
+                  label={t(
+                    'handover_divisional_secretariat',
+                    'Divisional Secretariat Division',
+                  )}
+                >
+                  <input
+                    type="text"
+                    className={`${inputCls} bg-muted/40 cursor-not-allowed`}
+                    readOnly
+                    value={
+                      form.divisionalSecretariat ||
+                      t(
+                        'specify_in_location_details',
+                        'Specify in Location Details above',
+                      )
+                    }
+                  />
+                </Field>
+
+                <div className="md:col-span-2 lg:col-span-3">
+                  <div className="bg-muted/20 border-border/80 rounded-lg border p-4">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-foreground text-sm font-semibold">
+                        {t(
+                          'ds_handover_document',
+                          'Attach Handover Letter / Certificate',
+                        )}
+                      </label>
+                      <p className="text-muted-foreground text-xs">
+                        {t(
+                          'ds_handover_document_desc',
+                          'Attach official DS handover letter, vesting order, or possession certificate. Supported formats: PDF, JPG, PNG, DOCX.',
+                        )}
+                      </p>
+                      <div className="mt-2 flex items-center gap-4">
+                        <label className="bg-primary hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold text-white transition-colors">
+                          <Upload className="h-4 w-4" />
+                          <span>{t('choose_file')}</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept=".pdf,.jpg,.jpeg,.png,.docx"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+
+                              if (file) {
+                                setDsHandoverFile(file);
+                              }
+                            }}
+                          />
+                        </label>
+                        {dsHandoverFile ? (
+                          <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle className="h-4 w-4" />
+                            <span>
+                              {t('attached')}{' '}
+                              <strong>{dsHandoverFile.name}</strong> (
+                              {(dsHandoverFile.size / 1024).toFixed(1)} KB)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setDsHandoverFile(null)}
+                              className="text-muted-foreground hover:text-destructive ml-2 p-1"
+                              title={t('remove', 'Remove')}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="text-muted-foreground text-xs">
+                            {t(
+                              'optional_handover_document',
+                              'Optional: Upload official handover proof document',
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

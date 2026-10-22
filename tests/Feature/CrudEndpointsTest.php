@@ -1,10 +1,16 @@
 <?php
 
+use App\Models\Compensation;
 use App\Models\Departments;
 use App\Models\Documents;
 use App\Models\LandParcel;
+use App\Models\LandSurvey;
+use App\Models\LandValuation;
+use App\Models\Payment;
 use App\Models\Projects;
 use App\Models\PropertyOwner;
+use App\Models\Receipt;
+use App\Models\Resident;
 use App\Models\Roles;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -733,6 +739,287 @@ test('land parcel status transitions on creation and project association', funct
         'id' => $parcelId2,
         'status' => 'pending',
         'project_id' => $projectId,
+    ]);
+});
+
+test('cannot delete pending or acquired land parcels', function () {
+    $pendingParcel = LandParcel::create([
+        'parcel_id' => 'PAR-PENDING-001',
+        'district' => 'Galle',
+        'division' => 'Four Gravets',
+        'village' => 'Karapitiya',
+        'extent_acers' => 1.0,
+        'status' => 'pending',
+    ]);
+
+    $acquiredParcel = LandParcel::create([
+        'parcel_id' => 'PAR-ACQUIRED-001',
+        'district' => 'Galle',
+        'division' => 'Four Gravets',
+        'village' => 'Karapitiya',
+        'extent_acers' => 1.0,
+        'status' => 'acquired',
+    ]);
+
+    // Attempting to delete pending parcel should fail with 422
+    $responsePending = $this->actingAs($this->doUser, 'sanctum')->deleteJson("/api/land-parcels/{$pendingParcel->id}");
+    $responsePending->assertStatus(422);
+    $responsePending->assertJsonPath('message', 'Cannot delete land parcel that is not available.');
+
+    // Attempting to delete acquired parcel should fail with 422
+    $responseAcquired = $this->actingAs($this->doUser, 'sanctum')->deleteJson("/api/land-parcels/{$acquiredParcel->id}");
+    $responseAcquired->assertStatus(422);
+    $responseAcquired->assertJsonPath('message', 'Cannot delete land parcel that is not available.');
+
+    // Parcels should still exist in database
+    $this->assertDatabaseHas('land_parcels', ['id' => $pendingParcel->id]);
+    $this->assertDatabaseHas('land_parcels', ['id' => $acquiredParcel->id]);
+});
+
+test('land parcel marked as assigned and handed over by divisional secretary immediately gets acquired status without acquisition case', function () {
+    $parcelData = [
+        'parcel_id' => 'PAR-DS-HANDOVER-001',
+        'land_name' => 'DS Handed Over Parcel',
+        'district' => 'Galle',
+        'division' => 'Four Gravets',
+        'village' => 'Karapitiya',
+        'extent_acers' => 2.5,
+        'extent_perches' => 10.0,
+        'is_assigned_by_ds' => true,
+        'ds_handover_date' => '2026-05-10',
+        'ds_handover_reference' => 'DS/GAL/2026/LND/09',
+        'project_id' => null,
+    ];
+
+    $response = $this->actingAs($this->doUser, 'sanctum')->postJson('/api/land-parcels', $parcelData);
+    $response->assertStatus(201);
+    $response->assertJsonPath('land_parcel.parcel_id', 'PAR-DS-HANDOVER-001');
+    $response->assertJsonPath('land_parcel.status', 'acquired');
+    $response->assertJsonPath('land_parcel.project_id', null);
+    $response->assertJsonPath('land_parcel.is_assigned_by_ds', true);
+    $response->assertJsonPath('land_parcel.ds_handover_reference', 'DS/GAL/2026/LND/09');
+
+    $parcelId = $response->json('land_parcel.id');
+
+    $this->assertDatabaseHas('land_parcels', [
+        'id' => $parcelId,
+        'parcel_id' => 'PAR-DS-HANDOVER-001',
+        'status' => 'acquired',
+        'project_id' => null,
+        'is_assigned_by_ds' => 1,
+        'ds_handover_reference' => 'DS/GAL/2026/LND/09',
+    ]);
+});
+
+test('deleting land parcel deletes its documents and unlinked owners, but preserves owners linked to other parcels', function () {
+    // 1. Create a second parcel
+    $otherParcel = LandParcel::create([
+        'parcel_id' => 'PAR-OTHER-001',
+        'district' => 'Galle',
+        'division' => 'Four Gravets',
+        'village' => 'Karapitiya',
+        'extent_acers' => 2.0,
+        'status' => 'available',
+    ]);
+
+    // 2. Create target parcel
+    $parcel = LandParcel::create([
+        'parcel_id' => 'PAR-TARGET-001',
+        'district' => 'Galle',
+        'division' => 'Four Gravets',
+        'village' => 'Karapitiya',
+        'extent_acers' => 1.5,
+        'status' => 'available',
+    ]);
+
+    // 3. Create Owner 1 (linked ONLY to target parcel)
+    $ownerSolo = PropertyOwner::create([
+        'owner_id' => 'OWN-SOLO-1',
+        'name' => 'Solo Owner',
+        'nic' => '199011112222',
+        'address' => 'Galle Road',
+        'contact' => '+94771112222',
+    ]);
+    $parcel->owners()->attach($ownerSolo->id);
+
+    // 4. Create Owner 2 (linked to target parcel AND other parcel)
+    $ownerShared = PropertyOwner::create([
+        'owner_id' => 'OWN-SHARED-2',
+        'name' => 'Shared Owner',
+        'nic' => '199033334444',
+        'address' => 'Matara Road',
+        'contact' => '+94773334444',
+    ]);
+    $parcel->owners()->attach($ownerShared->id);
+    $otherParcel->owners()->attach($ownerShared->id);
+
+    // 5. Create Documents for parcel and survey
+    $docParcel = Documents::create([
+        'user_id' => $this->doUser->id,
+        'land_parcel_id' => $parcel->id,
+        'original_filename' => 'parcel_plan.pdf',
+        'stored_filename' => 'stored_plan.pdf',
+        'file_type' => '.pdf',
+        'file_path' => 'uploads/docs/stored_plan.pdf',
+        'file_size' => '1.2MB',
+        'document_category' => 'Deed',
+        'upload_date' => '2026-06-24',
+    ]);
+
+    $docSurvey = Documents::create([
+        'user_id' => $this->doUser->id,
+        'land_parcel_id' => $parcel->id,
+        'original_filename' => 'survey_plan.pdf',
+        'stored_filename' => 'stored_survey.pdf',
+        'file_type' => '.pdf',
+        'file_path' => 'uploads/docs/stored_survey.pdf',
+        'file_size' => '1.8MB',
+        'document_category' => 'Survey',
+        'upload_date' => '2026-06-24',
+    ]);
+
+    $docValuation = Documents::create([
+        'user_id' => $this->doUser->id,
+        'land_parcel_id' => $parcel->id,
+        'original_filename' => 'val_report.pdf',
+        'stored_filename' => 'stored_val.pdf',
+        'file_type' => '.pdf',
+        'file_path' => 'uploads/docs/stored_val.pdf',
+        'file_size' => '2.0MB',
+        'document_category' => 'Valuation',
+        'upload_date' => '2026-06-24',
+    ]);
+
+    $docReceipt = Documents::create([
+        'user_id' => $this->doUser->id,
+        'land_parcel_id' => $parcel->id,
+        'original_filename' => 'receipt.pdf',
+        'stored_filename' => 'stored_receipt.pdf',
+        'file_type' => '.pdf',
+        'file_path' => 'uploads/docs/stored_receipt.pdf',
+        'file_size' => '0.8MB',
+        'document_category' => 'Receipt',
+        'upload_date' => '2026-06-24',
+    ]);
+
+    $docPayment = Documents::create([
+        'user_id' => $this->doUser->id,
+        'land_parcel_id' => $parcel->id,
+        'original_filename' => 'payment_voucher.pdf',
+        'stored_filename' => 'stored_payment.pdf',
+        'file_type' => '.pdf',
+        'file_path' => 'uploads/docs/stored_payment.pdf',
+        'file_size' => '0.9MB',
+        'document_category' => 'Payment',
+        'upload_date' => '2026-06-24',
+    ]);
+
+    // 6. Create LandSurvey, Valuation, Receipt (all with restrictOnDelete document_id constraint!)
+    $survey = LandSurvey::create([
+        'land_parcel_id' => $parcel->id,
+        'surveyor_name' => 'Kamal Surveyor',
+        'survey_date' => '2026-07-01',
+        'survey_ref_number' => 'SURV-TARGET-999',
+        'surveyed_size_perches' => 240.0,
+        'status' => 'completed',
+        'document_id' => $docSurvey->id,
+    ]);
+
+    $valuation = LandValuation::create([
+        'land_parcel_id' => $parcel->id,
+        'valuer_name' => 'Sunil Valuer',
+        'valuation_date' => '2026-07-05',
+        'valuation_ref_number' => 'VAL-TARGET-999',
+        'land_value' => 1000000.00,
+        'total_valuation' => 1000000.00,
+        'status' => 'approved',
+        'document_id' => $docValuation->id,
+    ]);
+
+    $receipt = Receipt::create([
+        'land_parcel_id' => $parcel->id,
+        'receipt_number' => 'REC-TARGET-999',
+        'receipt_date' => '2026-07-10',
+        'received_from' => 'Chief Ministry',
+        'amount_rupees' => 250000.00,
+        'amount_cents' => 0,
+        'reason' => 'Compensation deposit',
+        'document_id' => $docReceipt->id,
+    ]);
+
+    // 7. Create Compensation and Payment (with document_id)
+    $compensation = Compensation::create([
+        'owner_id' => $ownerSolo->id,
+        'land_parcel_id' => $parcel->id,
+        'compensation_id' => 'COM-TARGET-999',
+        'amount' => 500000.00,
+        'approved_date' => '2026-07-12',
+        'payment_date' => '2026-07-20',
+        'status' => 'paid',
+    ]);
+
+    $payment = Payment::create([
+        'compensation_id' => $compensation->id,
+        'payment_reference' => 'PAY-TARGET-999',
+        'amount_paid' => 500000.00,
+        'payment_date' => '2026-07-20',
+        'payment_method' => 'cheque',
+        'status' => 'completed',
+        'document_id' => $docPayment->id,
+    ]);
+
+    // 8. Create Resident for parcel
+    $resident = Resident::create([
+        'land_parcel_id' => $parcel->id,
+        'name' => 'Resident Kamal',
+        'relationship' => 'owner',
+    ]);
+
+    // 9. Create Owner document for ownerSolo
+    $docOwnerSolo = Documents::create([
+        'user_id' => $this->doUser->id,
+        'property_owner_id' => $ownerSolo->id,
+        'original_filename' => 'owner_nic.pdf',
+        'stored_filename' => 'stored_nic.pdf',
+        'file_type' => '.pdf',
+        'file_path' => 'uploads/docs/stored_nic.pdf',
+        'file_size' => '0.5MB',
+        'document_category' => 'Identity',
+        'upload_date' => '2026-06-24',
+    ]);
+
+    // 10. Delete the target land parcel via API
+    $response = $this->actingAs($this->doUser, 'sanctum')->deleteJson("/api/land-parcels/{$parcel->id}");
+    $response->assertStatus(204);
+
+    // Verify parcel and all child records are deleted
+    $this->assertDatabaseMissing('land_parcels', ['id' => $parcel->id]);
+    $this->assertDatabaseMissing('land_surveys', ['id' => $survey->id]);
+    $this->assertDatabaseMissing('land_valuations', ['id' => $valuation->id]);
+    $this->assertDatabaseMissing('receipts', ['id' => $receipt->id]);
+    $this->assertDatabaseMissing('compensation', ['id' => $compensation->id]);
+    $this->assertDatabaseMissing('payments', ['id' => $payment->id]);
+    $this->assertDatabaseMissing('residents', ['id' => $resident->id]);
+
+    // Verify documents linked to this parcel are deleted
+    $this->assertDatabaseMissing('documents', ['id' => $docParcel->id]);
+    $this->assertDatabaseMissing('documents', ['id' => $docSurvey->id]);
+    $this->assertDatabaseMissing('documents', ['id' => $docValuation->id]);
+    $this->assertDatabaseMissing('documents', ['id' => $docReceipt->id]);
+    $this->assertDatabaseMissing('documents', ['id' => $docPayment->id]);
+
+    // Verify ownerSolo (only linked to target parcel) is deleted along with their document
+    $this->assertDatabaseMissing('property_owners', ['id' => $ownerSolo->id]);
+    $this->assertDatabaseMissing('documents', ['id' => $docOwnerSolo->id]);
+
+    // Verify ownerShared (linked to other parcel) is NOT deleted, but detached from target parcel
+    $this->assertDatabaseHas('property_owners', ['id' => $ownerShared->id]);
+    $this->assertDatabaseHas('land_parcel_property_owner', [
+        'land_parcel_id' => $otherParcel->id,
+        'property_owner_id' => $ownerShared->id,
+    ]);
+    $this->assertDatabaseMissing('land_parcel_property_owner', [
+        'land_parcel_id' => $parcel->id,
     ]);
 });
 

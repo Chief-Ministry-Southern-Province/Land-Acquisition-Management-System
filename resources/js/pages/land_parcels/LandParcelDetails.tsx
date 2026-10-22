@@ -240,9 +240,7 @@ export default function LandParcelDetails({ id }: Props) {
   };
 
   const handleDownload = async (docId: string, filename: string) => {
-    if (!docId || docId.startsWith('mock-')) {
-      toastError('This is a placeholder document and cannot be downloaded.');
-
+    if (!docId) {
       return;
     }
 
@@ -250,20 +248,21 @@ export default function LandParcelDetails({ id }: Props) {
       await downloadDocument(docId, filename);
     } catch (error) {
       console.error('Failed to download document:', error);
-      toastError('Failed to download document.');
+      toastError(t('failed_download_document', 'Failed to download document.'));
     }
   };
 
   const handleDelete = async (docId: string) => {
-    if (!docId || docId.startsWith('mock-')) {
-      toastError('This is a placeholder document and cannot be deleted.');
-
+    if (!docId) {
       return;
     }
 
     const confirmed = await confirmDialog({
-      title: 'Delete Document',
-      text: 'Are you sure you want to delete this document?',
+      title: t('delete_document_title', 'Delete Document'),
+      text: t(
+        'delete_document_confirm_details',
+        'Are you sure you want to delete this document?',
+      ),
     });
 
     if (!confirmed) {
@@ -274,10 +273,12 @@ export default function LandParcelDetails({ id }: Props) {
       setLoading(true);
       await deleteDocument(docId);
       await fetchParcelDetails();
-      toastSuccess('Document deleted successfully.');
+      toastSuccess(
+        t('document_deleted_success', 'Document deleted successfully.'),
+      );
     } catch (error) {
       console.error('Failed to delete document:', error);
-      toastError('Failed to delete document.');
+      toastError(t('failed_delete_document', 'Failed to delete document.'));
     } finally {
       setLoading(false);
     }
@@ -953,23 +954,7 @@ export default function LandParcelDetails({ id }: Props) {
     });
   });
 
-  const filteredDocuments =
-    dbDocuments.length > 0
-      ? dbDocuments
-      : [
-          {
-            id: 'mock-3',
-            name: 'Ownership Certificate',
-            type: 'PDF',
-            date: '2024-02-05',
-          },
-          {
-            id: 'mock-4',
-            name: 'Site Photographs',
-            type: 'ZIP',
-            date: '2024-03-10',
-          },
-        ];
+  const filteredDocuments = dbDocuments;
 
   const compDocuments =
     parcel?.documents && parcel.documents.length > 0
@@ -1360,6 +1345,46 @@ export default function LandParcelDetails({ id }: Props) {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">
+                  {t('ds_assignment_handover', 'DS Assignment & Handover:')}
+                </dt>
+                <dd
+                  className={
+                    parcel.is_assigned_by_ds
+                      ? 'font-medium text-emerald-600 dark:text-emerald-400'
+                      : ''
+                  }
+                >
+                  {parcel.is_assigned_by_ds
+                    ? t('yes_assigned_by_ds', 'Yes (Assigned & Handed Over)')
+                    : t('no', 'No')}
+                </dd>
+              </div>
+              {parcel.is_assigned_by_ds && (
+                <>
+                  <div className="flex justify-between border-l border-emerald-300 pl-4 dark:border-emerald-700">
+                    <dt className="text-muted-foreground text-xs">
+                      {t('ds_handover_date', 'Handover Date:')}
+                    </dt>
+                    <dd className="text-xs font-medium">
+                      {parcel.ds_handover_date
+                        ? new Date(parcel.ds_handover_date).toLocaleDateString()
+                        : t('n_a', 'N/A')}
+                    </dd>
+                  </div>
+                  {parcel.ds_handover_reference && (
+                    <div className="flex justify-between border-l border-emerald-300 pl-4 dark:border-emerald-700">
+                      <dt className="text-muted-foreground text-xs">
+                        {t('ds_handover_reference', 'DS Reference No:')}
+                      </dt>
+                      <dd className="font-mono text-xs">
+                        {parcel.ds_handover_reference}
+                      </dd>
+                    </div>
+                  )}
+                </>
+              )}
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">
                   {t('litigation_casehold_label', 'Litigation / Casehold:')}
                 </dt>
                 <dd
@@ -1420,6 +1445,13 @@ export default function LandParcelDetails({ id }: Props) {
                     >
                       {parcel.project.title || parcel.project.name}
                     </Link>
+                  ) : parcel.is_assigned_by_ds ? (
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                      {t(
+                        'direct_ds_handover_no_case',
+                        'Direct DS Handover (No Case Required)',
+                      )}
+                    </span>
                   ) : (
                     t('none', 'None')
                   )}
@@ -1466,50 +1498,58 @@ export default function LandParcelDetails({ id }: Props) {
 
             <div className="bg-card border-border rounded-lg border p-6">
               <h3 className="mb-4">{t('land_documents', 'Documents')}</h3>
-              <DataTable
-                columns={[
-                  {
-                    key: 'name',
-                    label: t('document_name_header', 'Document Name'),
-                  },
-                  { key: 'type', label: t('type', 'Type') },
-                  { key: 'date', label: t('date', 'Date') },
-                  {
-                    key: 'actions',
-                    label: t('actions', 'Actions'),
-                    render: (_val: any, row: any) => {
-                      const isAvailable = parcel?.status === 'available';
-
-                      return (
-                        <div
-                          className="flex items-center justify-end gap-2"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            onClick={() => handleDownload(row.id, row.name)}
-                            className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
-                            title={t('download', 'Download')}
-                          >
-                            <Download className="h-4 w-4" />
-                          </button>
-                          {isAvailable && isDO && (
-                            <button
-                              onClick={() => handleDelete(row.id)}
-                              className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                              title={t('delete', 'Delete')}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      );
+              {filteredDocuments.length > 0 ? (
+                <DataTable
+                  columns={[
+                    {
+                      key: 'name',
+                      label: t('document_name_header', 'Document Name'),
                     },
-                  },
-                ]}
-                data={filteredDocuments}
-                searchable={false}
-                filterable={false}
-              />
+                    { key: 'type', label: t('type', 'Type') },
+                    { key: 'date', label: t('date', 'Date') },
+                    {
+                      key: 'actions',
+                      label: t('actions', 'Actions'),
+                      render: (_val: any, row: any) => {
+                        const isAvailable = parcel?.status === 'available';
+
+                        return (
+                          <div
+                            className="flex items-center justify-end gap-2"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => handleDownload(row.id, row.name)}
+                              className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
+                              title={t('download', 'Download')}
+                            >
+                              <Download className="h-4 w-4" />
+                            </button>
+                            {isAvailable && isDO && (
+                              <button
+                                onClick={() => handleDelete(row.id)}
+                                className="rounded p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                                title={t('delete', 'Delete')}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      },
+                    },
+                  ]}
+                  data={filteredDocuments}
+                  searchable={false}
+                  filterable={false}
+                  emptyMessage={t('no_files_attached', 'No files attached')}
+                />
+              ) : (
+                <div className="text-muted-foreground flex h-32 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm">
+                  <FileText className="text-muted-foreground/60 h-8 w-8" />
+                  <span>{t('no_files_attached', 'No files attached')}</span>
+                </div>
+              )}
             </div>
           </div>
 
