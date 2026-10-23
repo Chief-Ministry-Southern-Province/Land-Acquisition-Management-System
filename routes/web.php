@@ -14,13 +14,22 @@ Route::get('/lang/{locale}', function ($locale) {
     return redirect()->back();
 })->name('lang.switch');
 
-Route::get('/', function (Request $request) {
+$renderHome = function (Request $request) {
     if (Auth::guard('web')->check() || $request->user('sanctum')) {
         return redirect()->route('dashboard');
     }
 
     return inertia('LoginScreen');
-})->name('home');
+};
+
+Route::get('/', $renderHome)->name('home');
+
+// Some FastCGI configurations pass the mount path through for the directory
+// index request even though nested application and API routes are stripped.
+$configuredBasePath = trim((string) config('app.url_prefix'), '/');
+if ($configuredBasePath !== '') {
+    Route::get('/'.$configuredBasePath, $renderHome);
+}
 
 Route::get('/login', function (Request $request) {
     if (Auth::guard('web')->check() || $request->user('sanctum')) {

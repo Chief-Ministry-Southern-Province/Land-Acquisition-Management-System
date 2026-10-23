@@ -23,9 +23,9 @@ Use these values in the server's `.env` before running `npm run build`:
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=http://124.43.163.175/lams
-APP_BASE_PATH=/lams
+APP_URL_PREFIX=/lams
 ASSET_URL=/lams
-VITE_APP_BASE_PATH="${APP_BASE_PATH}"
+VITE_APP_BASE_PATH="${APP_URL_PREFIX}"
 SESSION_PATH=/lams
 ```
 
@@ -53,6 +53,18 @@ while allowing Nginx to serve real files from `public`:
 ```nginx
 location = /lams {
     return 301 /lams/;
+}
+
+# Send the mount root directly to Laravel. This avoids Nginx resolving the
+# public directory through its index directive and passing `/lams` as a route.
+location = /lams/ {
+    include fastcgi_params;
+    fastcgi_pass unix:/run/php/php8.4-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME /var/www/Land-Acquisition-Management-System/public/index.php;
+    fastcgi_param SCRIPT_NAME /lams/index.php;
+    fastcgi_param DOCUMENT_ROOT /var/www/Land-Acquisition-Management-System/public;
+    fastcgi_param REQUEST_URI /;
+    fastcgi_hide_header X-Powered-By;
 }
 
 location /lams/ {

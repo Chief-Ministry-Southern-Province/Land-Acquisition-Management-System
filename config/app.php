@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'url_prefix' => env('APP_URL_PREFIX', ''),
+
     /*
     |--------------------------------------------------------------------------
     | Asset URL
