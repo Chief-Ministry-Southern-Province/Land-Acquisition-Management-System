@@ -17,6 +17,7 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -25,11 +26,47 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        api: __DIR__.'/../routes/api.php',
-        web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         channels: __DIR__.'/../routes/channels.php',
-        health: '/up',
+        then: function (): void {
+            $basePath = trim((string) parse_url(config('app.url'), PHP_URL_PATH), '/');
+            $apiPrefix = $basePath === '' ? 'api' : $basePath.'/api';
+
+            if ($basePath !== '') {
+                // Support existing root-relative API calls during the base-path
+                // migration. Register these first so named routes prefer /lams.
+                Route::middleware('api')
+                    ->prefix('api')
+                    ->name('legacy.')
+                    ->group(base_path('routes/api.php'));
+            }
+
+            Route::middleware('api')
+                ->prefix($apiPrefix)
+                ->group(base_path('routes/api.php'));
+
+            Route::middleware('web')
+                ->prefix($basePath)
+                ->group(base_path('routes/web.php'));
+
+            Route::get(($basePath === '' ? '' : '/'.$basePath).'/up', fn () => response('OK'));
+
+            if ($basePath !== '') {
+                // Keep older absolute frontend links working while moving the
+                // browser back to the configured application base path.
+                $escapedBasePath = preg_quote($basePath, '#');
+
+                Route::middleware('web')->get('/{path?}', function (Request $request, ?string $path = null) use ($basePath) {
+                    $target = '/'.$basePath.($path ? '/'.$path : '');
+
+                    if ($request->getQueryString()) {
+                        $target .= '?'.$request->getQueryString();
+                    }
+
+                    return redirect($target);
+                })->where('path', '^(?!'.$escapedBasePath.'(?:/|$)).*');
+            }
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
@@ -52,6 +89,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->preventRequestForgery(except: [
             'api/auth/*',
+            '*/api/auth/*',
         ]);
 
         $middleware->alias([
@@ -59,8 +97,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'rate.limit' => RateLimitMiddleware::class,
         ]);
 
-        $middleware->redirectGuestsTo('/');
-        $middleware->redirectUsersTo('/dashboard');
+        $middleware->redirectGuestsTo(fn () => route('home'));
+        $middleware->redirectUsersTo(fn () => route('dashboard'));
 
         $middleware->trustProxies(at: '*');
     })
@@ -77,11 +115,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
+            fn (Request $request) => $request->is('api/*', '*/api/*') || $request->expectsJson(),
         );
 
         $exceptions->render(function (Throwable $e, Request $request) {
-            $isJson = $request->is('api/*') || $request->expectsJson();
+            $isJson = $request->is('api/*', '*/api/*') || $request->expectsJson();
 
             // 1. Let Laravel handle ValidationException by default
             if ($e instanceof ValidationException) {
@@ -97,7 +135,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     ], 401);
                 }
 
-                return redirect()->guest('/')->with('error', __('messages.error_session_expired'));
+                return redirect()->guest(route('home'))->with('error', __('messages.error_session_expired'));
             }
 
             // 3. Handle Authorization Exception
@@ -109,7 +147,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     ], 403);
                 }
 
-                return redirect('/access-denied');
+                return redirect()->route('access-denied');
             }
 
             // 4. Handle Not Found

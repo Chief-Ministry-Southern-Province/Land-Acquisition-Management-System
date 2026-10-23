@@ -78,7 +78,7 @@ The fastest way to get the system running is using Docker. This sets up the appl
    - Run `docker compose up -d`
 
 4. **Access the Application**
-   The app will be available at: [http://localhost:8000](http://localhost:8000)
+   The app will be available at: [http://localhost:8000/lams](http://localhost:8000/lams)
 
 ### Useful Docker Commands
 - **Stop services:** `docker compose stop`

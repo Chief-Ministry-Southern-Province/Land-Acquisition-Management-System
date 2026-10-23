@@ -198,5 +198,5 @@ Route::get('/maintenance', function (Request $request) {
 })->name('maintenance');
 
 Route::fallback(function () {
-    return redirect('/not-found');
+    return redirect()->route('not-found');
 });
