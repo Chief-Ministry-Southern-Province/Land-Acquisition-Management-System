@@ -6,7 +6,7 @@ import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig, loadEnv } from 'vite';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const appUrl = env.VITE_APP_URL || env.APP_URL || 'http://localhost/lams';
   const appBasePath = new URL(appUrl, 'http://localhost').pathname.replace(
@@ -15,7 +15,9 @@ export default defineConfig(({ mode }) => {
   );
 
   return {
-    base: `${appBasePath}/build/`,
+    // The Vite dev server and its font middleware expect root-based URLs.
+    // Production assets still use the application's /lams mount point.
+    base: command === 'serve' ? '/' : `${appBasePath}/build/`,
     plugins: [
       laravel({
         input: ['resources/css/app.css', 'resources/js/app.tsx'],
