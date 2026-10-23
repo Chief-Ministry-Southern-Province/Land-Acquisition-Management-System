@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { alertError, alertSuccess, confirmAction } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import { getAdminStats } from '@/services/adminStatsService';
 import type { AdminStats, BlockedUserInfo } from '@/services/adminStatsService';
 import { unblockUser } from '@/services/userManagementService';
@@ -172,7 +173,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             <a
-              href="/audit-log"
+              href={appUrl('/audit-log')}
               className="bg-background/60 hover:bg-background inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rose-500/30 px-3 py-1.5 text-xs font-medium text-rose-700 transition dark:text-rose-300"
             >
               <span>{t('view_audit_logs', 'View Audit Logs')}</span>
@@ -271,7 +272,7 @@ export default function AdminDashboard() {
           </h2>
           <div className="grid gap-4">
             <a
-              href="/user-management/add"
+              href={appUrl('/user-management/add')}
               className="border-border/50 hover:bg-muted/50 flex items-start gap-4 rounded-lg border p-4 transition-colors"
             >
               <div className="bg-primary/10 text-primary mt-0.5 rounded p-2">
@@ -291,7 +292,7 @@ export default function AdminDashboard() {
             </a>
 
             <a
-              href="/user-management"
+              href={appUrl('/user-management')}
               className="border-border/50 hover:bg-muted/50 flex items-start gap-4 rounded-lg border p-4 transition-colors"
             >
               <div className="bg-primary/10 text-primary mt-0.5 rounded p-2">
@@ -355,7 +356,7 @@ export default function AdminDashboard() {
                   </p>
                   <div className="flex items-center gap-2 pt-1">
                     <a
-                      href="/audit-log"
+                      href={appUrl('/audit-log')}
                       className="text-xs font-medium text-rose-600 hover:underline dark:text-rose-400"
                     >
                       Inspect incident logs →

@@ -27,6 +27,7 @@ import {
   toastError,
   toastSuccess,
 } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import MarkProgress from '@/pages/developmentOfficer/MarkProgress';
 import api from '@/services/api';
 import {
@@ -569,7 +570,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
-            href="/projects"
+            href={appUrl('/projects')}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -631,7 +632,9 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
               'draft' ||
               (project.doStatus || '').toLowerCase() === 'draft') && (
               <button
-                onClick={() => router.visit(`/projects/new?edit=${project.id}`)}
+                onClick={() =>
+                  router.visit(appUrl(`/projects/new?edit=${project.id}`))
+                }
                 className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
               >
                 <Edit className="h-4 w-4" />
@@ -1008,7 +1011,9 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
                       <tr
                         key={p.id}
                         className="hover:bg-muted/10 cursor-pointer"
-                        onClick={() => router.visit(`/land-parcels/${p.id}`)}
+                        onClick={() =>
+                          router.visit(appUrl(`/land-parcels/${p.id}`))
+                        }
                       >
                         <td className="text-primary px-4 py-3 font-semibold">
                           {p.parcel_id}
@@ -1082,7 +1087,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             },
           ]}
           data={parcels}
-          onRowClick={(row) => router.visit(`/land-parcels/${row.id}`)}
+          onRowClick={(row) => router.visit(appUrl(`/land-parcels/${row.id}`))}
         />
       )}
 
@@ -1096,7 +1101,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
             { key: 'parcels', label: t('parcels_label'), sortable: true },
           ]}
           data={owners}
-          onRowClick={(row) => router.visit(`/land-owners/${row.id}`)}
+          onRowClick={(row) => router.visit(appUrl(`/land-owners/${row.id}`))}
         />
       )}
 

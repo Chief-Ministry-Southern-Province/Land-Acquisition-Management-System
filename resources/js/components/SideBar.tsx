@@ -23,6 +23,7 @@ import type { LucideIcon } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { queryClient } from '@/lib/queryClient';
+import { appUrl } from '@/lib/url';
 import { logout } from '@/services/authService';
 
 export interface SideBarItem {
@@ -54,7 +55,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
     } finally {
       queryClient.clear();
       localStorage.removeItem('auth_token');
-      window.location.href = '/';
+      window.location.href = appUrl('/');
     }
   };
 
@@ -221,7 +222,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
       <div className="border-border bg-primary flex h-16 items-center justify-between border-b px-6">
         <div className="flex items-center gap-2.5">
           <img
-            src="/logo.png"
+            src={appUrl('/logo.png')}
             alt="Land Acquisition Management Logo"
             className="h-9 w-9 rounded bg-white object-contain p-0.5 shadow-sm"
           />
@@ -243,7 +244,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
             return (
               <Link
                 key={item.path}
-                href={item.path}
+                href={appUrl(item.path)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
                   isActive
                     ? 'bg-primary text-white'

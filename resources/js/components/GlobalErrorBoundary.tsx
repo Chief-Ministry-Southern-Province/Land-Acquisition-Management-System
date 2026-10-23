@@ -1,5 +1,6 @@
 import type { ErrorInfo, ReactNode } from 'react';
 import React, { Component } from 'react';
+import { appUrl } from '@/lib/url';
 
 interface Props {
   children: ReactNode;
@@ -83,7 +84,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                   Reload Application
                 </button>
                 <a
-                  href="/"
+                  href={appUrl('/')}
                   className="border-border bg-card text-foreground hover:bg-muted/50 focus:ring-ring inline-flex w-full items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-medium transition-all focus:outline-none focus:ring-2"
                 >
                   Go to Dashboard

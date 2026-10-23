@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import MainLayout from '@/layouts/MainLayout';
+import { appUrl } from '@/lib/url';
 import { createCompensation } from '@/services/compensationService';
 import { getLandParcels } from '@/services/landParcelManagementService';
 import type { LandParcel } from '@/services/landParcelManagementService';
@@ -123,7 +124,7 @@ export default function CalculateCompensation() {
         'Compensation record calculated & created successfully!',
       );
       setTimeout(() => {
-        router.visit('/compensation');
+        router.visit(appUrl('/compensation'));
       }, 1500);
     } catch (err: any) {
       console.error('Compensation creation error:', err);
@@ -144,7 +145,7 @@ export default function CalculateCompensation() {
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center gap-4">
         <Link
-          href="/compensation"
+          href={appUrl('/compensation')}
           className="hover:bg-muted border-border rounded-lg border p-2 transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />

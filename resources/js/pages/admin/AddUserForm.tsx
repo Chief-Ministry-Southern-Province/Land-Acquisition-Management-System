@@ -3,6 +3,7 @@ import { ArrowLeft, Info, Save, UserPlus, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { appUrl } from '@/lib/url';
 import { register } from '@/services/authService';
 import { getDepartments } from '@/services/departmentManagementService';
 import { getRoles } from '@/services/roleManagementService';
@@ -261,10 +262,10 @@ export default function AddUserForm({
 
         if (isEditMode) {
           await updateUser(userToEdit.id, payload);
-          router.visit('/user-management');
+          router.visit(appUrl('/user-management'));
         } else {
           await register(payload);
-          router.visit('/user-management');
+          router.visit(appUrl('/user-management'));
         }
       } catch (err: any) {
         if (err.response) {
@@ -328,7 +329,7 @@ export default function AddUserForm({
     if (onCancel) {
       onCancel();
     } else {
-      router.visit('/user-management');
+      router.visit(appUrl('/user-management'));
     }
   };
 

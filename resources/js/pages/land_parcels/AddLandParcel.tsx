@@ -22,6 +22,7 @@ import UnifiedMap, { isWithinSriLanka } from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { alertInfo, toastError, toastSuccess } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import { uploadDocument } from '@/services/documentManagementService';
 import {
   createLandParcel,
@@ -1038,7 +1039,7 @@ export default function AddLandParcel() {
       toastSuccess(
         t('land_parcel_created_success', 'Land parcel created successfully!'),
       );
-      router.visit('/land-parcels');
+      router.visit(appUrl('/land-parcels'));
     } catch (error: any) {
       console.error('Failed to create land parcel:', error);
 
@@ -1120,7 +1121,7 @@ export default function AddLandParcel() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.visit('/land-parcels')}
+            onClick={() => router.visit(appUrl('/land-parcels'))}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
             title={t('back_to_land_parcels', 'Back to Land Parcels')}
           >
@@ -1137,7 +1138,7 @@ export default function AddLandParcel() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => router.visit('/land-parcels')}
+            onClick={() => router.visit(appUrl('/land-parcels'))}
             disabled={submitting}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -2696,7 +2697,7 @@ export default function AddLandParcel() {
         <div className="flex justify-end gap-3 pb-6 pt-2">
           <button
             type="button"
-            onClick={() => router.visit('/land-parcels')}
+            onClick={() => router.visit(appUrl('/land-parcels'))}
             disabled={submitting}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >

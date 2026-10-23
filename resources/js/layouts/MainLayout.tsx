@@ -8,6 +8,7 @@ import type { SideBarItem } from '@/components/SideBar';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { useRealtimeCacheSync } from '@/hooks/useRealtimeCacheSync';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appUrl } from '@/lib/url';
 
 type Props = {
   children: React.ReactNode;
@@ -103,7 +104,7 @@ export default function MainLayout({ children, sidebarItems }: Props) {
                     <span className="text-foreground">{crumb.label}</span>
                   ) : (
                     <Link
-                      href={crumb.path}
+                      href={appUrl(crumb.path)}
                       className="text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {crumb.label}
@@ -125,14 +126,14 @@ export default function MainLayout({ children, sidebarItems }: Props) {
 
             {/* User Menu */}
             <button
-              onClick={() => router.visit('/settings')}
+              onClick={() => router.visit(appUrl('/settings'))}
               className="hover:bg-muted rounded-lg p-2 transition-colors"
             >
               <Settings className="h-5 w-5" />
             </button>
             <div className="flex gap-2">
               <Link
-                href="/lang/en"
+                href={appUrl('/lang/en')}
                 className={`rounded px-3 py-1 text-sm transition-colors ${
                   locale === 'en'
                     ? 'bg-primary text-primary-foreground'
@@ -142,7 +143,7 @@ export default function MainLayout({ children, sidebarItems }: Props) {
                 EN
               </Link>
               <Link
-                href="/lang/si"
+                href={appUrl('/lang/si')}
                 className={`rounded px-3 py-1 text-sm transition-colors ${
                   locale === 'si'
                     ? 'bg-primary text-primary-foreground'

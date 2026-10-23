@@ -17,6 +17,7 @@ import { useProjectsQuery } from '@/hooks/queries/useProjectsQuery';
 import { useReportsQuery } from '@/hooks/queries/useReportsQuery';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { appUrl } from '@/lib/url';
 
 const CHART_COLORS = [
   '#2E7D32',
@@ -108,7 +109,7 @@ export default function Reports() {
       date_from: dateFrom,
       date_to: dateTo,
     });
-    window.open(`/api/reports/export?${params.toString()}`, '_blank');
+    window.open(appUrl(`/api/reports/export?${params.toString()}`), '_blank');
   };
 
   const renderBadge = (cellValue: any) => {

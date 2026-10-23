@@ -54,11 +54,11 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently \"php artisan serve\" \"npm run dev\""
+            "npx concurrently \"php -S 127.0.0.1:8000 -t public scripts/lams-dev-server.php\" \"npm run dev\""
         ],
         "dev:all": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently \"php artisan serve\" \"npm run dev\" \"php artisan reverb:start\" \"php artisan queue:work\""
+            "npx concurrently \"php -S 127.0.0.1:8000 -t public scripts/lams-dev-server.php\" \"npm run dev\" \"php artisan reverb:start\" \"php artisan queue:work\""
         ],
         "lint": [
             "pint --parallel"

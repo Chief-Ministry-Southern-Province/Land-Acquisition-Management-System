@@ -36,6 +36,7 @@ import {
   toastError,
   toastSuccess,
 } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import api from '@/services/api';
 import { getDepartments } from '@/services/departmentManagementService';
 import type { Department } from '@/services/departmentManagementService';
@@ -279,7 +280,7 @@ export default function AddProject() {
               'Forbidden',
               'Development Officers (DO) can only edit draft projects.',
             );
-            router.visit(`/projects/${editId}`);
+            router.visit(appUrl(`/projects/${editId}`));
 
             return;
           }
@@ -1450,7 +1451,7 @@ export default function AddProject() {
           }
         }
 
-        router.visit('/projects');
+        router.visit(appUrl('/projects'));
       } catch (error) {
         console.error('Failed to save project and upload documents:', error);
         toastError(t('project_save_failed'));
@@ -1474,7 +1475,7 @@ export default function AddProject() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.visit('/projects')}
+            onClick={() => router.visit(appUrl('/projects'))}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
             title={t('back_to_projects')}
           >
@@ -1492,7 +1493,7 @@ export default function AddProject() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => router.visit('/projects')}
+            onClick={() => router.visit(appUrl('/projects'))}
             disabled={submitting}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -4550,7 +4551,7 @@ export default function AddProject() {
         <div className="flex justify-end gap-3 pb-8">
           <button
             type="button"
-            onClick={() => router.visit('/projects')}
+            onClick={() => router.visit(appUrl('/projects'))}
             disabled={submitting}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >

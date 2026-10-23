@@ -15,6 +15,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import { appUrl } from '@/lib/url';
 import { getCompensations } from '@/services/compensationService';
 import type { Compensation } from '@/services/compensationService';
 import { getPayments } from '@/services/paymentService';
@@ -241,13 +242,13 @@ export default function CompensationDashboard() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => router.visit('/compensation/calculate')}
+            onClick={() => router.visit(appUrl('/compensation/calculate'))}
             className="bg-primary hover:bg-primary/90 rounded-lg px-4 py-2 text-white transition-colors"
           >
             Calculate Compensation
           </button>
           <button
-            onClick={() => router.visit('/compensation/all')}
+            onClick={() => router.visit(appUrl('/compensation/all'))}
             className="border-border hover:bg-muted rounded-lg border px-4 py-2 transition-colors"
           >
             View All Records
@@ -309,7 +310,7 @@ export default function CompensationDashboard() {
             <DataTable
               columns={columns}
               data={filteredTransactions}
-              onRowClick={() => router.visit('/compensation/all')}
+              onRowClick={() => router.visit(appUrl('/compensation/all'))}
             />
           </div>
         </>

@@ -29,6 +29,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatCard } from '@/components/ui/StatCard';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { appUrl } from '@/lib/url';
 import { getPendingApprovals } from '@/services/aoApprovalService';
 
 export default function AODashboard() {
@@ -142,7 +143,7 @@ export default function AODashboard() {
   ];
 
   const handleRowClick = () => {
-    router.visit('/pending-approvals');
+    router.visit(appUrl('/pending-approvals'));
   };
 
   return (
@@ -194,7 +195,7 @@ export default function AODashboard() {
       {/* Quick Action Buttons */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <button
-          onClick={() => router.visit('/pending-approvals')}
+          onClick={() => router.visit(appUrl('/pending-approvals'))}
           className="bg-card hover:bg-muted border-border flex cursor-pointer flex-col items-center justify-center rounded-lg border p-4 text-center transition-all hover:scale-[1.02]"
         >
           <div className="bg-warning/10 text-warning mb-2 rounded-full p-3">
@@ -206,7 +207,7 @@ export default function AODashboard() {
         </button>
 
         <button
-          onClick={() => router.visit('/gis-maps')}
+          onClick={() => router.visit(appUrl('/gis-maps'))}
           className="bg-card hover:bg-muted border-border flex cursor-pointer flex-col items-center justify-center rounded-lg border p-4 text-center transition-all hover:scale-[1.02]"
         >
           <div className="bg-primary/10 text-primary mb-2 rounded-full p-3">
@@ -218,7 +219,7 @@ export default function AODashboard() {
         </button>
 
         <button
-          onClick={() => router.visit('/compensation')}
+          onClick={() => router.visit(appUrl('/compensation'))}
           className="bg-card hover:bg-muted border-border flex cursor-pointer flex-col items-center justify-center rounded-lg border p-4 text-center transition-all hover:scale-[1.02]"
         >
           <div className="bg-success/10 text-success mb-2 rounded-full p-3">
@@ -230,7 +231,7 @@ export default function AODashboard() {
         </button>
 
         <button
-          onClick={() => router.visit('/documents')}
+          onClick={() => router.visit(appUrl('/documents'))}
           className="bg-card hover:bg-muted border-border flex cursor-pointer flex-col items-center justify-center rounded-lg border p-4 text-center transition-all hover:scale-[1.02]"
         >
           <div className="bg-info/10 text-info mb-2 rounded-full p-3">
@@ -363,7 +364,7 @@ export default function AODashboard() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  router.visit('/pending-approvals');
+                  router.visit(appUrl('/pending-approvals'));
                 }}
                 className="hover:bg-muted cursor-pointer rounded p-1.5 transition-colors"
                 title="Review Case"

@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBridge';
 import MainLayout from '@/layouts/MainLayout';
+import { appUrl } from '@/lib/url';
 import { getCompensations } from '@/services/compensationService';
 import type { Compensation } from '@/services/compensationService';
 import { getPayments } from '@/services/paymentService';
@@ -172,7 +173,7 @@ export default function ViewAllPayments() {
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
           <Link
-            href="/compensation"
+            href={appUrl('/compensation')}
             className="hover:bg-muted border-border rounded-lg border p-2 transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -327,7 +328,9 @@ export default function ViewAllPayments() {
                   <span>{selectedPayment.document.original_filename}</span>
                 </div>
                 <a
-                  href={`/api/documents/${selectedPayment.document.id}/download`}
+                  href={appUrl(
+                    `/api/documents/${selectedPayment.document.id}/download`,
+                  )}
                   target="_blank"
                   rel="noreferrer"
                   className="text-primary flex items-center gap-1 text-xs font-medium hover:underline"

@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { AlertTriangle, Bell, CheckCircle2, Info, XCircle } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
+import { appUrl } from '@/lib/url';
 
 interface Props {
   userId?: number;
@@ -82,7 +83,7 @@ export const NotificationBell: React.FC<Props> = ({ userId }) => {
                     setIsOpen(false);
 
                     if (item.action_url) {
-                      router.visit(item.action_url);
+                      router.visit(appUrl(item.action_url));
                     }
                   }}
                   className={`hover:bg-muted/50 flex cursor-pointer gap-3 p-4 transition-colors ${
@@ -112,7 +113,7 @@ export const NotificationBell: React.FC<Props> = ({ userId }) => {
             <button
               onClick={() => {
                 setIsOpen(false);
-                router.visit('/notifications');
+                router.visit(appUrl('/notifications'));
               }}
               className="text-primary w-full cursor-pointer py-1 text-xs font-medium hover:underline"
             >

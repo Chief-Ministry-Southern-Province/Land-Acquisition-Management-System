@@ -28,6 +28,7 @@ import {
   toastError,
   toastSuccess,
 } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import {
   uploadDocument,
   deleteDocument,
@@ -480,7 +481,7 @@ export default function EditLandParcel({ id }: { id: string }) {
         ]);
 
         if (userRole !== 'DO') {
-          router.visit('/access-denied');
+          router.visit(appUrl('/access-denied'));
 
           return;
         }
@@ -938,7 +939,7 @@ export default function EditLandParcel({ id }: { id: string }) {
       toastSuccess(
         t('land_parcel_updated_success', 'Land parcel updated successfully!'),
       );
-      router.visit(`/land-parcels/${id}`);
+      router.visit(appUrl(`/land-parcels/${id}`));
     } catch (error: any) {
       console.error('Failed to update land parcel:', error);
 
@@ -1027,7 +1028,7 @@ export default function EditLandParcel({ id }: { id: string }) {
           )}
         </p>
         <Link
-          href={`/land-parcels/${id}`}
+          href={appUrl(`/land-parcels/${id}`)}
           className="text-primary font-medium hover:underline"
         >
           {t('back_to_details', 'Back to Details')}
@@ -1049,7 +1050,7 @@ export default function EditLandParcel({ id }: { id: string }) {
           )}
         </p>
         <Link
-          href={`/land-parcels/${id}`}
+          href={appUrl(`/land-parcels/${id}`)}
           className="text-primary font-medium hover:underline"
         >
           {t('back_to_details', 'Back to Details')}
@@ -1071,7 +1072,7 @@ export default function EditLandParcel({ id }: { id: string }) {
           )}
         </p>
         <Link
-          href={`/land-parcels/${id}`}
+          href={appUrl(`/land-parcels/${id}`)}
           className="text-primary font-medium hover:underline"
         >
           {t('back_to_details', 'Back to Details')}
@@ -1086,7 +1087,7 @@ export default function EditLandParcel({ id }: { id: string }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.visit(`/land-parcels/${id}`)}
+            onClick={() => router.visit(appUrl(`/land-parcels/${id}`))}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
             title={t('back_to_details', 'Back to Details')}
           >
@@ -1106,7 +1107,7 @@ export default function EditLandParcel({ id }: { id: string }) {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => router.visit(`/land-parcels/${id}`)}
+            onClick={() => router.visit(appUrl(`/land-parcels/${id}`))}
             disabled={submitting}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -2349,7 +2350,7 @@ export default function EditLandParcel({ id }: { id: string }) {
         <div className="flex justify-end gap-3 pb-6 pt-2">
           <button
             type="button"
-            onClick={() => router.visit(`/land-parcels/${id}`)}
+            onClick={() => router.visit(appUrl(`/land-parcels/${id}`))}
             disabled={submitting}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >

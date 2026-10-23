@@ -25,6 +25,7 @@ import {
   toastError,
   toastSuccess,
 } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import {
   exportLandParcels,
   importLandParcels,
@@ -339,7 +340,7 @@ export default function LandParcelList() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              router.visit(`/land-parcels/${row.id}/edit`);
+              router.visit(appUrl(`/land-parcels/${row.id}/edit`));
             }}
             className="hover:bg-muted text-primary rounded p-1.5 transition-colors"
             title={t('edit_land_parcel_tooltip', 'Edit Land Parcel')}
@@ -350,7 +351,7 @@ export default function LandParcelList() {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            router.visit(`/land-parcels/${row.id}`);
+            router.visit(appUrl(`/land-parcels/${row.id}`));
           }}
           className="hover:bg-muted rounded p-1.5 transition-colors"
           title={t('view_details_tooltip', 'View Details')}
@@ -360,7 +361,7 @@ export default function LandParcelList() {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            router.visit(`/gis-maps?parcel=${row.id}`);
+            router.visit(appUrl(`/gis-maps?parcel=${row.id}`));
           }}
           className="hover:bg-muted rounded p-1.5 transition-colors"
           title={t('view_on_map_tooltip', 'View on Map')}
@@ -431,7 +432,7 @@ export default function LandParcelList() {
             </button>
             <button
               onClick={() => {
-                router.visit('/land-parcels/create');
+                router.visit(appUrl('/land-parcels/create'));
               }}
               className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
             >
@@ -462,7 +463,7 @@ export default function LandParcelList() {
         <DataTable
           columns={columns}
           data={parcels}
-          onRowClick={(row) => router.visit(`/land-parcels/${row.id}`)}
+          onRowClick={(row) => router.visit(appUrl(`/land-parcels/${row.id}`))}
           onExport={handleExport}
           actions={actions}
         />

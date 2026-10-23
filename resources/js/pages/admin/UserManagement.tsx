@@ -6,6 +6,7 @@ import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import {
   deleteUser,
   getAllUsers,
@@ -276,7 +277,7 @@ export default function UserManagement() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => router.visit('/roles')}
+            onClick={() => router.visit(appUrl('/roles'))}
             className="border-border hover:bg-muted flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
           >
             <Shield className="h-5 w-5" />
@@ -284,7 +285,7 @@ export default function UserManagement() {
           </button>
           <button
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
-            onClick={() => router.visit('/user-management/add')}
+            onClick={() => router.visit(appUrl('/user-management/add'))}
           >
             <Plus className="h-5 w-5" />
             <span>{t('add_user', 'Add User')}</span>

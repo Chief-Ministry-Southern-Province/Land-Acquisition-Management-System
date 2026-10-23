@@ -28,7 +28,7 @@ class CheckRole
                 ], 403);
             }
 
-            return redirect('/access-denied');
+            return redirect()->route('access-denied');
         }
 
         if (! in_array($user->role->role_name, $roles)) {
@@ -38,7 +38,7 @@ class CheckRole
                 ], 403);
             }
 
-            return redirect('/access-denied');
+            return redirect()->route('access-denied');
         }
 
         return $next($request);

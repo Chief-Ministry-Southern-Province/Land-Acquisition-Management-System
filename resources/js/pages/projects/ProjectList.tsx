@@ -9,6 +9,7 @@ import {
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import { exportProjects } from '@/services/projectsManagementService';
 
 export default function ProjectList() {
@@ -139,7 +140,7 @@ export default function ProjectList() {
   ];
 
   const handleRowClick = (row: any) => {
-    router.visit(`/projects/${row.id}`);
+    router.visit(appUrl(`/projects/${row.id}`));
   };
 
   const actions = (row: any) => {
@@ -153,7 +154,7 @@ export default function ProjectList() {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            router.visit(`/projects/${row.id}`);
+            router.visit(appUrl(`/projects/${row.id}`));
           }}
           className="hover:bg-muted rounded p-1.5 transition-colors"
           title={t('view')}
@@ -164,7 +165,7 @@ export default function ProjectList() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              router.visit(`/projects/new?edit=${row.id}`);
+              router.visit(appUrl(`/projects/new?edit=${row.id}`));
             }}
             className="hover:bg-muted rounded p-1.5 transition-colors"
             title={t('edit')}
@@ -200,7 +201,7 @@ export default function ProjectList() {
         </div>
         {userRole === 'DO' && (
           <button
-            onClick={() => router.visit('/projects/new')}
+            onClick={() => router.visit(appUrl('/projects/new'))}
             className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
           >
             <Plus className="h-5 w-5" />

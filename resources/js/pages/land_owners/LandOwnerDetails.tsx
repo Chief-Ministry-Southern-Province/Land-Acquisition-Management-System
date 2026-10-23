@@ -6,6 +6,7 @@ import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import {
   uploadDocument,
   deleteDocument,
@@ -225,7 +226,10 @@ export default function LandOwnerDetails({ id }: Props) {
     return (
       <div className="text-muted-foreground flex h-96 flex-col items-center justify-center gap-4">
         <p>{t('property_owner_not_found', 'Property owner not found.')}</p>
-        <Link href="/land-owners" className="text-primary hover:underline">
+        <Link
+          href={appUrl('/land-owners')}
+          className="text-primary hover:underline"
+        >
           {t('back_to_property_owners', 'Back to Property Owners')}
         </Link>
       </div>
@@ -237,7 +241,7 @@ export default function LandOwnerDetails({ id }: Props) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
-            href="/land-owners"
+            href={appUrl('/land-owners')}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
             title={t('back_to_property_owners', 'Back to Property Owners')}
           >
@@ -380,7 +384,9 @@ export default function LandOwnerDetails({ id }: Props) {
               },
             ]}
             data={parcels}
-            onRowClick={(row) => router.visit(`/land-parcels/${row.id}`)}
+            onRowClick={(row) =>
+              router.visit(appUrl(`/land-parcels/${row.id}`))
+            }
             searchable={false}
             filterable={false}
           />

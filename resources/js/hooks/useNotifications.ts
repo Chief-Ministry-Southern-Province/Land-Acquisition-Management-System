@@ -1,6 +1,6 @@
-import axios from 'axios';
 import { useCallback, useEffect, useState } from 'react';
 import { echo } from '@/echo';
+import api from '@/services/api';
 
 export interface NotificationItem {
   id: string;
@@ -25,7 +25,7 @@ export function useNotifications(userId?: number) {
 
     try {
       setLoading(true);
-      const response = await axios.get('/api/notifications');
+      const response = await api.get('/api/notifications');
       setNotifications(response.data.notifications);
       setUnreadCount(response.data.unread_count);
     } catch (error) {
@@ -68,7 +68,7 @@ export function useNotifications(userId?: number) {
     setUnreadCount((prev) => Math.max(0, prev - 1));
 
     try {
-      await axios.post(`/api/notifications/${id}/read`);
+      await api.post(`/api/notifications/${id}/read`);
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
       // Re-fetch to sync state if failed
@@ -87,7 +87,7 @@ export function useNotifications(userId?: number) {
     setUnreadCount(0);
 
     try {
-      await axios.post('/api/notifications/read-all');
+      await api.post('/api/notifications/read-all');
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
       // Re-fetch to sync state if failed

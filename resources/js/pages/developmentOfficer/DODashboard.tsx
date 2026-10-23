@@ -32,6 +32,7 @@ import { StatusBadge } from '@/components/ui/StatusBridge';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmAction, toastError, toastSuccess } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import { getLandParcels } from '@/services/landParcelManagementService';
 import {
   getProjects,
@@ -307,7 +308,7 @@ export default function DODashboard() {
   ];
 
   const handleRowClick = (row: any) => {
-    router.visit(`/projects/${row.id}`);
+    router.visit(appUrl(`/projects/${row.id}`));
   };
 
   return (
@@ -356,7 +357,7 @@ export default function DODashboard() {
       {/* Quick Action Navigation Grid */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <button
-          onClick={() => router.visit('/projects/new')}
+          onClick={() => router.visit(appUrl('/projects/new'))}
           className="bg-card hover:bg-muted border-border flex cursor-pointer flex-col items-center justify-center rounded-lg border p-4 text-center transition-all hover:scale-[1.02]"
         >
           <div className="bg-primary/10 text-primary mb-2 rounded-full p-3">
@@ -368,7 +369,7 @@ export default function DODashboard() {
         </button>
 
         <button
-          onClick={() => router.visit('/land-parcels/create')}
+          onClick={() => router.visit(appUrl('/land-parcels/create'))}
           className="bg-card hover:bg-muted border-border flex cursor-pointer flex-col items-center justify-center rounded-lg border p-4 text-center transition-all hover:scale-[1.02]"
         >
           <div className="bg-success/10 text-success mb-2 rounded-full p-3">
@@ -380,7 +381,7 @@ export default function DODashboard() {
         </button>
 
         <button
-          onClick={() => router.visit('/land-owners')}
+          onClick={() => router.visit(appUrl('/land-owners'))}
           className="bg-card hover:bg-muted border-border flex cursor-pointer flex-col items-center justify-center rounded-lg border p-4 text-center transition-all hover:scale-[1.02]"
         >
           <div className="bg-info/10 text-info mb-2 rounded-full p-3">
@@ -392,7 +393,7 @@ export default function DODashboard() {
         </button>
 
         <button
-          onClick={() => router.visit('/documents')}
+          onClick={() => router.visit(appUrl('/documents'))}
           className="bg-card hover:bg-muted border-border flex cursor-pointer flex-col items-center justify-center rounded-lg border p-4 text-center transition-all hover:scale-[1.02]"
         >
           <div className="bg-warning/10 text-warning mb-2 rounded-full p-3">
@@ -450,7 +451,9 @@ export default function DODashboard() {
                   </div>
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => router.visit(`/projects/${project.id}`)}
+                      onClick={() =>
+                        router.visit(appUrl(`/projects/${project.id}`))
+                      }
                       className="hover:bg-muted border-border flex cursor-pointer items-center gap-1.5 rounded border px-3 py-1.5 text-xs transition-colors"
                     >
                       <Eye className="h-3.5 w-3.5" />
@@ -458,7 +461,7 @@ export default function DODashboard() {
                     </button>
                     <button
                       onClick={() =>
-                        router.visit(`/projects/new?edit=${project.id}`)
+                        router.visit(appUrl(`/projects/new?edit=${project.id}`))
                       }
                       className="bg-warning hover:bg-warning/90 flex cursor-pointer items-center gap-1.5 rounded px-3 py-1.5 text-xs font-semibold text-white transition-colors"
                     >
@@ -507,7 +510,7 @@ export default function DODashboard() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.visit(`/projects/new?edit=${row.id}`);
+                      router.visit(appUrl(`/projects/new?edit=${row.id}`));
                     }}
                     className="hover:bg-muted cursor-pointer rounded p-1.5 transition-colors"
                     title={t('edit', 'Edit')}
@@ -567,7 +570,7 @@ export default function DODashboard() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.visit(`/projects/${row.id}`);
+                    router.visit(appUrl(`/projects/${row.id}`));
                   }}
                   className="hover:bg-muted cursor-pointer rounded p-1.5 transition-colors"
                   title={t('view_progress_details', 'View Progress details')}

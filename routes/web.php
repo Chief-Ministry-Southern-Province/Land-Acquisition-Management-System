@@ -70,11 +70,11 @@ Route::middleware('auth:sanctum')->group(function () {
                 'AS' => inertia('assistantSecretary/ASApprovals'),
                 'SAS' => inertia('seniorAssistantSecretary/SASApprovals'),
                 'SEC' => inertia('secretary/SecretaryApprovals'),
-                default => redirect('/access-denied'),
+                default => redirect()->route('access-denied'),
             };
         }
 
-        return redirect('/access-denied');
+        return redirect()->route('access-denied');
     })->name('pending-approvals');
 
     Route::get('/settings', function (Request $request) {
@@ -122,7 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Mark Progress
     Route::inertia('/mark-progress', 'developmentOfficer/MarkProgress')->middleware('check.role:DO,SAS,AS,AO,HOB,SEC,Admin')->name('mark-progress');
     Route::get('/development-officer/mark-progress', function (Request $request) {
-        return redirect('/mark-progress'.($request->getQueryString() ? '?'.$request->getQueryString() : ''));
+        return redirect()->route('mark-progress', $request->query());
     });
 
     // Projects routes
@@ -198,5 +198,5 @@ Route::get('/maintenance', function (Request $request) {
 })->name('maintenance');
 
 Route::fallback(function () {
-    return redirect('/not-found');
+    return redirect()->route('not-found');
 });

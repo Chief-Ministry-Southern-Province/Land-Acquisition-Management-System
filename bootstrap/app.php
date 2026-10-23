@@ -59,8 +59,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'rate.limit' => RateLimitMiddleware::class,
         ]);
 
-        $middleware->redirectGuestsTo('/');
-        $middleware->redirectUsersTo('/dashboard');
+        $middleware->redirectGuestsTo(fn () => route('home'));
+        $middleware->redirectUsersTo(fn () => route('dashboard'));
 
         $middleware->trustProxies(at: '*');
     })
@@ -97,7 +97,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     ], 401);
                 }
 
-                return redirect()->guest('/')->with('error', __('messages.error_session_expired'));
+                return redirect()->guest(route('home'))->with('error', __('messages.error_session_expired'));
             }
 
             // 3. Handle Authorization Exception
@@ -109,7 +109,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     ], 403);
                 }
 
-                return redirect('/access-denied');
+                return redirect()->route('access-denied');
             }
 
             // 4. Handle Not Found

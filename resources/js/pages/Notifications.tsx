@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { appUrl } from '@/lib/url';
 
 export default function Notifications() {
   const { t } = useTranslation();
@@ -92,7 +93,7 @@ export default function Notifications() {
                 markAsRead(notification.id);
 
                 if (notification.action_url) {
-                  router.visit(notification.action_url);
+                  router.visit(appUrl(notification.action_url));
                 }
               }}
               className={`bg-card border-border cursor-pointer rounded-lg border p-4 transition-shadow hover:shadow-md ${

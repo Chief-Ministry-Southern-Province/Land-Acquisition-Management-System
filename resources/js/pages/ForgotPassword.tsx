@@ -14,6 +14,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appUrl } from '@/lib/url';
 
 function ForgotPassword() {
   const { t, locale } = useTranslation();
@@ -30,7 +31,7 @@ function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch(appUrl('/api/auth/forgot-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +107,7 @@ function ForgotPassword() {
           {/* Language Switcher */}
           <div className="flex gap-1.5">
             <a
-              href="/lang/en"
+              href={appUrl('/lang/en')}
               className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
                 locale === 'en'
                   ? 'bg-primary text-primary-foreground'
@@ -116,7 +117,7 @@ function ForgotPassword() {
               EN
             </a>
             <a
-              href="/lang/si"
+              href={appUrl('/lang/si')}
               className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
                 locale === 'si'
                   ? 'bg-primary text-primary-foreground'
@@ -139,7 +140,7 @@ function ForgotPassword() {
               <div className="space-y-4 text-center">
                 <div className="bg-primary text-primary-foreground mx-auto flex max-w-fit items-center gap-3 rounded-xl px-4 py-3 shadow-sm">
                   <img
-                    src="/logo.png"
+                    src={appUrl('/logo.png')}
                     alt="Land Acquisition Management Logo"
                     className="h-9 w-9 shrink-0 rounded bg-white object-contain p-0.5 shadow-sm"
                   />
@@ -264,7 +265,7 @@ function ForgotPassword() {
               <div className="pt-2 text-center">
                 <button
                   type="button"
-                  onClick={() => router.visit('/')}
+                  onClick={() => router.visit(appUrl('/'))}
                   className="text-primary inline-flex cursor-pointer items-center gap-2 text-xs font-semibold transition-colors hover:underline focus:outline-none sm:text-sm"
                 >
                   <ArrowLeft className="h-4 w-4" />

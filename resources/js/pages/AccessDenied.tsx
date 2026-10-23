@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { ArrowLeft, Home, LogIn, ShieldAlert } from 'lucide-react';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appUrl } from '@/lib/url';
 
 function AccessDenied() {
   const { t } = useTranslation();
@@ -57,7 +58,7 @@ function AccessDenied() {
 
             <button
               type="button"
-              onClick={() => router.visit('/')}
+              onClick={() => router.visit(appUrl('/'))}
               className="border-border hover:bg-muted text-foreground inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-3 text-sm font-medium transition-colors"
             >
               <LogIn className="h-4 w-4" />
@@ -66,7 +67,7 @@ function AccessDenied() {
 
             <button
               type="button"
-              onClick={() => router.visit('/dashboard')}
+              onClick={() => router.visit(appUrl('/dashboard'))}
               className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-medium transition-colors"
             >
               <Home className="h-4 w-4" />

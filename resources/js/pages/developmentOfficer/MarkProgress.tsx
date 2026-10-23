@@ -39,6 +39,7 @@ import type {
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmAction, toastError, toastSuccess } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import {
   uploadDocument,
   downloadDocument,
@@ -816,7 +817,7 @@ export default function MarkProgress({
           <div className="flex items-center gap-3">
             {!projectId && (
               <button
-                onClick={() => router.visit('/projects')}
+                onClick={() => router.visit(appUrl('/projects'))}
                 className="border-border hover:bg-muted text-foreground flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />

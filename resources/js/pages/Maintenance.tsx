@@ -4,6 +4,7 @@ import { useState } from 'react';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
 import { queryClient } from '@/lib/queryClient';
+import { appUrl } from '@/lib/url';
 import { logout } from '@/services/authService';
 
 interface MaintenanceProps {
@@ -40,7 +41,7 @@ export default function Maintenance({
     } finally {
       queryClient.clear();
       localStorage.removeItem('auth_token');
-      window.location.href = '/';
+      window.location.href = appUrl('/');
     }
   };
 
@@ -51,7 +52,7 @@ export default function Maintenance({
         <ThemeSwitcher />
         <div className="flex gap-1.5">
           <a
-            href="/lang/en"
+            href={appUrl('/lang/en')}
             className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
               locale === 'en'
                 ? 'bg-primary text-primary-foreground'
@@ -61,7 +62,7 @@ export default function Maintenance({
             EN
           </a>
           <a
-            href="/lang/si"
+            href={appUrl('/lang/si')}
             className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
               locale === 'si'
                 ? 'bg-primary text-primary-foreground'
@@ -162,7 +163,7 @@ export default function Maintenance({
             {isAdmin ? (
               <button
                 type="button"
-                onClick={() => router.visit('/dashboard')}
+                onClick={() => router.visit(appUrl('/dashboard'))}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-medium transition-colors"
               >
                 <Home className="h-4 w-4" />

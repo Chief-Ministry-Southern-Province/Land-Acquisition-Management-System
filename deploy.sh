@@ -13,13 +13,16 @@ echo "Installing PHP dependencies..."
 composer install --no-dev --optimize-autoloader
 
 echo "Installing Node dependencies..."
-npm install
+npm ci
 
 echo "Building frontend..."
 npm run build
 
 echo "Running migrations..."
 php artisan migrate --force
+
+echo "Ensuring public storage is linked..."
+php artisan storage:link
 
 echo "Clearing caches..."
 php artisan optimize:clear

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/ui/DataTable';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { appUrl } from '@/lib/url';
 import { getPropertyOwners } from '@/services/propertyOwnerManagement';
 import type { PropertyOwner } from '@/services/propertyOwnerManagement';
 
@@ -70,7 +71,7 @@ export default function LandOwnerList() {
     <button
       onClick={(e) => {
         e.stopPropagation();
-        router.visit(`/land-owners/${row.id}`);
+        router.visit(appUrl(`/land-owners/${row.id}`));
       }}
       className="hover:bg-muted rounded p-1.5 transition-colors"
       title={t('view_profile_tooltip', 'View Profile')}
@@ -101,7 +102,7 @@ export default function LandOwnerList() {
         <DataTable
           columns={columns}
           data={owners}
-          onRowClick={(row) => router.visit(`/land-owners/${row.id}`)}
+          onRowClick={(row) => router.visit(appUrl(`/land-owners/${row.id}`))}
           actions={actions}
         />
       )}

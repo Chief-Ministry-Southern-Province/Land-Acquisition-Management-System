@@ -17,7 +17,7 @@
     </p>
 
     <div class="mt-8 flex w-full flex-col gap-3 sm:flex-row">
-        <a href="/" class="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring">
+        <a href="{{ route('home') }}" class="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring">
             {{ __('messages.error_back_to_home') }}
         </a>
     </div>

@@ -1,8 +1,9 @@
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { appUrl } from '@/lib/url';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_APP_URL || '',
+  baseURL: appUrl('/'),
   headers: {
     Accept: 'application/json',
   },
@@ -51,7 +52,7 @@ api.interceptors.response.use(
             confirmButtonText: 'OK',
           }).then(() => {
             localStorage.removeItem('auth_token');
-            window.location.href = '/';
+            window.location.href = appUrl('/');
           });
           break;
         case 403:

@@ -1,10 +1,10 @@
-import { createInertiaApp } from '@inertiajs/react';
-import { router } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createRoot } from 'react-dom/client';
 import Swal from 'sweetalert2';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import { queryClient } from './lib/queryClient';
+import { appUrl } from './lib/url';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -29,7 +29,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
         icon: 'warning',
         confirmButtonText: 'OK',
       }).then(() => {
-        window.location.href = '/';
+        window.location.href = appUrl('/');
       });
     } else if (status === 403) {
       Swal.fire({

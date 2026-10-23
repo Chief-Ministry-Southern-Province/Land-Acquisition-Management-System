@@ -24,6 +24,7 @@ import UnifiedMap from '@/components/UnifiedMap';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog, toastError, toastSuccess } from '@/lib/alerts';
+import { appUrl } from '@/lib/url';
 import api from '@/services/api';
 import { getAuditLogs } from '@/services/auditLogService';
 import {
@@ -988,7 +989,10 @@ export default function LandParcelDetails({ id }: Props) {
     return (
       <div className="text-muted-foreground flex h-96 flex-col items-center justify-center gap-4">
         <p>{t('land_parcel_not_found', 'Land parcel not found.')}</p>
-        <Link href="/land-parcels" className="text-primary hover:underline">
+        <Link
+          href={appUrl('/land-parcels')}
+          className="text-primary hover:underline"
+        >
           {t('back_to_land_parcels', 'Back to Land Parcels')}
         </Link>
       </div>
@@ -1077,7 +1081,7 @@ export default function LandParcelDetails({ id }: Props) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
-            href="/land-parcels"
+            href={appUrl('/land-parcels')}
             className="hover:bg-muted rounded-lg p-2 transition-colors"
             title={t('back_to_land_parcels', 'Back to Land Parcels')}
           >
@@ -1096,7 +1100,9 @@ export default function LandParcelDetails({ id }: Props) {
         <div className="flex items-center gap-2">
           {isDO && parcel.status === 'available' && (
             <button
-              onClick={() => router.visit(`/land-parcels/${parcel.id}/edit`)}
+              onClick={() =>
+                router.visit(appUrl(`/land-parcels/${parcel.id}/edit`))
+              }
               className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-white transition-colors"
             >
               <Pencil className="h-4 w-4" />
@@ -1440,7 +1446,7 @@ export default function LandParcelDetails({ id }: Props) {
                 <dd>
                   {parcel.project ? (
                     <Link
-                      href={`/projects/${parcel.project.id}`}
+                      href={appUrl(`/projects/${parcel.project.id}`)}
                       className="text-primary font-medium hover:underline"
                     >
                       {parcel.project.title || parcel.project.name}

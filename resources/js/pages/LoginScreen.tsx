@@ -19,6 +19,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { queryClient } from '@/lib/queryClient';
+import { appUrl } from '@/lib/url';
 import { login } from '@/services/authService';
 
 function LoginScreen() {
@@ -51,7 +52,7 @@ function LoginScreen() {
       }
 
       queryClient.clear();
-      window.location.href = '/dashboard';
+      window.location.href = appUrl('/dashboard');
     } catch (err: any) {
       if (err.response) {
         const data = err.response.data;
@@ -107,7 +108,7 @@ function LoginScreen() {
           {/* Language Switcher */}
           <div className="flex gap-1.5">
             <a
-              href="/lang/en"
+              href={appUrl('/lang/en')}
               className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
                 locale === 'en'
                   ? 'bg-primary text-primary-foreground'
@@ -117,7 +118,7 @@ function LoginScreen() {
               EN
             </a>
             <a
-              href="/lang/si"
+              href={appUrl('/lang/si')}
               className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
                 locale === 'si'
                   ? 'bg-primary text-primary-foreground'
@@ -149,7 +150,7 @@ function LoginScreen() {
             <div className="space-y-6">
               <div className="bg-primary text-primary-foreground flex max-w-fit items-center gap-3.5 rounded-xl px-4 py-3 shadow-md">
                 <img
-                  src="/logo.png"
+                  src={appUrl('/logo.png')}
                   alt="Land Acquisition Management Logo"
                   className="h-10 w-10 shrink-0 rounded bg-white object-contain p-0.5 shadow-sm"
                 />
@@ -252,7 +253,7 @@ function LoginScreen() {
               <div className="mb-6 flex items-center gap-3 md:hidden">
                 <div className="bg-primary text-primary-foreground flex items-center gap-2.5 rounded-lg px-3 py-2 shadow-sm">
                   <img
-                    src="/logo.png"
+                    src={appUrl('/logo.png')}
                     alt="Land Acquisition Management Logo"
                     className="h-8 w-8 shrink-0 rounded bg-white object-contain p-0.5"
                   />
@@ -336,7 +337,7 @@ function LoginScreen() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => router.visit('/forgot-password')}
+                    onClick={() => router.visit(appUrl('/forgot-password'))}
                     className="text-primary text-xs font-semibold transition-colors hover:underline focus:outline-none"
                   >
                     {t('forgot_password', 'Forgot Password?')}
