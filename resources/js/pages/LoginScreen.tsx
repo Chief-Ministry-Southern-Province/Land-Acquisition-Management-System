@@ -149,7 +149,7 @@ function LoginScreen() {
             <div className="space-y-6">
               <div className="bg-primary text-primary-foreground flex max-w-fit items-center gap-3.5 rounded-xl px-4 py-3 shadow-md">
                 <img
-                  src="/logo.png"
+                  src={`${import.meta.env.BASE_URL.replace(/build\/?$/, '')}logo.png`}
                   alt="Land Acquisition Management Logo"
                   className="h-10 w-10 shrink-0 rounded bg-white object-contain p-0.5 shadow-sm"
                 />
@@ -252,7 +252,7 @@ function LoginScreen() {
               <div className="mb-6 flex items-center gap-3 md:hidden">
                 <div className="bg-primary text-primary-foreground flex items-center gap-2.5 rounded-lg px-3 py-2 shadow-sm">
                   <img
-                    src="/logo.png"
+                    src={`${import.meta.env.BASE_URL.replace(/build\/?$/, '')}logo.png`}
                     alt="Land Acquisition Management Logo"
                     className="h-8 w-8 shrink-0 rounded bg-white object-contain p-0.5"
                   />

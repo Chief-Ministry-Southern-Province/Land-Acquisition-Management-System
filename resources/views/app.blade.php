@@ -17,8 +17,8 @@
             })();
         </script>
 
-        <link rel="icon" href="/logo.png" type="image/png">
-        <link rel="apple-touch-icon" href="/logo.png">
+        <link rel="icon" href="{{ asset('logo.png') }}" type="image/png">
+        <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
 
         @fonts
 

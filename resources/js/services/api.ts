@@ -1,8 +1,10 @@
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
+const defaultAppUrl = import.meta.env.BASE_URL.replace(/\/build\/?$/, '');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_APP_URL || '',
+  baseURL: import.meta.env.VITE_APP_URL || defaultAppUrl,
   headers: {
     Accept: 'application/json',
   },

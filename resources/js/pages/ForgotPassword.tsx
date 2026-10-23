@@ -139,7 +139,7 @@ function ForgotPassword() {
               <div className="space-y-4 text-center">
                 <div className="bg-primary text-primary-foreground mx-auto flex max-w-fit items-center gap-3 rounded-xl px-4 py-3 shadow-sm">
                   <img
-                    src="/logo.png"
+                    src={`${import.meta.env.BASE_URL.replace(/build\/?$/, '')}logo.png`}
                     alt="Land Acquisition Management Logo"
                     className="h-9 w-9 shrink-0 rounded bg-white object-contain p-0.5 shadow-sm"
                   />
