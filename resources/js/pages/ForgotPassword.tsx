@@ -14,6 +14,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appUrl } from '@/lib/appUrl';
 
 function ForgotPassword() {
   const { t, locale } = useTranslation();
@@ -30,7 +31,7 @@ function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch(appUrl('/api/auth/forgot-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +107,7 @@ function ForgotPassword() {
           {/* Language Switcher */}
           <div className="flex gap-1.5">
             <a
-              href="/lang/en"
+              href={appUrl('/lang/en')}
               className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
                 locale === 'en'
                   ? 'bg-primary text-primary-foreground'
@@ -116,7 +117,7 @@ function ForgotPassword() {
               EN
             </a>
             <a
-              href="/lang/si"
+              href={appUrl('/lang/si')}
               className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
                 locale === 'si'
                   ? 'bg-primary text-primary-foreground'

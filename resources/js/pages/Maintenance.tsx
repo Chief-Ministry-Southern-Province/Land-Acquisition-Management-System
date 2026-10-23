@@ -3,6 +3,7 @@ import { Home, LogOut, RefreshCw, Wrench } from 'lucide-react';
 import { useState } from 'react';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appUrl } from '@/lib/appUrl';
 import { queryClient } from '@/lib/queryClient';
 import { logout } from '@/services/authService';
 
@@ -40,7 +41,7 @@ export default function Maintenance({
     } finally {
       queryClient.clear();
       localStorage.removeItem('auth_token');
-      window.location.href = '/';
+      window.location.href = appUrl('/');
     }
   };
 
@@ -51,7 +52,7 @@ export default function Maintenance({
         <ThemeSwitcher />
         <div className="flex gap-1.5">
           <a
-            href="/lang/en"
+            href={appUrl('/lang/en')}
             className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
               locale === 'en'
                 ? 'bg-primary text-primary-foreground'
@@ -61,7 +62,7 @@ export default function Maintenance({
             EN
           </a>
           <a
-            href="/lang/si"
+            href={appUrl('/lang/si')}
             className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
               locale === 'si'
                 ? 'bg-primary text-primary-foreground'

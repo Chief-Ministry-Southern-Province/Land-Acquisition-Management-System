@@ -18,6 +18,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appUrl } from '@/lib/appUrl';
 import { queryClient } from '@/lib/queryClient';
 import { login } from '@/services/authService';
 
@@ -51,7 +52,7 @@ function LoginScreen() {
       }
 
       queryClient.clear();
-      window.location.href = '/dashboard';
+      window.location.href = appUrl('/dashboard');
     } catch (err: any) {
       if (err.response) {
         const data = err.response.data;
@@ -107,7 +108,7 @@ function LoginScreen() {
           {/* Language Switcher */}
           <div className="flex gap-1.5">
             <a
-              href="/lang/en"
+              href={appUrl('/lang/en')}
               className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
                 locale === 'en'
                   ? 'bg-primary text-primary-foreground'
@@ -117,7 +118,7 @@ function LoginScreen() {
               EN
             </a>
             <a
-              href="/lang/si"
+              href={appUrl('/lang/si')}
               className={`rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
                 locale === 'si'
                   ? 'bg-primary text-primary-foreground'
@@ -336,7 +337,7 @@ function LoginScreen() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => router.visit('/forgot-password')}
+                    onClick={() => router.visit(appUrl('/forgot-password'))}
                     className="text-primary text-xs font-semibold transition-colors hover:underline focus:outline-none"
                   >
                     {t('forgot_password', 'Forgot Password?')}

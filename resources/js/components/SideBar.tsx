@@ -22,6 +22,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appUrl } from '@/lib/appUrl';
 import { queryClient } from '@/lib/queryClient';
 import { logout } from '@/services/authService';
 
@@ -54,7 +55,7 @@ export default function SideBar({ items }: SideBarProps = {}) {
     } finally {
       queryClient.clear();
       localStorage.removeItem('auth_token');
-      window.location.href = '/';
+      window.location.href = appUrl('/');
     }
   };
 

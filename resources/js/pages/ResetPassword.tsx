@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appUrl } from '@/lib/appUrl';
 
 interface ResetPasswordProps {
   token: string;
@@ -37,7 +38,7 @@ function ResetPassword() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await fetch(appUrl('/api/auth/reset-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -88,13 +89,13 @@ function ResetPassword() {
       {/* Language Switcher */}
       <div className="absolute right-4 top-4 flex gap-2">
         <a
-          href="/lang/en"
+          href={appUrl('/lang/en')}
           className="rounded bg-white/20 px-3 py-1 text-sm text-white transition-colors hover:bg-white/30"
         >
           EN
         </a>
         <a
-          href="/lang/si"
+          href={appUrl('/lang/si')}
           className="rounded bg-white/20 px-3 py-1 text-sm text-white transition-colors hover:bg-white/30"
         >
           සිං
