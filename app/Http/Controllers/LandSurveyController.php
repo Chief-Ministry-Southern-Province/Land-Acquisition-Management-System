@@ -44,6 +44,7 @@ class LandSurveyController extends Controller
         $validated['status'] = $validated['status'] ?? 'completed';
 
         $survey = LandSurvey::create($validated);
+        $this->renameDocument($survey);
 
         return response()->json([
             'message' => 'Land survey registered successfully',
@@ -96,6 +97,7 @@ class LandSurveyController extends Controller
         ]);
 
         $survey->update($validated);
+        $this->renameDocument($survey);
 
         return response()->json([
             'message' => 'Land survey updated successfully',
@@ -121,5 +123,25 @@ class LandSurveyController extends Controller
         return response()->json([
             'message' => 'Land survey deleted successfully',
         ], 200);
+    }
+
+    private function renameDocument(LandSurvey $survey): void
+    {
+        $survey->loadMissing(['landParcel', 'document']);
+
+        if (! $survey->document) {
+            return;
+        }
+
+        $identifier = $survey->landParcel?->parcel_id
+            ?: 'Project-'.($survey->landParcel?->project_id ?? 'N-A');
+        $extension = ltrim((string) $survey->document->file_type, '.');
+        $filename = "Survey Plan - {$survey->survey_ref_number} - {$identifier}";
+
+        if ($extension !== '') {
+            $filename .= '.'.$extension;
+        }
+
+        $survey->document->update(['original_filename' => $filename]);
     }
 }

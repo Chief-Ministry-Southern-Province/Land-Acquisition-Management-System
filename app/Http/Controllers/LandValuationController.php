@@ -46,6 +46,7 @@ class LandValuationController extends Controller
         $validated['status'] = $validated['status'] ?? 'approved';
 
         $valuation = LandValuation::create($validated);
+        $this->renameDocument($valuation);
 
         return response()->json([
             'message' => 'Valuation report registered successfully',
@@ -101,6 +102,7 @@ class LandValuationController extends Controller
         $validated['total_valuation'] = $validated['land_value'] + $validated['crop_value'] + $validated['structure_value'];
 
         $valuation->update($validated);
+        $this->renameDocument($valuation);
 
         return response()->json([
             'message' => 'Land valuation updated successfully',
@@ -126,5 +128,25 @@ class LandValuationController extends Controller
         return response()->json([
             'message' => 'Land valuation deleted successfully',
         ], 200);
+    }
+
+    private function renameDocument(LandValuation $valuation): void
+    {
+        $valuation->loadMissing(['landParcel', 'document']);
+
+        if (! $valuation->document) {
+            return;
+        }
+
+        $identifier = $valuation->landParcel?->parcel_id
+            ?: 'Project-'.($valuation->landParcel?->project_id ?? 'N-A');
+        $extension = ltrim((string) $valuation->document->file_type, '.');
+        $filename = "Valuation Report - {$valuation->valuation_ref_number} - {$identifier}";
+
+        if ($extension !== '') {
+            $filename .= '.'.$extension;
+        }
+
+        $valuation->document->update(['original_filename' => $filename]);
     }
 }

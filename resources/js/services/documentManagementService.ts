@@ -9,6 +9,7 @@ export const uploadDocument = async (
   landParcelId: string | null = null,
   propertyOwnerId: string | null = null,
   onUploadProgress?: (progressEvent: any) => void,
+  displayFilename?: string,
 ): Promise<Document> => {
   const formData = new FormData();
   formData.append('file', file);
@@ -31,6 +32,10 @@ export const uploadDocument = async (
   }
 
   formData.append('document_category', category);
+
+  if (displayFilename) {
+    formData.append('display_filename', displayFilename);
+  }
 
   const response = await api.post('/api/documents', formData, {
     headers: {

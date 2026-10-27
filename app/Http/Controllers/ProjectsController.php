@@ -169,6 +169,7 @@ class ProjectsController extends Controller
 
         $project = Projects::with([
             'landParcels.owners',
+            'landParcels.documents',
             'landParcels.surveys.document',
             'landParcels.valuations.document',
             'landParcels.compensations.payments.document',
