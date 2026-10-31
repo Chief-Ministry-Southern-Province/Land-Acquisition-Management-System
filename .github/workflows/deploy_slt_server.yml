@@ -18,6 +18,7 @@ jobs:
         with:
           host: ${{ secrets.SLTVPS_HOST }}
           username: ${{ secrets.SLTVPS_USER }}
+          port: ${{ secrets.SLTVPS_PORT }}
           key: ${{ secrets.SLTVPS_SSH_KEY }}
 
           script: |
