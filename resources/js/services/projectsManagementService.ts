@@ -104,6 +104,11 @@ const mapFromBackend = (data: any): Project => ({
         village: p.village,
         extent_acers: String(p.land_size_acers ?? p.extent_acers ?? 0),
         extent_perches: String(p.land_size_perches ?? p.extent_perches ?? 0),
+        is_casehold: Boolean(p.is_casehold),
+        case_number: p.case_number || null,
+        case_start_date: p.case_start_date || null,
+        case_end_date: p.case_end_date || null,
+        case_status: p.case_status || null,
         remarks: p.remarks || null,
         status: p.status,
         created_at: p.created_at,
@@ -120,6 +125,23 @@ const mapFromBackend = (data: any): Project => ({
               updated_at: o.updated_at,
             }))
           : [],
+        documents: p.documents
+          ? p.documents.map((d: any) => ({
+              id: String(d.id),
+              user_id: String(d.user_id),
+              project_id: d.project_id ? String(d.project_id) : '',
+              original_filename: d.original_filename || '',
+              stored_filename: d.stored_filename || '',
+              file_type: d.file_type || '',
+              file_path: d.file_path || '',
+              file_size: d.file_size || '',
+              document_category: d.document_category || '',
+              upload_date: d.upload_date || '',
+              created_at: d.created_at,
+              updated_at: d.updated_at,
+            }))
+          : [],
+        valuations: p.valuations || [],
       }))
     : [],
   documents: data.documents

@@ -17,6 +17,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
 import { confirmDialog } from '@/lib/alerts';
+import { isValidNic, normalizeNic } from '@/lib/nic';
 import {
   getCurrentUser,
   changePassword,
@@ -27,13 +28,18 @@ import {
 
 export default function Settings() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('organization');
+  const [activeTab, setActiveTab] = useState(() => {
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+
+    return requestedTab === 'profile' ? 'profile' : 'organization';
+  });
 
   // User Profile details
   const [profileData, setProfileData] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [profileName, setProfileName] = useState('');
   const [profileEmail, setProfileEmail] = useState('');
+  const [profileNic, setProfileNic] = useState('');
   const [profilePhone, setProfilePhone] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
 
@@ -77,6 +83,7 @@ export default function Settings() {
         setProfileData(data.user);
         setProfileName(data.user.name || '');
         setProfileEmail(data.user.email || '');
+        setProfileNic(data.user.nic || '');
         setProfilePhone(data.user.phone || '');
         setActiveSignature(data.user.signature || null);
 
@@ -116,11 +123,24 @@ export default function Settings() {
       return;
     }
 
+    if (profileNic.trim() && !isValidNic(profileNic)) {
+      showToast(
+        'error',
+        t(
+          'err_nic_invalid',
+          'Enter a valid NIC: 12 digits, or 9 digits followed by V or X.',
+        ),
+      );
+
+      return;
+    }
+
     try {
       setSavingProfile(true);
       const res = await updateProfile({
         name: profileName.trim(),
         email: profileEmail.trim(),
+        nic: profileNic.trim() ? normalizeNic(profileNic) : null,
         phone: profilePhone.trim() || null,
       });
       showToast(
@@ -814,6 +834,26 @@ export default function Settings() {
                             className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
                             placeholder="user@example.com"
                           />
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">
+                            {t('nic_number', 'NIC Number')}
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="text"
+                            maxLength={12}
+                            value={profileNic}
+                            onChange={(e) => setProfileNic(e.target.value)}
+                            className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
+                            placeholder="200135801709"
+                          />
+                          <p className="text-muted-foreground mt-1 text-xs">
+                            {t(
+                              'hint_nic_format',
+                              '12 digits, or 9 digits followed by V or X',
+                            )}
+                          </p>
                         </div>
                       </div>
 

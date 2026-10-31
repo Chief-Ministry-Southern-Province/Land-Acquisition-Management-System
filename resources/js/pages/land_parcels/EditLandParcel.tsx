@@ -913,12 +913,30 @@ export default function EditLandParcel({ id }: { id: string }) {
 
       // Upload the plan/sketch document
       if (planFile) {
+        const extensionIndex = planFile.name.lastIndexOf('.');
+        const extension = (
+          extensionIndex >= 0 ? planFile.name.slice(extensionIndex) : ''
+        )
+          .replace(/[^a-zA-Z0-9.]/g, '')
+          .slice(0, 20);
+        const sanitizeFilenamePart = (value: string) =>
+          value.trim().replace(/[\\/:*?"<>|]+/g, '_');
+        const planReference = sanitizeFilenamePart(
+          form.planNumber || form.landNumber,
+        );
+        const parcelIdentifier = sanitizeFilenamePart(form.landNumber);
+        const filenameBase = `${form.hasPlan ? 'Land Parcel Plan' : 'Land Parcel Sketch'} - ${planReference} - ${parcelIdentifier}`;
+        const planDocumentName = `${filenameBase.slice(0, 255 - extension.length)}${extension}`;
+
         await uploadDocument(
           planFile,
           String(userId || ''),
           form.projectId ? String(form.projectId) : null,
           form.hasPlan ? 'survey' : 'sketch',
           String(id),
+          null,
+          undefined,
+          planDocumentName,
         );
       }
 

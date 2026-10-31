@@ -30,6 +30,8 @@ import {
 import { appUrl } from '@/lib/url';
 import MarkProgress from '@/pages/developmentOfficer/MarkProgress';
 import api from '@/services/api';
+import { getAuditLogs } from '@/services/auditLogService';
+import type { AuditLog } from '@/services/auditLogService';
 import {
   deleteDocument,
   downloadDocument,
@@ -70,6 +72,16 @@ const formatDate = (dateStr?: string | null) => {
   }
 };
 
+const formatDateTime = (dateStr?: string | null) => {
+  if (!dateStr) {
+    return 'N/A';
+  }
+
+  const date = new Date(dateStr);
+
+  return isNaN(date.getTime()) ? dateStr : date.toLocaleString();
+};
+
 interface ProjectDetailsProps {
   id: string;
 }
@@ -78,6 +90,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
   const [activeTab, setActiveTab] = useState('general');
   const [project, setProject] = useState<Project | null>(null);
   const [dbCompensations, setDbCompensations] = useState<any[]>([]);
+  const [dbAuditLogs, setDbAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
@@ -102,6 +115,13 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
           'Failed to fetch compensations for project details:',
           err,
         );
+      }
+
+      try {
+        setDbAuditLogs(await getAuditLogs());
+      } catch (err) {
+        console.error('Failed to fetch project audit trail:', err);
+        setDbAuditLogs([]);
       }
     } catch (error) {
       console.error('Failed to fetch project details:', error);
@@ -435,8 +455,10 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
         p.valuations?.map((v: any) => ({
           id: `VAL-${v.id}`,
           parcel: p.parcel_id,
-          marketValue: `₨ ${Number(v.land_value).toLocaleString()}`,
-          assessed: `₨ ${Number(v.total_valuation).toLocaleString()}`,
+          landValue: `₨ ${Number(v.land_value).toLocaleString()}`,
+          cropValue: `₨ ${Number(v.crop_value).toLocaleString()}`,
+          structureValue: `₨ ${Number(v.structure_value).toLocaleString()}`,
+          totalValue: `₨ ${Number(v.total_valuation).toLocaleString()}`,
           status: v.status,
         })) || [],
     ) || [];
@@ -494,46 +516,60 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
       );
     }, 0) || 0;
 
-  const documents = project?.documents
-    ? project.documents.map((doc) => ({
-        id: doc.id,
-        name: doc.original_filename,
-        type: doc.file_type.replace('.', '').toUpperCase(),
-        category: doc.document_category,
-        uploadDate: formatDate(doc.upload_date),
-        size: doc.file_size,
-      }))
-    : [];
+  const relatedDocuments = Array.from(
+    new Map(
+      [
+        ...(project?.documents || []),
+        ...(project?.landParcels?.flatMap((parcel) => parcel.documents || []) ||
+          []),
+      ].map((doc) => [doc.id, doc]),
+    ).values(),
+  );
 
-  const legalCases = [
-    {
-      caseNo: 'LEG-2024-023',
-      court: 'District Court - Galle',
-      parcel: 'PCL-8935',
-      status: 'active',
-    },
-  ];
+  const documents = relatedDocuments.map((doc) => ({
+    id: doc.id,
+    name: doc.original_filename,
+    type: doc.file_type.replace('.', '').toUpperCase(),
+    category: doc.document_category,
+    uploadDate: formatDate(doc.upload_date),
+    size: doc.file_size,
+  }));
 
-  const auditTrail = [
-    {
-      date: '2024-05-15 10:30',
-      user: 'Land Officer',
-      action: 'Updated parcel status',
-      details: 'PCL-8935: In Progress',
-    },
-    {
-      date: '2024-05-10 14:20',
-      user: 'Finance Officer',
-      action: 'Approved compensation',
-      details: 'COMP-3456: ₨ 15,000,000',
-    },
-    {
-      date: '2024-04-28 09:15',
-      user: 'Valuation Officer',
-      action: 'Submitted valuation',
-      details: 'VAL-5678: ₨ 15,000,000',
-    },
-  ];
+  const legalCases =
+    project?.landParcels
+      ?.filter((parcel) => parcel.is_casehold)
+      .map((parcel) => ({
+        caseNo: parcel.case_number || 'N/A',
+        parcel: parcel.parcel_id,
+        startDate: formatDate(parcel.case_start_date),
+        endDate: formatDate(parcel.case_end_date),
+        status: parcel.case_status || 'N/A',
+        remarks: parcel.remarks || 'N/A',
+      })) || [];
+
+  const auditIdentifiers = [
+    project?.projectId,
+    project?.title,
+    project?.name,
+    ...(project?.landParcels?.map((parcel) => parcel.parcel_id) || []),
+  ]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .map((value) => value.toLowerCase());
+
+  const auditTrail = dbAuditLogs
+    .filter((log) => {
+      const details = log.details.toLowerCase();
+
+      return auditIdentifiers.some((identifier) =>
+        details.includes(identifier),
+      );
+    })
+    .map((log) => ({
+      date: formatDateTime(log.timestamp),
+      user: log.user,
+      action: log.action,
+      details: log.details,
+    }));
 
   const tabs = [
     { id: 'general', label: t('tab_general') },
@@ -1110,8 +1146,18 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
           columns={[
             { key: 'id', label: t('valuation_id'), sortable: true },
             { key: 'parcel', label: t('parcel_label'), sortable: true },
-            { key: 'marketValue', label: t('market_value'), sortable: true },
-            { key: 'assessed', label: t('assessed_value'), sortable: true },
+            { key: 'landValue', label: t('land_value'), sortable: true },
+            { key: 'cropValue', label: t('crop_value'), sortable: true },
+            {
+              key: 'structureValue',
+              label: t('structure_value'),
+              sortable: true,
+            },
+            {
+              key: 'totalValue',
+              label: t('total_valuation'),
+              sortable: true,
+            },
             {
               key: 'status',
               label: t('status'),
@@ -1760,15 +1806,26 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
         <DataTable
           columns={[
             { key: 'caseNo', label: t('case_number_label'), sortable: true },
-            { key: 'court', label: t('court'), sortable: true },
             { key: 'parcel', label: t('related_parcel'), sortable: true },
+            {
+              key: 'startDate',
+              label: t('case_start_date'),
+              sortable: true,
+            },
+            {
+              key: 'endDate',
+              label: t('case_end_date'),
+              sortable: true,
+            },
             {
               key: 'status',
               label: t('status'),
               render: (value: string) => <StatusBadge status={value} />,
             },
+            { key: 'remarks', label: t('remarks'), sortable: true },
           ]}
           data={legalCases}
+          emptyMessage="No data available"
         />
       )}
 
@@ -1784,6 +1841,7 @@ export default function ProjectDetails({ id }: ProjectDetailsProps) {
           searchable={false}
           filterable={false}
           exportable={false}
+          emptyMessage="No data available"
         />
       )}
     </div>

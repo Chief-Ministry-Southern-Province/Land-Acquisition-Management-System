@@ -4,11 +4,13 @@ export interface LoginResponse {
   token?: string;
   message?: string;
   errors?: Record<string, string[]>;
+  user?: UserResponse['user'];
 }
 
 export interface RegisterData {
   name: string;
   email: string;
+  nic?: string;
   phone?: string;
   password?: string;
   password_confirmation?: string;
@@ -28,6 +30,7 @@ export interface UserResponse {
     id: number;
     name: string;
     email: string;
+    nic?: string | null;
     phone?: string | null;
     notification_preference?: 'email' | 'sms' | 'both' | 'none';
     department_id: number;
@@ -69,6 +72,7 @@ export interface NotificationPreferenceResponse {
 export interface UpdateProfileData {
   name: string;
   email: string;
+  nic?: string | null;
   phone?: string | null;
 }
 
@@ -80,16 +84,16 @@ export interface UpdateProfileResponse {
 /**
  * Sends a login request to the API using the axios instance.
  *
- * @param email The user's email address.
+ * @param identifier The user's email address or NIC number.
  * @param password The user's password.
  * @returns The response data containing token, message, etc.
  */
 export const login = async (
-  email: string,
+  identifier: string,
   password: string,
 ): Promise<LoginResponse> => {
   const response = await api.post<LoginResponse>('/api/auth/login', {
-    email,
+    login: identifier,
     password,
   });
 

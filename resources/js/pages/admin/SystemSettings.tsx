@@ -20,6 +20,7 @@ import {
   AlertCircle,
   X,
   RotateCcw,
+  User,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -41,10 +42,11 @@ import {
   updateSystemSettings,
   cleanBackupsNow,
 } from '@/services/systemSettingService';
+import AdminAccountSettings from './AdminAccountSettings';
 
 /* ────────────────── Types ────────────────── */
 
-type Tab = 'general' | 'security' | 'notifications' | 'backup';
+type Tab = 'general' | 'security' | 'notifications' | 'backup' | 'account';
 
 /* ────────────────── Shared helpers ────────────────── */
 
@@ -153,13 +155,18 @@ const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: 'security', label: 'Security', icon: Shield },
   { key: 'notifications', label: 'Notifications', icon: Bell },
   { key: 'backup', label: 'Backup & Maintenance', icon: Database },
+  { key: 'account', label: 'My Account', icon: User },
 ];
 
 /* ────────────────── Main component ────────────────── */
 
 export default function SystemSettings() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<Tab>('general');
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+
+    return requestedTab === 'account' ? 'account' : 'general';
+  });
   const [saved, setSaved] = useState(false);
 
   // ── General settings ──
@@ -213,10 +220,10 @@ export default function SystemSettings() {
     text: string;
   } | null>(null);
 
-  const showToast = (type: 'success' | 'error', text: string) => {
+  const showToast = useCallback((type: 'success' | 'error', text: string) => {
     setToast({ type, text });
     setTimeout(() => setToast(null), 5000);
-  };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -367,7 +374,7 @@ export default function SystemSettings() {
     } finally {
       setLoadingBackups(false);
     }
-  }, [t]);
+  }, [showToast, t]);
 
   useEffect(() => {
     if (activeTab === 'backup') {
@@ -676,26 +683,28 @@ export default function SystemSettings() {
             )}
           </p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={savingSettings}
-          className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
-        >
-          {savingSettings ? (
-            <>
-              <LoadingSpinner type="beat" variant="secondary" size="xs" />{' '}
-              {t('saving', 'Saving...')}
-            </>
-          ) : saved ? (
-            <>
-              <CheckCircle className="h-4 w-4" /> {t('saved', 'Saved')}
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4" /> {t('save_changes', 'Save Changes')}
-            </>
-          )}
-        </button>
+        {activeTab !== 'account' && (
+          <button
+            onClick={handleSave}
+            disabled={savingSettings}
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
+          >
+            {savingSettings ? (
+              <>
+                <LoadingSpinner type="beat" variant="secondary" size="xs" />{' '}
+                {t('saving', 'Saving...')}
+              </>
+            ) : saved ? (
+              <>
+                <CheckCircle className="h-4 w-4" /> {t('saved', 'Saved')}
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" /> {t('save_changes', 'Save Changes')}
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Summary cards */}
@@ -1496,6 +1505,10 @@ export default function SystemSettings() {
             )}
           </SectionCard>
         </div>
+      )}
+
+      {activeTab === 'account' && (
+        <AdminAccountSettings showToast={showToast} />
       )}
     </div>
   );

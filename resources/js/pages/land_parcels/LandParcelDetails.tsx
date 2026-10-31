@@ -916,7 +916,10 @@ export default function LandParcelDetails({ id }: Props) {
         : s.document.file_type || 'PDF';
       dbDocuments.push({
         id: String(s.document.id),
-        name: `Survey Plan - Ref: ${s.survey_ref_number || 'N/A'}`,
+        name:
+          s.document.originalFilename ||
+          s.document.original_filename ||
+          `Survey Plan - ${s.survey_ref_number || 'N/A'} - ${parcel.parcel_id}`,
         type: fileTypeStr.toUpperCase().replace('.', ''),
         date: s.document.uploadDate || s.document.upload_date || 'N/A',
       });
@@ -931,7 +934,10 @@ export default function LandParcelDetails({ id }: Props) {
         : v.document.file_type || 'PDF';
       dbDocuments.push({
         id: String(v.document.id),
-        name: `Valuation Report - Ref: ${v.valuation_ref_number || 'N/A'}`,
+        name:
+          v.document.originalFilename ||
+          v.document.original_filename ||
+          `Valuation Report - ${v.valuation_ref_number || 'N/A'} - ${parcel.parcel_id}`,
         type: fileTypeStr.toUpperCase().replace('.', ''),
         date: v.document.uploadDate || v.document.upload_date || 'N/A',
       });
@@ -955,7 +961,9 @@ export default function LandParcelDetails({ id }: Props) {
     });
   });
 
-  const filteredDocuments = dbDocuments;
+  const filteredDocuments = Array.from(
+    new Map(dbDocuments.map((document) => [document.id, document])).values(),
+  );
 
   const compDocuments =
     parcel?.documents && parcel.documents.length > 0

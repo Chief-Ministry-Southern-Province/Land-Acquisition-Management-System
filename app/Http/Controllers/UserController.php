@@ -8,6 +8,7 @@ use App\Services\RateLimiterService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -75,9 +76,19 @@ class UserController extends Controller
             ], 404);
         }
 
+        if ($request->filled('nic')) {
+            $request->merge(['nic' => strtoupper(trim((string) $request->input('nic')))]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|max:255|unique:users,email,'.$id,
+            'nic' => [
+                'nullable',
+                'string',
+                'regex:/^(?:[0-9]{12}|[0-9]{9}[VvXx])$/',
+                Rule::unique('users', 'nic')->ignore($id),
+            ],
             'phone' => 'nullable|string|max:255',
             'notification_preference' => 'nullable|string|in:email,sms,both,none',
             'role_id' => 'required|integer',
