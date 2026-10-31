@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
+import Swal from 'sweetalert2';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTheme } from '@/hooks/useTheme';
@@ -52,6 +53,29 @@ function LoginScreen() {
       }
 
       queryClient.clear();
+
+      if (!data.user?.nic) {
+        const result = await Swal.fire({
+          icon: 'info',
+          title: t('nic_missing_title', 'Add your NIC number'),
+          text: t(
+            'nic_missing_message',
+            'Your account does not have an NIC number. Please add it in your profile settings.',
+          ),
+          confirmButtonText: t('go_to_settings', 'Go to Settings'),
+          showCancelButton: true,
+          cancelButtonText: t('remind_me_later', 'Remind Me Later'),
+        });
+
+        if (result.isConfirmed) {
+          const settingsTab =
+            data.user?.role?.role_name === 'Admin' ? 'account' : 'profile';
+          window.location.href = appUrl(`/settings?tab=${settingsTab}`);
+
+          return;
+        }
+      }
+
       window.location.href = appUrl('/dashboard');
     } catch (err: any) {
       if (err.response) {
@@ -309,20 +333,20 @@ function LoginScreen() {
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
                 <label className="text-muted-foreground mb-2 block text-xs font-semibold uppercase tracking-wider">
-                  {t('email_address', 'Official Email Address')}
+                  {t('login_identifier', 'Email or NIC Number')}
                 </label>
                 <div className="relative">
                   <span className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
                     <User className="h-4.5 w-4.5" />
                   </span>
                   <input
-                    type="email"
+                    type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="bg-input-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 w-full rounded-xl border py-3 pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-2"
                     placeholder={t(
-                      'email_placeholder',
-                      'officer@southerndept.gov.lk',
+                      'login_identifier_placeholder',
+                      'Enter your email or NIC number',
                     )}
                     required
                     disabled={isLoading}

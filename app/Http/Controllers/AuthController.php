@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -21,9 +22,14 @@ class AuthController extends Controller
      */
     public function register(Request $request): JsonResponse
     {
+        if ($request->filled('nic')) {
+            $request->merge(['nic' => strtoupper(trim((string) $request->input('nic')))]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'nic' => ['nullable', 'string', 'regex:/^(?:[0-9]{12}|[0-9]{9}[VvXx])$/', 'unique:users,nic'],
             'phone' => 'nullable|string|max:255',
             'password' => 'nullable|string|min:8|confirmed',
             'department_id' => 'required|integer|exists:departments,id',
@@ -64,14 +70,20 @@ class AuthController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|string|email',
+        $validated = $request->validate([
+            'login' => 'required_without:email|string',
+            'email' => 'required_without:login|string',
             'password' => 'required|string',
         ]);
 
-        if (! Auth::attempt($request->only('email', 'password'))) {
+        $identifier = trim((string) ($validated['login'] ?? $validated['email']));
+        $field = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'nic';
+        $identifier = $field === 'nic' ? strtoupper($identifier) : $identifier;
+        $errorKey = $request->has('login') ? 'login' : 'email';
+
+        if (! Auth::attempt([$field => $identifier, 'password' => $validated['password']])) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                $errorKey => ['The provided credentials are incorrect.'],
             ]);
         }
 
@@ -83,7 +95,7 @@ class AuthController extends Controller
             $user->tokens()->delete();
 
             throw ValidationException::withMessages([
-                'email' => ['Your account has been deactivated. Please contact an administrator.'],
+                $errorKey => ['Your account has been deactivated. Please contact an administrator.'],
             ]);
         }
 
@@ -331,15 +343,26 @@ class AuthController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        if ($request->filled('nic')) {
+            $request->merge(['nic' => strtoupper(trim((string) $request->input('nic')))]);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'nic' => [
+                'nullable',
+                'string',
+                'regex:/^(?:[0-9]{12}|[0-9]{9}[VvXx])$/',
+                Rule::unique('users', 'nic')->ignore($user->id),
+            ],
             'phone' => ['nullable', 'string', 'max:255'],
         ]);
 
         $user->forceFill([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'nic' => $validated['nic'] ?? null,
             'phone' => $validated['phone'] ?? null,
         ])->save();
 

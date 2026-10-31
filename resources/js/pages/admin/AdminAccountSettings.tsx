@@ -2,6 +2,7 @@ import { Bell, Lock, Save, User } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useTranslation } from '@/hooks/useTranslation';
+import { isValidNic, normalizeNic } from '@/lib/nic';
 import {
   changePassword,
   getCurrentUser,
@@ -35,6 +36,7 @@ export default function AdminAccountSettings({
   const [profile, setProfile] = useState<any>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [nic, setNic] = useState('');
   const [phone, setPhone] = useState('');
   const [notificationPreference, setNotificationPreference] =
     useState<NotificationPreference>('email');
@@ -56,6 +58,7 @@ export default function AdminAccountSettings({
         setProfile(response.user);
         setName(response.user.name || '');
         setEmail(response.user.email || '');
+        setNic(response.user.nic || '');
         setPhone(response.user.phone || '');
         setNotificationPreference(
           response.user.notification_preference || 'email',
@@ -90,12 +93,25 @@ export default function AdminAccountSettings({
       return;
     }
 
+    if (nic.trim() && !isValidNic(nic)) {
+      showToast(
+        'error',
+        t(
+          'err_nic_invalid',
+          'Enter a valid NIC: 12 digits, or 9 digits followed by V or X.',
+        ),
+      );
+
+      return;
+    }
+
     setSavingProfile(true);
 
     try {
       const response = await updateProfile({
         name: name.trim(),
         email: email.trim(),
+        nic: nic.trim() ? normalizeNic(nic) : null,
         phone: phone.trim() || null,
       });
       showToast(
@@ -268,6 +284,25 @@ export default function AdminAccountSettings({
               onChange={(event) => setPhone(event.target.value)}
               disabled={savingProfile}
             />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium">
+            {t('nic_number', 'NIC Number')}
+            <input
+              className={inputCls}
+              type="text"
+              inputMode="text"
+              maxLength={12}
+              value={nic}
+              onChange={(event) => setNic(event.target.value)}
+              placeholder="200135801709"
+              disabled={savingProfile}
+            />
+            <span className="text-muted-foreground text-xs">
+              {t(
+                'hint_nic_format',
+                '12 digits, or 9 digits followed by V or X',
+              )}
+            </span>
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium">
             {t('label_role', 'Role')}

@@ -47,6 +47,7 @@ export default function UserManagement() {
         role: u.role?.role_name || 'N/A',
         department: u.department?.department_name || 'N/A',
         email: u.email,
+        nic: u.nic || null,
         phone: u.phone || null,
         status: u.status || 'active',
         rawId: u.id,
@@ -141,6 +142,7 @@ export default function UserManagement() {
       const payload = {
         name: user.name,
         email: user.email,
+        nic: user.nic || null,
         phone: user.phone || null,
         role_id: user.roleId,
         department_id: user.departmentId,
@@ -177,6 +179,7 @@ export default function UserManagement() {
       const payload = {
         name: values.userName,
         email: values.email,
+        nic: values.nic,
         phone: values.phone || null,
         role_id: Number(values.role),
         department_id: Number(values.department),
@@ -251,6 +254,7 @@ export default function UserManagement() {
       id: editingUser.rawId,
       name: editingUser.name,
       email: editingUser.email,
+      nic: editingUser.nic,
       phone: editingUser.phone || null,
       role_id: editingUser.roleId,
       department_id: editingUser.departmentId,

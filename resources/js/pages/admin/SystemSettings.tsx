@@ -162,7 +162,11 @@ const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
 
 export default function SystemSettings() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<Tab>('general');
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+
+    return requestedTab === 'account' ? 'account' : 'general';
+  });
   const [saved, setSaved] = useState(false);
 
   // ── General settings ──

@@ -133,9 +133,9 @@ class RateLimiterService
         $ip = $request->ip() ?: '127.0.0.1';
 
         if ($operation === 'auth_login') {
-            $email = strtolower(trim((string) $request->input('email', 'guest')));
+            $login = strtolower(trim((string) $request->input('login', $request->input('email', 'guest'))));
 
-            return "login:ip:{$ip}:{$email}";
+            return "login:ip:{$ip}:{$login}";
         }
 
         if ($operation === 'auth_password_reset') {

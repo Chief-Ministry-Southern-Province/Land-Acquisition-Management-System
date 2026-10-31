@@ -3,6 +3,7 @@ import { ArrowLeft, Info, Save, UserPlus, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import MainLayout from '@/layouts/MainLayout';
+import { isValidNic, normalizeNic } from '@/lib/nic';
 import { appUrl } from '@/lib/url';
 import { register } from '@/services/authService';
 import { getDepartments } from '@/services/departmentManagementService';
@@ -21,6 +22,7 @@ export interface AddUserFormValues {
   role: string;
   department: string;
   email: string;
+  nic: string;
   password: string;
   confirmPassword: string;
   status: 'Active' | 'Inactive';
@@ -38,6 +40,7 @@ export interface AddUserFormProps {
     id: number;
     name: string;
     email: string;
+    nic?: string | null;
     phone?: string | null;
     role_id: number;
     department_id: number;
@@ -53,6 +56,7 @@ const EMPTY_VALUES: AddUserFormValues = {
   role: '',
   department: '',
   email: '',
+  nic: '',
   password: '',
   confirmPassword: '',
   status: 'Active',
@@ -87,6 +91,15 @@ function validate(values: AddUserFormValues, t: any): FormErrors {
     errors.email = t('err_email_required', 'Email is required.');
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
     errors.email = t('err_email_invalid', 'Enter a valid email address.');
+  }
+
+  if (!values.nic.trim()) {
+    errors.nic = t('err_nic_required', 'NIC number is required.');
+  } else if (!isValidNic(values.nic)) {
+    errors.nic = t(
+      'err_nic_invalid',
+      'Enter a valid NIC: 12 digits, or 9 digits followed by V or X.',
+    );
   }
 
   return errors;
@@ -178,6 +191,7 @@ export default function AddUserForm({
         role: String(userToEdit.role_id),
         department: String(userToEdit.department_id),
         email: userToEdit.email,
+        nic: userToEdit.nic || '',
         password: '',
         confirmPassword: '',
         status:
@@ -254,6 +268,7 @@ export default function AddUserForm({
         const payload = {
           name: values.userName,
           email: values.email,
+          nic: normalizeNic(values.nic),
           phone: values.phone.trim() || undefined,
           department_id: Number(values.department),
           role_id: Number(values.role),
@@ -280,6 +295,10 @@ export default function AddUserForm({
 
             if (data.errors.email) {
               formErrors.email = data.errors.email[0];
+            }
+
+            if (data.errors.nic) {
+              formErrors.nic = data.errors.nic[0];
             }
 
             if (data.errors.phone) {
@@ -476,6 +495,29 @@ export default function AddUserForm({
                 disabled={isSubmitting}
               />
               {errors.email && <span className={errCls}>{errors.email}</span>}
+            </Field>
+
+            {/* NIC Number */}
+            <Field
+              label={t('nic_number', 'NIC Number')}
+              required
+              hint={t(
+                'hint_nic_format',
+                '12 digits, or 9 digits followed by V or X',
+              )}
+            >
+              <input
+                id="nic"
+                className={inputCls}
+                type="text"
+                inputMode="text"
+                maxLength={12}
+                placeholder={t('nic_placeholder', 'e.g. 200135801709')}
+                value={values.nic}
+                onChange={handleChange('nic')}
+                disabled={isSubmitting}
+              />
+              {errors.nic && <span className={errCls}>{errors.nic}</span>}
             </Field>
 
             {/* Role */}
