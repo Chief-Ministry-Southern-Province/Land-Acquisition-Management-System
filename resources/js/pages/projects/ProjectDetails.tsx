@@ -30,8 +30,8 @@ import {
 import { appUrl } from '@/lib/url';
 import MarkProgress from '@/pages/developmentOfficer/MarkProgress';
 import api from '@/services/api';
-import { getAuditLogs  } from '@/services/auditLogService';
-import type {AuditLog} from '@/services/auditLogService';
+import { getAuditLogs } from '@/services/auditLogService';
+import type { AuditLog } from '@/services/auditLogService';
 import {
   deleteDocument,
   downloadDocument,
