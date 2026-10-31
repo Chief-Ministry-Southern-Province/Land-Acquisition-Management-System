@@ -1,0 +1,59 @@
+name: Deploy to SLT VPS
+
+on:
+  push:
+    branches:
+      - slt-vps-deploy
+
+permissions: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to SLT VPS
+        uses: appleboy/ssh-action@v1.2.5
+
+        with:
+          host: ${{ secrets.SLTVPS_HOST }}
+          username: ${{ secrets.SLTVPS_USER }}
+          key: ${{ secrets.SLTVPS_SSH_KEY }}
+
+          script: |
+            cd /var/www/Land-Acquisition-Management-System
+
+            git stash
+
+            echo "Pulling latest code..."
+            git pull origin slt-vps-deploy
+
+            git stash pop
+
+            echo "Installing PHP dependencies..."
+            composer install --no-dev --optimize-autoloader
+
+            echo "Installing Node dependencies..."
+            npm install
+
+            echo "Building frontend..."
+            npm run build
+
+            echo "Running migrations..."
+            php artisan migrate --force
+
+            echo "Clearing caches..."
+            php artisan optimize:clear
+
+            echo "Caching configs..."
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "Restarting queue..."
+            php artisan queue:restart
+
+            echo "Restarting Reverb..."
+            php artisan reverb:restart
+
+            echo "Deployment completed."
