@@ -91,9 +91,10 @@ export default function AdminDashboard() {
       value: isLoading
         ? '...'
         : (statsData?.active_users ?? 0).toLocaleString(),
-      change: statsData?.active_users_change
-        ? t('active_users_change', statsData.active_users_change)
-        : t('active_users_change', '+0 this week'),
+      change: t('active_users_change', '+:count this week').replace(
+        ':count',
+        (statsData?.new_users_this_week ?? 0).toLocaleString(),
+      ),
       icon: Users,
       color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
     },

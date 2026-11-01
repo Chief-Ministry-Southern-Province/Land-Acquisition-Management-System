@@ -16,7 +16,7 @@ class AdminStatsController extends Controller
     public function index(): JsonResponse
     {
         $activeUsers = User::where('status', '!=', 'inactive')->count();
-        $usersThisWeek = User::where('created_at', '>=', now()->subDays(7))->count();
+        $usersThisWeek = User::where('created_at', '>=', now()->startOfWeek())->count();
 
         $systemLogs24h = AuditLogs::where('created_at', '>=', now()->subHours(24))->count();
 
@@ -44,7 +44,7 @@ class AdminStatsController extends Controller
             'message' => 'Admin stats fetched successfully',
             'stats' => [
                 'active_users' => $activeUsers,
-                'active_users_change' => "+{$usersThisWeek} this week",
+                'new_users_this_week' => $usersThisWeek,
                 'system_logs_24h' => $systemLogs24h,
                 'logs_rate' => $logsRateText,
                 'pending_requests' => $pendingRequests,

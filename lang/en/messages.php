@@ -1353,7 +1353,7 @@ return [
     'admin_control_center' => 'Admin Control Center',
     'admin_dashboard_subtitle' => 'Overview of system statistics, user activities, and main server configuration options.',
     'active_users' => 'Active Users',
-    'active_users_change' => '+2 this week',
+    'active_users_change' => '+:count this week',
     'system_logs_24h' => 'System Logs (24h)',
     'logs_normal_rate' => 'Normal rate',
     'pending_requests' => 'Pending Requests',
