@@ -512,7 +512,7 @@ export default function AddUserForm({
                 type="text"
                 inputMode="text"
                 maxLength={12}
-                placeholder={t('nic_placeholder', 'e.g. 200135801709')}
+                placeholder={t('nic_placeholder', 'e.g. 199079304567')}
                 value={values.nic}
                 onChange={handleChange('nic')}
                 disabled={isSubmitting}
