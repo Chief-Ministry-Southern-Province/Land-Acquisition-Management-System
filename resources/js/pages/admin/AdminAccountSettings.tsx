@@ -294,7 +294,7 @@ export default function AdminAccountSettings({
               maxLength={12}
               value={nic}
               onChange={(event) => setNic(event.target.value)}
-              placeholder="200135801709"
+              placeholder="199079304567"
               disabled={savingProfile}
             />
             <span className="text-muted-foreground text-xs">

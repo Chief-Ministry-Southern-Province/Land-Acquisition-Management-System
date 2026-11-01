@@ -5,8 +5,11 @@ use App\Models\Departments;
 use App\Models\Projects;
 use App\Models\Roles;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 
 beforeEach(function () {
+    Carbon::setTestNow('2026-11-01 12:00:00');
+
     $this->department = Departments::firstOrCreate([
         'department_name' => 'IT Department',
     ], [
@@ -33,6 +36,12 @@ beforeEach(function () {
 });
 
 test('admin can fetch admin dashboard stats', function () {
+    User::factory()->create([
+        'department_id' => $this->department->id,
+        'role_id' => $this->doRole->id,
+        'created_at' => now()->startOfWeek()->subSecond(),
+    ]);
+
     AuditLogs::create([
         'user_id' => $this->adminUser->id,
         'action' => 'LOGIN',
@@ -57,7 +66,7 @@ test('admin can fetch admin dashboard stats', function () {
             'message',
             'stats' => [
                 'active_users',
-                'active_users_change',
+                'new_users_this_week',
                 'system_logs_24h',
                 'logs_rate',
                 'pending_requests',
@@ -67,6 +76,7 @@ test('admin can fetch admin dashboard stats', function () {
 
     $data = $response->json('stats');
     $this->assertGreaterThanOrEqual(2, $data['active_users']);
+    $this->assertSame(2, $data['new_users_this_week']);
     $this->assertGreaterThanOrEqual(1, $data['system_logs_24h']);
     $this->assertGreaterThanOrEqual(1, $data['pending_requests']);
 });

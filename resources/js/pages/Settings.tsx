@@ -846,7 +846,7 @@ export default function Settings() {
                             value={profileNic}
                             onChange={(e) => setProfileNic(e.target.value)}
                             className="bg-input-background border-border focus:border-primary w-full rounded-lg border px-4 py-2 focus:outline-none"
-                            placeholder="200135801709"
+                            placeholder="199079304567"
                           />
                           <p className="text-muted-foreground mt-1 text-xs">
                             {t(

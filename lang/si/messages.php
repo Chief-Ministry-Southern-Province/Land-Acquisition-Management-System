@@ -1353,7 +1353,7 @@ return [
     'admin_control_center' => 'පරිපාලන පාලන මධ්‍යස්ථානය',
     'admin_dashboard_subtitle' => 'පද්ධති සංඛ්‍යාලේඛන, පරිශීලක ක්‍රියාකාරකම් සහ ප්‍රධාන සේවාදායක වින්‍යාස විකල්ප පිළිබඳ දළ විශ්ලේෂණය.',
     'active_users' => 'ක්‍රියාකාරී පරිශීලකයින්',
-    'active_users_change' => 'මෙම සතියේ +2',
+    'active_users_change' => 'මෙම සතියේ +:count',
     'system_logs_24h' => 'පද්ධති ලොගයන් (පැය 24)',
     'logs_normal_rate' => 'සාමාන්‍ය අනුපාතය',
     'pending_requests' => 'ප්‍රමාදිත ඉල්ලීම්',

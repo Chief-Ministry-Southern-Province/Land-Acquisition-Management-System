@@ -23,7 +23,7 @@ export interface RateLimitAlertItem {
 
 export interface AdminStats {
   active_users: number;
-  active_users_change: string;
+  new_users_this_week: number;
   system_logs_24h: number;
   logs_rate: string;
   pending_requests: number;
